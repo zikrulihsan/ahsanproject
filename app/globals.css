@@ -36,6 +36,11 @@ nav { align-items: center; display: flex; font-size: 13px; font-weight: 600; gap
 nav a { transition: opacity .2s ease; }
 nav a:hover { opacity: .6; }
 .nav-cta { align-items: center; border: 1px solid var(--line); border-radius: 100px; display: flex; gap: 14px; padding: 10px 15px; }
+.lang-switch {
+  border: 1px solid var(--line); border-radius: 100px; font-family: var(--font-geist-mono), monospace;
+  font-size: 11px; letter-spacing: .08em; padding: 8px 11px;
+}
+.lang-switch:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); opacity: 1; }
 .arrow { display: inline-block; font-family: Arial, sans-serif; transition: transform .25s ease; }
 .arrow-diagonal { transform: rotate(-45deg); }
 

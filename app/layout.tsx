@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { siteUrl } from "./content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,39 +13,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://ahsanproject-id.netlify.app";
-const title = "Ahsan Project — Ide kecil, dampak baik";
-const description =
-  "Kumpulan proyek digital buatan Zikrul Ihsan. Dari penghitung dzikir dan kartu obrolan sampai pembuat invoice.";
-
 export const viewport: Viewport = { themeColor: "#f3f0e8" };
 
+// Title, description and hreflang are set per language in each page's metadata.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title,
-  description,
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
     apple: "/apple-touch-icon.png",
   },
-  openGraph: {
-    title,
-    description,
-    type: "website",
-    locale: "id_ID",
-    url: siteUrl,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: title }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description,
-    images: ["/og.png"],
-  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Indonesian is the document default; the English route sets lang="en" on its
+  // own <main>, since only the root layout may render <html>.
   return (
     <html lang="id">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
