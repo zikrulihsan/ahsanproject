@@ -77,7 +77,7 @@ export default function Home() {
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Ahsan Project, kembali ke atas">
           <Logo className="brand-mark" />
-          <span>Ahsan Project</span>
+          <span>Ahsan <span className="brand-alt">Project</span></span>
         </a>
         <nav aria-label="Navigasi utama">
           <a href="#projects">Semua proyek</a>
@@ -194,7 +194,7 @@ export default function Home() {
       <footer>
         <a className="brand footer-brand" href="#top">
           <Logo className="brand-mark" />
-          <span>Ahsan Project</span>
+          <span>Ahsan <span className="brand-alt">Project</span></span>
         </a>
         <p>Dibuat oleh Zikrul Ihsan.</p>
         <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">

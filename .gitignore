@@ -41,3 +41,6 @@ next-env.d.ts
 /.netlify/
 /outputs/
 /work/
+
+# typescript
+*.tsbuildinfo
