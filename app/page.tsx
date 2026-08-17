@@ -1,10 +1,12 @@
+import { Logo } from "./logo";
+
 const projects = [
   {
     number: "01",
     name: "Tap Tap Dzikr",
-    label: "Untuk hati",
+    label: "Untuk ibadah",
     description:
-      "Ganti kebiasaan tap tap medsos dengan tap tap dzikr—jeda kecil untuk hati yang lebih tenang.",
+      "Ganti kebiasaan tap tap medsos dengan tap tap dzikr. Buka, tap, lalu tutup lagi.",
     url: "https://dzikir-harian.netlify.app/",
     domain: "dzikir-harian.netlify.app",
     accent: "mint",
@@ -12,9 +14,9 @@ const projects = [
   {
     number: "02",
     name: "Wecard",
-    label: "Untuk kedekatan",
+    label: "Untuk obrolan",
     description:
-      "Flip card berisi pertanyaan untuk membuka obrolan yang lebih dekat bersama teman, keluarga, dan pasangan.",
+      "Flip card berisi pertanyaan pemantik obrolan bersama teman, keluarga, atau pasangan.",
     url: "https://wecard-app.netlify.app/",
     domain: "wecard-app.netlify.app",
     accent: "yellow",
@@ -24,7 +26,7 @@ const projects = [
     name: "CariKontak",
     label: "Untuk sekitar",
     description:
-      "Simpan dan cari kontak penting di daerah sekitarmu—lebih mudah ditemukan saat benar-benar dibutuhkan.",
+      "Kumpulan kontak penting di daerah sekitarmu. Cari saat butuh, tanpa harus tanya sana-sini.",
     url: "https://carikontak.com/",
     domain: "carikontak.com",
     accent: "blue",
@@ -34,7 +36,7 @@ const projects = [
     name: "Invoice Cepat",
     label: "Untuk usaha",
     description:
-      "Buat invoice sederhana untuk jasa atau produkmu, tanpa proses panjang dan tanpa bikin pusing.",
+      "Buat invoice sederhana untuk jasa atau produkmu, tanpa proses yang panjang.",
     url: "https://umkmproject-invoice.netlify.app/",
     domain: "umkmproject-invoice.netlify.app",
     accent: "coral",
@@ -44,7 +46,7 @@ const projects = [
     name: "Main Aman",
     label: "Untuk anak",
     description:
-      "Tempat belajar agar anak lebih siap menghadapi berbagai lingkungan dan keadaan dengan aman.",
+      "Bahan belajar untuk anak supaya lebih siap menjaga diri di lingkungan sekitarnya.",
     url: "https://mainaman.netlify.app/",
     domain: "mainaman.netlify.app",
     accent: "purple",
@@ -52,9 +54,9 @@ const projects = [
   {
     number: "06",
     name: "Swegrowth",
-    label: "Untuk bertumbuh",
+    label: "Untuk komunitas",
     description:
-      "Portal komunitas software engineer Indonesia untuk belajar, berbagi, dan tumbuh bersama.",
+      "Portal komunitas software engineer Indonesia untuk belajar dan berbagi bareng.",
     url: "https://swegrowth.id/",
     domain: "swegrowth.id",
     accent: "green",
@@ -74,7 +76,7 @@ export default function Home() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Ahsan Project, kembali ke atas">
-          <span className="brand-mark">a.</span>
+          <Logo className="brand-mark" />
           <span>Ahsan Project</span>
         </a>
         <nav aria-label="Navigasi utama">
@@ -87,18 +89,19 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow"><span /> Satu rumah untuk hal-hal baik</p>
+          <p className="eyebrow"><span /> Semua proyek di satu tempat</p>
           <h1>
             Ide kecil.
             <br />
             <em>Dampak baik.</em>
           </h1>
           <p className="hero-description">
-            Ahsan Project adalah kumpulan proyek digital buatan <strong>Zikrul Ihsan</strong>—
-            lahir dari satu niat sederhana: membuat sesuatu yang berguna bagi sesama.
+            Ahsan Project adalah kumpulan proyek digital buatan <strong>Zikrul Ihsan</strong>.
+            Kebanyakan berawal dari masalah kecil yang saya alami sendiri, lalu ternyata
+            berguna juga untuk orang lain.
           </p>
           <a className="primary-button" href="#projects">
-            Jelajahi proyek <Arrow />
+            Lihat proyek <Arrow />
           </a>
         </div>
 
@@ -119,12 +122,12 @@ export default function Home() {
       <section className="projects-section" id="projects">
         <div className="section-heading">
           <div>
-            <p className="eyebrow"><span /> Yang sedang kami bangun</p>
-            <h2>Proyek untuk<br />hal-hal baik.</h2>
+            <p className="eyebrow"><span /> Yang sedang saya bangun</p>
+            <h2>Dibuat untuk<br />dipakai.</h2>
           </div>
           <p>
-            Dari membangun kebiasaan baik sampai bertumbuh bersama komunitas.
-            Pilih yang paling kamu butuhkan hari ini.
+            Semuanya sudah online dan bisa langsung dicoba.
+            Klik salah satu untuk membukanya di tab baru.
           </p>
         </div>
 
@@ -169,31 +172,31 @@ export default function Home() {
           <h2>
             Nama saya Ihsan.
             <br />
-            Misinya pun <em>ihsan.</em>
+            Niatnya juga <em>ihsan.</em>
           </h2>
           <div className="about-copy">
             <p>
-              <strong>Ahsan</strong> berarti melakukan dengan sebaik-baiknya. Bagi saya,
-              teknologi bukan cuma tentang apa yang bisa dibuat, tapi tentang siapa yang
-              bisa terbantu olehnya.
+              <strong>Ahsan</strong> berarti melakukan sesuatu dengan sebaik-baiknya.
+              Itu standar yang saya pakai untuk setiap proyek di sini, sekecil apa pun
+              proyeknya.
             </p>
             <p>
-              Ini adalah ruang untuk eksperimen, karya, dan niat baik yang terus bertumbuh—
-              satu proyek kecil dalam satu waktu.
+              Saya kerjakan satu per satu di waktu luang. Kalau ada satu yang kepakai
+              sama kamu, itu sudah lebih dari cukup.
             </p>
           </div>
         </div>
-        <div className="marquee" aria-label="Build small, care deeply, do ahsan">
-          <span>build small</span><i>✦</i><span>care deeply</span><i>✦</i><span>do ahsan</span>
+        <div className="marquee" aria-label="Mulai kecil, rawat terus, do ahsan">
+          <span>mulai kecil</span><i>✦</i><span>rawat terus</span><i>✦</i><span>do ahsan</span>
         </div>
       </section>
 
       <footer>
         <a className="brand footer-brand" href="#top">
-          <span className="brand-mark">a.</span>
+          <Logo className="brand-mark" />
           <span>Ahsan Project</span>
         </a>
-        <p>Made with niat baik by Zikrul Ihsan.</p>
+        <p>Dibuat oleh Zikrul Ihsan.</p>
         <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">
           GitHub <Arrow diagonal />
         </a>
