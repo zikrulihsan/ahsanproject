@@ -43,6 +43,17 @@ export type ProfileRow = {
   bio: string;
   website: string;
   github: string;
+  /** Trail kinds this person keeps off their public profile. */
+  activity_hidden: string[];
+  created_at: string;
+};
+
+export type EventRow = {
+  id: number;
+  actor_id: string;
+  project_id: number | null;
+  kind: string;
+  payload: Record<string, string>;
   created_at: string;
 };
 
@@ -112,6 +123,14 @@ export type Database = {
       boosts: {
         Row: BoostRow;
         Insert: Omit<BoostRow, "created_at">;
+        Update: never;
+      };
+      events: {
+        Row: EventRow;
+        // Written only by the triggers in 0005_activity.sql. Typing the write
+        // side as `never` turns a stray insert into a compile error rather than
+        // a runtime refusal.
+        Insert: never;
         Update: never;
       };
       tasks: {

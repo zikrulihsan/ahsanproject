@@ -35,6 +35,7 @@ and everything that writes will say so rather than failing quietly.
    - `0002_functions.sql` — the sign-up trigger and the two seat transitions
    - `0003_policies.sql` — row level security
    - `0004_access_and_tasks.sql` — project access levels and the task list
+   - `0005_activity.sql` — the activity trail
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -67,6 +68,8 @@ confirmation off, sign-up signs people straight in instead.
   is not a lesser project. What they ask for is evidence the work has moved.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
 - `app/lib/tasks.ts` — the three task statuses and what a task must carry.
+- `app/lib/activity.ts` — the ten kinds of trail entry and how each one reads
+  as a sentence.
 - `app/lib/access.ts` — owner, admin, member. Admins run the work — seats,
   applications, the task list. The project itself — the brief, the level,
   deleting it — stays with the owner.
@@ -81,6 +84,19 @@ plain update, so an applicant cannot rewrite the role on their way in. Moving a
 task goes through `move_task()` for the same reason: row level security is row
 level, not column level, so a policy letting the assignee update their own task
 would also let them retitle it and hand it to somebody else.
+
+The activity trail is written by triggers, never by the app, and that is a
+security decision rather than a tidiness one: if server actions wrote events,
+the table would need `grant insert to authenticated`, and anybody could then
+POST a fabricated entry into their own trail. As it stands `events` has no write
+grant at all — `record_event()` is the only writer, and it returns early when
+`auth.uid()` is null, so a migration or `supabase/seed.sql` cannot manufacture
+history that never happened.
+
+Hiding a kind of entry is enforced by the SELECT policy on `events`, not by the
+query. Filtering in `listPersonActivity()` would leave
+`GET /rest/v1/events?actor_id=eq.…` wide open, and the anon key is public by
+design.
 
 Two rules in `0004` are worth knowing before changing anything there.
 `can_manage_project()` is SECURITY DEFINER because it reads `seats` and is used

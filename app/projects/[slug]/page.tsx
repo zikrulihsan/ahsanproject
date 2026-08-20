@@ -16,9 +16,9 @@ import {
 } from "../../actions";
 import { signInPath } from "../../lib/urls";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
-import { StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
+import { ActivityList, StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
 import { briefCompleteness, domainOf } from "../../lib/brief";
-import { getProject, hasBoosted, type ProjectDetail } from "../../lib/data";
+import { getProject, hasBoosted, listProjectActivity, type ProjectDetail } from "../../lib/data";
 import { ROLES, roleLabel, roleMeta } from "../../lib/roles";
 import { STAGES, meetsStage, requirementsFor, stageMeta, type Stage, type StageInput } from "../../lib/stages";
 import { accessOf, canManage } from "../../lib/access";
@@ -59,6 +59,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
   const isOwner = access === "owner";
   const isManager = canManage(access);
   const boosted = viewer ? await hasBoosted(project.id, viewer.id) : false;
+  const history = await listProjectActivity(project.id);
   const returnTo = `/projects/${project.slug}`;
 
   const stageInput = toStageInput(project);
@@ -461,6 +462,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 </details>
               ) : null}
             </section>
+
+            {history.length > 0 ? (
+              <section className="history" aria-labelledby="history-heading">
+                <h2 id="history-heading">Riwayat</h2>
+                <ActivityList events={history} showActor />
+              </section>
+            ) : null}
 
             <section className="discussion" aria-labelledby="discussion-heading">
               <h2 id="discussion-heading">Diskusi ({project.comments.length})</h2>

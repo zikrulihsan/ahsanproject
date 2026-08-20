@@ -7,6 +7,7 @@ import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from
 import { isRole } from "./lib/roles";
 import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
+import { hiddenFrom } from "./lib/activity";
 import { currentViewer } from "./lib/session";
 
 export type CreateState = {
@@ -452,6 +453,28 @@ export async function toggleBoost(formData: FormData): Promise<void> {
 /* ------------------------------------------------------------------ *
  * Profile
  * ------------------------------------------------------------------ */
+
+/**
+ * Which kinds of trail entry stay public.
+ *
+ * Separate from updateProfile because it belongs beside the trail rather than
+ * beside the bio, and because updateProfile ends in a redirect.
+ */
+export async function setActivityVisibility(formData: FormData): Promise<void> {
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const shown = formData.getAll("show").filter((value): value is string => typeof value === "string");
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ activity_hidden: hiddenFrom(shown, viewer.activityHidden) })
+    .eq("id", viewer.id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/u/${viewer.username}`);
+}
 
 export async function updateProfile(formData: FormData): Promise<void> {
   const viewer = await currentViewer();
