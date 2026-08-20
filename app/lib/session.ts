@@ -1,71 +1,56 @@
-import { eq } from "drizzle-orm";
-import { getChatGPTUser } from "../chatgpt-auth";
-import { getDb } from "../../db";
-import { users } from "../../db/schema";
-import { slugify } from "./brief";
+import { getSupabase } from "./supabase";
 import type { Person } from "./data";
+import type { ProfileRow } from "./database.types";
 
-export type Viewer = Person & {
-  /** False when the visitor is signed in but there is no database to record them in. */
-  persisted: boolean;
-};
+export type Viewer = Person & { email: string };
 
 /**
- * The signed-in visitor, given a profile row the first time they show up.
+ * The signed-in visitor, or `null` for a guest.
  *
- * Returns `null` for anonymous visitors. Sign-in itself is handled by the
- * hosting platform — see `app/chatgpt-auth.ts`.
+ * Uses `getUser()` rather than `getSession()`: the session cookie is whatever
+ * the browser sent, while `getUser()` has the auth server vouch for it. Pages
+ * decide what to show from this, but the database decides what may actually
+ * happen — see `supabase/migrations/0003_policies.sql`.
  */
 export async function currentViewer(): Promise<Viewer | null> {
-  const auth = await getChatGPTUser();
-  if (!auth) return null;
+  const supabase = await getSupabase();
+  if (!supabase) return null;
 
-  const name = auth.fullName?.trim() || auth.email.split("@")[0];
-  const db = await getDb();
-  if (!db) {
-    return {
-      id: auth.userId,
-      username: slugify(name) || "tamu",
-      name,
-      headline: "",
-      bio: "",
-      website: "",
-      github: "",
-      persisted: false,
-    };
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  const [existing] = await db.select().from(users).where(eq(users.id, auth.userId)).limit(1);
-  if (existing) return { ...existing, persisted: true };
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  const [created] = await db
-    .insert(users)
-    .values({
-      id: auth.userId,
-      username: await freeUsername(name || auth.email),
-      name,
-      email: auth.email,
-    })
-    .returning();
+  if (profile) return toViewer(profile, user.email ?? "");
 
-  return { ...created, persisted: true };
+  // The sign-up trigger creates the profile, so this is the unlikely path:
+  // an auth user that lost its public half. Put it back rather than showing
+  // somebody a half-signed-in site they cannot escape.
+  const fallbackName = (user.user_metadata?.name as string | undefined)?.trim() || user.email?.split("@")[0] || "Orang";
+  const { data: created } = await supabase
+    .from("profiles")
+    .insert({ id: user.id, username: `orang-${user.id.slice(0, 8)}`, name: fallbackName.slice(0, 80) })
+    .select("*")
+    .maybeSingle();
+
+  return created ? toViewer(created, user.email ?? "") : null;
 }
 
-/** A username nobody has taken yet, derived from the person's name. */
-async function freeUsername(seed: string): Promise<string> {
-  const db = await getDb();
-  const base = slugify(seed.split("@")[0]) || "orang";
-  if (!db) return base;
-
-  for (let suffix = 0; suffix < 50; suffix += 1) {
-    const candidate = suffix === 0 ? base : `${base}-${suffix + 1}`;
-    const [taken] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.username, candidate))
-      .limit(1);
-    if (!taken) return candidate;
-  }
-
-  return `${base}-${Date.now().toString(36)}`;
+function toViewer(profile: ProfileRow, email: string): Viewer {
+  return {
+    id: profile.id,
+    username: profile.username,
+    name: profile.name,
+    headline: profile.headline,
+    bio: profile.bio,
+    website: profile.website,
+    github: profile.github,
+    email,
+  };
 }

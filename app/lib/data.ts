@@ -1,8 +1,7 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { getDb } from "../../db";
-import { boosts, comments, projects, seats, users } from "../../db/schema";
+import { getSupabase } from "./supabase";
+import type { CommentRow, ProfileRow, ProjectOverviewRow, SeatRow } from "./database.types";
 import { seedProjects, seedUsers } from "./seed";
-import { tagList, type Stage } from "./stages";
+import type { Stage } from "./stages";
 
 export type Person = {
   id: string;
@@ -23,7 +22,7 @@ export type ProjectSummary = {
   problem: string;
   solution: string;
   audience: string;
-  tags: string;
+  tags: string[];
   accent: string;
   glyph: string;
   docUrl: string;
@@ -62,9 +61,14 @@ export type ProjectDetail = ProjectSummary & {
 export type FeedQuery = {
   stage?: string;
   tag?: string;
-  role?: string;
   q?: string;
   sort?: "terbaru" | "didukung" | "dibutuhkan";
+};
+
+const SORT_COLUMN: Record<NonNullable<FeedQuery["sort"]>, string> = {
+  terbaru: "created_at",
+  didukung: "boost_count",
+  dibutuhkan: "open_seat_count",
 };
 
 /* ------------------------------------------------------------------ *
@@ -72,98 +76,144 @@ export type FeedQuery = {
  * ------------------------------------------------------------------ */
 
 export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
-  const all = await allProjects();
-  return sortProjects(all.filter((project) => matches(project, query)), query.sort);
+  const supabase = await getSupabase();
+  if (!supabase) return seedFeed(query);
+
+  const sort = query.sort ?? "terbaru";
+  let request = supabase.from("project_overview").select("*");
+
+  if (query.stage) request = request.eq("stage", query.stage);
+  if (query.tag) request = request.contains("tags", [query.tag]);
+  if (query.q) {
+    const term = `%${escapeLike(query.q)}%`;
+    request = request.or(`title.ilike.${term},tagline.ilike.${term},problem.ilike.${term}`);
+  }
+
+  const { data, error } = await request
+    .order(SORT_COLUMN[sort], { ascending: false })
+    .order("id", { ascending: false })
+    .limit(120);
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map(toSummary);
 }
 
 export async function getProject(slug: string): Promise<ProjectDetail | null> {
-  const db = await getDb();
-  if (!db) return seedDetail(slug);
+  const supabase = await getSupabase();
+  if (!supabase) return seedDetail(slug);
 
-  const [row] = await db
-    .select({ project: projects, owner: users })
-    .from(projects)
-    .innerJoin(users, eq(users.id, projects.ownerId))
-    .where(eq(projects.slug, slug))
-    .limit(1);
-  if (!row) return null;
+  const { data: project, error } = await supabase
+    .from("project_overview")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!project) return null;
 
-  const counts = await countsFor(row.project.id);
-  const seatRows = await db
-    .select({ seat: seats, person: users })
-    .from(seats)
-    .leftJoin(users, eq(users.id, seats.userId))
-    .where(eq(seats.projectId, row.project.id))
-    .orderBy(seats.id);
-  const commentRows = await db
-    .select({ comment: comments, author: users })
-    .from(comments)
-    .innerJoin(users, eq(users.id, comments.authorId))
-    .where(eq(comments.projectId, row.project.id))
-    .orderBy(comments.id);
+  const [seats, comments] = await Promise.all([
+    supabase
+      .from("seats")
+      .select("*, person:profiles(id, username, name)")
+      .eq("project_id", project.id)
+      .order("id"),
+    supabase
+      .from("comments")
+      .select("*, author:profiles(id, username, name)")
+      .eq("project_id", project.id)
+      .order("id"),
+  ]);
+  if (seats.error) throw new Error(seats.error.message);
+  if (comments.error) throw new Error(comments.error.message);
+
+  type SeatWithPerson = SeatRow & { person: BriefPerson | null };
+  type CommentWithAuthor = CommentRow & { author: BriefPerson | null };
 
   return {
-    ...toSummary(row.project, row.owner, counts),
-    seats: seatRows.map(({ seat, person }) => ({
+    ...toSummary(project),
+    seats: ((seats.data ?? []) as SeatWithPerson[]).map((seat) => ({
       id: seat.id,
       role: seat.role,
       brief: seat.brief,
       status: seat.status,
       pitch: seat.pitch,
-      person: person ? briefPerson(person) : null,
+      person: seat.person ?? null,
     })),
-    comments: commentRows.map(({ comment, author }) => ({
-      id: comment.id,
-      body: comment.body,
-      createdAt: comment.createdAt,
-      author: briefPerson(author),
-    })),
+    comments: ((comments.data ?? []) as CommentWithAuthor[])
+      .filter((comment) => comment.author)
+      .map((comment) => ({
+        id: comment.id,
+        body: comment.body,
+        createdAt: comment.created_at,
+        author: comment.author as BriefPerson,
+      })),
   };
 }
 
 export async function getPerson(username: string): Promise<Person | null> {
-  const db = await getDb();
-  if (!db) {
+  const supabase = await getSupabase();
+  if (!supabase) {
     const seed = seedUsers.find((user) => user.username === username);
     return seed ? { ...seed } : null;
   }
 
-  const [row] = await db.select().from(users).where(eq(users.username, username)).limit(1);
-  return row ? toPerson(row) : null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", username)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  return data ? toPerson(data) : null;
 }
 
 /** Projects this person owns, plus the ones they hold a filled seat on. */
 export async function getPortfolio(person: Person) {
-  const all = await allProjects();
-  const owned = sortProjects(all.filter((project) => project.owner.id === person.id), "terbaru");
+  const supabase = await getSupabase();
 
-  const db = await getDb();
-  let contributingIds: number[] = [];
-  if (db) {
-    const rows = await db
-      .select({ projectId: seats.projectId })
-      .from(seats)
-      .where(and(eq(seats.userId, person.id), eq(seats.status, "filled")));
-    contributingIds = rows.map((row) => row.projectId);
-  } else {
-    contributingIds = seedProjects
-      .filter((project) => project.seats.some((seat) => seat.status === "filled" && seat.userId === person.id))
-      .map((project) => project.id);
+  if (!supabase) {
+    const owned = seedFeed({}).filter((project) => project.owner.id === person.id);
+    return { owned, contributing: [] as ProjectSummary[] };
   }
 
-  const contributing = all.filter(
-    (project) => contributingIds.includes(project.id) && project.owner.id !== person.id,
-  );
+  const [ownedResult, seatResult] = await Promise.all([
+    supabase
+      .from("project_overview")
+      .select("*")
+      .eq("owner_id", person.id)
+      .order("created_at", { ascending: false }),
+    supabase.from("seats").select("project_id").eq("user_id", person.id).eq("status", "filled"),
+  ]);
+  if (ownedResult.error) throw new Error(ownedResult.error.message);
+  if (seatResult.error) throw new Error(seatResult.error.message);
 
-  return { owned, contributing };
+  const owned = (ownedResult.data ?? []).map(toSummary);
+  const seatProjectIds = (seatResult.data ?? []).map((seat) => seat.project_id);
+  if (seatProjectIds.length === 0) return { owned, contributing: [] };
+
+  const { data, error } = await supabase
+    .from("project_overview")
+    .select("*")
+    .in("id", seatProjectIds)
+    .neq("owner_id", person.id)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  return { owned, contributing: (data ?? []).map(toSummary) };
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
-  const all = await allProjects();
+  const supabase = await getSupabase();
+
+  const allTags = supabase
+    ? await (async () => {
+        const { data, error } = await supabase.from("projects").select("tags");
+        if (error) throw new Error(error.message);
+        return (data ?? []).flatMap((row) => row.tags);
+      })()
+    : seedProjects.flatMap((project) => project.tags);
+
   const counts = new Map<string, number>();
-  for (const project of all) {
-    for (const tag of tagList(project.tags)) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-  }
+  for (const tag of allTags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
 
   return [...counts.entries()]
     .map(([tag, count]) => ({ tag, count }))
@@ -171,124 +221,53 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
 }
 
 export async function hasBoosted(projectId: number, userId: string): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
+  const supabase = await getSupabase();
+  if (!supabase) return false;
 
-  const [row] = await db
-    .select({ projectId: boosts.projectId })
-    .from(boosts)
-    .where(and(eq(boosts.projectId, projectId), eq(boosts.userId, userId)))
-    .limit(1);
-  return Boolean(row);
+  const { data, error } = await supabase
+    .from("boosts")
+    .select("user_id")
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  return Boolean(data);
 }
 
 /* ------------------------------------------------------------------ *
- * Shared plumbing
+ * Shaping
  * ------------------------------------------------------------------ */
 
-async function allProjects(): Promise<ProjectSummary[]> {
-  const db = await getDb();
-  if (!db) return seedSummaries();
+type BriefPerson = Pick<Person, "id" | "username" | "name">;
 
-  const rows = await db
-    .select({ project: projects, owner: users })
-    .from(projects)
-    .innerJoin(users, eq(users.id, projects.ownerId))
-    .orderBy(desc(projects.createdAt), desc(projects.id));
-  if (rows.length === 0) return [];
-
-  const ids = rows.map((row) => row.project.id);
-  const counts = await countsForMany(ids);
-
-  return rows.map(({ project, owner }) => toSummary(project, owner, counts.get(project.id)));
-}
-
-type Counts = { seatCount: number; openSeatCount: number; activeMemberCount: number; boostCount: number; commentCount: number };
-
-const EMPTY_COUNTS: Counts = {
-  seatCount: 0,
-  openSeatCount: 0,
-  activeMemberCount: 0,
-  boostCount: 0,
-  commentCount: 0,
-};
-
-async function countsFor(projectId: number): Promise<Counts> {
-  return (await countsForMany([projectId])).get(projectId) ?? EMPTY_COUNTS;
-}
-
-async function countsForMany(ids: number[]): Promise<Map<number, Counts>> {
-  const db = await getDb();
-  const result = new Map<number, Counts>();
-  if (!db || ids.length === 0) return result;
-
-  const seatRows = await db
-    .select({
-      projectId: seats.projectId,
-      total: sql<number>`count(*)`,
-      open: sql<number>`sum(case when ${seats.status} = 'open' then 1 else 0 end)`,
-      filled: sql<number>`sum(case when ${seats.status} = 'filled' then 1 else 0 end)`,
-    })
-    .from(seats)
-    .where(inArray(seats.projectId, ids))
-    .groupBy(seats.projectId);
-  const boostRows = await db
-    .select({ projectId: boosts.projectId, total: sql<number>`count(*)` })
-    .from(boosts)
-    .where(inArray(boosts.projectId, ids))
-    .groupBy(boosts.projectId);
-  const commentRows = await db
-    .select({ projectId: comments.projectId, total: sql<number>`count(*)` })
-    .from(comments)
-    .where(inArray(comments.projectId, ids))
-    .groupBy(comments.projectId);
-
-  for (const id of ids) result.set(id, { ...EMPTY_COUNTS });
-  for (const row of seatRows) {
-    const counts = result.get(row.projectId);
-    if (!counts) continue;
-    counts.seatCount = Number(row.total ?? 0);
-    counts.openSeatCount = Number(row.open ?? 0);
-    counts.activeMemberCount = Number(row.filled ?? 0);
-  }
-  for (const row of boostRows) {
-    const counts = result.get(row.projectId);
-    if (counts) counts.boostCount = Number(row.total ?? 0);
-  }
-  for (const row of commentRows) {
-    const counts = result.get(row.projectId);
-    if (counts) counts.commentCount = Number(row.total ?? 0);
-  }
-
-  return result;
-}
-
-type ProjectRow = typeof projects.$inferSelect;
-type UserRow = typeof users.$inferSelect;
-
-function toSummary(project: ProjectRow, owner: UserRow, counts: Counts = EMPTY_COUNTS): ProjectSummary {
+function toSummary(row: ProjectOverviewRow): ProjectSummary {
   return {
-    id: project.id,
-    slug: project.slug,
-    title: project.title,
-    tagline: project.tagline,
-    stage: project.stage as Stage,
-    problem: project.problem,
-    solution: project.solution,
-    audience: project.audience,
-    tags: project.tags,
-    accent: project.accent,
-    glyph: project.glyph,
-    docUrl: project.docUrl,
-    liveUrl: project.liveUrl,
-    repoUrl: project.repoUrl,
-    createdAt: project.createdAt,
-    owner: briefPerson(owner),
-    ...counts,
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    tagline: row.tagline,
+    stage: row.stage as Stage,
+    problem: row.problem,
+    solution: row.solution,
+    audience: row.audience,
+    tags: row.tags,
+    accent: row.accent,
+    glyph: row.glyph,
+    docUrl: row.doc_url,
+    liveUrl: row.live_url,
+    repoUrl: row.repo_url,
+    createdAt: row.created_at,
+    owner: { id: row.owner_id, username: row.owner_username, name: row.owner_name },
+    seatCount: Number(row.seat_count),
+    openSeatCount: Number(row.open_seat_count),
+    activeMemberCount: Number(row.active_member_count),
+    boostCount: Number(row.boost_count),
+    commentCount: Number(row.comment_count),
   };
 }
 
-function toPerson(row: UserRow): Person {
+function toPerson(row: ProfileRow): Person {
   return {
     id: row.id,
     username: row.username,
@@ -300,39 +279,13 @@ function toPerson(row: UserRow): Person {
   };
 }
 
-function briefPerson(row: Pick<UserRow, "id" | "username" | "name">) {
-  return { id: row.id, username: row.username, name: row.name };
-}
-
-function matches(project: ProjectSummary, query: FeedQuery): boolean {
-  if (query.stage && project.stage !== query.stage) return false;
-  if (query.tag && !tagList(project.tags).includes(query.tag)) return false;
-  if (query.q) {
-    const needle = query.q.toLowerCase();
-    const haystack = `${project.title} ${project.tagline} ${project.problem} ${project.tags}`.toLowerCase();
-    if (!haystack.includes(needle)) return false;
-  }
-  return true;
-}
-
-function sortProjects(list: ProjectSummary[], sort: FeedQuery["sort"] = "terbaru"): ProjectSummary[] {
-  const sorted = [...list];
-  if (sort === "didukung") {
-    sorted.sort((a, b) => b.boostCount - a.boostCount || compareNewest(a, b));
-  } else if (sort === "dibutuhkan") {
-    sorted.sort((a, b) => b.openSeatCount - a.openSeatCount || compareNewest(a, b));
-  } else {
-    sorted.sort(compareNewest);
-  }
-  return sorted;
-}
-
-function compareNewest(a: ProjectSummary, b: ProjectSummary): number {
-  return b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
+/** `%` and `_` are wildcards in ILIKE; a search box should treat them as text. */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (match) => `\\${match}`);
 }
 
 /* ------------------------------------------------------------------ *
- * Read-only fallback, used when no database is attached
+ * Read-only fallback, used when no Supabase project is attached
  * ------------------------------------------------------------------ */
 
 function seedSummaries(): ProjectSummary[] {
@@ -341,6 +294,10 @@ function seedSummaries(): ProjectSummary[] {
     return {
       ...project,
       stage: project.stage as Stage,
+      docUrl: project.docUrl,
+      liveUrl: project.liveUrl,
+      repoUrl: project.repoUrl,
+      createdAt: project.createdAt,
       owner: {
         id: project.ownerId,
         username: owner?.username ?? "ahsan",
@@ -353,6 +310,31 @@ function seedSummaries(): ProjectSummary[] {
       commentCount: 0,
     };
   });
+}
+
+function seedFeed(query: FeedQuery): ProjectSummary[] {
+  const sort = query.sort ?? "terbaru";
+  const needle = query.q?.toLowerCase() ?? "";
+
+  return seedSummaries()
+    .filter((project) => {
+      if (query.stage && project.stage !== query.stage) return false;
+      if (query.tag && !project.tags.includes(query.tag)) return false;
+      if (needle) {
+        const haystack = `${project.title} ${project.tagline} ${project.problem}`.toLowerCase();
+        if (!haystack.includes(needle)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === "didukung") return b.boostCount - a.boostCount || newest(a, b);
+      if (sort === "dibutuhkan") return b.openSeatCount - a.openSeatCount || newest(a, b);
+      return newest(a, b);
+    });
+}
+
+function newest(a: ProjectSummary, b: ProjectSummary): number {
+  return b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
 }
 
 function seedDetail(slug: string): ProjectDetail | null {

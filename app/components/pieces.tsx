@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { roleLabel } from "../lib/roles";
-import { stageMeta, tagList, type Stage } from "../lib/stages";
+import { stageMeta, type Stage } from "../lib/stages";
 import type { ProjectSummary } from "../lib/data";
 import { Arrow } from "./shell";
 
@@ -13,13 +13,12 @@ export function StageBadge({ stage }: { stage: Stage }) {
   );
 }
 
-export function TagRow({ tags, linked = true }: { tags: string; linked?: boolean }) {
-  const list = tagList(tags);
-  if (list.length === 0) return null;
+export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boolean }) {
+  if (tags.length === 0) return null;
 
   return (
     <ul className="tag-row">
-      {list.map((tag) =>
+      {tags.map((tag) =>
         linked ? (
           <li key={tag}>
             <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>

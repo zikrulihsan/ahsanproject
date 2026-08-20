@@ -33,8 +33,8 @@ test("links must be real http links", () => {
 });
 
 test("tags are de-duplicated, lowercased and capped", () => {
-  assert.equal(normaliseTags("UMKM, umkm , Tools"), "umkm,tools");
-  assert.equal(normaliseTags("a,b,c,d,e,f,g").split(",").length, 6);
+  assert.deepEqual(normaliseTags("UMKM, umkm , Tools"), ["umkm", "tools"]);
+  assert.equal(normaliseTags("a,b,c,d,e,f,g").length, 6);
 });
 
 test("slugs stay url-safe", () => {
@@ -46,12 +46,11 @@ const stageInput = {
   problem: fullBrief.problem,
   solution: fullBrief.solution,
   audience: fullBrief.audience,
-  tags: fullBrief.tags,
+  tags: ["umkm", "operasional"],
   docUrl: "",
   repoUrl: "",
   liveUrl: "",
   seatCount: 0,
-  activeMemberCount: 0,
 };
 
 test("a written-down idea sits at the idea level", () => {
@@ -62,13 +61,19 @@ test("a written-down idea sits at the idea level", () => {
 test("levels only open once their requirements are actually met", () => {
   const withSeat = { ...stageInput, seatCount: 1 };
   assert.ok(meetsStage("validating", withSeat));
-  assert.ok(!meetsStage("building", withSeat), "building needs someone on the team");
+  assert.ok(!meetsStage("building", withSeat), "building needs something to show for it");
 
-  const building = { ...withSeat, activeMemberCount: 1, repoUrl: "https://example.com/repo" };
+  const building = { ...withSeat, repoUrl: "https://example.com/repo" };
   assert.ok(meetsStage("building", building));
   assert.ok(!meetsStage("live", building), "live needs a link people can open");
 
   assert.ok(meetsStage("live", { ...building, liveUrl: "https://example.com" }));
+});
+
+test("working alone is not a lesser project", () => {
+  // Every project on the board started solo. No level may ask for a team.
+  const solo = { ...stageInput, seatCount: 0, liveUrl: "https://example.com" };
+  assert.ok(meetsStage("live", solo), "a solo project can still be live");
 });
 
 test("the requirement list explains what is still missing", () => {
@@ -78,9 +83,10 @@ test("the requirement list explains what is still missing", () => {
 });
 
 test("completeness rewards a fuller brief", () => {
-  const bare = briefCompleteness({ ...fullBrief, seatCount: 0 });
+  const bare = briefCompleteness({ ...fullBrief, tags: ["umkm"], seatCount: 0 });
   const full = briefCompleteness({
     ...fullBrief,
+    tags: ["umkm"],
     docUrl: "https://example.com/doc",
     liveUrl: "https://example.com",
     seatCount: 2,

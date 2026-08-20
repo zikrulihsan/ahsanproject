@@ -37,7 +37,7 @@ export type SeedProject = {
   docUrl: string;
   liveUrl: string;
   repoUrl: string;
-  tags: string;
+  tags: string[];
   accent: string;
   glyph: string;
   createdAt: string;
@@ -72,7 +72,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://dzikir-harian.netlify.app/",
     repoUrl: "",
-    tags: "ibadah,kebiasaan,mobile",
+    tags: ["ibadah", "kebiasaan", "mobile"],
     accent: "mint",
     glyph: "○○○",
     createdAt: "2024-05-04 09:00:00",
@@ -101,7 +101,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://wecard-app.netlify.app/",
     repoUrl: "",
-    tags: "obrolan,relasi,kartu",
+    tags: ["obrolan", "relasi", "kartu"],
     accent: "yellow",
     glyph: "▱",
     createdAt: "2024-07-18 09:00:00",
@@ -130,7 +130,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://carikontak.com/",
     repoUrl: "",
-    tags: "warga,direktori,lokal",
+    tags: ["warga", "direktori", "lokal"],
     accent: "blue",
     glyph: "⌖",
     createdAt: "2024-09-02 09:00:00",
@@ -166,7 +166,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://umkmproject-invoice.netlify.app/",
     repoUrl: "",
-    tags: "umkm,keuangan,tools",
+    tags: ["umkm", "keuangan", "tools"],
     accent: "coral",
     glyph: "≡",
     createdAt: "2024-11-11 09:00:00",
@@ -195,7 +195,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://mainaman.netlify.app/",
     repoUrl: "",
-    tags: "anak,edukasi,keamanan",
+    tags: ["anak", "edukasi", "keamanan"],
     accent: "purple",
     glyph: "✦",
     createdAt: "2025-01-20 09:00:00",
@@ -224,7 +224,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "https://swegrowth.id/",
     repoUrl: "",
-    tags: "komunitas,karier,belajar",
+    tags: ["komunitas", "karier", "belajar"],
     accent: "green",
     glyph: "↗",
     createdAt: "2025-03-08 09:00:00",
@@ -253,7 +253,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "",
     repoUrl: "",
-    tags: "umkm,operasional,ide",
+    tags: ["umkm", "operasional", "ide"],
     accent: "sand",
     glyph: "◔",
     createdAt: "2025-06-14 09:00:00",
@@ -296,7 +296,7 @@ export const seedProjects: SeedProject[] = [
     docUrl: "",
     liveUrl: "",
     repoUrl: "",
-    tags: "keluarga,komunitas,ide",
+    tags: ["keluarga", "komunitas", "ide"],
     accent: "sky",
     glyph: "⌁",
     createdAt: "2025-08-01 09:00:00",

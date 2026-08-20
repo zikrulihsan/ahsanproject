@@ -8,21 +8,43 @@ roles they need help with, and let other people take those roles. Each person's
 profile doubles as their portfolio: the projects they own and the ones they help
 build.
 
-Built on [vinext](https://github.com/cloudflare/vinext) (Next.js on Cloudflare
-Workers) with Cloudflare D1 and Drizzle.
+Next.js on Netlify, with Supabase for both the database and sign-in.
 
 ## Prerequisites
 
 - Node.js `>=22.13.0`
+- A Supabase project (free tier is plenty)
 
 ## Quick start
 
 ```bash
 npm install
-npm run dev     # http://localhost:3000
-npm run build   # verify the worker build
-npm test        # build, then unit and rendered-HTML tests
+cp .env.example .env.local   # fill in your Supabase URL and anon key
+npm run dev                  # http://localhost:3000
 ```
+
+Without `.env.local` the site still runs: it serves the read-only seed from
+`app/lib/seed.ts`, so you can work on the pages without a database. Signing in
+and everything that writes will say so rather than failing quietly.
+
+## Setting up Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run the files in `supabase/migrations/` in order, in the SQL editor:
+   - `0001_schema.sql` — tables, constraints, and the `project_overview` view
+   - `0002_functions.sql` — the sign-up trigger and the two seat transitions
+   - `0003_policies.sql` — row level security
+3. Copy the project URL and the **anon** key from Project Settings → API into
+   `.env.local`. Never put the `service_role` key in this app; it bypasses every
+   policy.
+4. Sign up through the site with your own email.
+5. Optional: open `supabase/seed.sql`, change `owner_email` at the top to that
+   same address, and run it. That imports the starting projects under your
+   account.
+
+Email confirmation is on by default in Supabase. The link it sends lands on
+`/auth/confirm`, which exchanges the token for a session. If you turn
+confirmation off, sign-up signs people straight in instead.
 
 ## How the site is put together
 
@@ -32,100 +54,75 @@ npm test        # build, then unit and rendered-HTML tests
 | `/projects/<slug>` | One project: brief, level, team, open roles, discussion |
 | `/u/<username>` | One person: their bio, the projects they own, the ones they help build |
 | `/new` | Post an idea. The brief is required — an empty project cannot be created |
+| `/signin`, `/signup` | Email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
-Sign-in is Sign in with ChatGPT, owned by the hosting platform — see
-`app/chatgpt-auth.ts` and the section further down. A profile row is created the
-first time somebody signs in (`app/lib/session.ts`).
+### Where the rules live
 
-### The domain rules live in `app/lib/`
+- `app/lib/brief.ts` — the minimum a project must carry before it can exist,
+  plus the completeness meter. This is the "no empty ideas" rule.
+- `app/lib/stages.ts` — the levels (`idea → validating → building → live`, plus
+  `resting`) and what each one requires. No level asks for a team: working alone
+  is not a lesser project. What they ask for is evidence the work has moved.
+- `app/lib/roles.ts` — the kinds of help a project can ask for.
+- `app/lib/data.ts` — every read the pages do.
+- `app/actions.ts` — every write, as server actions.
 
-- `brief.ts` — the minimum a project must carry before it can exist, plus the
-  completeness meter. This is the "no empty ideas" rule.
-- `stages.ts` — the levels (`idea → validating → building → live`, plus
-  `resting`) and the requirements each one checks against the project itself. A
-  project only moves up when it actually meets them.
-- `roles.ts` — the kinds of help a project can ask for.
-- `data.ts` — every read the pages do, over D1 when it is attached.
-- `seed.ts` — the projects the board opens with.
+**Authorization is the database's job.** The policies in
+`supabase/migrations/0003_policies.sql` decide who may read and write; the
+checks in the server actions exist to turn a refusal into a readable sentence.
+Taking a seat goes through `apply_for_seat()` and `decide_seat()` rather than a
+plain update, so an applicant cannot rewrite the role on their way in.
 
-Writes are server actions in `app/actions.ts`. Every owner-only action goes
-through `ownedProject()`, which refuses anyone else.
-
-### Running without a database
-
-`getDb()` returns `null` when no D1 binding is attached, and `data.ts` then
-serves the read-only seed from `app/lib/seed.ts`. That is what makes local
-`npm test` and a build-time render work. Writes refuse with a clear message
-instead of failing silently.
-
-## Database
-
-`.openai/hosting.json` declares the D1 binding (`"d1": "DB"`), and
-`vite.config.ts` simulates it for local development. Migrations live in
-`drizzle/` and the platform applies them on deploy.
+## Tests
 
 ```bash
-npm run db:generate   # after editing db/schema.ts
-npm run db:seed       # after editing app/lib/seed.ts — rewrites drizzle/0001_seed.sql
+npm test        # builds, then runs everything under tests/
+npm run test:unit   # just the pure logic, no build
 ```
 
-The seed statements are `INSERT OR IGNORE` with fixed ids, so replaying them
-never overwrites rows people have since edited.
+`tests/rendered-html.test.mjs` runs the built site with no Supabase credentials,
+so it covers every page as a guest. `tests/supabase.test.mjs` is a read-only
+smoke test that skips unless credentials are present — it is safe to point at
+production.
 
-To work against a real local database, run `npm run dev` once so Miniflare
-creates its D1 file under `.wrangler/state/v3/d1/`, then apply the SQL in
-`drizzle/` to that file.
+The policies have their own suite, which needs a scratch PostgreSQL 16:
+
+```bash
+createdb ahsan_test
+psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f supabase/local/auth-shim.sql
+for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f "$f"; done
+psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f supabase/tests/policies.sql
+```
+
+`supabase/local/auth-shim.sql` is the smallest slice of Supabase's `auth` schema
+the migrations touch, so a plain PostgreSQL can run them. It is for development
+only — never run it against a hosted project.
 
 ## Deployment
 
-The site is served by the Cloudflare Worker in `worker/index.ts`. There is no
-static export any more: every route reads request identity or the database, so
-the previous Netlify `output: "export"` build no longer applies and its config
-has been removed.
+Netlify, using `@netlify/plugin-nextjs` (declared in `netlify.toml`). Set these
+in Site settings → Environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL` — the deployed origin, so confirmation emails point back
+  at the right place
+
+Then add that same origin to Supabase under Authentication → URL Configuration,
+including `<origin>/auth/confirm` as a redirect URL.
 
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.
 
-## Workspace auth headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and
-`oai-authenticated-user-email`. Private Sites require every visitor to sign in;
-public Sites may also have anonymous visitors, for whom neither header is
-present.
-
-The user ID is stable for the same user on the same Site and different across
-Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-`app/chatgpt-auth.ts` wraps all of this:
-
-- `getChatGPTUser()` for optional signed-in UI.
-- `requireChatGPTUser(returnTo)` to send anonymous visitors through sign-in.
-- `chatGPTSignInPath(returnTo)` / `chatGPTSignOutPath(returnTo)` for links.
-- Pages that depend on identity set `export const dynamic = "force-dynamic"`.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-hosting platform's access policy controls for workspace-wide restrictions, or
-enforce explicit server-side membership checks.
-
 ## Useful commands
 
 - `npm run dev` — local development
-- `npm run build` — verify the vinext build output
-- `npm test` — build, then run everything under `tests/`
+- `npm run build` — production build
 - `npm run lint` — ESLint
-- `npm run db:generate` / `npm run db:seed` — regenerate migrations
+- `npm run db:seed` — regenerate `supabase/seed.sql` from `app/lib/seed.ts`
 
 ## Learn more
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- [Supabase docs](https://supabase.com/docs)
+- [Next.js App Router](https://nextjs.org/docs/app)
