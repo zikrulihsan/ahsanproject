@@ -1,0 +1,232 @@
+-- Checks that the row level security policies actually hold.
+--
+-- Run against a scratch database built from supabase/local/auth-shim.sql and
+-- the files in supabase/migrations/ — never against real data, it writes rows.
+-- Any violated expectation raises, so psql -v ON_ERROR_STOP=1 exits non-zero.
+--
+--   psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f supabase/tests/policies.sql
+
+\set ON_ERROR_STOP on
+
+create schema if not exists checks;
+
+-- Runs a statement and fails the test if it was allowed through.
+create or replace function checks.denied(statement text, label text)
+returns void language plpgsql as $$
+begin
+  begin
+    execute statement;
+  exception when others then
+    raise notice 'ok, ditolak: %  (%)', label, sqlerrm;
+    return;
+  end;
+  raise exception 'BOCOR: % seharusnya ditolak, tapi berhasil', label;
+end;
+$$;
+
+-- Runs a statement and fails the test if it was blocked.
+create or replace function checks.allowed(statement text, label text)
+returns void language plpgsql as $$
+begin
+  execute statement;
+  raise notice 'ok, diizinkan: %', label;
+end;
+$$;
+
+create or replace function checks.equal(actual anyelement, expected anyelement, label text)
+returns void language plpgsql as $$
+begin
+  if actual is distinct from expected then
+    raise exception 'SALAH: % — dapat %, harusnya %', label, actual, expected;
+  end if;
+  raise notice 'ok: % = %', label, expected;
+end;
+$$;
+
+-- Becomes a signed-in visitor, the same way PostgREST does it.
+create or replace function checks.act_as(who uuid)
+returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', who)::text, true);
+  execute 'set local role authenticated';
+end;
+$$;
+
+-- Becomes an anonymous visitor. Dropping the role is not enough: the JWT claims
+-- have to go too, or auth.uid() keeps answering with whoever acted last and the
+-- guest checks below quietly stop testing anything.
+create or replace function checks.act_as_guest()
+returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', '', true);
+  execute 'reset role';
+  execute 'set local role anon';
+end;
+$$;
+
+-- The helpers are called while acting as anon/authenticated, so those roles
+-- need to be able to reach them.
+grant usage on schema checks to anon, authenticated;
+grant execute on all functions in schema checks to anon, authenticated;
+
+begin;
+
+-- Two people sign up. The trigger gives each one a profile.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('11111111-1111-4111-8111-111111111111', 'ihsan@example.com', '{"name":"Zikrul Ihsan"}'),
+  ('22222222-2222-4222-8222-222222222222', 'dina@example.com',  '{"name":"Dina Pratiwi"}'),
+  -- Same display name as Dina: the username must not collide.
+  ('33333333-3333-4333-8333-333333333333', 'dina2@example.com', '{"name":"Dina Pratiwi"}');
+
+select checks.equal(
+  (select username from public.profiles where id = '22222222-2222-4222-8222-222222222222'),
+  'dina-pratiwi', 'username dari nama');
+select checks.equal(
+  (select username from public.profiles where id = '33333333-3333-4333-8333-333333333333'),
+  'dina-pratiwi-2', 'username kembar dapat akhiran');
+
+-- ---------------------------------------------------------------- projects --
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+
+select checks.allowed($$
+  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+  values ('kelas-sore', 'Kelas Sore', 'Papan jadwal kelas tambahan gratis di kampung.',
+          '11111111-1111-4111-8111-111111111111',
+          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['pendidikan'])
+$$, 'pemilik menaruh proyeknya sendiri');
+
+select checks.denied($$
+  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+  values ('curian', 'Curian', 'Menaruh proyek atas nama orang lain.',
+          '22222222-2222-4222-8222-222222222222',
+          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji'])
+$$, 'menaruh proyek atas nama orang lain');
+
+select checks.denied($$
+  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+  values ('kosongan', 'Kosongan', 'Ide yang briefnya tidak diisi sungguh-sungguh.',
+          '11111111-1111-4111-8111-111111111111', 'pendek', 'pendek', 'pendek', array['uji'])
+$$, 'brief kosongan ditolak database');
+
+select checks.denied($$
+  insert into public.projects (slug, title, tagline, owner_id, stage, problem, solution, audience, tags)
+  values ('ngaku-jalan', 'Ngaku Jalan', 'Mengaku sudah jalan tanpa tautan apa pun.',
+          '11111111-1111-4111-8111-111111111111', 'live',
+          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji'])
+$$, 'level "sudah jalan" tanpa tautan');
+
+-- Dina cannot touch someone else's project.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+
+update public.projects set title = 'Dibajak' where slug = 'kelas-sore';
+select checks.equal((select title from public.projects where slug = 'kelas-sore'),
+                    'Kelas Sore', 'judul orang lain tidak berubah');
+
+delete from public.projects where slug = 'kelas-sore';
+select checks.equal((select count(*)::int from public.projects where slug = 'kelas-sore'),
+                    1, 'proyek orang lain tidak terhapus');
+
+-- ------------------------------------------------------------------- seats --
+
+select checks.denied($$
+  insert into public.seats (project_id, role, brief)
+  select id, 'design', 'Menyelinap membuka peran di proyek orang.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'membuka peran di proyek orang lain');
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$
+  insert into public.seats (project_id, role, brief)
+  select id, 'design', 'Menyusun tampilan jadwal mingguan.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'pemilik membuka peran');
+
+select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Saya sendiri.')$$,
+                     'pemilik melamar ke proyeknya sendiri');
+
+-- Dina applies, properly.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.allowed($$select public.apply_for_seat((select id from public.seats limit 1), 'Bisa 4 jam per minggu.')$$,
+                      'melamar peran yang terbuka');
+select checks.equal((select status from public.seats limit 1), 'pending', 'peran jadi menunggu');
+
+select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Sekali lagi.')$$,
+                     'melamar dua kali');
+
+-- The applicant must not be able to hand themselves the seat.
+update public.seats set status = 'filled' where status = 'pending';
+select checks.equal((select status from public.seats limit 1), 'pending', 'pelamar tidak bisa meloloskan diri sendiri');
+
+select checks.denied($$select public.decide_seat((select id from public.seats limit 1), true)$$,
+                     'pelamar menyetujui lamarannya sendiri');
+
+-- The owner decides.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$select public.decide_seat((select id from public.seats limit 1), true)$$,
+                      'pemilik menerima lamaran');
+select checks.equal((select status from public.seats limit 1), 'filled', 'peran terisi');
+
+-- ---------------------------------------------------------------- comments --
+
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.denied($$
+  insert into public.comments (project_id, author_id, body)
+  select id, '11111111-1111-4111-8111-111111111111', 'Menulis atas nama orang lain.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'berkomentar atas nama orang lain');
+
+select checks.allowed($$
+  insert into public.comments (project_id, author_id, body)
+  select id, '22222222-2222-4222-8222-222222222222', 'Mulai dari satu RT dulu.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'berkomentar sebagai diri sendiri');
+
+-- ------------------------------------------------------------------ boosts --
+
+select checks.allowed($$
+  insert into public.boosts (project_id, user_id)
+  select id, '22222222-2222-4222-8222-222222222222' from public.projects where slug = 'kelas-sore'
+$$, 'mendukung sebagai diri sendiri');
+
+select checks.denied($$
+  insert into public.boosts (project_id, user_id)
+  select id, '11111111-1111-4111-8111-111111111111' from public.projects where slug = 'kelas-sore'
+$$, 'mendukung atas nama orang lain');
+
+select checks.denied($$
+  insert into public.boosts (project_id, user_id)
+  select id, '22222222-2222-4222-8222-222222222222' from public.projects where slug = 'kelas-sore'
+$$, 'mendukung dua kali');
+
+delete from public.boosts where user_id = '11111111-1111-4111-8111-111111111111';
+select checks.equal((select count(*)::int from public.boosts), 1, 'dukungan orang lain tidak bisa dicabut');
+
+-- -------------------------------------------------------------------- anon --
+
+select checks.act_as_guest();
+select checks.equal(auth.uid(), null::uuid, 'tamu benar-benar tanpa identitas');
+
+select checks.equal((select count(*)::int from public.projects), 1, 'tamu tetap bisa membaca papan');
+select checks.equal((select count(*)::int from public.project_overview), 1, 'tamu bisa membaca ringkasan');
+
+select checks.denied($$
+  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+  values ('tamu', 'Tamu', 'Tamu mencoba menaruh ide tanpa masuk.',
+          '11111111-1111-4111-8111-111111111111',
+          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji'])
+$$, 'tamu menaruh ide');
+
+select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Tamu melamar.')$$,
+                     'tamu melamar peran');
+
+-- The overview must agree with the rows it counts.
+select checks.equal((select open_seat_count::int from public.project_overview), 0, 'hitungan peran terbuka');
+select checks.equal((select active_member_count::int from public.project_overview), 1, 'hitungan anggota aktif');
+select checks.equal((select comment_count::int from public.project_overview), 1, 'hitungan komentar');
+select checks.equal((select boost_count::int from public.project_overview), 1, 'hitungan dukungan');
+
+reset role;
+rollback;
+
+drop schema checks cascade;

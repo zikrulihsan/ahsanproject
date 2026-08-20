@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { chatGPTSignInPath } from "../chatgpt-auth";
+import Link from "next/link";
+import { signInPath } from "../lib/urls";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { CreateForm } from "../components/create-form";
 import { currentViewer } from "../lib/session";
@@ -47,9 +48,9 @@ export default async function NewProject() {
           <CreateForm />
         ) : (
           <p className="sign-in-callout">
-            <a className="primary-button" href={chatGPTSignInPath("/new")}>
+            <Link className="primary-button" href={signInPath("/new")}>
               Masuk dulu untuk menaruh ide
-            </a>
+            </Link>
           </p>
         )}
       </main>

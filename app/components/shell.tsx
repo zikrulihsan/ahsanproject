@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "../logo";
-import { chatGPTSignInPath, chatGPTSignOutPath } from "../chatgpt-auth";
+import { signOut } from "../auth-actions";
+import { signInPath } from "../lib/urls";
 import { currentViewer } from "../lib/session";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
@@ -22,10 +23,6 @@ export function Brand({ footer = false }: { footer?: boolean }) {
   );
 }
 
-/**
- * Sign-in and sign-out are platform routes outside this app's router, so those
- * two links stay plain anchors while everything else navigates with `Link`.
- */
 export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
   const viewer = await currentViewer();
 
@@ -40,17 +37,19 @@ export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
             <Link className="nav-person" href={`/u/${viewer.username}`}>
               {viewer.name}
             </Link>
-            <a className="nav-quiet" href={chatGPTSignOutPath(returnTo)}>
-              Keluar
-            </a>
+            <form action={signOut}>
+              <button className="nav-quiet" type="submit">
+                Keluar
+              </button>
+            </form>
             <Link className="nav-cta" href="/new">
               Taruh ide <Arrow />
             </Link>
           </>
         ) : (
-          <a className="nav-cta" href={chatGPTSignInPath(returnTo)}>
+          <Link className="nav-cta" href={signInPath(returnTo)}>
             Masuk <Arrow />
-          </a>
+          </Link>
         )}
       </nav>
     </header>

@@ -21,13 +21,17 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Keeps the footer at the bottom on short pages instead of halfway up. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, p { margin-top: 0; }
 /* People paste long unbroken strings — links, ids — into briefs and comments.
    Let them wrap instead of pushing the grid wider than the viewport. */
 h1, h2, h3, p, dd, blockquote, li { overflow-wrap: anywhere; }
-main { display: block; }
+main { display: block; flex: 1 0 auto; }
 .muted { color: var(--muted); font-size: 15px; line-height: 1.7; }
 .muted a { border-bottom: 1px solid var(--line); }
 
@@ -35,7 +39,7 @@ main { display: block; }
 
 .site-header {
   align-items: center; display: flex; gap: 20px; justify-content: space-between;
-  margin: 0 auto; max-width: 1296px; padding: 22px 5vw;
+  margin: 0 auto; max-width: 1296px; padding: 22px 5vw; width: 100%;
 }
 .brand { align-items: center; display: inline-flex; font-size: 15px; font-weight: 700; gap: 10px; }
 .brand span { white-space: nowrap; }
@@ -45,7 +49,13 @@ nav { align-items: center; display: flex; flex-wrap: wrap; font-size: 13px; font
 nav a { transition: opacity .2s ease; }
 nav a:hover { opacity: .6; }
 .nav-person { border-bottom: 1px solid var(--line); }
-.nav-quiet { color: var(--muted); font-weight: 500; }
+nav form { display: flex; margin: 0; }
+/* The sign-out control is a form button, so it has to shed the form styling. */
+nav .nav-quiet {
+  background: none; border: 0; color: var(--muted); cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 500; padding: 0;
+}
+nav .nav-quiet:hover { background: none; opacity: .6; }
 .nav-cta {
   align-items: center; border: 1px solid var(--line); border-radius: 100px;
   display: inline-flex; gap: 12px; padding: 10px 15px;
@@ -335,7 +345,9 @@ nav a:hover { opacity: .6; }
 /* ---------------------------------------------------------------- forms */
 
 form label { display: block; font-size: 13px; font-weight: 650; margin-bottom: 6px; }
-form input[type="text"], form input[type="url"], form textarea, form select {
+form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+form textarea,
+form select {
   background: var(--paper); border: 1px solid var(--line); border-radius: 12px; color: inherit;
   font-family: inherit; font-size: 15px; line-height: 1.6; margin-bottom: 18px; padding: 12px 14px;
   width: 100%;
@@ -358,7 +370,18 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .form-error {
   background: rgba(238, 106, 59, .12); border-radius: 12px; margin: 0 0 22px; padding: 14px 16px;
 }
-.create-form { background: var(--card); border-radius: var(--radius); margin-top: 34px; padding: 32px; }
+.create-form, .auth-form {
+  background: var(--card); border-radius: var(--radius); margin-top: 34px; padding: 32px;
+}
+.auth-page { max-width: 520px; }
+.auth-form .hint { margin: -12px 0 18px; }
+.auth-form button { width: 100%; justify-content: center; }
+.auth-switch { color: var(--muted); font-size: 14px; margin-top: 24px; text-align: center; }
+.auth-switch a { border-bottom: 1px solid var(--line); color: var(--ink); font-weight: 600; }
+.form-notice {
+  background: rgba(92, 122, 74, .14); border-radius: 12px; color: #3b5230; font-size: 14px;
+  line-height: 1.6; margin: 0 0 22px; padding: 14px 16px;
+}
 .sign-in-callout { margin-top: 34px; }
 details.owner-tool, .seat-list details { margin-top: 16px; }
 details summary {

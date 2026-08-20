@@ -26,6 +26,7 @@ export const MAXIMUM = {
   seatBrief: 400,
 } as const;
 
+/** The raw form values, before tags are split into a list. */
 export type BriefInput = {
   title: string;
   tagline: string;
@@ -88,12 +89,21 @@ export function isHttpUrl(value: string): boolean {
 }
 
 /** How full the brief is, 0–100. Drives the meter on the project page. */
-export function briefCompleteness(project: BriefInput & { seatCount: number }): number {
+export function briefCompleteness(project: {
+  problem: string;
+  solution: string;
+  audience: string;
+  tags: string[];
+  docUrl: string;
+  repoUrl: string;
+  liveUrl: string;
+  seatCount: number;
+}): number {
   const checks = [
     project.problem.length >= MINIMUM.problem,
     project.solution.length >= MINIMUM.solution,
     project.audience.length >= MINIMUM.audience,
-    tagList(project.tags).length > 0,
+    project.tags.length > 0,
     Boolean(project.docUrl || project.repoUrl),
     project.seatCount > 0,
     Boolean(project.liveUrl),
@@ -102,8 +112,9 @@ export function briefCompleteness(project: BriefInput & { seatCount: number }): 
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-export function normaliseTags(tags: string): string {
-  return [...new Set(tagList(tags))].slice(0, 6).join(",");
+/** The tag field as the database wants it: lowercase, unique, at most six. */
+export function normaliseTags(tags: string): string[] {
+  return [...new Set(tagList(tags))].slice(0, 6);
 }
 
 export function slugify(value: string): string {

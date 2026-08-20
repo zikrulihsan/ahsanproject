@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { addComment, applyForSeat, decideSeat, openSeat, setStage, toggleBoost } from "../../actions";
-import { chatGPTSignInPath } from "../../chatgpt-auth";
+import { signInPath } from "../../lib/urls";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import { StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
 import { briefCompleteness, domainOf } from "../../lib/brief";
@@ -86,10 +86,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   </button>
                 </form>
               ) : (
-                <a className="boost" href={chatGPTSignInPath(returnTo)}>
+                <Link className="boost" href={signInPath(returnTo)}>
                   ▲ <strong>{project.boostCount}</strong>
                   <span>Dukung</span>
-                </a>
+                </Link>
               )}
             </div>
 
@@ -223,9 +223,9 @@ export default async function ProjectPage({ params }: { params: Params }) {
                           </details>
                         )
                       ) : (
-                        <a className="ghost-button" href={chatGPTSignInPath(returnTo)}>
+                        <Link className="ghost-button" href={signInPath(returnTo)}>
                           Masuk untuk ambil peran
-                        </a>
+                        </Link>
                       )}
                     </li>
                   ))}
@@ -291,7 +291,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 </form>
               ) : (
                 <p className="muted">
-                  <a href={chatGPTSignInPath(returnTo)}>Masuk</a> untuk ikut membahas ide ini.
+                  <Link href={signInPath(returnTo)}>Masuk</Link> untuk ikut membahas ide ini.
                 </p>
               )}
 
@@ -408,7 +408,6 @@ function toStageInput(project: ProjectDetail): StageInput {
     repoUrl: project.repoUrl,
     liveUrl: project.liveUrl,
     seatCount: project.seatCount,
-    activeMemberCount: project.activeMemberCount,
   };
 }
 

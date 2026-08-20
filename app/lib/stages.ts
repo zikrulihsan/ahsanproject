@@ -4,6 +4,11 @@
  * A project climbs from a written-down idea to something people can actually
  * open. Each level has requirements that are checked against the project
  * itself, so the badge on a card means the same thing everywhere.
+ *
+ * Working alone is not a lesser project — most of the board started that way —
+ * so no level asks for a team. What each level asks for is evidence the work
+ * has actually moved: something written down, something to look at, something
+ * to open.
  */
 export const STAGES = ["idea", "validating", "building", "live", "resting"] as const;
 
@@ -46,12 +51,11 @@ export type StageInput = {
   problem: string;
   solution: string;
   audience: string;
-  tags: string;
+  tags: string[];
   docUrl: string;
   repoUrl: string;
   liveUrl: string;
   seatCount: number;
-  activeMemberCount: number;
 };
 
 export type Requirement = { label: string; met: boolean };
@@ -66,7 +70,7 @@ export function requirementsFor(stage: Stage, project: StageInput): Requirement[
       label: "Brief terisi: masalah, solusi, dan untuk siapa",
       met: Boolean(project.problem && project.solution && project.audience),
     },
-    { label: "Punya minimal satu tag", met: tagList(project.tags).length > 0 },
+    { label: "Punya minimal satu tag", met: project.tags.length > 0 },
   ];
 
   switch (stage) {
@@ -76,15 +80,19 @@ export function requirementsFor(stage: Stage, project: StageInput): Requirement[
       return [
         ...brief,
         {
-          label: "Ada dokumen pendukung atau peran yang dibuka",
-          met: Boolean(project.docUrl) || project.seatCount > 0,
+          // A project that already shipped has cleared this bar by definition,
+          // so a solo build that never opened a seat is not stuck at "idea".
+          label: "Ada dokumen pendukung, peran yang dibuka, atau produknya",
+          met: Boolean(project.docUrl) || project.seatCount > 0 || Boolean(project.liveUrl),
         },
       ];
     case "building":
       return [
         ...requirementsFor("validating", project),
-        { label: "Minimal satu orang aktif di tim", met: project.activeMemberCount > 0 },
-        { label: "Ada tautan repo atau dokumen kerja", met: Boolean(project.repoUrl || project.docUrl) },
+        {
+          label: "Ada tautan kerja: repo, dokumen, atau produknya",
+          met: Boolean(project.repoUrl || project.docUrl || project.liveUrl),
+        },
       ];
     case "live":
       return [
@@ -105,6 +113,7 @@ export function reachableStages(project: StageInput): Stage[] {
   return STAGES.filter((stage) => meetsStage(stage, project));
 }
 
+/** Parses the comma-separated tag field people type into a clean list. */
 export function tagList(tags: string): string[] {
   return tags
     .split(",")
