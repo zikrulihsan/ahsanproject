@@ -3,6 +3,7 @@ import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
 import { signInPath } from "../lib/urls";
 import { currentViewer } from "../lib/session";
+import { countIncomingApplications } from "../lib/data";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -25,6 +26,9 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 
 export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
   const viewer = await currentViewer();
+  // An application nobody sees is an application nobody answers, so the count
+  // rides along in the header rather than waiting to be found.
+  const waiting = viewer ? await countIncomingApplications(viewer.id) : 0;
 
   return (
     <header className="site-header">
@@ -34,6 +38,14 @@ export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
         <Link href="/about">Tentang</Link>
         {viewer ? (
           <>
+            <Link className="nav-inbox" href="/inbox">
+              Kotak masuk
+              {waiting > 0 ? (
+                <span className="badge" aria-label={`${waiting} lamaran menunggu jawaban`}>
+                  {waiting}
+                </span>
+              ) : null}
+            </Link>
             <Link className="nav-person" href={`/u/${viewer.username}`}>
               {viewer.name}
             </Link>

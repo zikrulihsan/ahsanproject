@@ -113,6 +113,22 @@ export function reachableStages(project: StageInput): Stage[] {
   return STAGES.filter((stage) => meetsStage(stage, project));
 }
 
+/**
+ * The level a project should sit at after an edit.
+ *
+ * Editing can take away what a level stood on — clearing the live link on a
+ * project marked "sudah jalan", say. Rather than refuse the edit or leave a
+ * badge that lies, the project drops to the highest level it still earns.
+ * A level that is still earned is never touched, and `resting` is a decision
+ * rather than an achievement, so it stays put.
+ */
+export function settleStage(current: Stage, project: StageInput): Stage {
+  if (current === "resting" || meetsStage(current, project)) return current;
+
+  const earned = reachableStages(project).filter((stage) => stage !== "resting");
+  return earned.length > 0 ? earned[earned.length - 1] : "idea";
+}
+
 /** Parses the comma-separated tag field people type into a clean list. */
 export function tagList(tags: string): string[] {
   return tags

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { MINIMUM, briefCompleteness, normaliseTags, slugify, validateBrief } from "../app/lib/brief.ts";
-import { meetsStage, reachableStages, requirementsFor } from "../app/lib/stages.ts";
+import { meetsStage, reachableStages, requirementsFor, settleStage } from "../app/lib/stages.ts";
 
 const fullBrief = {
   title: "Warung Antre",
@@ -93,4 +93,26 @@ test("completeness rewards a fuller brief", () => {
   });
   assert.ok(full > bare);
   assert.equal(full, 100);
+});
+
+test("an edit that removes what a level stood on drops the level", () => {
+  const live = {
+    ...stageInput,
+    seatCount: 1,
+    repoUrl: "https://example.com/repo",
+    liveUrl: "https://example.com",
+  };
+  assert.equal(settleStage("live", live), "live", "an earned level is left alone");
+
+  // The owner clears the live link. "Sudah jalan" is no longer true.
+  const withoutLink = { ...live, liveUrl: "" };
+  assert.equal(settleStage("live", withoutLink), "building");
+
+  // And clearing everything drops it all the way back to an idea.
+  const bare = { ...stageInput, seatCount: 0 };
+  assert.equal(settleStage("live", bare), "idea");
+});
+
+test("resting is a decision, so an edit never moves it", () => {
+  assert.equal(settleStage("resting", { ...stageInput, seatCount: 0 }), "resting");
 });
