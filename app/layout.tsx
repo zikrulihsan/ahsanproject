@@ -15,9 +15,10 @@ const geistMono = Geist_Mono({
 
 export const viewport: Viewport = { themeColor: "#f3f0e8" };
 
-// Title, description and hreflang are set per language in each page's metadata.
+// Each page sets its own title, description and canonical.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  title: { default: "Ahsan Project", template: "%s" },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -26,8 +27,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Indonesian is the document default; the English route sets lang="en" on its
-  // own <main>, since only the root layout may render <html>.
+  // Indonesian is the document default; the English story page sets lang="en"
+  // on its own <main>, since only the root layout may render <html>.
   return (
     <html lang="id">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  output: process.env.NETLIFY ? "export" : undefined,
-};
+// Every route reads request identity or the database, so there is no static
+// export target any more — the site is served by the Cloudflare Worker in
+// `worker/index.ts`.
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
