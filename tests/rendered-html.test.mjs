@@ -140,6 +140,23 @@ test("tujuan setelah masuk tidak bisa diarahkan ke luar situs", async () => {
   }
 });
 
+test("kotak masuk minta masuk dulu, bukan menampilkan punya orang", async () => {
+  const response = await fetch(`${BASE}/inbox`, { redirect: "manual" });
+  assert.ok([307, 308].includes(response.status), `dapat ${response.status}`);
+  assert.match(response.headers.get("location") ?? "", /\/signin/);
+});
+
+test("halaman ubah proyek tertutup untuk tamu", async () => {
+  const response = await fetch(`${BASE}/projects/warung-antre/edit`, { redirect: "manual" });
+  assert.ok([307, 308].includes(response.status), `dapat ${response.status}`);
+  assert.match(response.headers.get("location") ?? "", /\/signin/);
+});
+
+test("tamu tidak melihat tautan ubah proyek", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.doesNotMatch(page, /Ubah proyek/);
+});
+
 test("proyek yang tidak ada jadi 404, bukan error", async () => {
   const response = await fetch(`${BASE}/projects/tidak-ada`);
   assert.equal(response.status, 404);

@@ -202,6 +202,28 @@ $$, 'mendukung dua kali');
 delete from public.boosts where user_id = '11111111-1111-4111-8111-111111111111';
 select checks.equal((select count(*)::int from public.boosts), 1, 'dukungan orang lain tidak bisa dicabut');
 
+-- ------------------------------------------------------------------ delete --
+
+-- Deleting a project has to take its seats, comments and support with it,
+-- because app/actions.ts deleteProject() leans on the cascade rather than
+-- clearing the children itself.
+select checks.equal((select count(*)::int from public.seats), 1, 'ada peran sebelum dihapus');
+select checks.equal((select count(*)::int from public.comments), 1, 'ada komentar sebelum dihapus');
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$delete from public.projects where slug = 'kelas-sore'$$, 'pemilik menghapus proyeknya');
+select checks.equal((select count(*)::int from public.seats), 0, 'peran ikut terhapus');
+select checks.equal((select count(*)::int from public.comments), 0, 'komentar ikut terhapus');
+select checks.equal((select count(*)::int from public.boosts), 0, 'dukungan ikut terhapus');
+
+-- Put it back so the guest checks below still have something to read.
+select checks.allowed($$
+  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+  values ('kelas-sore', 'Kelas Sore', 'Papan jadwal kelas tambahan gratis di kampung.',
+          '11111111-1111-4111-8111-111111111111',
+          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['pendidikan'])
+$$, 'pemilik menaruh ulang proyeknya');
+
 -- -------------------------------------------------------------------- anon --
 
 select checks.act_as_guest();
@@ -221,10 +243,10 @@ select checks.denied($$select public.apply_for_seat((select id from public.seats
                      'tamu melamar peran');
 
 -- The overview must agree with the rows it counts.
-select checks.equal((select open_seat_count::int from public.project_overview), 0, 'hitungan peran terbuka');
-select checks.equal((select active_member_count::int from public.project_overview), 1, 'hitungan anggota aktif');
-select checks.equal((select comment_count::int from public.project_overview), 1, 'hitungan komentar');
-select checks.equal((select boost_count::int from public.project_overview), 1, 'hitungan dukungan');
+-- The project was just re-created, so every count starts from nothing again.
+select checks.equal((select seat_count::int from public.project_overview), 0, 'hitungan peran');
+select checks.equal((select comment_count::int from public.project_overview), 0, 'hitungan komentar');
+select checks.equal((select boost_count::int from public.project_overview), 0, 'hitungan dukungan');
 
 reset role;
 rollback;

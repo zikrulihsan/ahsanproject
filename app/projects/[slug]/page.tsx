@@ -50,9 +50,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
       <SiteHeader returnTo={returnTo} />
 
       <main className="project-page">
-        <p className="breadcrumb">
-          <Link href="/">Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
-        </p>
+        <div className="breadcrumb breadcrumb-row">
+          <p>
+            <Link href="/">Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
+          </p>
+          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah proyek</Link> : null}
+        </div>
 
         <section className={`project-hero ${project.accent}`}>
           <div className="project-hero-copy">

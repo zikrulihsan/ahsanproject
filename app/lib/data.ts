@@ -58,6 +58,18 @@ export type ProjectDetail = ProjectSummary & {
   comments: CommentView[];
 };
 
+/** A seat somebody has applied for, shown from either side of the decision. */
+export type ApplicationView = {
+  seatId: number;
+  role: string;
+  brief: string;
+  status: string;
+  pitch: string;
+  createdAt: string;
+  project: { slug: string; title: string; accent: string };
+  person: Pick<Person, "id" | "username" | "name"> | null;
+};
+
 export type FeedQuery = {
   stage?: string;
   tag?: string;
@@ -220,6 +232,66 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
+/* ------------------------------------------------------------------ *
+ * Applications
+ * ------------------------------------------------------------------ */
+
+const APPLICATION_COLUMNS =
+  "id, role, brief, status, pitch, created_at, " +
+  "project:projects!inner(slug, title, accent, owner_id), " +
+  "person:profiles(id, username, name)";
+
+/** Applications waiting on this person's own projects. */
+export async function listIncomingApplications(userId: string): Promise<ApplicationView[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("seats")
+    .select(APPLICATION_COLUMNS)
+    .eq("project.owner_id", userId)
+    .eq("status", "pending")
+    .order("id", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map(toApplication);
+}
+
+/** Seats this person has applied for, whatever came of them. */
+export async function listMyApplications(userId: string): Promise<ApplicationView[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("seats")
+    .select(APPLICATION_COLUMNS)
+    .eq("user_id", userId)
+    .order("id", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map(toApplication);
+}
+
+/**
+ * How many applications are waiting on this person's projects.
+ *
+ * Runs on every page for a signed-in visitor to feed the header badge, so it
+ * asks for the count alone rather than the rows.
+ */
+export async function countIncomingApplications(userId: string): Promise<number> {
+  const supabase = await getSupabase();
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from("seats")
+    .select("id, project:projects!inner(owner_id)", { count: "exact", head: true })
+    .eq("project.owner_id", userId)
+    .eq("status", "pending");
+  if (error) throw new Error(error.message);
+
+  return count ?? 0;
+}
+
 export async function hasBoosted(projectId: number, userId: string): Promise<boolean> {
   const supabase = await getSupabase();
   if (!supabase) return false;
@@ -240,6 +312,31 @@ export async function hasBoosted(projectId: number, userId: string): Promise<boo
  * ------------------------------------------------------------------ */
 
 type BriefPerson = Pick<Person, "id" | "username" | "name">;
+
+type ApplicationRow = {
+  id: number;
+  role: string;
+  brief: string;
+  status: string;
+  pitch: string;
+  created_at: string;
+  project: { slug: string; title: string; accent: string } | null;
+  person: BriefPerson | null;
+};
+
+function toApplication(row: unknown): ApplicationView {
+  const seat = row as ApplicationRow;
+  return {
+    seatId: seat.id,
+    role: seat.role,
+    brief: seat.brief,
+    status: seat.status,
+    pitch: seat.pitch,
+    createdAt: seat.created_at,
+    project: seat.project ?? { slug: "", title: "Proyek terhapus", accent: "mint" },
+    person: seat.person ?? null,
+  };
+}
 
 function toSummary(row: ProjectOverviewRow): ProjectSummary {
   return {

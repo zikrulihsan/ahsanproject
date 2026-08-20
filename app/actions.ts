@@ -5,13 +5,15 @@ import { redirect } from "next/navigation";
 import { requireSupabase, type Supabase } from "./lib/supabase";
 import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from "./lib/brief";
 import { isRole } from "./lib/roles";
-import { isStage, meetsStage, type Stage } from "./lib/stages";
+import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { currentViewer } from "./lib/session";
 
 export type CreateState = {
   errors: FieldErrors & { form?: string };
   values: Record<string, string>;
 };
+
+export type EditState = CreateState;
 
 const ACCENTS = ["mint", "yellow", "blue", "coral", "purple", "green", "sand", "sky"] as const;
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
@@ -85,6 +87,105 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
 
   revalidatePath("/");
   redirect(`/projects/${slug}`);
+}
+
+/**
+ * Rewrites a project's brief.
+ *
+ * The same minimums apply as when it was created, so a project cannot be
+ * hollowed out after the fact. If the edit takes away what its level stood on,
+ * the level drops with it rather than staying as a badge that lies.
+ */
+export async function updateProject(_state: EditState, formData: FormData): Promise<EditState> {
+  const slug = text(formData, "slug");
+  const values = {
+    title: text(formData, "title"),
+    tagline: text(formData, "tagline"),
+    problem: text(formData, "problem"),
+    solution: text(formData, "solution"),
+    audience: text(formData, "audience"),
+    tags: text(formData, "tags"),
+    docUrl: text(formData, "docUrl"),
+    repoUrl: text(formData, "repoUrl"),
+    liveUrl: text(formData, "liveUrl"),
+  };
+
+  const viewer = await currentViewer();
+  if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah proyek ini." }, values };
+
+  const errors: EditState["errors"] = validateBrief(values);
+  if (Object.keys(errors).length > 0) return { errors, values };
+
+  try {
+    const supabase = await requireSupabase();
+    const { data: project, error } = await supabase
+      .from("project_overview")
+      .select("id, owner_id, stage, seat_count")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!project) return { errors: { form: "Proyeknya tidak ketemu." }, values };
+    if (project.owner_id !== viewer.id) {
+      return { errors: { form: "Cuma pemilik proyek yang bisa mengubahnya." }, values };
+    }
+
+    const tags = normaliseTags(values.tags);
+    const stage = settleStage(project.stage as Stage, {
+      problem: values.problem,
+      solution: values.solution,
+      audience: values.audience,
+      tags,
+      docUrl: values.docUrl,
+      repoUrl: values.repoUrl,
+      liveUrl: values.liveUrl,
+      seatCount: Number(project.seat_count),
+    });
+
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({
+        title: values.title,
+        tagline: values.tagline,
+        problem: values.problem,
+        solution: values.solution,
+        audience: values.audience,
+        doc_url: values.docUrl,
+        repo_url: values.repoUrl,
+        live_url: values.liveUrl,
+        tags,
+        stage,
+      })
+      .eq("id", project.id);
+    if (updateError) throw new Error(updateError.message);
+  } catch (error) {
+    return { errors: { form: messageOf(error) }, values };
+  }
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+  redirect(`/projects/${slug}`);
+}
+
+/**
+ * Removes a project for good, along with its seats, comments and support.
+ *
+ * Asks for the slug to be typed back because there is no undo — the cascade in
+ * the schema takes the discussion with it.
+ */
+export async function deleteProject(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const confirmation = text(formData, "confirm");
+  if (!slug || confirmation !== slug) return;
+
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("projects").delete().eq("slug", slug);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  redirect(`/u/${viewer.username}`);
 }
 
 export async function setStage(formData: FormData): Promise<void> {

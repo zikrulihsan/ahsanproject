@@ -49,6 +49,12 @@ nav { align-items: center; display: flex; flex-wrap: wrap; font-size: 13px; font
 nav a { transition: opacity .2s ease; }
 nav a:hover { opacity: .6; }
 .nav-person { border-bottom: 1px solid var(--line); }
+.nav-inbox { align-items: center; display: inline-flex; gap: 7px; }
+.badge {
+  align-items: center; background: var(--orange); border-radius: 100px; color: #fff;
+  display: inline-flex; font-size: 10px; font-weight: 700; justify-content: center;
+  min-width: 18px; padding: 2px 6px;
+}
 nav form { display: flex; margin: 0; }
 /* The sign-out control is a form button, so it has to shed the form styling. */
 nav .nav-quiet {
@@ -226,6 +232,48 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 .breadcrumb { color: var(--muted); font-size: 12px; margin-bottom: 18px; }
 .breadcrumb a { border-bottom: 1px solid var(--line); }
 .breadcrumb span { margin: 0 6px; }
+.breadcrumb-row { align-items: baseline; display: flex; gap: 16px; justify-content: space-between; }
+.breadcrumb-row p { margin: 0; }
+.edit-link { border-bottom: 1px solid var(--line); font-weight: 600; white-space: nowrap; }
+
+/* ------------------------------------------------------------------ inbox */
+
+.inbox .section-title { margin-top: 44px; }
+.application-list { list-style: none; margin: 0; padding: 0; }
+.application-list li {
+  background: var(--card); border-radius: var(--radius); margin-bottom: 12px; padding: 22px;
+}
+.application-head { align-items: start; display: flex; gap: 12px; }
+.application-title { font-size: 15px; line-height: 1.5; margin: 0 0 4px; }
+.application-title a { border-bottom: 1px solid var(--line); }
+.application-meta { color: var(--muted); font-size: 12px; margin: 0; }
+.application-meta a { border-bottom: 1px solid var(--line); }
+.application-list blockquote {
+  border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.65;
+  margin: 14px 0; padding-left: 14px;
+}
+.application-list form { display: flex; gap: 8px; margin-top: 14px; }
+.application-status { font-size: 13px; font-weight: 600; margin: 14px 0 0; }
+.status-pending { color: #7a5a05; }
+.status-filled { color: var(--moss); }
+.status-open { color: var(--muted); font-weight: 500; }
+
+/* ------------------------------------------------------------ danger zone */
+
+.danger-zone {
+  border: 1px solid rgba(238, 106, 59, .35); border-radius: var(--radius); margin-top: 40px;
+  padding: 26px;
+}
+.danger-zone h2 { font-size: 19px; font-weight: 650; margin-bottom: 10px; }
+.danger-zone > p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 4px; }
+.danger-zone code, .page-narrow code {
+  background: rgba(23, 61, 50, .08); border-radius: 5px; font-family: var(--font-geist-mono), monospace;
+  font-size: .9em; padding: 2px 6px;
+}
+.danger-zone summary { border-color: rgba(238, 106, 59, .5); color: #b23c14; }
+.danger-zone form { background: var(--card); border-radius: 14px; padding: 18px; }
+form button.danger { background: #b23c14; }
+form button.danger:hover { background: #96320f; }
 
 .project-hero { border-radius: 30px; padding: 40px; }
 .project-hero.mint { background: #cee3d0; }
