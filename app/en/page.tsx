@@ -1,9 +1,6 @@
-import type { Metadata } from "next";
-import { Site } from "../site";
-import { localeMetadata } from "../locale-metadata";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = localeMetadata("en");
-
-export default function EnglishHome() {
-  return <Site lang="en" />;
+/** `/en` used to be the English homepage; the story now lives at `/en/about`. */
+export default function EnglishIndex() {
+  redirect("/en/about");
 }
