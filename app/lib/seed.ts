@@ -1,10 +1,9 @@
 /**
  * The projects Ahsan Project opens with.
  *
- * This is the source of truth for two things: the SQL seed shipped in
- * `drizzle/`, and the read-only fallback `app/lib/data.ts` serves when no
- * database is attached. Keep the two in step — regenerate the seed migration
- * after editing here.
+ * This is the source of truth for two things: `supabase/seed.sql`, and the
+ * read-only fallback `app/lib/data.ts` serves when no database is attached.
+ * Keep the two in step — run `npm run db:seed` after editing here.
  */
 export type SeedUser = {
   id: string;
@@ -20,8 +19,18 @@ export type SeedSeat = {
   role: string;
   brief: string;
   status: "open" | "pending" | "filled";
+  /** Only a filled seat may be admin — see seats_admin_needs_holder. */
+  access: "member" | "admin";
   userId: string | null;
   pitch: string;
+};
+
+export type SeedTask = {
+  title: string;
+  detail: string;
+  status: "todo" | "doing" | "done";
+  /** A seed user id, or null for a task nobody has picked up. */
+  assigneeId: string | null;
 };
 
 export type SeedProject = {
@@ -42,6 +51,7 @@ export type SeedProject = {
   glyph: string;
   createdAt: string;
   seats: SeedSeat[];
+  tasks: SeedTask[];
 };
 
 export const seedUsers: SeedUser[] = [
@@ -81,10 +91,12 @@ export const seedProjects: SeedProject[] = [
         role: "design",
         brief: "Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 2,
@@ -110,10 +122,12 @@ export const seedProjects: SeedProject[] = [
         role: "content",
         brief: "Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 3,
@@ -139,6 +153,7 @@ export const seedProjects: SeedProject[] = [
         role: "growth",
         brief: "Mengajak komunitas RT/RW di satu kota untuk mengisi datanya lebih dulu.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
@@ -146,10 +161,12 @@ export const seedProjects: SeedProject[] = [
         role: "engineering",
         brief: "Menambah pencarian berdasarkan jarak dan penyaringan per kecamatan.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 4,
@@ -175,10 +192,12 @@ export const seedProjects: SeedProject[] = [
         role: "pm",
         brief: "Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 5,
@@ -204,10 +223,12 @@ export const seedProjects: SeedProject[] = [
         role: "research",
         brief: "Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 6,
@@ -233,10 +254,12 @@ export const seedProjects: SeedProject[] = [
         role: "content",
         brief: "Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
     ],
+    tasks: [],
   },
   {
     id: 7,
@@ -262,6 +285,7 @@ export const seedProjects: SeedProject[] = [
         role: "research",
         brief: "Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
@@ -269,6 +293,7 @@ export const seedProjects: SeedProject[] = [
         role: "design",
         brief: "Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
@@ -276,8 +301,29 @@ export const seedProjects: SeedProject[] = [
         role: "engineering",
         brief: "Prototipe antrean yang tetap jalan saat koneksi putus.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
+      },
+    ],
+    tasks: [
+      {
+        title: "Ngobrol dengan lima pemilik warung",
+        detail: "Cari tahu apakah antreannya benar-benar terasa mengganggu, atau cuma kelihatan begitu dari luar.",
+        status: "doing",
+        assigneeId: "seed-zikrul",
+      },
+      {
+        title: "Sketsa layar penjual",
+        detail: "Satu layar saja, harus kebaca sambil tangan sibuk.",
+        status: "todo",
+        assigneeId: null,
+      },
+      {
+        title: "Tulis brief-nya",
+        detail: "Masalah, gambaran solusi, dan untuk siapa.",
+        status: "done",
+        assigneeId: "seed-zikrul",
       },
     ],
   },
@@ -305,6 +351,7 @@ export const seedProjects: SeedProject[] = [
         role: "pm",
         brief: "Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
       },
@@ -312,8 +359,17 @@ export const seedProjects: SeedProject[] = [
         role: "design",
         brief: "Menyusun tampilan papan mingguan yang kebaca sekali lihat.",
         status: "open",
+        access: "member",
         userId: null,
         pitch: "",
+      },
+    ],
+    tasks: [
+      {
+        title: "Hitung berapa orang tua yang sekolahnya searah",
+        detail: "Pakai data satu kompleks dulu, jangan langsung sekota.",
+        status: "todo",
+        assigneeId: null,
       },
     ],
   },

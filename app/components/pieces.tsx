@@ -68,11 +68,16 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
 
       <div className="card-footer">
         <span>
-          {project.openSeatCount > 0
-            ? `${project.openSeatCount} peran terbuka`
-            : project.activeMemberCount > 0
-              ? `${project.activeMemberCount} orang menggarap`
-              : "Belum buka peran"}
+          {/* What is moving beats what is wanted, which beats what is finished. */}
+          {project.openTaskCount > 0
+            ? `${project.openTaskCount} tugas jalan`
+            : project.openSeatCount > 0
+              ? `${project.openSeatCount} peran terbuka`
+              : project.doneTaskCount > 0
+                ? `${project.doneTaskCount} tugas beres`
+                : project.activeMemberCount > 0
+                  ? `${project.activeMemberCount} orang menggarap`
+                  : "Belum buka peran"}
         </span>
         <Link className="round-arrow" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
           <Arrow diagonal />

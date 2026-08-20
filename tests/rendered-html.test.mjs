@@ -157,6 +157,37 @@ test("tamu tidak melihat tautan ubah proyek", async () => {
   assert.doesNotMatch(page, /Ubah proyek/);
 });
 
+test("halaman proyek menampilkan tugas yang lagi jalan", async () => {
+  const page = await html("/projects/warung-antre");
+  // React splits a text node from the expression beside it with a comment
+  // marker, so match the counted part rather than the whole heading.
+  assert.match(page, /1 dari 3 beres/, "judul membawa kemajuannya");
+  assert.match(page, /Ngobrol dengan lima pemilik warung/);
+  assert.match(page, /Sketsa layar penjual/);
+  assert.match(page, /Lagi dikerjain/);
+  assert.match(page, /Beres/);
+  assert.match(page, /Belum ada yang ambil/, "tugas tanpa penerima dikatakan apa adanya");
+});
+
+test("tamu tidak melihat kontrol pengelola", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.doesNotMatch(page, /Tambah tugas/);
+  assert.doesNotMatch(page, /Atur akses/);
+  assert.doesNotMatch(page, /Buka peran baru/);
+  // The move buttons belong to the assignee and the managers, nobody else.
+  assert.doesNotMatch(page, /name="taskId"/);
+});
+
+test("kartu di papan menunjukkan tugas yang jalan", async () => {
+  const page = await html("/");
+  assert.match(page, /2 tugas jalan/, "Warung Antre punya dua tugas belum beres");
+});
+
+test("proyek tanpa tugas mengatakannya, bukan diam", async () => {
+  const page = await html("/projects/tap-tap-dzikr");
+  assert.match(page, /Belum ada tugas di sini/);
+});
+
 test("proyek yang tidak ada jadi 404, bukan error", async () => {
   const response = await fetch(`${BASE}/projects/tidak-ada`);
   assert.equal(response.status, 404);

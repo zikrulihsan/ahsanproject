@@ -34,6 +34,7 @@ and everything that writes will say so rather than failing quietly.
    - `0001_schema.sql` — tables, constraints, and the `project_overview` view
    - `0002_functions.sql` — the sign-up trigger and the two seat transitions
    - `0003_policies.sql` — row level security
+   - `0004_access_and_tasks.sql` — project access levels and the task list
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -65,6 +66,10 @@ confirmation off, sign-up signs people straight in instead.
   `resting`) and what each one requires. No level asks for a team: working alone
   is not a lesser project. What they ask for is evidence the work has moved.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
+- `app/lib/tasks.ts` — the three task statuses and what a task must carry.
+- `app/lib/access.ts` — owner, admin, member. Admins run the work — seats,
+  applications, the task list. The project itself — the brief, the level,
+  deleting it — stays with the owner.
 - `app/lib/data.ts` — every read the pages do.
 - `app/actions.ts` — every write, as server actions.
 
@@ -72,7 +77,17 @@ confirmation off, sign-up signs people straight in instead.
 `supabase/migrations/0003_policies.sql` decide who may read and write; the
 checks in the server actions exist to turn a refusal into a readable sentence.
 Taking a seat goes through `apply_for_seat()` and `decide_seat()` rather than a
-plain update, so an applicant cannot rewrite the role on their way in.
+plain update, so an applicant cannot rewrite the role on their way in. Moving a
+task goes through `move_task()` for the same reason: row level security is row
+level, not column level, so a policy letting the assignee update their own task
+would also let them retitle it and hand it to somebody else.
+
+Two rules in `0004` are worth knowing before changing anything there.
+`can_manage_project()` is SECURITY DEFINER because it reads `seats` and is used
+inside the policies on `seats` — as INVOKER it would recurse forever. And
+`project_overview` is dropped and recreated rather than replaced, because
+`create or replace view` keeps the old reloptions silently, so a replacement
+that forgets `security_invoker = true` would stop honouring RLS altogether.
 
 ## Tests
 

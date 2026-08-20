@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import type { CommentRow, ProfileRow, ProjectOverviewRow, SeatRow } from "./database.types";
+import type { CommentRow, ProfileRow, ProjectOverviewRow, SeatRow, TaskRow } from "./database.types";
 import { seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 
@@ -35,6 +35,8 @@ export type ProjectSummary = {
   activeMemberCount: number;
   boostCount: number;
   commentCount: number;
+  openTaskCount: number;
+  doneTaskCount: number;
 };
 
 export type SeatView = {
@@ -42,8 +44,19 @@ export type SeatView = {
   role: string;
   brief: string;
   status: string;
+  /** member | admin — see app/lib/access.ts. */
+  access: string;
   pitch: string;
   person: Pick<Person, "id" | "username" | "name"> | null;
+};
+
+export type TaskView = {
+  id: number;
+  title: string;
+  detail: string;
+  status: string;
+  createdAt: string;
+  assignee: Pick<Person, "id" | "username" | "name"> | null;
 };
 
 export type CommentView = {
@@ -55,6 +68,7 @@ export type CommentView = {
 
 export type ProjectDetail = ProjectSummary & {
   seats: SeatView[];
+  tasks: TaskView[];
   comments: CommentView[];
 };
 
@@ -122,7 +136,7 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
   if (error) throw new Error(error.message);
   if (!project) return null;
 
-  const [seats, comments] = await Promise.all([
+  const [seats, comments, tasks] = await Promise.all([
     supabase
       .from("seats")
       .select("*, person:profiles(id, username, name)")
@@ -133,12 +147,21 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
       .select("*, author:profiles(id, username, name)")
       .eq("project_id", project.id)
       .order("id"),
+    supabase
+      // `tasks` points at `profiles` twice, so the embed has to name the
+      // constraint. Without it PostgREST cannot tell assignee from creator.
+      .from("tasks")
+      .select("*, assignee:profiles!tasks_assignee_id_fkey(id, username, name)")
+      .eq("project_id", project.id)
+      .order("id"),
   ]);
   if (seats.error) throw new Error(seats.error.message);
   if (comments.error) throw new Error(comments.error.message);
+  if (tasks.error) throw new Error(tasks.error.message);
 
   type SeatWithPerson = SeatRow & { person: BriefPerson | null };
   type CommentWithAuthor = CommentRow & { author: BriefPerson | null };
+  type TaskWithAssignee = TaskRow & { assignee: BriefPerson | null };
 
   return {
     ...toSummary(project),
@@ -147,8 +170,17 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
       role: seat.role,
       brief: seat.brief,
       status: seat.status,
+      access: seat.access,
       pitch: seat.pitch,
       person: seat.person ?? null,
+    })),
+    tasks: ((tasks.data ?? []) as TaskWithAssignee[]).map((task) => ({
+      id: task.id,
+      title: task.title,
+      detail: task.detail,
+      status: task.status,
+      createdAt: task.created_at,
+      assignee: task.assignee ?? null,
     })),
     comments: ((comments.data ?? []) as CommentWithAuthor[])
       .filter((comment) => comment.author)
@@ -361,6 +393,8 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     activeMemberCount: Number(row.active_member_count),
     boostCount: Number(row.boost_count),
     commentCount: Number(row.comment_count),
+    openTaskCount: Number(row.open_task_count),
+    doneTaskCount: Number(row.done_task_count),
   };
 }
 
@@ -405,6 +439,8 @@ function seedSummaries(): ProjectSummary[] {
       activeMemberCount: project.seats.filter((seat) => seat.status === "filled").length,
       boostCount: 0,
       commentCount: 0,
+      openTaskCount: project.tasks.filter((task) => task.status !== "done").length,
+      doneTaskCount: project.tasks.filter((task) => task.status === "done").length,
     };
   });
 }
@@ -446,8 +482,24 @@ function seedDetail(slug: string): ProjectDetail | null {
       role: seat.role,
       brief: seat.brief,
       status: seat.status,
+      access: seat.access,
       pitch: seat.pitch,
       person: null,
+    })),
+    tasks: source.tasks.map((task, index) => ({
+      id: index + 1,
+      title: task.title,
+      detail: task.detail,
+      status: task.status,
+      createdAt: source.createdAt,
+      assignee: task.assigneeId
+        ? (() => {
+            const owner = seedUsers.find((user) => user.id === task.assigneeId);
+            return owner
+              ? { id: owner.id, username: owner.username, name: owner.name }
+              : null;
+          })()
+        : null,
     })),
     comments: [],
   };
