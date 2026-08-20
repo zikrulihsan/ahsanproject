@@ -542,6 +542,32 @@ details[open] summary { margin-bottom: 16px; }
 .how-section { margin: 0 auto; max-width: 900px; padding: 80px 5vw; }
 .how-section h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 560; letter-spacing: -.05em; margin-bottom: 28px; }
 
+/* ------------------------------------------------------------- activity */
+
+/* Ink on paper, no project accents: a third copy of the eight colour blocks
+   would be one more place to forget. */
+.activity-list { list-style: none; margin: 0; padding: 0; }
+.activity-list li {
+  border-left: 2px solid var(--line-soft); padding: 0 0 18px 20px; position: relative;
+}
+.activity-list li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.activity-list li::before {
+  background: var(--moss-light); border-radius: 50%; content: ""; height: 9px;
+  left: -5px; position: absolute; top: 6px; width: 9px;
+}
+.activity-list li.is-hidden::before { background: var(--paper); border: 2px solid var(--line); }
+.activity-list li.is-hidden p { opacity: .6; }
+.activity-list p { font-size: 15px; line-height: 1.6; margin: 0 0 4px; }
+.activity-list a { border-bottom: 1px solid var(--line); font-weight: 600; }
+.activity-list small { color: var(--muted); font-size: 11px; }
+
+.kind-list { display: grid; gap: 4px; grid-template-columns: repeat(2, 1fr); list-style: none; margin: 0 0 18px; padding: 0; }
+.kind-list label {
+  align-items: center; cursor: pointer; display: flex; font-size: 14px; font-weight: 500; gap: 9px;
+  margin: 0; padding: 5px 0;
+}
+.kind-list input { accent-color: var(--ink); height: 16px; margin: 0; width: 16px; }
+
 /* --------------------------------------------------------------- footer */
 
 footer {
@@ -578,6 +604,7 @@ footer > a:last-child { align-items: center; display: flex; gap: 8px; }
   .project-hero { border-radius: 22px; padding: 26px; }
   .project-main > section { padding: 24px; }
   .seat-list li, .task-list li { grid-template-columns: 1fr; }
+  .kind-list { grid-template-columns: 1fr; }
   .task-side { align-items: flex-start; flex-direction: row; }
   .profile-hero { grid-template-columns: 1fr; gap: 18px; }
   .avatar-lg { font-size: 20px; height: 72px; width: 72px; }

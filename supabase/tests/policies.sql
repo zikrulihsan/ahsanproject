@@ -317,6 +317,74 @@ select checks.equal((select assignee_id from public.tasks limit 1), '33333333-33
 select checks.allowed($$delete from public.seats where user_id = '33333333-3333-4333-8333-333333333333'$$, 'pemilik melepas anggota');
 select checks.equal((select assignee_id from public.tasks limit 1), null::uuid, 'tugasnya ikut dilepas');
 
+-- ------------------------------------------------------------------ jejak --
+
+-- The trail is written by triggers, so by now the actions above have already
+-- produced entries. What matters is who they are attributed to, that nobody can
+-- forge one, and that hiding a kind really hides it.
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+
+-- The owner accepted dina's application, but joining is dina's to show.
+select checks.equal(
+  (select e.actor_id from public.events e where e.kind = 'seat_filled' order by e.id desc limit 1),
+  '22222222-2222-4222-8222-222222222222'::uuid, 'yang gabung yang punya jejaknya, bukan yang menerima');
+
+select checks.equal(
+  (select e.actor_id from public.events e where e.kind = 'project_created' order by e.id limit 1),
+  '11111111-1111-4111-8111-111111111111'::uuid, 'yang menaruh ide yang punya jejaknya');
+
+select checks.equal(
+  (select (e.payload ->> 'task_title') from public.events e where e.kind = 'task_created' order by e.id desc limit 1),
+  'Tugas asli', 'jejak tugas menyimpan judulnya');
+
+-- Nothing anybody can write by hand.
+select checks.denied($$
+  insert into public.events (actor_id, kind, payload)
+  values ('11111111-1111-4111-8111-111111111111', 'task_done', '{"task_title":"Karangan"}'::jsonb)
+$$, 'mengarang jejak sendiri');
+select checks.denied($$update public.events set kind = 'task_done'$$, 'mengubah jejak');
+select checks.denied($$delete from public.events$$, 'menghapus jejak');
+
+-- A statement with nobody behind it writes nothing. This is what keeps
+-- supabase/seed.sql from manufacturing history for backdated projects.
+reset role;
+select set_config('request.jwt.claims', '', true);
+insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
+values ('uji-tanpa-orang', 'Uji Tanpa Orang', 'Disisipkan tanpa ada orang di baliknya.',
+        '11111111-1111-4111-8111-111111111111', repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji']);
+select checks.equal((select count(*)::int from public.events where payload ->> 'slug' = 'uji-tanpa-orang'),
+                    0, 'tanpa orang di baliknya, tidak ada jejak');
+delete from public.projects where slug = 'uji-tanpa-orang';
+
+-- Hiding a kind has to be a database rule, or the anon key reads straight past it.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.allowed($$
+  update public.profiles set activity_hidden = array['comment_posted'] where id = '22222222-2222-4222-8222-222222222222'
+$$, 'menyembunyikan satu jenis jejak');
+
+select checks.denied($$
+  update public.profiles set activity_hidden = array['bukan-jenis-apa-apa'] where id = '22222222-2222-4222-8222-222222222222'
+$$, 'menyembunyikan jenis yang tidak ada');
+
+select checks.equal(
+  (select count(*)::int from public.events where actor_id = '22222222-2222-4222-8222-222222222222' and kind = 'comment_posted'),
+  1, 'pemiliknya tetap melihat jejaknya sendiri');
+
+select checks.act_as_guest();
+select checks.equal(
+  (select count(*)::int from public.events where actor_id = '22222222-2222-4222-8222-222222222222' and kind = 'comment_posted'),
+  0, 'orang lain tidak melihat jejak yang disembunyikan');
+select checks.equal(
+  (select count(*)::int from public.events where actor_id = '22222222-2222-4222-8222-222222222222' and kind = 'seat_filled'),
+  1, 'jenis lain tetap kelihatan');
+
+-- Somebody else's choice is not yours to make.
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+update public.profiles set activity_hidden = array['task_done'] where id = '22222222-2222-4222-8222-222222222222';
+select checks.equal((select activity_hidden from public.profiles where id = '22222222-2222-4222-8222-222222222222'),
+                    array['comment_posted'], 'pilihan orang lain tidak bisa diubah');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
@@ -331,6 +399,16 @@ select checks.equal((select count(*)::int from public.seats), 0, 'peran ikut ter
 select checks.equal((select count(*)::int from public.comments), 0, 'komentar ikut terhapus');
 select checks.equal((select count(*)::int from public.boosts), 0, 'dukungan ikut terhapus');
 select checks.equal((select count(*)::int from public.tasks), 0, 'tugas ikut terhapus');
+
+-- Deliberately the other way round for the trail: events release the project
+-- rather than cascading, and the payload keeps the title, so somebody's history
+-- does not develop a hole when a project they worked on is deleted.
+select checks.equal(
+  (select (e.payload ->> 'title') from public.events e where e.kind = 'project_created' order by e.id limit 1),
+  'Kelas Sore', 'jejak menyimpan judul proyek yang sudah dihapus');
+select checks.equal(
+  (select e.project_id from public.events e where e.kind = 'project_created' order by e.id limit 1),
+  null::bigint, 'jejak melepas proyeknya, bukan ikut terhapus');
 
 -- Put it back so the guest checks below still have something to read.
 select checks.allowed($$

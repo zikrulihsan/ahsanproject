@@ -13,6 +13,17 @@ export type SeedUser = {
   bio: string;
   website: string;
   github: string;
+  /** Trail kinds kept off the public profile. Empty means everything shows. */
+  activityHidden: string[];
+};
+
+export type SeedEvent = {
+  id: number;
+  actorId: string;
+  projectSlug: string;
+  kind: string;
+  payload: Record<string, string>;
+  createdAt: string;
 };
 
 export type SeedSeat = {
@@ -63,6 +74,52 @@ export const seedUsers: SeedUser[] = [
     bio: "Mengerjakan proyek satu per satu di waktu luang. Ahsan artinya melakukan sesuatu sebaik mungkin — itu yang saya usahakan di sini, sekecil apa pun yang sedang dikerjakan.",
     website: "https://ahsanproject-id.netlify.app",
     github: "https://github.com/zikrulihsan",
+    activityHidden: [],
+  },
+];
+
+/**
+ * A few trail entries, so the profile has something to show when no database is
+ * attached. On a real deployment the triggers write these; nothing here is
+ * inserted by `supabase/seed.sql`, because a seeded trail would be history that
+ * never happened.
+ */
+export const seedEvents: SeedEvent[] = [
+  {
+    id: 4,
+    actorId: "seed-zikrul",
+    projectSlug: "warung-antre",
+    kind: "task_done",
+    payload: { slug: "warung-antre", title: "Warung Antre", task_title: "Tulis brief-nya" },
+    createdAt: "2025-06-16 10:00:00",
+  },
+  {
+    id: 3,
+    actorId: "seed-zikrul",
+    projectSlug: "warung-antre",
+    kind: "task_taken",
+    payload: {
+      slug: "warung-antre",
+      title: "Warung Antre",
+      task_title: "Ngobrol dengan lima pemilik warung",
+    },
+    createdAt: "2025-06-15 09:00:00",
+  },
+  {
+    id: 2,
+    actorId: "seed-zikrul",
+    projectSlug: "warung-antre",
+    kind: "seat_opened",
+    payload: { slug: "warung-antre", title: "Warung Antre", role: "research" },
+    createdAt: "2025-06-14 09:30:00",
+  },
+  {
+    id: 1,
+    actorId: "seed-zikrul",
+    projectSlug: "warung-antre",
+    kind: "project_created",
+    payload: { slug: "warung-antre", title: "Warung Antre" },
+    createdAt: "2025-06-14 09:00:00",
   },
 ];
 

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { roleLabel } from "../lib/roles";
 import { stageMeta, type Stage } from "../lib/stages";
-import type { ProjectSummary } from "../lib/data";
+import type { ActivityEvent, ProjectSummary } from "../lib/data";
+import { activityParts } from "../lib/activity";
 import { Arrow } from "./shell";
 
 export function StageBadge({ stage }: { stage: Stage }) {
@@ -116,4 +117,55 @@ export function timeAgo(value: string): string {
   if (days < 30) return `${days} hari lalu`;
   if (days < 365) return `${Math.floor(days / 30)} bulan lalu`;
   return `${Math.floor(days / 365)} tahun lalu`;
+}
+
+/**
+ * A trail of what somebody, or a project, has actually done.
+ *
+ * `hidden` is only ever passed when somebody is looking at their own profile:
+ * the SELECT policy on `events` shows them their hidden entries and nobody
+ * else's, so this marks them rather than dropping them.
+ */
+export function ActivityList({
+  events,
+  hidden = [],
+  showActor = false,
+}: {
+  events: ActivityEvent[];
+  hidden?: string[];
+  showActor?: boolean;
+}) {
+  return (
+    <ol className="activity-list">
+      {events.map((event) => {
+        const { lead, trail } = activityParts(event);
+        const isHidden = hidden.includes(event.kind);
+        const gone = event.projectId === null || !event.projectSlug;
+
+        return (
+          <li key={event.id} className={isHidden ? "is-hidden" : ""}>
+            <p>
+              {showActor && event.actor ? (
+                <>
+                  <Link href={`/u/${event.actor.username}`}>{event.actor.name}</Link>{" "}
+                </>
+              ) : null}
+              {lead}
+              {gone ? (
+                <strong>{event.projectTitle}</strong>
+              ) : (
+                <Link href={`/projects/${event.projectSlug}`}>{event.projectTitle}</Link>
+              )}
+              {trail}
+            </p>
+            <small>
+              {timeAgo(event.createdAt)}
+              {gone ? " · proyeknya sudah dihapus" : ""}
+              {isHidden ? " · cuma kamu yang lihat" : ""}
+            </small>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

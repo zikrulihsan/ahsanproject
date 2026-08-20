@@ -188,6 +188,19 @@ test("proyek tanpa tugas mengatakannya, bukan diam", async () => {
   assert.match(page, /Belum ada tugas di sini/);
 });
 
+test("profil menampilkan jejak, bukan cuma daftar proyek", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /Jejak/);
+  assert.match(page, /menaruh ide/);
+  assert.match(page, /membereskan tugas/);
+});
+
+test("tamu tidak bisa mengatur jejak orang lain", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.doesNotMatch(page, /Atur apa yang tampil/);
+  assert.doesNotMatch(page, /name="show"/);
+});
+
 test("proyek yang tidak ada jadi 404, bukan error", async () => {
   const response = await fetch(`${BASE}/projects/tidak-ada`);
   assert.equal(response.status, 404);

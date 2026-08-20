@@ -5,6 +5,7 @@ import { MINIMUM, briefCompleteness, normaliseTags, slugify, validateBrief } fro
 import { meetsStage, reachableStages, requirementsFor, settleStage } from "../app/lib/stages.ts";
 import { taskStatusLabel, validateTask } from "../app/lib/tasks.ts";
 import { accessOf, canManage, isOwner } from "../app/lib/access.ts";
+import { EVENT_KINDS, activitySentence, hiddenFrom } from "../app/lib/activity.ts";
 
 const fullBrief = {
   title: "Warung Antre",
@@ -164,4 +165,51 @@ test("admins run the work; owners run the project", () => {
 
   assert.ok(isOwner("owner"));
   assert.ok(!isOwner("admin"), "an admin is not a second owner");
+});
+
+/* ------------------------------------------------------------------ *
+ * The activity trail
+ * ------------------------------------------------------------------ */
+
+const trail = (kind, payload = {}) => ({ kind, projectTitle: "Warung Antre", payload });
+
+test("every kind of trail entry reads as a sentence", () => {
+  const cases = {
+    project_created: /menaruh ide Warung Antre\./,
+    project_stage_changed: /memindahkan Warung Antre ke level Sudah jalan\./,
+    seat_opened: /membuka peran Researcher di Warung Antre\./,
+    seat_applied: /melamar sebagai Researcher di Warung Antre\./,
+    seat_filled: /mulai menggarap Warung Antre sebagai Researcher\./,
+    task_created: /menambah tugas .Tulis brief-nya. di Warung Antre\./,
+    task_taken: /kebagian tugas .Tulis brief-nya. di Warung Antre\./,
+    task_done: /membereskan tugas .Tulis brief-nya. di Warung Antre\./,
+    comment_posted: /ikut membahas Warung Antre\./,
+    boost_given: /mendukung Warung Antre\./,
+  };
+
+  for (const kind of EVENT_KINDS) {
+    const sentence = activitySentence(
+      trail(kind, { role: "research", to: "live", task_title: "Tulis brief-nya" }),
+    );
+    assert.match(sentence, cases[kind], `${kind} harus terbaca`);
+  }
+});
+
+test("a kind this build has not heard of still reads as something", () => {
+  assert.match(activitySentence(trail("entah-apa")), /ikut mengerjakan Warung Antre\./);
+});
+
+test("the checkbox form maps back to the kinds that stay hidden", () => {
+  assert.deepEqual(hiddenFrom([...EVENT_KINDS]), [], "everything checked hides nothing");
+  assert.deepEqual(hiddenFrom([]).sort(), [...EVENT_KINDS].sort(), "nothing checked hides everything");
+
+  const shown = EVENT_KINDS.filter((kind) => kind !== "comment_posted");
+  assert.deepEqual(hiddenFrom([...shown]), ["comment_posted"]);
+});
+
+test("an older page cannot un-hide a kind it never rendered", () => {
+  // The form only submits the kinds this build knows about, so anything else
+  // already stored has to survive the round trip untouched.
+  const hidden = hiddenFrom([...EVENT_KINDS], ["kind_dari_masa_depan"]);
+  assert.deepEqual(hidden, ["kind_dari_masa_depan"]);
 });

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { updateProfile } from "../../actions";
+import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
-import { ProjectCard, initials } from "../../components/pieces";
-import { getPerson, getPortfolio } from "../../lib/data";
+import { ActivityList, ProjectCard, initials } from "../../components/pieces";
+import { getPerson, getPortfolio, listPersonActivity } from "../../lib/data";
+import { EVENT_KINDS, eventKindMeta } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
 import { currentViewer } from "../../lib/session";
 
@@ -32,6 +33,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
   const viewer = await currentViewer();
   const isSelf = viewer?.id === person.id;
   const { owned, contributing } = await getPortfolio(person);
+  const activity = await listPersonActivity(person.id);
   const live = owned.filter((project) => project.stage === "live").length;
 
   return (
@@ -100,6 +102,52 @@ export default async function ProfilePage({ params }: { params: Params }) {
             </form>
           </details>
         ) : null}
+
+        <section aria-labelledby="activity-heading">
+          <h2 id="activity-heading" className="section-title">
+            Jejak
+          </h2>
+
+          {activity.length === 0 ? (
+            <p className="muted">
+              Belum ada jejak.
+              {isSelf
+                ? " Yang kamu kerjakan di sini akan muncul sendiri — tidak perlu ditulis."
+                : ""}
+            </p>
+          ) : (
+            <ActivityList events={activity} hidden={isSelf ? person.activityHidden : []} />
+          )}
+
+          {isSelf ? (
+            <details className="owner-tool">
+              <summary>Atur apa yang tampil</summary>
+              <form action={setActivityVisibility}>
+                <p className="hint">
+                  Yang dicentang tampil di profilmu untuk orang lain. Yang tidak, cuma kamu yang
+                  lihat — jejaknya tetap tersimpan, tidak terhapus.
+                </p>
+                <ul className="kind-list">
+                  {EVENT_KINDS.map((kind) => (
+                    <li key={kind}>
+                      <label htmlFor={`show-${kind}`}>
+                        <input
+                          id={`show-${kind}`}
+                          type="checkbox"
+                          name="show"
+                          value={kind}
+                          defaultChecked={!person.activityHidden.includes(kind)}
+                        />
+                        {eventKindMeta[kind].label}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <button type="submit">Simpan</button>
+              </form>
+            </details>
+          ) : null}
+        </section>
 
         <section aria-labelledby="owned-heading">
           <h2 id="owned-heading" className="section-title">

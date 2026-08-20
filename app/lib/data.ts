@@ -1,6 +1,13 @@
 import { getSupabase } from "./supabase";
-import type { CommentRow, ProfileRow, ProjectOverviewRow, SeatRow, TaskRow } from "./database.types";
-import { seedProjects, seedUsers } from "./seed";
+import type {
+  CommentRow,
+  EventRow,
+  ProfileRow,
+  ProjectOverviewRow,
+  SeatRow,
+  TaskRow,
+} from "./database.types";
+import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 
 export type Person = {
@@ -11,6 +18,20 @@ export type Person = {
   bio: string;
   website: string;
   github: string;
+  /** Trail kinds kept off this person's public profile. */
+  activityHidden: string[];
+};
+
+export type ActivityEvent = {
+  id: number;
+  kind: string;
+  createdAt: string;
+  /** Null once the project it happened on has been deleted. */
+  projectId: number | null;
+  projectSlug: string;
+  projectTitle: string;
+  payload: Record<string, string>;
+  actor: Pick<Person, "id" | "username" | "name"> | null;
 };
 
 export type ProjectSummary = {
@@ -324,6 +345,44 @@ export async function countIncomingApplications(userId: string): Promise<number>
   return count ?? 0;
 }
 
+/**
+ * Somebody's trail, newest first.
+ *
+ * No kind filtering here on purpose: the SELECT policy on `events` already
+ * hides what this person chose to hide, and shows them their own hidden
+ * entries. Re-filtering in the query would only be able to get that wrong.
+ */
+export async function listPersonActivity(personId: string, limit = 40): Promise<ActivityEvent[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return seedActivity(personId);
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("actor_id", personId)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((row) => toActivity(row as EventRow));
+}
+
+/** What has happened on one project, newest first. */
+export async function listProjectActivity(projectId: number, limit = 20): Promise<ActivityEvent[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, actor:profiles(id, username, name)")
+    .eq("project_id", projectId)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
+}
+
 export async function hasBoosted(projectId: number, userId: string): Promise<boolean> {
   const supabase = await getSupabase();
   if (!supabase) return false;
@@ -407,6 +466,21 @@ function toPerson(row: ProfileRow): Person {
     bio: row.bio,
     website: row.website,
     github: row.github,
+    activityHidden: row.activity_hidden ?? [],
+  };
+}
+
+function toActivity(row: EventRow & { actor?: BriefPerson | null }): ActivityEvent {
+  const payload = row.payload ?? {};
+  return {
+    id: row.id,
+    kind: row.kind,
+    createdAt: row.created_at,
+    projectId: row.project_id,
+    projectSlug: payload.slug ?? "",
+    projectTitle: payload.title ?? "proyek yang sudah dihapus",
+    payload,
+    actor: row.actor ?? null,
   };
 }
 
@@ -418,6 +492,24 @@ function escapeLike(value: string): string {
 /* ------------------------------------------------------------------ *
  * Read-only fallback, used when no Supabase project is attached
  * ------------------------------------------------------------------ */
+
+function seedActivity(personId: string): ActivityEvent[] {
+  const person = seedUsers.find((user) => user.id === personId);
+  const hidden = person?.activityHidden ?? [];
+
+  return seedEvents
+    .filter((event) => event.actorId === personId && !hidden.includes(event.kind))
+    .map((event) => ({
+      id: event.id,
+      kind: event.kind,
+      createdAt: event.createdAt,
+      projectId: seedProjects.find((project) => project.slug === event.projectSlug)?.id ?? null,
+      projectSlug: event.projectSlug,
+      projectTitle: event.payload.title ?? "",
+      payload: event.payload,
+      actor: person ? { id: person.id, username: person.username, name: person.name } : null,
+    }));
+}
 
 function seedSummaries(): ProjectSummary[] {
   return seedProjects.map((project) => {
