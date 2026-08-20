@@ -1,7 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { addComment, applyForSeat, decideSeat, openSeat, setStage, toggleBoost } from "../../actions";
+import {
+  addComment,
+  applyForSeat,
+  assignTask,
+  createTask,
+  decideSeat,
+  deleteTask,
+  moveTask,
+  openSeat,
+  setSeatAccess,
+  setStage,
+  toggleBoost,
+} from "../../actions";
 import { signInPath } from "../../lib/urls";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import { StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
@@ -9,6 +21,14 @@ import { briefCompleteness, domainOf } from "../../lib/brief";
 import { getProject, hasBoosted, type ProjectDetail } from "../../lib/data";
 import { ROLES, roleLabel, roleMeta } from "../../lib/roles";
 import { STAGES, meetsStage, requirementsFor, stageMeta, type Stage, type StageInput } from "../../lib/stages";
+import { accessOf, canManage } from "../../lib/access";
+import {
+  TASK_ORDER,
+  TASK_STATUSES,
+  taskStatusLabel,
+  taskStatusMeta,
+  taskStatusTone,
+} from "../../lib/tasks";
 import { currentViewer } from "../../lib/session";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +53,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
   if (!project) notFound();
 
   const viewer = await currentViewer();
-  const isOwner = viewer?.id === project.owner.id;
+  // Where this visitor stands. The database decides what may actually
+  // happen; this only decides what is worth rendering.
+  const access = accessOf(viewer?.id, project.owner.id, project.seats);
+  const isOwner = access === "owner";
+  const isManager = canManage(access);
   const boosted = viewer ? await hasBoosted(project.id, viewer.id) : false;
   const returnTo = `/projects/${project.slug}`;
 
@@ -44,6 +68,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
   const pending = project.seats.filter((seat) => seat.status === "pending");
   const open = project.seats.filter((seat) => seat.status === "open");
   const viewerSeat = viewer ? project.seats.find((seat) => seat.person?.id === viewer.id) : undefined;
+
+  const doneTasks = project.tasks.filter((task) => task.status === "done").length;
+  // Who a task may be handed to: the owner, plus everybody holding a seat.
+  const assignable = [
+    { id: project.owner.id, name: project.owner.name },
+    ...team.flatMap((seat) => (seat.person ? [{ id: seat.person.id, name: seat.person.name }] : [])),
+  ];
 
   return (
     <>
@@ -160,7 +191,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
                             "Tanpa nama"
                           )}
                         </strong>
-                        <small>{roleLabel(seat.role)}</small>
+                        <small>
+                          {roleLabel(seat.role)}
+                          {seat.access === "admin" ? <span className="access-badge">admin</span> : null}
+                        </small>
                       </span>
                     </li>
                   ))}
@@ -169,7 +203,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 <p className="muted">Belum ada yang bergabung. Peran di bawah masih kosong.</p>
               )}
 
-              {isOwner && pending.length > 0 ? (
+              {isManager && pending.length > 0 ? (
                 <div className="pending-list">
                   <h3>Menunggu keputusanmu</h3>
                   {pending.map((seat) => (
@@ -237,7 +271,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 <p className="muted">Belum ada peran yang dibuka.</p>
               ) : null}
 
-              {!isOwner && pending.length > 0 ? (
+              {!isManager && pending.length > 0 ? (
                 <ul className="seat-list waiting-list">
                   {pending.map((seat) => (
                     <li key={seat.id}>
@@ -255,7 +289,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 </ul>
               ) : null}
 
-              {isOwner ? (
+              {isManager ? (
                 <details className="owner-tool">
                   <summary>Buka peran baru</summary>
                   <form action={openSeat}>
@@ -271,6 +305,158 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
                     <textarea id="new-seat-brief" name="brief" rows={3} required />
                     <button type="submit">Buka peran</button>
+                  </form>
+                </details>
+              ) : null}
+
+              {isOwner && team.length > 0 ? (
+                <details className="owner-tool">
+                  <summary>Atur akses</summary>
+                  <p className="hint">
+                    Admin bisa mengurus tugas, membuka peran, dan menjawab lamaran. Brief, level, dan
+                    hapus proyek tetap cuma kamu.
+                  </p>
+                  {team.map((seat) => (
+                    <form className="access-form" action={setSeatAccess} key={seat.id}>
+                      <input type="hidden" name="slug" value={project.slug} />
+                      <input type="hidden" name="seatId" value={seat.id} />
+                      <span>{seat.person?.name ?? "Tanpa nama"}</span>
+                      <button
+                        type="submit"
+                        name="access"
+                        value={seat.access === "admin" ? "member" : "admin"}
+                        className={seat.access === "admin" ? "quiet" : ""}
+                      >
+                        {seat.access === "admin" ? "Turunkan jadi anggota" : "Jadikan admin"}
+                      </button>
+                    </form>
+                  ))}
+                </details>
+              ) : null}
+            </section>
+
+            <section className="tasks" aria-labelledby="tasks-heading">
+              <h2 id="tasks-heading">
+                Tugas
+                {project.tasks.length > 0 ? ` (${doneTasks} dari ${project.tasks.length} beres)` : ""}
+              </h2>
+
+              {project.tasks.length === 0 ? (
+                <p className="muted">
+                  Belum ada tugas di sini.
+                  {isManager ? " Tulis satu supaya orang tahu apa yang lagi jalan." : ""}
+                </p>
+              ) : (
+                TASK_ORDER.map((status) => {
+                  const items = project.tasks.filter((task) => task.status === status);
+                  if (items.length === 0) return null;
+
+                  return (
+                    <div className="task-group" key={status}>
+                      <h3>{taskStatusMeta[status].label}</h3>
+                      <ul className="task-list">
+                        {items.map((task) => {
+                          const mine = Boolean(viewer && task.assignee?.id === viewer.id);
+
+                          return (
+                            <li key={task.id} className={status === "done" ? "is-done" : ""}>
+                              <div>
+                                <h4>{task.title}</h4>
+                                {task.detail ? <p className="muted">{task.detail}</p> : null}
+                                <p className="task-holder">
+                                  {task.assignee ? (
+                                    <>
+                                      <span className="avatar" aria-hidden="true">
+                                        {initials(task.assignee.name)}
+                                      </span>
+                                      <Link href={`/u/${task.assignee.username}`}>
+                                        {task.assignee.name}
+                                      </Link>
+                                    </>
+                                  ) : (
+                                    <span className="muted">Belum ada yang ambil</span>
+                                  )}
+                                </p>
+
+                                {isManager ? (
+                                  <form className="task-manage" action={assignTask}>
+                                    <input type="hidden" name="slug" value={project.slug} />
+                                    <input type="hidden" name="taskId" value={task.id} />
+                                    <label className="sr-only" htmlFor={`assignee-${task.id}`}>
+                                      Siapa yang pegang {task.title}
+                                    </label>
+                                    <select
+                                      id={`assignee-${task.id}`}
+                                      name="assigneeId"
+                                      defaultValue={task.assignee?.id ?? ""}
+                                    >
+                                      <option value="">Belum ada yang ambil</option>
+                                      {assignable.map((person) => (
+                                        <option key={person.id} value={person.id}>
+                                          {person.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button type="submit">Simpan</button>
+                                    <button className="quiet" type="submit" formAction={deleteTask}>
+                                      Hapus
+                                    </button>
+                                  </form>
+                                ) : null}
+                              </div>
+
+                              <div className="task-side">
+                                <span className={`task-status ${taskStatusTone(task.status)}`}>
+                                  {taskStatusLabel(task.status)}
+                                </span>
+
+                                {mine || isManager ? (
+                                  <form className="task-move" action={moveTask}>
+                                    <input type="hidden" name="slug" value={project.slug} />
+                                    <input type="hidden" name="taskId" value={task.id} />
+                                    {TASK_STATUSES.map((next) => (
+                                      <button
+                                        key={next}
+                                        type="submit"
+                                        name="status"
+                                        value={next}
+                                        disabled={next === task.status}
+                                        title={taskStatusMeta[next].blurb}
+                                      >
+                                        {taskStatusMeta[next].label}
+                                      </button>
+                                    ))}
+                                  </form>
+                                ) : null}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })
+              )}
+
+              {isManager ? (
+                <details className="owner-tool">
+                  <summary>Tambah tugas</summary>
+                  <form action={createTask}>
+                    <input type="hidden" name="slug" value={project.slug} />
+                    <label htmlFor="task-title">Tugasnya apa</label>
+                    <input id="task-title" name="title" type="text" required maxLength={120} />
+                    <label htmlFor="task-detail">Penjelasan singkat</label>
+                    <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
+                    <label htmlFor="task-assignee">Siapa yang pegang</label>
+                    <select id="task-assignee" name="assigneeId" defaultValue="">
+                      <option value="">Belum ada yang ambil</option>
+                      {assignable.map((person) => (
+                        <option key={person.id} value={person.id}>
+                          {person.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="submit">Tambah tugas</button>
                   </form>
                 </details>
               ) : null}

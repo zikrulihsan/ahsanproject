@@ -31,6 +31,8 @@ export type ProjectOverviewRow = Omit<ProjectRow, "updated_at"> & {
   active_member_count: number;
   boost_count: number;
   comment_count: number;
+  open_task_count: number;
+  done_task_count: number;
 };
 
 export type ProfileRow = {
@@ -50,9 +52,23 @@ export type SeatRow = {
   role: string;
   brief: string;
   status: string;
+  /** member | admin — only meaningful on a filled seat. */
+  access: string;
   user_id: string | null;
   pitch: string;
   created_at: string;
+};
+
+export type TaskRow = {
+  id: number;
+  project_id: number;
+  title: string;
+  detail: string;
+  assignee_id: string | null;
+  created_by: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type CommentRow = {
@@ -98,12 +114,19 @@ export type Database = {
         Insert: Omit<BoostRow, "created_at">;
         Update: never;
       };
+      tasks: {
+        Row: TaskRow;
+        Insert: Omit<TaskRow, "id" | "created_at" | "updated_at" | "status"> &
+          Partial<Pick<TaskRow, "status">>;
+        Update: Partial<Pick<TaskRow, "title" | "detail" | "assignee_id" | "status">>;
+      };
     };
     Views: {
       project_overview: { Row: ProjectOverviewRow };
     };
     Functions: {
       apply_for_seat: { Args: { seat_id: number; pitch: string }; Returns: undefined };
+      move_task: { Args: { task_id: number; next_status: string }; Returns: undefined };
       decide_seat: { Args: { seat_id: number; accept: boolean }; Returns: undefined };
     };
     Enums: Record<never, never>;

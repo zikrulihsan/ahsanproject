@@ -76,7 +76,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-4111-8111-111111111111', 'ihsan@example.com', '{"name":"Zikrul Ihsan"}'),
   ('22222222-2222-4222-8222-222222222222', 'dina@example.com',  '{"name":"Dina Pratiwi"}'),
   -- Same display name as Dina: the username must not collide.
-  ('33333333-3333-4333-8333-333333333333', 'dina2@example.com', '{"name":"Dina Pratiwi"}');
+  ('33333333-3333-4333-8333-333333333333', 'dina2@example.com', '{"name":"Dina Pratiwi"}'),
+  -- On no project at all, so "assign somebody from outside" has a real subject.
+  ('44444444-4444-4444-8444-444444444444', 'budi@example.com',  '{"name":"Budi Santoso"}');
 
 select checks.equal(
   (select username from public.profiles where id = '22222222-2222-4222-8222-222222222222'),
@@ -202,6 +204,119 @@ $$, 'mendukung dua kali');
 delete from public.boosts where user_id = '11111111-1111-4111-8111-111111111111';
 select checks.equal((select count(*)::int from public.boosts), 1, 'dukungan orang lain tidak bisa dicabut');
 
+-- ------------------------------------------------------------ akses & tugas --
+
+-- Dina holds a filled seat by now. Promote her, and seat dina2 as a plain
+-- member, so all three levels are represented at once.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+
+update public.seats set access = 'admin' where user_id = '22222222-2222-4222-8222-222222222222';
+select checks.equal((select access from public.seats where user_id = '22222222-2222-4222-8222-222222222222'),
+                    'admin', 'pemilik mengangkat admin');
+
+select checks.allowed($$
+  insert into public.seats (project_id, role, brief, status, user_id)
+  select id, 'research', 'Ngobrol ke calon pengguna.', 'filled', '33333333-3333-4333-8333-333333333333'
+  from public.projects where slug = 'kelas-sore'
+$$, 'pemilik mendudukkan anggota');
+
+-- An open seat carrying the admin flag would hand over the keys the moment an
+-- application is accepted.
+select checks.denied($$
+  insert into public.seats (project_id, role, brief, access)
+  select id, 'content', 'Peran terbuka yang mengaku admin.', 'admin'
+  from public.projects where slug = 'kelas-sore'
+$$, 'peran terbuka mengaku admin');
+
+-- can_manage_project, all four answers. Reading seats from inside a seats
+-- policy is exactly what would recurse if the helper were SECURITY INVOKER,
+-- so these also stand as the recursion check.
+select checks.equal(public.can_manage_project((select id from public.projects where slug = 'kelas-sore')), true,  'pemilik boleh mengelola');
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.equal(public.can_manage_project((select id from public.projects where slug = 'kelas-sore')), true,  'admin boleh mengelola');
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.equal(public.can_manage_project((select id from public.projects where slug = 'kelas-sore')), false, 'anggota tidak mengelola');
+select checks.act_as_guest();
+select checks.equal(public.can_manage_project((select id from public.projects where slug = 'kelas-sore')), false, 'tamu tidak mengelola');
+
+-- Admins run the work, not the project.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+update public.projects set title = 'Dirombak Admin' where slug = 'kelas-sore';
+select checks.equal((select title from public.projects where slug = 'kelas-sore'),
+                    'Kelas Sore', 'admin tidak bisa mengubah brief');
+
+-- A WITH CHECK failure raises, unlike a USING clause, which filters silently.
+-- That is why this one is checks.denied and the brief edit above is not.
+select checks.denied($$update public.seats set access = 'admin' where user_id = '33333333-3333-4333-8333-333333333333'$$,
+                     'admin mengangkat admin baru');
+select checks.equal((select access from public.seats where user_id = '33333333-3333-4333-8333-333333333333'),
+                    'member', 'anggota tetap anggota');
+
+select checks.allowed($$
+  insert into public.tasks (project_id, title, detail, created_by, assignee_id)
+  select id, 'Tugas asli', 'Ngobrol ke lima warung.', '22222222-2222-4222-8222-222222222222', '33333333-3333-4333-8333-333333333333'
+  from public.projects where slug = 'kelas-sore'
+$$, 'admin membuat tugas');
+
+select checks.denied($$
+  insert into public.tasks (project_id, title, created_by, assignee_id)
+  select id, 'Tugas titipan', '22222222-2222-4222-8222-222222222222', '44444444-4444-4444-8444-444444444444'
+  from public.projects where slug = 'kelas-sore'
+$$, 'menugaskan orang di luar proyek');
+
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.denied($$
+  insert into public.tasks (project_id, title, created_by)
+  select id, 'Tugas bikinan sendiri', '33333333-3333-4333-8333-333333333333'
+  from public.projects where slug = 'kelas-sore'
+$$, 'anggota membuat tugas');
+
+-- The assignee may move their own task along …
+select checks.allowed($$select public.move_task((select id from public.tasks limit 1), 'doing')$$,
+                      'yang kebagian memindahkan tugasnya');
+select checks.equal((select status from public.tasks limit 1), 'doing', 'tugas jadi dikerjakan');
+
+-- … and nothing else. This is the whole reason move_task exists instead of an
+-- UPDATE policy: row level security cannot narrow a write down to one column.
+update public.tasks set title = 'Dibajak', assignee_id = '33333333-3333-4333-8333-333333333333';
+select checks.equal((select title from public.tasks limit 1), 'Tugas asli',
+                    'yang kebagian tidak bisa menulis ulang tugasnya');
+
+select checks.denied($$select public.move_task((select id from public.tasks limit 1), 'entah')$$,
+                     'status tugas yang tidak ada');
+
+delete from public.tasks;
+select checks.equal((select count(*)::int from public.tasks), 1, 'anggota tidak bisa menghapus tugas');
+
+-- A bystander is not the assignee and manages nothing.
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.denied($$select public.move_task((select id from public.tasks limit 1), 'done')$$,
+                     'orang luar memindahkan tugas');
+
+select checks.act_as_guest();
+select checks.denied($$select public.move_task((select id from public.tasks limit 1), 'done')$$,
+                     'tamu memindahkan tugas');
+select checks.denied($$
+  insert into public.tasks (project_id, title, created_by)
+  select id, 'Tugas tamu', '11111111-1111-4111-8111-111111111111' from public.projects where slug = 'kelas-sore'
+$$, 'tamu membuat tugas');
+
+-- Managers may rewrite the task itself.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+update public.tasks set title = 'Ngobrol ke lima warung';
+select checks.equal((select title from public.tasks limit 1), 'Ngobrol ke lima warung',
+                    'admin boleh mengubah tugas');
+
+select checks.equal((select open_task_count::int from public.project_overview), 1, 'hitungan tugas jalan');
+select checks.equal((select done_task_count::int from public.project_overview), 0, 'hitungan tugas beres');
+
+-- Somebody leaving a project releases their tasks rather than leaving them
+-- pointing at a person who is no longer on it.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.equal((select assignee_id from public.tasks limit 1), '33333333-3333-4333-8333-333333333333'::uuid, 'tugas ada yang pegang');
+select checks.allowed($$delete from public.seats where user_id = '33333333-3333-4333-8333-333333333333'$$, 'pemilik melepas anggota');
+select checks.equal((select assignee_id from public.tasks limit 1), null::uuid, 'tugasnya ikut dilepas');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
@@ -215,6 +330,7 @@ select checks.allowed($$delete from public.projects where slug = 'kelas-sore'$$,
 select checks.equal((select count(*)::int from public.seats), 0, 'peran ikut terhapus');
 select checks.equal((select count(*)::int from public.comments), 0, 'komentar ikut terhapus');
 select checks.equal((select count(*)::int from public.boosts), 0, 'dukungan ikut terhapus');
+select checks.equal((select count(*)::int from public.tasks), 0, 'tugas ikut terhapus');
 
 -- Put it back so the guest checks below still have something to read.
 select checks.allowed($$
@@ -247,6 +363,8 @@ select checks.denied($$select public.apply_for_seat((select id from public.seats
 select checks.equal((select seat_count::int from public.project_overview), 0, 'hitungan peran');
 select checks.equal((select comment_count::int from public.project_overview), 0, 'hitungan komentar');
 select checks.equal((select boost_count::int from public.project_overview), 0, 'hitungan dukungan');
+select checks.equal((select open_task_count::int from public.project_overview), 0, 'hitungan tugas jalan');
+select checks.equal((select done_task_count::int from public.project_overview), 0, 'hitungan tugas beres');
 
 reset role;
 rollback;

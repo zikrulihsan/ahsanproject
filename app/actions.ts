@@ -6,6 +6,7 @@ import { requireSupabase, type Supabase } from "./lib/supabase";
 import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from "./lib/brief";
 import { isRole } from "./lib/roles";
 import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
+import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { currentViewer } from "./lib/session";
 
 export type CreateState = {
@@ -281,6 +282,110 @@ export async function decideSeat(formData: FormData): Promise<void> {
 
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
+}
+
+/* ------------------------------------------------------------------ *
+ * Tasks — what the project is actually working on
+ * ------------------------------------------------------------------ */
+
+export async function createTask(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const title = text(formData, "title").slice(0, TASK_LIMITS.title.max);
+  const detail = text(formData, "detail").slice(0, TASK_LIMITS.detail.max);
+  const assigneeId = text(formData, "assigneeId");
+  if (Object.keys(validateTask({ title, detail })).length > 0) return;
+
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const supabase = await requireSupabase();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!project) return;
+
+  // Who may do this is the database's call: the insert policy checks both that
+  // the caller manages the project and that the assignee is on it.
+  const { error } = await supabase.from("tasks").insert({
+    project_id: project.id,
+    title,
+    detail,
+    assignee_id: assigneeId || null,
+    created_by: viewer.id,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
+/**
+ * Hand a task to somebody, or take it back off them.
+ *
+ * Editing a task's wording is deliberately not here yet: a text field on every
+ * row would bury the list under forms, and knowing who holds what is the part
+ * people actually need.
+ */
+export async function assignTask(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
+  const assigneeId = text(formData, "assigneeId");
+  if (!Number.isInteger(taskId)) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase
+    .from("tasks")
+    .update({ assignee_id: assigneeId || null })
+    .eq("id", taskId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+}
+
+export async function moveTask(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
+  const status = text(formData, "status");
+  if (!Number.isInteger(taskId) || !isTaskStatus(status)) return;
+
+  // move_task rather than an update: row level security cannot narrow a write
+  // down to one column, so the assignee gets a function instead of a policy.
+  const supabase = await requireSupabase();
+  const { error } = await supabase.rpc("move_task", { task_id: taskId, next_status: status });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
+export async function deleteTask(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
+  if (!Number.isInteger(taskId)) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
+export async function setSeatAccess(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const seatId = Number(text(formData, "seatId"));
+  const access = text(formData, "access");
+  if (!Number.isInteger(seatId) || (access !== "member" && access !== "admin")) return;
+
+  // Only the owner can land an 'admin' row — the seat policy checks the new
+  // value against ownership, not merely against management.
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("seats").update({ access }).eq("id", seatId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
 }
 
 /* ------------------------------------------------------------------ *

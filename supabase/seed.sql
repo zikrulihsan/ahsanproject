@@ -35,8 +35,8 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'design', 'Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'design', 'Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.', 'member'
     where new_project is not null;
 
   -- Wecard
@@ -52,8 +52,8 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'content', 'Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'content', 'Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.', 'member'
     where new_project is not null;
 
   -- CariKontak
@@ -69,11 +69,11 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'growth', 'Mengajak komunitas RT/RW di satu kota untuk mengisi datanya lebih dulu.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'growth', 'Mengajak komunitas RT/RW di satu kota untuk mengisi datanya lebih dulu.', 'member'
     where new_project is not null;
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'engineering', 'Menambah pencarian berdasarkan jarak dan penyaringan per kecamatan.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'engineering', 'Menambah pencarian berdasarkan jarak dan penyaringan per kecamatan.', 'member'
     where new_project is not null;
 
   -- Invoice Cepat
@@ -89,8 +89,8 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'pm', 'Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'pm', 'Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.', 'member'
     where new_project is not null;
 
   -- Main Aman
@@ -106,8 +106,8 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'research', 'Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'research', 'Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.', 'member'
     where new_project is not null;
 
   -- Swegrowth
@@ -123,8 +123,8 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'content', 'Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'content', 'Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.', 'member'
     where new_project is not null;
 
   -- Warung Antre
@@ -140,14 +140,26 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'research', 'Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'research', 'Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.', 'member'
     where new_project is not null;
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'design', 'Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'design', 'Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.', 'member'
     where new_project is not null;
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'engineering', 'Prototipe antrean yang tetap jalan saat koneksi putus.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'engineering', 'Prototipe antrean yang tetap jalan saat koneksi putus.', 'member'
+    where new_project is not null;
+    insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
+    select new_project, 'Ngobrol dengan lima pemilik warung', 'Cari tahu apakah antreannya benar-benar terasa mengganggu, atau cuma kelihatan begitu dari luar.', 'doing',
+           owner, owner
+    where new_project is not null;
+    insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
+    select new_project, 'Sketsa layar penjual', 'Satu layar saja, harus kebaca sambil tangan sibuk.', 'todo',
+           null, owner
+    where new_project is not null;
+    insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
+    select new_project, 'Tulis brief-nya', 'Masalah, gambaran solusi, dan untuk siapa.', 'done',
+           owner, owner
     where new_project is not null;
 
   -- Titip Jemput
@@ -163,11 +175,15 @@ begin
   on conflict (slug) do nothing
   returning id into new_project;
 
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'pm', 'Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'pm', 'Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.', 'member'
     where new_project is not null;
-    insert into public.seats (project_id, role, brief)
-    select new_project, 'design', 'Menyusun tampilan papan mingguan yang kebaca sekali lihat.'
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, 'design', 'Menyusun tampilan papan mingguan yang kebaca sekali lihat.', 'member'
+    where new_project is not null;
+    insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
+    select new_project, 'Hitung berapa orang tua yang sekolahnya searah', 'Pakai data satu kompleks dulu, jangan langsung sekota.', 'todo',
+           null, owner
     where new_project is not null;
 end
 $$;

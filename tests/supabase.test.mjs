@@ -34,6 +34,8 @@ test("the overview view exposes every count a card needs", { skip }, async () =>
       "active_member_count",
       "boost_count",
       "comment_count",
+      "open_task_count",
+      "done_task_count",
     ]) {
       assert.ok(column in data[0], `kolom ${column} hilang dari project_overview`);
     }

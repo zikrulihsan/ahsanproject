@@ -3,6 +3,8 @@ import test from "node:test";
 
 import { MINIMUM, briefCompleteness, normaliseTags, slugify, validateBrief } from "../app/lib/brief.ts";
 import { meetsStage, reachableStages, requirementsFor, settleStage } from "../app/lib/stages.ts";
+import { taskStatusLabel, validateTask } from "../app/lib/tasks.ts";
+import { accessOf, canManage, isOwner } from "../app/lib/access.ts";
 
 const fullBrief = {
   title: "Warung Antre",
@@ -115,4 +117,51 @@ test("an edit that removes what a level stood on drops the level", () => {
 
 test("resting is a decision, so an edit never moves it", () => {
   assert.equal(settleStage("resting", { ...stageInput, seatCount: 0 }), "resting");
+});
+
+/* ------------------------------------------------------------------ *
+ * Tasks and access levels
+ * ------------------------------------------------------------------ */
+
+const seat = (status, access, id) => ({ status, access, person: id ? { id } : null });
+
+test("a task needs a title somebody can read", () => {
+  assert.deepEqual(validateTask({ title: "Sketsa layar penjual", detail: "Satu layar saja." }), {});
+  assert.ok(validateTask({ title: "", detail: "" }).title, "an empty title is rejected");
+  assert.ok(validateTask({ title: "ab", detail: "" }).title, "two characters is not a title");
+  assert.ok(validateTask({ title: "t".repeat(121), detail: "" }).title, "an essay is not a title");
+  assert.ok(validateTask({ title: "Judul cukup", detail: "d".repeat(401) }).detail);
+  assert.deepEqual(validateTask({ title: "Judul cukup", detail: "" }).detail, undefined, "detail is optional");
+});
+
+test("an unknown task status falls back rather than throwing", () => {
+  assert.equal(taskStatusLabel("doing"), "Lagi dikerjain");
+  assert.equal(taskStatusLabel("entah"), taskStatusLabel("todo"));
+});
+
+test("access is read from the seat somebody actually holds", () => {
+  const owner = "u-owner";
+  const seats = [
+    seat("filled", "admin", "u-admin"),
+    seat("filled", "member", "u-member"),
+    seat("pending", "member", "u-applicant"),
+    seat("open", "member", null),
+  ];
+
+  assert.equal(accessOf(owner, owner, seats), "owner");
+  assert.equal(accessOf("u-admin", owner, seats), "admin");
+  assert.equal(accessOf("u-member", owner, seats), "member");
+  assert.equal(accessOf("u-applicant", owner, seats), "guest", "an application is not membership");
+  assert.equal(accessOf("u-stranger", owner, seats), "guest");
+  assert.equal(accessOf(null, owner, seats), "guest");
+});
+
+test("admins run the work; owners run the project", () => {
+  assert.ok(canManage("owner"));
+  assert.ok(canManage("admin"));
+  assert.ok(!canManage("member"), "a member does not manage the task list");
+  assert.ok(!canManage("guest"));
+
+  assert.ok(isOwner("owner"));
+  assert.ok(!isOwner("admin"), "an admin is not a second owner");
 });

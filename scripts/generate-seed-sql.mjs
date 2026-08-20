@@ -23,8 +23,20 @@ const body = seedProjects
     const seats = project.seats
       .map(
         (seat) => `
-    insert into public.seats (project_id, role, brief)
-    select new_project, ${quote(seat.role)}, ${quote(seat.brief)}
+    insert into public.seats (project_id, role, brief, access)
+    select new_project, ${quote(seat.role)}, ${quote(seat.brief)}, ${quote(seat.access)}
+    where new_project is not null;`,
+      )
+      .join("");
+
+    // `seed-zikrul` is the placeholder for whoever runs this file, so a task
+    // assigned to them resolves to the same account that owns the projects.
+    const tasks = project.tasks
+      .map(
+        (task) => `
+    insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
+    select new_project, ${quote(task.title)}, ${quote(task.detail)}, ${quote(task.status)},
+           ${task.assigneeId ? "owner" : "null"}, owner
     where new_project is not null;`,
       )
       .join("");
@@ -42,7 +54,7 @@ const body = seedProjects
      ${quote(project.glyph)}, ${quote(project.createdAt)}, ${quote(project.createdAt)})
   on conflict (slug) do nothing
   returning id into new_project;
-${seats}`;
+${seats}${tasks}`;
   })
   .join("\n");
 
