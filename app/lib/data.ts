@@ -122,6 +122,33 @@ const SORT_COLUMN: Record<NonNullable<FeedQuery["sort"]>, string> = {
  * Reads
  * ------------------------------------------------------------------ */
 
+/**
+ * Whether a query failed only because its table is not there yet.
+ *
+ * Migrations are applied by hand in the Supabase SQL editor, so a deploy can
+ * legitimately run ahead of the database for a while. When that happens a page
+ * should lose the feature the missing table feeds, not fall over — a profile is
+ * still a profile without its trail. Everything else still throws.
+ *
+ * PostgREST reports it as 42P01 from Postgres, or PGRST205 when its schema
+ * cache has never heard of the table at all.
+ */
+function isMissingTable(error: { code?: string } | null): boolean {
+  return error?.code === "42P01" || error?.code === "PGRST205";
+}
+
+/** Says it once per server start, so the gap is visible in the deploy logs. */
+const warned = new Set<string>();
+
+function warnMissingTable(table: string): void {
+  if (warned.has(table)) return;
+  warned.add(table);
+  console.warn(
+    `[ahsan] Tabel "${table}" belum ada di Supabase. Jalankan berkas di supabase/migrations/ ` +
+      `sesuai urutannya. Sementara ini bagiannya dilewati.`,
+  );
+}
+
 export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
   const supabase = await getSupabase();
   if (!supabase) return seedFeed(query);
@@ -178,7 +205,8 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
   ]);
   if (seats.error) throw new Error(seats.error.message);
   if (comments.error) throw new Error(comments.error.message);
-  if (tasks.error) throw new Error(tasks.error.message);
+  if (tasks.error && !isMissingTable(tasks.error)) throw new Error(tasks.error.message);
+  if (tasks.error) warnMissingTable("tasks");
 
   type SeatWithPerson = SeatRow & { person: BriefPerson | null };
   type CommentWithAuthor = CommentRow & { author: BriefPerson | null };
@@ -195,7 +223,7 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
       pitch: seat.pitch,
       person: seat.person ?? null,
     })),
-    tasks: ((tasks.data ?? []) as TaskWithAssignee[]).map((task) => ({
+    tasks: ((tasks.data ?? []) as TaskWithAssignee[] | null ?? []).map((task) => ({
       id: task.id,
       title: task.title,
       detail: task.detail,
@@ -362,7 +390,11 @@ export async function listPersonActivity(personId: string, limit = 40): Promise<
     .eq("actor_id", personId)
     .order("id", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return [];
+  }
 
   return (data ?? []).map((row) => toActivity(row as EventRow));
 }
@@ -378,7 +410,11 @@ export async function listProjectActivity(projectId: number, limit = 20): Promis
     .eq("project_id", projectId)
     .order("id", { ascending: false })
     .limit(limit);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return [];
+  }
 
   return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
 }

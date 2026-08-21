@@ -30,7 +30,10 @@ and everything that writes will say so rather than failing quietly.
 ## Setting up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the files in `supabase/migrations/` in order, in the SQL editor:
+2. Run the files in `supabase/migrations/` **in order**, in the SQL editor. The
+   deploy tolerates running ahead of the database — a page loses the feature a
+   missing table feeds rather than falling over, and says so in the server log —
+   but nothing new works until these are applied:
    - `0001_schema.sql` — tables, constraints, and the `project_overview` view
    - `0002_functions.sql` — the sign-up trigger and the two seat transitions
    - `0003_policies.sql` — row level security
