@@ -45,13 +45,13 @@ const body = seedProjects
   -- ${project.title}
   insert into public.projects
     (slug, title, tagline, owner_id, stage, problem, solution, audience,
-     doc_url, live_url, repo_url, tags, accent, glyph, created_at, updated_at)
+     doc_url, live_url, repo_url, tags, glyph, created_at, updated_at)
   values
     (${quote(project.slug)}, ${quote(project.title)}, ${quote(project.tagline)}, owner,
      ${quote(project.stage)}, ${quote(project.problem)}, ${quote(project.solution)},
      ${quote(project.audience)}, ${quote(project.docUrl)}, ${quote(project.liveUrl)},
-     ${quote(project.repoUrl)}, ${array(project.tags)}, ${quote(project.accent)},
-     ${quote(project.glyph)}, ${quote(project.createdAt)}, ${quote(project.createdAt)})
+     ${quote(project.repoUrl)}, ${array(project.tags)}, ${quote(project.glyph)},
+     ${quote(project.createdAt)}, ${quote(project.createdAt)})
   on conflict (slug) do nothing
   returning id into new_project;
 ${seats}${tasks}`;

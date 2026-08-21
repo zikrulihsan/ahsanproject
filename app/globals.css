@@ -13,6 +13,19 @@
   --radius: 20px;
 }
 
+/* Level tints. Colour on this site says one thing — how far a project has got —
+   so a card and its page are tinted by stage rather than by a hash of the
+   title. Light enough that eight of them side by side stay calm, and light
+   enough that the stage badge still reads on top. */
+:root {
+  --level-idea: #f8e7db;
+  --level-validating: #f8eed3;
+  --level-building: #e6ecdd;
+  --level-live: #d9e6dd;
+  --level-resting: #ebe9e3;
+}
+
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -169,14 +182,11 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
   transition: transform .25s ease, box-shadow .25s ease;
 }
 .project-card:hover { box-shadow: 0 22px 50px rgba(23, 61, 50, .12); transform: translateY(-5px); }
-.project-card.mint { background: #cee3d0; }
-.project-card.yellow { background: #f6cf59; }
-.project-card.blue { background: #bbd8e8; }
-.project-card.coral { background: #f0a88b; }
-.project-card.purple { background: #d9c8e9; }
-.project-card.green { background: #9fc9ae; }
-.project-card.sand { background: #ead9b8; }
-.project-card.sky { background: #c7d8f0; }
+.project-card.level-idea { background: var(--level-idea); }
+.project-card.level-validating { background: var(--level-validating); }
+.project-card.level-building { background: var(--level-building); }
+.project-card.level-live { background: var(--level-live); }
+.project-card.level-resting { background: var(--level-resting); }
 .card-topline { align-items: center; display: flex; justify-content: space-between; margin-bottom: 26px; }
 .project-glyph { font-family: Georgia, serif; font-size: 30px; letter-spacing: -.12em; opacity: .55; }
 .project-card h3 { font-size: 27px; font-weight: 650; letter-spacing: -.04em; margin-bottom: 8px; }
@@ -219,11 +229,14 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
   border-radius: 100px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 6px 11px;
   text-transform: uppercase; white-space: nowrap;
 }
-.stage-idea { background: rgba(238, 106, 59, .16); color: #a8401b; }
-.stage-validating { background: rgba(242, 189, 58, .3); color: #7a5a05; }
-.stage-building { background: rgba(92, 122, 74, .2); color: #3b5230; }
+/* One step deeper than the card tint behind it, and solid rather than
+   translucent — a translucent badge over a card of its own hue disappears
+   into it. */
+.stage-idea { background: #f2cbb6; color: #a8401b; }
+.stage-validating { background: #f0dfa2; color: #7a5a05; }
+.stage-building { background: #cfdcc4; color: #3b5230; }
 .stage-live { background: var(--ink); color: #eef6ef; }
-.stage-resting { background: rgba(23, 61, 50, .1); color: var(--muted); }
+.stage-resting { background: #dedcd5; color: #4d5751; }
 
 /* -------------------------------------------------------------- project */
 
@@ -276,14 +289,11 @@ form button.danger { background: #b23c14; }
 form button.danger:hover { background: #96320f; }
 
 .project-hero { border-radius: 30px; padding: 40px; }
-.project-hero.mint { background: #cee3d0; }
-.project-hero.yellow { background: #f6cf59; }
-.project-hero.blue { background: #bbd8e8; }
-.project-hero.coral { background: #f0a88b; }
-.project-hero.purple { background: #d9c8e9; }
-.project-hero.green { background: #9fc9ae; }
-.project-hero.sand { background: #ead9b8; }
-.project-hero.sky { background: #c7d8f0; }
+.project-hero.level-idea { background: var(--level-idea); }
+.project-hero.level-validating { background: var(--level-validating); }
+.project-hero.level-building { background: var(--level-building); }
+.project-hero.level-live { background: var(--level-live); }
+.project-hero.level-resting { background: var(--level-resting); }
 .project-hero-top { align-items: center; display: flex; justify-content: space-between; margin-bottom: 22px; }
 .hero-glyph { font-family: Georgia, serif; font-size: 44px; letter-spacing: -.12em; opacity: .5; }
 .project-hero h1 { font-size: clamp(40px, 5.4vw, 68px); font-weight: 600; letter-spacing: -.055em; line-height: .95; margin-bottom: 14px; }

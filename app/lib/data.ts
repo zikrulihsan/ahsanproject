@@ -44,7 +44,6 @@ export type ProjectSummary = {
   solution: string;
   audience: string;
   tags: string[];
-  accent: string;
   glyph: string;
   docUrl: string;
   liveUrl: string;
@@ -101,7 +100,7 @@ export type ApplicationView = {
   status: string;
   pitch: string;
   createdAt: string;
-  project: { slug: string; title: string; accent: string };
+  project: { slug: string; title: string };
   person: Pick<Person, "id" | "username" | "name"> | null;
 };
 
@@ -319,7 +318,7 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
 
 const APPLICATION_COLUMNS =
   "id, role, brief, status, pitch, created_at, " +
-  "project:projects!inner(slug, title, accent, owner_id), " +
+  "project:projects!inner(slug, title, owner_id), " +
   "person:profiles(id, username, name)";
 
 /** Applications waiting on this person's own projects. */
@@ -447,7 +446,7 @@ type ApplicationRow = {
   status: string;
   pitch: string;
   created_at: string;
-  project: { slug: string; title: string; accent: string } | null;
+  project: { slug: string; title: string } | null;
   person: BriefPerson | null;
 };
 
@@ -460,7 +459,7 @@ function toApplication(row: unknown): ApplicationView {
     status: seat.status,
     pitch: seat.pitch,
     createdAt: seat.created_at,
-    project: seat.project ?? { slug: "", title: "Proyek terhapus", accent: "mint" },
+    project: seat.project ?? { slug: "", title: "Proyek terhapus" },
     person: seat.person ?? null,
   };
 }
@@ -476,7 +475,6 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     solution: row.solution,
     audience: row.audience,
     tags: row.tags,
-    accent: row.accent,
     glyph: row.glyph,
     docUrl: row.doc_url,
     liveUrl: row.live_url,

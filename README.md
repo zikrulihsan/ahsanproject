@@ -39,6 +39,7 @@ and everything that writes will say so rather than failing quietly.
    - `0003_policies.sql` — row level security
    - `0004_access_and_tasks.sql` — project access levels and the task list
    - `0005_activity.sql` — the activity trail
+   - `0006_level_colour.sql` — drops the decorative accent colour
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.

@@ -17,7 +17,6 @@ export type ProjectRow = {
   live_url: string;
   repo_url: string;
   tags: string[];
-  accent: string;
   glyph: string;
   created_at: string;
   updated_at: string;

@@ -89,7 +89,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
           {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah proyek</Link> : null}
         </div>
 
-        <section className={`project-hero ${project.accent}`}>
+        <section className={`project-hero level-${project.stage}`}>
           <div className="project-hero-copy">
             <div className="project-hero-top">
               <StageBadge stage={project.stage} />
