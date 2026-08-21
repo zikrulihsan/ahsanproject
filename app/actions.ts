@@ -17,7 +17,6 @@ export type CreateState = {
 
 export type EditState = CreateState;
 
-const ACCENTS = ["mint", "yellow", "blue", "coral", "purple", "green", "sand", "sky"] as const;
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
 
 /* ------------------------------------------------------------------ *
@@ -68,7 +67,6 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
         tags: normaliseTags(values.tags),
-        accent: pick(ACCENTS, values.title),
         glyph: pick(GLYPHS, values.tagline),
       })
       .select("id")

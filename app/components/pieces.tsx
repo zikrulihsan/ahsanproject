@@ -34,7 +34,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
 
 export function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
-    <article className={`project-card ${project.accent}`}>
+    <article className={`project-card level-${project.stage}`}>
       <div className="card-topline">
         <StageBadge stage={project.stage} />
         <span className="project-glyph" aria-hidden="true">
