@@ -3,7 +3,7 @@ import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
 import { signInPath } from "../lib/urls";
 import { currentViewer } from "../lib/session";
-import { countIncomingApplications } from "../lib/data";
+import { countIncomingApplications, countUnseenNotices } from "../lib/data";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -37,6 +37,7 @@ export function HeaderShell() {
       <Brand />
       <nav aria-label="Navigasi utama">
         <Link href="/">Jelajah</Link>
+        <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
       </nav>
     </header>
@@ -45,22 +46,27 @@ export function HeaderShell() {
 
 export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
   const viewer = await currentViewer();
-  // An application nobody sees is an application nobody answers, so the count
-  // rides along in the header rather than waiting to be found.
-  const waiting = viewer ? await countIncomingApplications(viewer.id) : 0;
+  // An application nobody sees is an application nobody answers, and a
+  // decision nobody sees is the same — so both counts ride along in the header
+  // rather than waiting to be found.
+  const [incoming, unseen] = viewer
+    ? await Promise.all([countIncomingApplications(viewer.id), countUnseenNotices(viewer.id)])
+    : [0, 0];
+  const waiting = incoming + unseen;
 
   return (
     <header className="site-header">
       <Brand />
       <nav aria-label="Navigasi utama">
         <Link href="/">Jelajah</Link>
+        <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
         {viewer ? (
           <>
             <Link className="nav-inbox" href="/inbox">
               Kotak masuk
               {waiting > 0 ? (
-                <span className="badge" aria-label={`${waiting} lamaran menunggu jawaban`}>
+                <span className="badge" aria-label={badgeLabel(incoming, unseen)}>
                   {waiting}
                 </span>
               ) : null}
@@ -85,6 +91,16 @@ export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
       </nav>
     </header>
   );
+}
+
+/** One badge, two meanings — the label says which, rather than just a number. */
+function badgeLabel(incoming: number, unseen: number): string {
+  const parts = [
+    incoming > 0 ? `${incoming} lamaran menunggu jawaban` : "",
+    unseen > 0 ? `${unseen} kabar baru` : "",
+  ].filter(Boolean);
+
+  return parts.join(", ");
 }
 
 export function SiteFooter() {

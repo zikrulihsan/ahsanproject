@@ -80,10 +80,59 @@ test("saringan level mempersempit papan", async () => {
   assert.doesNotMatch(page, /Tap Tap Dzikr/);
 });
 
+test("saringan peran menampilkan proyek yang membukanya saja", async () => {
+  const page = await html("/?role=pm");
+  assert.match(page, /Invoice Cepat/);
+  assert.match(page, /Titip Jemput/);
+  assert.doesNotMatch(page, /Wecard/);
+});
+
+test("peran yang mengada-ada tidak mengosongkan papan", async () => {
+  const page = await html("/?role=hacker");
+  for (const name of SEEDED) assert.match(page, new RegExp(name));
+});
+
+test("kartu di papan menyebut peran yang dibuka", async () => {
+  const page = await html("/");
+  assert.match(page, /Butuh Product Manager/);
+  assert.match(page, /Butuh Designer/);
+});
+
 test("pencarian membaca brief, bukan cuma judul", async () => {
   const page = await html("/?q=antrean");
   assert.match(page, /Warung Antre/);
   assert.doesNotMatch(page, /Swegrowth/);
+});
+
+test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () => {
+  // "memindai" cuma ada di kolom solusi Warung Antre, "kedai kopi" cuma di
+  // audiensnya — dua kolom yang dulu tidak ikut dibaca.
+  const bySolution = await html("/?q=memindai");
+  assert.match(bySolution, /Warung Antre/);
+  assert.doesNotMatch(bySolution, /Swegrowth/);
+
+  const byAudience = await html("/?q=kedai%20kopi");
+  assert.match(byAudience, /Warung Antre/);
+  assert.doesNotMatch(byAudience, /Swegrowth/);
+});
+
+test("direktori orang menampilkan tiap profil dan tautannya", async () => {
+  const page = await html("/orang");
+  assert.match(page, /<title>Orang — Ahsan Project<\/title>/i);
+  assert.match(page, /Zikrul Ihsan/);
+  assert.match(page, /href="\/u\/zikrulihsan"/);
+});
+
+test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
+  const response = await fetch(`${BASE}/sitemap.xml`);
+  assert.equal(response.status, 200);
+  const xml = await response.text();
+  assert.match(xml, /<loc>https:\/\/ahsanproject-id\.netlify\.app\/<\/loc>/);
+  assert.match(xml, /projects\/warung-antre/);
+  assert.match(xml, /u\/zikrulihsan/);
+  assert.match(xml, /\/orang/);
+  // Yang di balik pintu masuk tidak diundang masuk sitemap.
+  assert.doesNotMatch(xml, /\/inbox/);
 });
 
 test("halaman proyek memuat brief, level, dan peran terbuka", async () => {
@@ -102,12 +151,44 @@ test("halaman orang sekaligus jadi portofolionya", async () => {
   assert.match(page, /Tap Tap Dzikr/);
 });
 
+test("profil punya kartu bagikan sendiri, bukan gambar bawaan", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /property="og:title" content="Zikrul Ihsan/);
+  assert.match(page, /name="twitter:card" content="summary_large_image"/);
+  assert.match(page, /property="og:image"[^>]*u\/zikrulihsan\/opengraph-image/);
+});
+
+test("kartu bagikan profil benar-benar tergambar", async () => {
+  const response = await fetch(`${BASE}/u/zikrulihsan/opengraph-image`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "image/png");
+});
+
+test("proyek juga punya kartu bagikannya sendiri", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.match(page, /property="og:title" content="Warung Antre/);
+  assert.match(page, /property="og:image"[^>]*projects\/warung-antre\/opengraph-image/);
+
+  const image = await fetch(`${BASE}/projects/warung-antre/opengraph-image`);
+  assert.equal(image.status, 200);
+  assert.equal(image.headers.get("content-type"), "image/png");
+});
+
+test("papan membawa gambar bagikan bawaan", async () => {
+  const page = await html("/");
+  assert.match(page, /property="og:image"[^>]*og\.png/);
+});
+
 test("halaman cerita tersedia dalam dua bahasa", async () => {
   const id = await html("/about");
   assert.match(id, /Nama saya Ihsan/);
   const en = await html("/en/about");
   assert.match(en, /My name is Ihsan/);
   assert.match(en, /lang="en"/);
+
+  // Menyebut judul sendiri tidak boleh menghapus gambar bagikannya — lihat
+  // shareCard() di app/content.ts.
+  for (const page of [id, en]) assert.match(page, /property="og:image"[^>]*og\.png/);
 });
 
 test("halaman masuk dan daftar bisa dibuka tamu", async () => {
@@ -115,6 +196,23 @@ test("halaman masuk dan daftar bisa dibuka tamu", async () => {
   assert.match(masuk, /Selamat datang lagi/);
   const daftar = await html("/signup");
   assert.match(daftar, /Bikin akun dulu/);
+});
+
+test("yang lupa kata sandi punya jalan keluar dari halaman masuk", async () => {
+  const masuk = await html("/signin");
+  assert.match(masuk, /href="\/lupa-password"/);
+
+  // Tanpa Supabase formnya memang tidak muncul — yang diuji di sini halamannya
+  // ada dan menjelaskan diri, sama seperti halaman masuk.
+  const lupa = await html("/lupa-password");
+  assert.match(lupa, /Lupa kata sandi/);
+  assert.match(lupa, /belum tersambung ke Supabase/);
+});
+
+test("setel kata sandi tanpa tautan sah menjelaskan, bukan diam", async () => {
+  const page = await html("/akun/password");
+  assert.match(page, /kedaluwarsa|belum tersambung/);
+  assert.doesNotMatch(page, /name="password"/);
 });
 
 test("tanpa Supabase, masuk dijelaskan bukan dibiarkan rusak", async () => {
@@ -198,6 +296,24 @@ test("profil menampilkan jejak, bukan cuma daftar proyek", async () => {
   assert.match(page, /Jejak/);
   assert.match(page, /menaruh ide/);
   assert.match(page, /membereskan tugas/);
+});
+
+test("jejak menyorot yang berbobot dulu, sisanya di balik semua", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /membereskan tugas/);
+  assert.doesNotMatch(page, /kebagian tugas/);
+  assert.match(page, /Semua jejak/);
+});
+
+test("mode semua jejak memuat entri yang bukan sorotan", async () => {
+  const page = await html("/u/zikrulihsan?jejak=semua");
+  assert.match(page, /kebagian tugas/);
+});
+
+test("profil menghitung pencapaiannya dari jejak", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /tugas dibereskan/);
+  assert.match(page, /aktif sejak/);
 });
 
 test("tamu tidak bisa mengatur jejak orang lain", async () => {

@@ -45,6 +45,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     title: `${project.title} — Ahsan Project`,
     description: project.tagline,
     alternates: { canonical: `/projects/${project.slug}` },
+    // The card image comes from opengraph-image.tsx beside this file.
+    openGraph: {
+      type: "article",
+      title: `${project.title} — Ahsan Project`,
+      description: project.tagline,
+      url: `/projects/${project.slug}`,
+    },
   };
 }
 

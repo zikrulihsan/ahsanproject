@@ -163,6 +163,18 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 .sort-bar a { border-bottom: 1px solid transparent; font-weight: 600; }
 .sort-bar a.is-active { border-color: var(--orange); color: var(--ink); }
 
+.role-bar {
+  align-items: baseline; color: var(--muted); display: flex; flex-wrap: wrap; font-size: 12px;
+  gap: 14px; margin-bottom: 18px;
+}
+.role-bar ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.role-bar a {
+  border: 1px solid var(--line); border-radius: 100px; display: inline-block; font-size: 12px;
+  font-weight: 600; padding: 6px 13px;
+}
+.role-bar a:hover { border-color: var(--ink); }
+.role-bar a.is-active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
 .tag-rail { margin-bottom: 34px; }
 .tag-rail a {
   background: var(--paper); border-radius: 100px; color: var(--muted); display: inline-block;
@@ -211,6 +223,16 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 .tag-row { font-family: var(--font-geist-mono), monospace; font-size: 10px; margin-bottom: 18px; }
 .tag-row li { opacity: .7; }
 .tag-row a:hover { opacity: 1; text-decoration: underline; }
+.seat-chips { margin-bottom: 14px; }
+.seat-chip {
+  border: 1px solid var(--line); border-radius: 100px; display: inline-block; font-size: 11px;
+  font-weight: 600; padding: 5px 11px;
+}
+a.seat-chip:hover { border-color: var(--ink); }
+.card-role {
+  font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: .08em;
+  margin-bottom: 10px; opacity: .7; text-transform: uppercase;
+}
 .card-meta {
   align-items: center; display: flex; gap: 12px; justify-content: space-between; margin-top: auto;
   padding-top: 6px;
@@ -260,6 +282,27 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 /* ------------------------------------------------------------------ inbox */
 
 .inbox .section-title { margin-top: 44px; }
+.notice-list { list-style: none; margin: 0 0 14px; padding: 0; }
+.notice-list li {
+  background: var(--card); border-left: 3px solid transparent; border-radius: var(--radius);
+  margin-bottom: 10px; padding: 18px 22px;
+}
+.notice-list li.is-new { border-left-color: var(--orange); }
+.notice-list p { font-size: 15px; line-height: 1.6; margin: 0 0 6px; }
+.notice-list a { border-bottom: 1px solid var(--line); }
+.notice-list small { color: var(--muted); font-size: 12px; }
+
+.people-list { list-style: none; margin: 28px 0 0; padding: 0; }
+.people-list li {
+  align-items: center; background: var(--card); border-radius: var(--radius); display: flex;
+  gap: 16px; justify-content: space-between; margin-bottom: 10px; padding: 18px 22px;
+}
+.people-list li > a { align-items: center; display: flex; gap: 14px; min-width: 0; }
+.person-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.person-text strong { font-size: 15px; }
+.person-text small { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.person-count { color: var(--muted); flex-shrink: 0; font-size: 12px; }
+
 .application-list { list-style: none; margin: 0; padding: 0; }
 .application-list li {
   background: var(--card); border-radius: var(--radius); margin-bottom: 12px; padding: 22px;
@@ -525,6 +568,18 @@ details[open] summary { margin-bottom: 16px; }
 .profile-links li + li { margin-left: 16px; }
 .profile-stats { color: var(--muted); font-size: 13px; gap: 22px; margin-top: 20px; }
 .profile-stats strong { color: var(--ink); font-size: 16px; }
+
+.trail-note { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
+.trail-modes { display: flex; gap: 8px; margin-bottom: 18px; }
+.trail-modes a {
+  border: 1px solid var(--line); border-radius: 100px; display: inline-block; font-size: 12px;
+  font-weight: 600; padding: 6px 13px;
+}
+.trail-modes a:hover { border-color: var(--ink); }
+.trail-modes a.is-active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.trail-more { margin-top: 16px; }
+.trail-more a { border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; }
+.trail-more a:hover { border-color: var(--ink); }
 .profile-edit { margin-bottom: 34px; }
 .section-title { font-size: 24px; font-weight: 650; letter-spacing: -.035em; margin: 40px 0 20px; }
 

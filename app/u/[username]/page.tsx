@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
-import { ActivityList, ProjectCard, initials } from "../../components/pieces";
+import { ActivityList, ProjectCard, initials, monthYear } from "../../components/pieces";
 import { SubmitButton } from "../../components/submit-button";
-import { getPerson, getPortfolio, listPersonActivity } from "../../lib/data";
-import { EVENT_KINDS, eventKindMeta } from "../../lib/activity";
+import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
+import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
 import { currentViewer } from "../../lib/session";
 
@@ -19,24 +19,63 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const person = await getPerson(username);
   if (!person) return { title: "Orang tidak ditemukan — Ahsan Project" };
 
+  const description =
+    person.headline || `Proyek dan kontribusi ${person.name} di Ahsan Project.`;
+
   return {
     title: `${person.name} — Ahsan Project`,
-    description: person.headline || `Proyek dan kontribusi ${person.name} di Ahsan Project.`,
+    description,
     alternates: { canonical: `/u/${person.username}` },
+    // The card image comes from opengraph-image.tsx beside this file.
+    openGraph: {
+      type: "profile",
+      title: `${person.name} — Ahsan Project`,
+      description,
+      url: `/u/${person.username}`,
+    },
   };
 }
 
-export default async function ProfilePage({ params }: { params: Params }) {
+const TRAIL_PAGE = 40;
+
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { username } = await params;
+  const query = (await searchParams) ?? {};
   const [person, viewer] = await Promise.all([getPerson(username), currentViewer()]);
   if (!person) notFound();
 
+  // "Muat lebih lama" grows the limit instead of paging cursors: the list is
+  // one request either way, and the URL stays shareable.
+  const showAll = query.jejak === "semua";
+  const rawLimit = Number(Array.isArray(query.batas) ? query.batas[0] : query.batas);
+  const limit = Math.min(Number.isInteger(rawLimit) && rawLimit > 0 ? rawLimit : TRAIL_PAGE, 400);
+
   const isSelf = viewer?.id === person.id;
-  const [{ owned, contributing }, activity] = await Promise.all([
+  const [{ owned, contributing }, activity, stats] = await Promise.all([
     getPortfolio(person),
-    listPersonActivity(person.id),
+    listPersonActivity(person.id, {
+      limit: limit + 1,
+      kinds: showAll ? undefined : HIGHLIGHT_KINDS,
+    }),
+    getPersonStats(person.id),
   ]);
+  const hasOlder = activity.length > limit;
+  const trail = activity.slice(0, limit);
   const live = owned.filter((project) => project.stage === "live").length;
+
+  const trailPath = (next: { jejak?: string; batas?: number }) => {
+    const params = new URLSearchParams();
+    if (next.jejak === "semua") params.set("jejak", "semua");
+    if (next.batas && next.batas > TRAIL_PAGE) params.set("batas", String(next.batas));
+    const search = params.toString();
+    return `/u/${person.username}${search ? `?${search}` : ""}#activity-heading`;
+  };
 
   return (
     <>
@@ -82,6 +121,17 @@ export default async function ProfilePage({ params }: { params: Params }) {
               <li>
                 <strong>{contributing.length}</strong> ikut menggarap
               </li>
+              {stats.rolesTaken > 0 ? (
+                <li>
+                  <strong>{stats.rolesTaken}</strong> peran dijalani
+                </li>
+              ) : null}
+              {stats.tasksDone > 0 ? (
+                <li>
+                  <strong>{stats.tasksDone}</strong> tugas dibereskan
+                </li>
+              ) : null}
+              {stats.since ? <li>aktif sejak {monthYear(stats.since)}</li> : null}
             </ul>
           </div>
         </section>
@@ -109,17 +159,42 @@ export default async function ProfilePage({ params }: { params: Params }) {
           <h2 id="activity-heading" className="section-title">
             Jejak
           </h2>
+          <p className="trail-note">
+            Jejak ini ditulis sistem saat kejadiannya — bukan diketik belakangan.
+          </p>
 
-          {activity.length === 0 ? (
+          <div className="trail-modes">
+            <Link className={showAll ? "" : "is-active"} href={trailPath({})}>
+              Sorotan
+            </Link>
+            <Link className={showAll ? "is-active" : ""} href={trailPath({ jejak: "semua" })}>
+              Semua jejak
+            </Link>
+          </div>
+
+          {trail.length === 0 ? (
             <p className="muted">
-              Belum ada jejak.
+              {showAll ? "Belum ada jejak." : "Belum ada sorotan."}
               {isSelf
                 ? " Yang kamu kerjakan di sini akan muncul sendiri — tidak perlu ditulis."
                 : ""}
             </p>
           ) : (
-            <ActivityList events={activity} hidden={isSelf ? person.activityHidden : []} />
+            <ActivityList events={trail} hidden={isSelf ? person.activityHidden : []} />
           )}
+
+          {hasOlder ? (
+            <p className="trail-more">
+              <Link
+                href={trailPath({
+                  jejak: showAll ? "semua" : undefined,
+                  batas: limit + TRAIL_PAGE,
+                })}
+              >
+                Muat jejak lebih lama
+              </Link>
+            </p>
+          ) : null}
 
           {isSelf ? (
             <details className="owner-tool">
@@ -175,7 +250,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
             </h2>
             <div className="project-grid">
               {contributing.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.id} project={project} contributionRole={project.role} />
               ))}
             </div>
           </section>

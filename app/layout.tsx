@@ -15,10 +15,19 @@ const geistMono = Geist_Mono({
 
 export const viewport: Viewport = { themeColor: "#f3f0e8" };
 
-// Each page sets its own title, description and canonical.
+// Each page sets its own title, description and canonical. The share metadata
+// here is the fallback: pages with an opengraph-image file (profiles,
+// projects) get their own card image, everything else shares og.png.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "Ahsan Project", template: "%s" },
+  openGraph: {
+    siteName: "Ahsan Project",
+    type: "website",
+    locale: "id_ID",
+    images: [{ url: "/og.png", width: 1731, height: 909 }],
+  },
+  twitter: { card: "summary_large_image" },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

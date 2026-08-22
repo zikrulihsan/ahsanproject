@@ -448,6 +448,30 @@ export async function toggleBoost(formData: FormData): Promise<void> {
   revalidatePath("/");
 }
 
+/**
+ * Marks every notice read.
+ *
+ * A button rather than a side effect of opening /inbox: a page that quietly
+ * clears its own badge on render can wipe a decision somebody never actually
+ * looked at, and a GET should not change anything anyway. The update matches
+ * nothing for anybody else — the policy in 0008 sees to that.
+ */
+export async function markNoticesSeen(): Promise<void> {
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase
+    .from("notices")
+    .update({ seen: true })
+    .eq("recipient_id", viewer.id)
+    .eq("seen", false);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/inbox");
+  revalidatePath("/", "layout");
+}
+
 /* ------------------------------------------------------------------ *
  * Profile
  * ------------------------------------------------------------------ */

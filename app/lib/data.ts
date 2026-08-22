@@ -53,6 +53,8 @@ export type ProjectSummary = {
   owner: Pick<Person, "id" | "username" | "name">;
   seatCount: number;
   openSeatCount: number;
+  /** Distinct roles this project is asking for right now. */
+  openRoles: string[];
   activeMemberCount: number;
   boostCount: number;
   commentCount: number;
@@ -108,6 +110,8 @@ export type ApplicationView = {
 export type FeedQuery = {
   stage?: string;
   tag?: string;
+  /** One of ROLES — the feed only passes values isRole() has accepted. */
+  role?: string;
   q?: string;
   sort?: "terbaru" | "didukung" | "dibutuhkan";
 };
@@ -158,9 +162,15 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
 
   if (query.stage) request = request.eq("stage", query.stage);
   if (query.tag) request = request.contains("tags", [query.tag]);
+  if (query.role) request = request.contains("open_roles", [query.role]);
   if (query.q) {
+    // The whole brief, not just its opening: somebody searching "flutter"
+    // should find the project that only says so under solution.
     const term = `%${escapeLike(query.q)}%`;
-    request = request.or(`title.ilike.${term},tagline.ilike.${term},problem.ilike.${term}`);
+    request = request.or(
+      `title.ilike.${term},tagline.ilike.${term},problem.ilike.${term},` +
+        `solution.ilike.${term},audience.ilike.${term}`,
+    );
   }
 
   const { data, error } = await request
@@ -264,13 +274,16 @@ export const getPerson = cache(async (username: string): Promise<Person | null> 
   return data ? toPerson(data) : null;
 });
 
+/** A project somebody helps on, together with the role they hold there. */
+export type Contribution = ProjectSummary & { role: string };
+
 /** Projects this person owns, plus the ones they hold a filled seat on. */
 export async function getPortfolio(person: Person) {
   const supabase = await getSupabase();
 
   if (!supabase) {
     const owned = seedFeed({}).filter((project) => project.owner.id === person.id);
-    return { owned, contributing: [] as ProjectSummary[] };
+    return { owned, contributing: seedContributions(person.id) };
   }
 
   const [ownedResult, seatResult] = await Promise.all([
@@ -279,24 +292,57 @@ export async function getPortfolio(person: Person) {
       .select("*")
       .eq("owner_id", person.id)
       .order("created_at", { ascending: false }),
-    supabase.from("seats").select("project_id").eq("user_id", person.id).eq("status", "filled"),
+    supabase
+      .from("seats")
+      .select("project_id, role")
+      .eq("user_id", person.id)
+      .eq("status", "filled"),
   ]);
   if (ownedResult.error) throw new Error(ownedResult.error.message);
   if (seatResult.error) throw new Error(seatResult.error.message);
 
   const owned = (ownedResult.data ?? []).map(toSummary);
-  const seatProjectIds = (seatResult.data ?? []).map((seat) => seat.project_id);
-  if (seatProjectIds.length === 0) return { owned, contributing: [] };
+  // apply_for_seat refuses a second seat on the same project, so this map
+  // holds at most one role per project.
+  const roleByProject = new Map(
+    (seatResult.data ?? []).map((seat) => [seat.project_id, seat.role]),
+  );
+  if (roleByProject.size === 0) return { owned, contributing: [] as Contribution[] };
 
   const { data, error } = await supabase
     .from("project_overview")
     .select("*")
-    .in("id", seatProjectIds)
+    .in("id", [...roleByProject.keys()])
     .neq("owner_id", person.id)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
 
-  return { owned, contributing: (data ?? []).map(toSummary) };
+  const contributing: Contribution[] = (data ?? []).map((row) => ({
+    ...toSummary(row),
+    role: roleByProject.get(row.id) ?? "other",
+  }));
+  return { owned, contributing };
+}
+
+/**
+ * Everybody with a profile, newest first.
+ *
+ * Feeds the people directory and the sitemap — until now a profile could only
+ * be reached by clicking through from a card or a comment, which is no way to
+ * be found.
+ */
+export async function listPeople(limit = 200): Promise<Person[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return seedUsers.map((user) => ({ ...user }));
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map(toPerson);
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
@@ -378,23 +424,90 @@ export async function countIncomingApplications(userId: string): Promise<number>
   return count ?? 0;
 }
 
+/* ------------------------------------------------------------------ *
+ * Notices — what happened while somebody was away
+ * ------------------------------------------------------------------ */
+
+export type NoticeView = {
+  id: number;
+  kind: string;
+  createdAt: string;
+  seen: boolean;
+  payload: Record<string, string>;
+};
+
+/** This person's notices, newest first. */
+export async function listNotices(userId: string, limit = 40): Promise<NoticeView[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("notices")
+    .select("*")
+    .eq("recipient_id", userId)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("notices");
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    createdAt: row.created_at,
+    seen: row.seen,
+    payload: row.payload ?? {},
+  }));
+}
+
+/**
+ * How many notices this person has not opened yet.
+ *
+ * Rides along in the header beside the incoming-application count, for the
+ * same reason: a decision nobody sees is a decision nobody acts on.
+ */
+export async function countUnseenNotices(userId: string): Promise<number> {
+  const supabase = await getSupabase();
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from("notices")
+    .select("id", { count: "exact", head: true })
+    .eq("recipient_id", userId)
+    .eq("seen", false);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("notices");
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
 /**
  * Somebody's trail, newest first.
  *
- * No kind filtering here on purpose: the SELECT policy on `events` already
- * hides what this person chose to hide, and shows them their own hidden
- * entries. Re-filtering in the query would only be able to get that wrong.
+ * `kinds` narrows to a set of event kinds — the profile's "sorotan" reading
+ * mode. Visibility is not decided here on purpose: the SELECT policy on
+ * `events` already hides what this person chose to hide, and shows them their
+ * own hidden entries. Re-filtering that in the query would only get it wrong.
  */
-export async function listPersonActivity(personId: string, limit = 40): Promise<ActivityEvent[]> {
+export async function listPersonActivity(
+  personId: string,
+  { limit = 40, kinds }: { limit?: number; kinds?: readonly string[] } = {},
+): Promise<ActivityEvent[]> {
   const supabase = await getSupabase();
-  if (!supabase) return seedActivity(personId);
+  if (!supabase) {
+    const events = seedActivity(personId);
+    return (kinds ? events.filter((event) => kinds.includes(event.kind)) : events).slice(0, limit);
+  }
 
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("actor_id", personId)
-    .order("id", { ascending: false })
-    .limit(limit);
+  let request = supabase.from("events").select("*").eq("actor_id", personId);
+  if (kinds) request = request.in("kind", [...kinds]);
+
+  const { data, error } = await request.order("id", { ascending: false }).limit(limit);
   if (error) {
     if (!isMissingTable(error)) throw new Error(error.message);
     warnMissingTable("events");
@@ -402,6 +515,58 @@ export async function listPersonActivity(personId: string, limit = 40): Promise<
   }
 
   return (data ?? []).map((row) => toActivity(row as EventRow));
+}
+
+/** What a profile can claim in numbers, counted from the visible trail. */
+export type PersonStats = {
+  tasksDone: number;
+  /** Seats this person was accepted onto — the joins other people decided. */
+  rolesTaken: number;
+  /** When the first visible trail entry happened; "" with no trail yet. */
+  since: string;
+};
+
+/**
+ * Counted from the same `events` reads the trail uses, so the SELECT policy
+ * decides what a visitor's numbers include, exactly as it decides their trail.
+ * The cap saturates the counts on an absurdly long trail rather than paging;
+ * by the time that is a lie worth fixing, counting belongs in the database.
+ */
+export async function getPersonStats(personId: string): Promise<PersonStats> {
+  const supabase = await getSupabase();
+  if (!supabase) {
+    return statsFrom(
+      seedActivity(personId).map((event) => ({ kind: event.kind, created_at: event.createdAt })),
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("kind, created_at")
+    .eq("actor_id", personId)
+    .order("id", { ascending: true })
+    .limit(2000);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return { tasksDone: 0, rolesTaken: 0, since: "" };
+  }
+
+  return statsFrom(data ?? []);
+}
+
+function statsFrom(rows: { kind: string; created_at: string }[]): PersonStats {
+  let tasksDone = 0;
+  let rolesTaken = 0;
+  let since = "";
+
+  for (const row of rows) {
+    if (row.kind === "task_done") tasksDone += 1;
+    if (row.kind === "seat_filled") rolesTaken += 1;
+    if (!since || row.created_at < since) since = row.created_at;
+  }
+
+  return { tasksDone, rolesTaken, since };
 }
 
 /** What has happened on one project, newest first. */
@@ -489,6 +654,9 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     owner: { id: row.owner_id, username: row.owner_username, name: row.owner_name },
     seatCount: Number(row.seat_count),
     openSeatCount: Number(row.open_seat_count),
+    // ?? [] keeps reads alive on a database that has not run 0007 yet; the
+    // role *filter* does need the column, so migrate before deploying that.
+    openRoles: row.open_roles ?? [],
     activeMemberCount: Number(row.active_member_count),
     boostCount: Number(row.boost_count),
     commentCount: Number(row.comment_count),
@@ -568,6 +736,11 @@ function seedSummaries(): ProjectSummary[] {
       },
       seatCount: project.seats.length,
       openSeatCount: project.seats.filter((seat) => seat.status === "open").length,
+      openRoles: [
+        ...new Set(
+          project.seats.filter((seat) => seat.status === "open").map((seat) => seat.role),
+        ),
+      ],
       activeMemberCount: project.seats.filter((seat) => seat.status === "filled").length,
       boostCount: 0,
       commentCount: 0,
@@ -585,8 +758,17 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
     .filter((project) => {
       if (query.stage && project.stage !== query.stage) return false;
       if (query.tag && !project.tags.includes(query.tag)) return false;
+      if (query.role && !project.openRoles.includes(query.role)) return false;
       if (needle) {
-        const haystack = `${project.title} ${project.tagline} ${project.problem}`.toLowerCase();
+        const haystack = [
+          project.title,
+          project.tagline,
+          project.problem,
+          project.solution,
+          project.audience,
+        ]
+          .join(" ")
+          .toLowerCase();
         if (!haystack.includes(needle)) return false;
       }
       return true;
@@ -600,6 +782,20 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
 
 function newest(a: ProjectSummary, b: ProjectSummary): number {
   return b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
+}
+
+/** Seed projects where this person holds a filled seat, with the role held. */
+function seedContributions(personId: string): Contribution[] {
+  const summaries = seedSummaries();
+
+  return seedProjects.flatMap((project) => {
+    if (project.ownerId === personId) return [];
+    const seat = project.seats.find(
+      (candidate) => candidate.status === "filled" && candidate.userId === personId,
+    );
+    const summary = summaries.find((candidate) => candidate.id === project.id);
+    return seat && summary ? [{ ...summary, role: seat.role }] : [];
+  });
 }
 
 function seedDetail(slug: string): ProjectDetail | null {

@@ -68,6 +68,74 @@ export async function signIn(_state: AuthState, formData: FormData): Promise<Aut
   redirect(next);
 }
 
+/**
+ * Sends the "set a new password" link.
+ *
+ * The answer is the same whether or not the address is registered: telling a
+ * stranger which emails have accounts here is not something a login page
+ * should do. The link lands on /auth/confirm, which trades the token for a
+ * session and forwards to the form below.
+ */
+export async function requestPasswordReset(
+  _state: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = text(formData, "email").toLowerCase();
+  const values = { email };
+
+  if (!email.includes("@")) return { error: "Alamat emailnya belum benar.", values };
+
+  const supabase = await requireSupabase();
+  const origin = await siteOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent("/akun/password")}`,
+  });
+  // A rate limit is worth saying out loud; anything else stays behind the
+  // same neutral notice, so a failure cannot be read as "this email exists".
+  if (error && /rate|limit|too many/i.test(error.message)) {
+    return { error: "Terlalu sering meminta. Tunggu sebentar lalu coba lagi.", values };
+  }
+
+  return {
+    notice:
+      `Kalau ${email} terdaftar di sini, tautan untuk menyetel ulang kata sandi sudah dikirim. ` +
+      "Tautannya berlaku sebentar saja, jadi buka segera.",
+    values,
+  };
+}
+
+/**
+ * Sets the new password, using the session the recovery link established.
+ *
+ * Without that session there is nobody to update, so this refuses rather than
+ * guessing — an expired link should send somebody back to ask for a new one.
+ */
+export async function updatePassword(_state: AuthState, formData: FormData): Promise<AuthState> {
+  const password = raw(formData, "password");
+  const confirm = raw(formData, "confirm");
+
+  if (password.length < MIN_PASSWORD) {
+    return { error: `Kata sandi minimal ${MIN_PASSWORD} karakter.`, values: {} };
+  }
+  if (password !== confirm) return { error: "Ulangan kata sandinya belum sama.", values: {} };
+
+  const supabase = await requireSupabase();
+  const { data: session } = await supabase.auth.getUser();
+  if (!session.user) {
+    return {
+      error:
+        "Tautannya sudah kedaluwarsa atau sudah dipakai. Minta tautan baru lewat “Lupa kata sandi”.",
+      values: {},
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: translate(error.message), values: {} };
+
+  revalidatePath("/", "layout");
+  redirect("/");
+}
+
 export async function signOut(): Promise<void> {
   const supabase = await requireSupabase();
   await supabase.auth.signOut();
@@ -93,6 +161,8 @@ function translate(message: string): string {
     "Invalid login credentials": "Email atau kata sandinya tidak cocok.",
     "Email not confirmed": "Emailnya belum dikonfirmasi. Cek kotak masuk kamu dulu.",
     "User already registered": "Email ini sudah terdaftar. Coba masuk saja.",
+    "New password should be different from the old password.":
+      "Kata sandi barunya masih sama dengan yang lama.",
   };
 
   return known[message] ?? message;

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { homeMeta } from "../content";
+import { homeMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
 import { ProjectCard } from "../components/pieces";
 import { listProjects, listTags, type FeedQuery } from "../lib/data";
+import { ROLES, isRole, roleMeta } from "../lib/roles";
 import { STAGES, stageMeta } from "../lib/stages";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,11 @@ export const metadata: Metadata = {
   title: homeMeta.title,
   description: homeMeta.description,
   alternates: { canonical: "/" },
+  openGraph: shareCard({
+    title: homeMeta.title,
+    description: homeMeta.description,
+    url: "/",
+  }),
 };
 
 const SORTS: { key: NonNullable<FeedQuery["sort"]>; label: string }[] = [
@@ -30,11 +36,14 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
   const params = (await searchParams) ?? {};
   const stage = one(params.stage);
   const tag = one(params.tag);
+  // Anything that is not a known role reads as "no filter", so a mistyped URL
+  // shows the whole board rather than an empty one.
+  const role = isRole(one(params.role)) ? one(params.role) : "";
   const q = one(params.q);
   const sort = (SORTS.find((option) => option.key === one(params.sort))?.key ?? "terbaru") as FeedQuery["sort"];
 
   const [projects, tags] = await Promise.all([
-    listProjects({ stage, tag, q, sort }),
+    listProjects({ stage, tag, role, q, sort }),
     listTags(),
   ]);
 
@@ -90,7 +99,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
           <div className="filter-bar">
             <ul className="stage-filter">
               <li>
-                <Link className={stage ? "" : "is-active"} href={linkTo({ tag, q, sort })}>
+                <Link className={stage ? "" : "is-active"} href={linkTo({ tag, role, q, sort })}>
                   Semua
                 </Link>
               </li>
@@ -98,7 +107,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 <li key={key}>
                   <Link
                     className={stage === key ? "is-active" : ""}
-                    href={linkTo({ stage: key, tag, q, sort })}
+                    href={linkTo({ stage: key, tag, role, q, sort })}
                     title={stageMeta[key].blurb}
                   >
                     {stageMeta[key].label}
@@ -110,6 +119,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             <form className="search" method="get" action="/">
               {stage ? <input type="hidden" name="stage" value={stage} /> : null}
               {tag ? <input type="hidden" name="tag" value={tag} /> : null}
+              {role ? <input type="hidden" name="role" value={role} /> : null}
               {sort ? <input type="hidden" name="sort" value={sort} /> : null}
               <input
                 type="search"
@@ -122,6 +132,28 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             </form>
           </div>
 
+          <div className="role-bar" aria-label="Saring menurut peran yang dibutuhkan">
+            <span>Butuh peran</span>
+            <ul>
+              {ROLES.map((key) => (
+                <li key={key}>
+                  <Link
+                    className={role === key ? "is-active" : ""}
+                    href={
+                      role === key
+                        ? linkTo({ stage, tag, q, sort })
+                        : linkTo({ stage, tag, role: key, q, sort })
+                    }
+                    title={roleMeta[key].blurb}
+                  >
+                    {roleMeta[key].label}
+                    {role === key ? " ✕" : ""}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="sort-bar">
             <span>Urutkan</span>
             <ul>
@@ -129,7 +161,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 <li key={option.key}>
                   <Link
                     className={sort === option.key ? "is-active" : ""}
-                    href={linkTo({ stage, tag, q, sort: option.key })}
+                    href={linkTo({ stage, tag, role, q, sort: option.key })}
                   >
                     {option.label}
                   </Link>
@@ -142,7 +174,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             <ul className="tag-rail" aria-label="Topik">
               {tag ? (
                 <li>
-                  <Link className="is-active" href={linkTo({ stage, q, sort })}>
+                  <Link className="is-active" href={linkTo({ stage, role, q, sort })}>
                     #{tag} ✕
                   </Link>
                 </li>
@@ -152,7 +184,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 .slice(0, 12)
                 .map((entry) => (
                   <li key={entry.tag}>
-                    <Link href={linkTo({ stage, tag: entry.tag, q, sort })}>
+                    <Link href={linkTo({ stage, tag: entry.tag, role, q, sort })}>
                       #{entry.tag} <small>{entry.count}</small>
                     </Link>
                   </li>
@@ -180,7 +212,13 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
   );
 }
 
-function linkTo(query: { stage?: string; tag?: string; q?: string; sort?: string }): string {
+function linkTo(query: {
+  stage?: string;
+  tag?: string;
+  role?: string;
+  q?: string;
+  sort?: string;
+}): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     if (value && !(key === "sort" && value === "terbaru")) params.set(key, value);

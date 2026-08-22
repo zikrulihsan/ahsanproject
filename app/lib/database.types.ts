@@ -28,6 +28,8 @@ export type ProjectOverviewRow = Omit<ProjectRow, "updated_at"> & {
   seat_count: number;
   open_seat_count: number;
   active_member_count: number;
+  /** Distinct roles with an open seat — 0007_open_roles.sql. */
+  open_roles: string[];
   boost_count: number;
   comment_count: number;
   open_task_count: number;
@@ -95,6 +97,15 @@ export type BoostRow = {
   created_at: string;
 };
 
+export type NoticeRow = {
+  id: number;
+  recipient_id: string;
+  kind: string;
+  payload: Record<string, string>;
+  seen: boolean;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -131,6 +142,13 @@ export type Database = {
         // a runtime refusal.
         Insert: never;
         Update: never;
+      };
+      notices: {
+        Row: NoticeRow;
+        // Written only by record_notice() in 0008_notices.sql — same reasoning
+        // as `events`. Marking one read is the single permitted write.
+        Insert: never;
+        Update: Pick<NoticeRow, "seen">;
       };
       tasks: {
         Row: TaskRow;
