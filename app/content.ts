@@ -1,7 +1,15 @@
 export type Lang = "id" | "en";
 
-/** Canonical origin. Update this when the site moves to its own domain. */
-export const siteUrl = "https://ahsanproject-id.netlify.app";
+/**
+ * Canonical origin — what canonical links, the sitemap and share cards point at.
+ *
+ * Reads the same `NEXT_PUBLIC_SITE_URL` the confirmation emails use, so moving
+ * the site to a new domain is one environment variable rather than a code
+ * change. The Netlify address stays as the fallback for deploys that do not
+ * set it.
+ */
+export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://ahsanproject-id.netlify.app")
+  .replace(/\/$/, "");
 
 /** Where the story page lives in each language. */
 export const aboutPaths: Record<Lang, string> = { id: "/about", en: "/en/about" };
