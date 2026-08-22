@@ -60,6 +60,8 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
 
         <p className="auth-switch">
           Belum punya akun? <Link href={`/signup?next=${encodeURIComponent(next)}`}>Daftar dulu</Link>.
+          {" · "}
+          <Link href="/lupa-password">Lupa kata sandi?</Link>
         </p>
       </main>
 

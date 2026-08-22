@@ -198,6 +198,23 @@ test("halaman masuk dan daftar bisa dibuka tamu", async () => {
   assert.match(daftar, /Bikin akun dulu/);
 });
 
+test("yang lupa kata sandi punya jalan keluar dari halaman masuk", async () => {
+  const masuk = await html("/signin");
+  assert.match(masuk, /href="\/lupa-password"/);
+
+  // Tanpa Supabase formnya memang tidak muncul — yang diuji di sini halamannya
+  // ada dan menjelaskan diri, sama seperti halaman masuk.
+  const lupa = await html("/lupa-password");
+  assert.match(lupa, /Lupa kata sandi/);
+  assert.match(lupa, /belum tersambung ke Supabase/);
+});
+
+test("setel kata sandi tanpa tautan sah menjelaskan, bukan diam", async () => {
+  const page = await html("/akun/password");
+  assert.match(page, /kedaluwarsa|belum tersambung/);
+  assert.doesNotMatch(page, /name="password"/);
+});
+
 test("tanpa Supabase, masuk dijelaskan bukan dibiarkan rusak", async () => {
   const page = await html("/signin");
   assert.match(page, /belum tersambung ke Supabase/);
