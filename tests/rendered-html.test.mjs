@@ -80,6 +80,24 @@ test("saringan level mempersempit papan", async () => {
   assert.doesNotMatch(page, /Tap Tap Dzikr/);
 });
 
+test("saringan peran menampilkan proyek yang membukanya saja", async () => {
+  const page = await html("/?role=pm");
+  assert.match(page, /Invoice Cepat/);
+  assert.match(page, /Titip Jemput/);
+  assert.doesNotMatch(page, /Wecard/);
+});
+
+test("peran yang mengada-ada tidak mengosongkan papan", async () => {
+  const page = await html("/?role=hacker");
+  for (const name of SEEDED) assert.match(page, new RegExp(name));
+});
+
+test("kartu di papan menyebut peran yang dibuka", async () => {
+  const page = await html("/");
+  assert.match(page, /Butuh Product Manager/);
+  assert.match(page, /Butuh Designer/);
+});
+
 test("pencarian membaca brief, bukan cuma judul", async () => {
   const page = await html("/?q=antrean");
   assert.match(page, /Warung Antre/);

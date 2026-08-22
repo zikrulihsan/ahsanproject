@@ -28,6 +28,8 @@ export type ProjectOverviewRow = Omit<ProjectRow, "updated_at"> & {
   seat_count: number;
   open_seat_count: number;
   active_member_count: number;
+  /** Distinct roles with an open seat — 0007_open_roles.sql. */
+  open_roles: string[];
   boost_count: number;
   comment_count: number;
   open_task_count: number;

@@ -175,7 +175,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
             </h2>
             <div className="project-grid">
               {contributing.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.id} project={project} contributionRole={project.role} />
               ))}
             </div>
           </section>

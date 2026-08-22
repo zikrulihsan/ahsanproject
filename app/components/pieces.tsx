@@ -32,7 +32,14 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
   );
 }
 
-export function ProjectCard({ project }: { project: ProjectSummary }) {
+export function ProjectCard({
+  project,
+  contributionRole,
+}: {
+  project: ProjectSummary;
+  /** Set on a portfolio's "ikut menggarap" card: the role held there. */
+  contributionRole?: string;
+}) {
   return (
     <article className={`project-card level-${project.stage}`}>
       <div className="card-topline">
@@ -45,6 +52,9 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
       <h3>
         <Link href={`/projects/${project.slug}`}>{project.title}</Link>
       </h3>
+      {contributionRole ? (
+        <p className="card-role">Sebagai {roleLabel(contributionRole)}</p>
+      ) : null}
       <p className="card-tagline">{project.tagline}</p>
 
       <dl className="card-brief">
@@ -52,6 +62,7 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
         <dd>{project.problem}</dd>
       </dl>
 
+      <SeatChips roles={project.openRoles} />
       <TagRow tags={project.tags} />
 
       <div className="card-meta">
@@ -88,12 +99,20 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
   );
 }
 
-export function SeatChips({ roles }: { roles: string[] }) {
+export function SeatChips({ roles, linked = true }: { roles: string[]; linked?: boolean }) {
   if (roles.length === 0) return null;
   return (
-    <ul className="seat-chips">
+    <ul className="seat-chips" aria-label="Peran yang dibuka">
       {roles.map((role, index) => (
-        <li key={`${role}-${index}`}>{roleLabel(role)}</li>
+        <li key={`${role}-${index}`}>
+          {linked ? (
+            <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
+              {`Butuh ${roleLabel(role)}`}
+            </Link>
+          ) : (
+            <span className="seat-chip">{`Butuh ${roleLabel(role)}`}</span>
+          )}
+        </li>
       ))}
     </ul>
   );

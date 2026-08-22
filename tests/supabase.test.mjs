@@ -31,6 +31,7 @@ test("the overview view exposes every count a card needs", { skip }, async () =>
       "owner_name",
       "seat_count",
       "open_seat_count",
+      "open_roles",
       "active_member_count",
       "boost_count",
       "comment_count",

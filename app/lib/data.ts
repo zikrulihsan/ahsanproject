@@ -53,6 +53,8 @@ export type ProjectSummary = {
   owner: Pick<Person, "id" | "username" | "name">;
   seatCount: number;
   openSeatCount: number;
+  /** Distinct roles this project is asking for right now. */
+  openRoles: string[];
   activeMemberCount: number;
   boostCount: number;
   commentCount: number;
@@ -108,6 +110,8 @@ export type ApplicationView = {
 export type FeedQuery = {
   stage?: string;
   tag?: string;
+  /** One of ROLES — the feed only passes values isRole() has accepted. */
+  role?: string;
   q?: string;
   sort?: "terbaru" | "didukung" | "dibutuhkan";
 };
@@ -158,6 +162,7 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
 
   if (query.stage) request = request.eq("stage", query.stage);
   if (query.tag) request = request.contains("tags", [query.tag]);
+  if (query.role) request = request.contains("open_roles", [query.role]);
   if (query.q) {
     const term = `%${escapeLike(query.q)}%`;
     request = request.or(`title.ilike.${term},tagline.ilike.${term},problem.ilike.${term}`);
@@ -264,13 +269,16 @@ export const getPerson = cache(async (username: string): Promise<Person | null> 
   return data ? toPerson(data) : null;
 });
 
+/** A project somebody helps on, together with the role they hold there. */
+export type Contribution = ProjectSummary & { role: string };
+
 /** Projects this person owns, plus the ones they hold a filled seat on. */
 export async function getPortfolio(person: Person) {
   const supabase = await getSupabase();
 
   if (!supabase) {
     const owned = seedFeed({}).filter((project) => project.owner.id === person.id);
-    return { owned, contributing: [] as ProjectSummary[] };
+    return { owned, contributing: seedContributions(person.id) };
   }
 
   const [ownedResult, seatResult] = await Promise.all([
@@ -279,24 +287,36 @@ export async function getPortfolio(person: Person) {
       .select("*")
       .eq("owner_id", person.id)
       .order("created_at", { ascending: false }),
-    supabase.from("seats").select("project_id").eq("user_id", person.id).eq("status", "filled"),
+    supabase
+      .from("seats")
+      .select("project_id, role")
+      .eq("user_id", person.id)
+      .eq("status", "filled"),
   ]);
   if (ownedResult.error) throw new Error(ownedResult.error.message);
   if (seatResult.error) throw new Error(seatResult.error.message);
 
   const owned = (ownedResult.data ?? []).map(toSummary);
-  const seatProjectIds = (seatResult.data ?? []).map((seat) => seat.project_id);
-  if (seatProjectIds.length === 0) return { owned, contributing: [] };
+  // apply_for_seat refuses a second seat on the same project, so this map
+  // holds at most one role per project.
+  const roleByProject = new Map(
+    (seatResult.data ?? []).map((seat) => [seat.project_id, seat.role]),
+  );
+  if (roleByProject.size === 0) return { owned, contributing: [] as Contribution[] };
 
   const { data, error } = await supabase
     .from("project_overview")
     .select("*")
-    .in("id", seatProjectIds)
+    .in("id", [...roleByProject.keys()])
     .neq("owner_id", person.id)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
 
-  return { owned, contributing: (data ?? []).map(toSummary) };
+  const contributing: Contribution[] = (data ?? []).map((row) => ({
+    ...toSummary(row),
+    role: roleByProject.get(row.id) ?? "other",
+  }));
+  return { owned, contributing };
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
@@ -489,6 +509,9 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     owner: { id: row.owner_id, username: row.owner_username, name: row.owner_name },
     seatCount: Number(row.seat_count),
     openSeatCount: Number(row.open_seat_count),
+    // ?? [] keeps reads alive on a database that has not run 0007 yet; the
+    // role *filter* does need the column, so migrate before deploying that.
+    openRoles: row.open_roles ?? [],
     activeMemberCount: Number(row.active_member_count),
     boostCount: Number(row.boost_count),
     commentCount: Number(row.comment_count),
@@ -568,6 +591,11 @@ function seedSummaries(): ProjectSummary[] {
       },
       seatCount: project.seats.length,
       openSeatCount: project.seats.filter((seat) => seat.status === "open").length,
+      openRoles: [
+        ...new Set(
+          project.seats.filter((seat) => seat.status === "open").map((seat) => seat.role),
+        ),
+      ],
       activeMemberCount: project.seats.filter((seat) => seat.status === "filled").length,
       boostCount: 0,
       commentCount: 0,
@@ -585,6 +613,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
     .filter((project) => {
       if (query.stage && project.stage !== query.stage) return false;
       if (query.tag && !project.tags.includes(query.tag)) return false;
+      if (query.role && !project.openRoles.includes(query.role)) return false;
       if (needle) {
         const haystack = `${project.title} ${project.tagline} ${project.problem}`.toLowerCase();
         if (!haystack.includes(needle)) return false;
@@ -600,6 +629,20 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
 
 function newest(a: ProjectSummary, b: ProjectSummary): number {
   return b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
+}
+
+/** Seed projects where this person holds a filled seat, with the role held. */
+function seedContributions(personId: string): Contribution[] {
+  const summaries = seedSummaries();
+
+  return seedProjects.flatMap((project) => {
+    if (project.ownerId === personId) return [];
+    const seat = project.seats.find(
+      (candidate) => candidate.status === "filled" && candidate.userId === personId,
+    );
+    const summary = summaries.find((candidate) => candidate.id === project.id);
+    return seat && summary ? [{ ...summary, role: seat.role }] : [];
+  });
 }
 
 function seedDetail(slug: string): ProjectDetail | null {
