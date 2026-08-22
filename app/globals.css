@@ -451,15 +451,23 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
   transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 .project-card:hover { border-color: #aab9b0; box-shadow: 0 12px 35px rgba(25, 58, 49, .07); transform: translateY(-3px); }
-/* The title link is stretched over the whole card — a tap anywhere opens the
-   project — while the owner, tag, seat and arrow links stay on top of that
-   overlay so each still goes to its own, more specific place. The focus ring
-   moves from the (visually tiny) title text to the card that actually acts
-   as the target. */
+/* Shared by both project cards: the portfolio grid card here and the feed
+   row above (`.project-item`, which sets its own `position: relative`). The
+   title link is stretched over the whole thing — a tap anywhere opens the
+   project — while every more specific link inside (owner, tag, seat, arrow,
+   support count, "lihat proyek") stays on top of that overlay so each still
+   goes to its own place. The focus ring moves from the (visually tiny) title
+   text to the card/row that actually acts as the target. */
 .card-cover-link::after { bottom: 0; content: ""; left: 0; position: absolute; right: 0; top: 0; }
 .card-cover-link:focus-visible { outline: none; }
-.project-card:has(.card-cover-link:focus-visible) { outline: 2px solid var(--coral); outline-offset: 2px; }
-.card-owner, .tag-row a, a.seat-chip, .round-arrow { position: relative; z-index: 1; }
+.project-card:has(.card-cover-link:focus-visible),
+.project-item:has(.card-cover-link:focus-visible) {
+  outline: 2px solid var(--coral); outline-offset: 2px;
+}
+.card-owner, .tag-row a, a.seat-chip, .round-arrow,
+.support-count, .project-meta a, .contributors, .detail-link {
+  position: relative; z-index: 1;
+}
 .card-topline { align-items: center; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 18px; }
 .project-glyph {
   align-items: center; border-radius: 12px; display: flex; font-size: 15px; font-weight: 850;
