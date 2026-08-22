@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <>
       <SiteHeader />
-      <main className="notfound">
+      <main id="main-content" className="notfound">
         <h1>Tidak ketemu.</h1>
         <p className="muted">Halamannya mungkin sudah pindah, atau tautannya keliru.</p>
         <p style={{ marginTop: 24 }}>

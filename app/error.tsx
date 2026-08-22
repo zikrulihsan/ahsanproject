@@ -19,7 +19,7 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="notfound">
+    <main id="main-content" className="notfound">
       <h1>Ada yang tersendat.</h1>
       <p className="muted">
         Papannya gagal dimuat. Biasanya ini sementara — coba lagi sebentar lagi.

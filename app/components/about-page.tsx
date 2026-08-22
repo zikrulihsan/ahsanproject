@@ -8,9 +8,9 @@ export function AboutPage({ lang }: { lang: Lang }) {
 
   return (
     <>
-      <SiteHeader returnTo={aboutPaths[lang]} />
+      <SiteHeader returnTo={aboutPaths[lang]} active="tentang" />
 
-      <main className="about-page" lang={lang}>
+      <main id="main-content" className="about-page" lang={lang}>
         <section className="about-section">
           <div className="about-top">
             <p className="eyebrow light">

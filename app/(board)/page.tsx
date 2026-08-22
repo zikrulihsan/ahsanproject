@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { homeMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
-import { ProjectCard } from "../components/pieces";
-import { listProjects, listTags, type FeedQuery } from "../lib/data";
-import { ROLES, isRole, roleMeta } from "../lib/roles";
-import { STAGES, stageMeta } from "../lib/stages";
+import { ProjectRow, initials } from "../components/pieces";
+import { listPeople, listProjects, listTags, type FeedQuery, type ProjectSummary } from "../lib/data";
+import { ROLES, isRole, roleLabel, roleMeta } from "../lib/roles";
+import { STAGES, isStage, stageMeta } from "../lib/stages";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   }),
 };
 
-const SORTS: { key: NonNullable<FeedQuery["sort"]>; label: string }[] = [
-  { key: "terbaru", label: "Terbaru" },
-  { key: "didukung", label: "Paling didukung" },
-  { key: "dibutuhkan", label: "Paling butuh orang" },
+const SORTS: { key: NonNullable<FeedQuery["sort"]>; label: string; lead: string }[] = [
+  { key: "terbaru", label: "Terbaru", lead: "Paling baru masuk" },
+  { key: "didukung", label: "Paling didukung", lead: "Paling banyak didukung" },
+  { key: "dibutuhkan", label: "Paling butuh orang", lead: "Paling butuh orang" },
 ];
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -40,20 +40,23 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
   // shows the whole board rather than an empty one.
   const role = isRole(one(params.role)) ? one(params.role) : "";
   const q = one(params.q);
-  const sort = (SORTS.find((option) => option.key === one(params.sort))?.key ?? "terbaru") as FeedQuery["sort"];
+  const sortOption = SORTS.find((option) => option.key === one(params.sort)) ?? SORTS[0];
+  const sort = sortOption.key;
 
-  const [projects, tags] = await Promise.all([
+  const [projects, tags, people] = await Promise.all([
     listProjects({ stage, tag, role, q, sort }),
     listTags(),
+    listPeople(60),
   ]);
 
   const openSeats = projects.reduce((total, project) => total + project.openSeatCount, 0);
+  const filtered = Boolean(stage || tag || role || q);
 
   return (
     <>
-      <SiteHeader returnTo="/" />
+      <SiteHeader returnTo="/" active="jelajah" />
 
-      <main>
+      <main id="main-content">
         <section className="feed-hero">
           <div>
             <p className="eyebrow">
@@ -79,66 +82,85 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             </div>
           </div>
 
-          <aside className="feed-stats" aria-label="Ringkasan papan">
-            <div>
-              <strong>{projects.length}</strong>
-              <span>proyek di papan</span>
-            </div>
-            <div>
-              <strong>{openSeats}</strong>
-              <span>peran menunggu diisi</span>
-            </div>
-            <div>
-              <strong>{tags.length}</strong>
-              <span>topik dibahas</span>
-            </div>
+          <aside aria-label="Ringkasan papan">
+            <ul className="feed-stats">
+              <li>
+                <strong>{projects.length}</strong>
+                <span>proyek di papan</span>
+              </li>
+              <li>
+                <strong>{openSeats}</strong>
+                <span>peran menunggu diisi</span>
+              </li>
+              <li>
+                <strong>{tags.length}</strong>
+                <span>topik dibahas</span>
+              </li>
+            </ul>
           </aside>
         </section>
 
-        <section className="feed" aria-label="Daftar ide dan proyek">
-          <div className="filter-bar">
-            <ul className="stage-filter">
-              <li>
-                <Link className={stage ? "" : "is-active"} href={linkTo({ tag, role, q, sort })}>
-                  Semua
+        {/* The level rail is the board's main cut, so it behaves like a set of
+            application tabs and stays put while the list scrolls under it. */}
+        <div className="section-tabs">
+          <ul aria-label="Saring menurut level proyek">
+            <li>
+              <Link className={stage ? "" : "is-active"} href={linkTo({ tag, role, q, sort })}>
+                Semua
+              </Link>
+            </li>
+            {STAGES.map((key) => (
+              <li key={key}>
+                <Link
+                  className={stage === key ? "is-active" : ""}
+                  href={linkTo({ stage: key, tag, role, q, sort })}
+                  title={stageMeta[key].blurb}
+                >
+                  {stageMeta[key].label}
                 </Link>
               </li>
-              {STAGES.map((key) => (
-                <li key={key}>
-                  <Link
-                    className={stage === key ? "is-active" : ""}
-                    href={linkTo({ stage: key, tag, role, q, sort })}
-                    title={stageMeta[key].blurb}
-                  >
-                    {stageMeta[key].label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            ))}
+          </ul>
+        </div>
 
-            <form className="search" method="get" action="/">
-              {stage ? <input type="hidden" name="stage" value={stage} /> : null}
-              {tag ? <input type="hidden" name="tag" value={tag} /> : null}
-              {role ? <input type="hidden" name="role" value={role} /> : null}
-              {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-              <input
-                type="search"
-                name="q"
-                defaultValue={q}
-                placeholder="Cari ide atau masalah…"
-                aria-label="Cari ide atau masalah"
-              />
-              <button type="submit">Cari</button>
-            </form>
-          </div>
+        <div className="app-layout">
+          <section className="feed" aria-labelledby="feed-title">
+            <div className="feed-header">
+              <div>
+                <p className="section-label">Jelajahi</p>
+                <h2 id="feed-title">
+                  {q ? `Hasil untuk “${q}”` : isStage(stage) ? stageMeta[stage].label : "Proyek untuk kamu"}
+                </h2>
+              </div>
+              <div className="sort-bar">
+                <span>Urutkan</span>
+                <ul>
+                  {SORTS.map((option) => (
+                    <li key={option.key}>
+                      <Link
+                        className={sort === option.key ? "is-active" : ""}
+                        href={linkTo({ stage, tag, role, q, sort: option.key })}
+                      >
+                        {option.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-          <div className="role-bar" aria-label="Saring menurut peran yang dibutuhkan">
-            <span>Butuh peran</span>
-            <ul>
+            {/* Contribution-first: the role you can fill is the first cut the
+                board offers, before topic or popularity. */}
+            <ul className="filter-row" aria-label="Saring menurut peran yang dibutuhkan">
+              <li>
+                <Link className={`filter-chip ${role ? "" : "is-active"}`} href={linkTo({ stage, tag, q, sort })}>
+                  Semua peran
+                </Link>
+              </li>
               {ROLES.map((key) => (
                 <li key={key}>
                   <Link
-                    className={role === key ? "is-active" : ""}
+                    className={`filter-chip ${role === key ? "is-active" : ""}`}
                     href={
                       role === key
                         ? linkTo({ stage, tag, q, sort })
@@ -152,64 +174,186 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 </li>
               ))}
             </ul>
-          </div>
 
-          <div className="sort-bar">
-            <span>Urutkan</span>
-            <ul>
-              {SORTS.map((option) => (
-                <li key={option.key}>
-                  <Link
-                    className={sort === option.key ? "is-active" : ""}
-                    href={linkTo({ stage, tag, role, q, sort: option.key })}
-                  >
-                    {option.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {tag || q ? (
+              <p className="role-bar">
+                <span>
+                  Sedang menyaring{tag ? ` topik #${tag}` : ""}
+                  {q ? ` pencarian “${q}”` : ""}.
+                </span>
+                <Link className="filter-chip" href={linkTo({ stage, role, sort })}>
+                  Hapus saringan ✕
+                </Link>
+              </p>
+            ) : null}
 
-          {tags.length > 0 ? (
-            <ul className="tag-rail" aria-label="Topik">
-              {tag ? (
-                <li>
-                  <Link className="is-active" href={linkTo({ stage, role, q, sort })}>
-                    #{tag} ✕
-                  </Link>
-                </li>
-              ) : null}
-              {tags
-                .filter((entry) => entry.tag !== tag)
-                .slice(0, 12)
-                .map((entry) => (
-                  <li key={entry.tag}>
-                    <Link href={linkTo({ stage, tag: entry.tag, role, q, sort })}>
-                      #{entry.tag} <small>{entry.count}</small>
+            {projects.length === 0 ? (
+              <p className="empty">
+                Belum ada yang cocok dengan saringan ini.{" "}
+                {filtered ? <Link href="/">Lihat semua proyek</Link> : <Link href="/new">Taruh ide pertamanya</Link>}.
+              </p>
+            ) : (
+              <ul className="project-list">
+                {projects.map((project, index) => (
+                  <ProjectRow
+                    key={project.id}
+                    project={project}
+                    rank={index + 1}
+                    ribbon={index === 0 && projects.length > 1 ? sortOption.lead : undefined}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <aside className="sidebar" aria-label="Cara ikut menggarap">
+            <OpenRoles projects={projects} />
+
+            <section className="side-card" aria-labelledby="people-title">
+              <div className="side-heading">
+                <div>
+                  <p className="section-label">Komunitas</p>
+                  <h2 id="people-title">Orang di papan</h2>
+                </div>
+                <Link href="/orang">Lihat semua</Link>
+              </div>
+              <ul className="people-list">
+                {topPeople(people, projects).map(({ person, count }) => (
+                  <li key={person.id}>
+                    <Link href={`/u/${person.username}`}>
+                      <span className="avatar" aria-hidden="true">
+                        {initials(person.name)}
+                      </span>
+                      <span className="person-text">
+                        <strong>{person.name}</strong>
+                        <small>{person.headline || "Ikut menggarap di Ahsan Project"}</small>
+                      </span>
+                      <span className="person-count">
+                        {count > 0 ? `${count} proyek` : "baru gabung"}
+                      </span>
                     </Link>
                   </li>
                 ))}
-            </ul>
-          ) : null}
+              </ul>
+            </section>
 
-          {projects.length === 0 ? (
-            <p className="empty">
-              Belum ada yang cocok dengan saringan ini.{" "}
-              <Link href="/new">Taruh ide pertamanya</Link>.
+            {tags.length > 0 ? (
+              <section className="side-card" aria-labelledby="topic-title">
+                <p className="section-label">Sedang dibahas</p>
+                <h2 id="topic-title" className="sr-only">
+                  Topik
+                </h2>
+                <ul className="topic-cloud">
+                  {tag ? (
+                    <li>
+                      <Link className="is-active" href={linkTo({ stage, role, q, sort })}>
+                        #{tag} <b>✕</b>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {tags
+                    .filter((entry) => entry.tag !== tag)
+                    .slice(0, 12)
+                    .map((entry) => (
+                      <li key={entry.tag}>
+                        <Link href={linkTo({ stage, tag: entry.tag, role, q, sort })}>
+                          #{entry.tag} <b>{entry.count}</b>
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              </section>
+            ) : null}
+          </aside>
+        </div>
+
+        <section className="submit-section" aria-labelledby="submit-title">
+          <div>
+            <p className="section-label">Punya masalah yang layak dibereskan?</p>
+            <h2 id="submit-title">
+              Mulai dari brief.
+              <br />
+              <em>Orangnya menyusul.</em>
+            </h2>
+          </div>
+          <div>
+            <p>
+              Kamu tidak perlu datang dengan solusi yang sudah rapi. Ceritakan masalahnya, untuk siapa,
+              dan bantuan apa yang dibutuhkan — sisanya dikerjakan bareng.
             </p>
-          ) : (
-            <div className="project-grid">
-              {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          )}
+            <Link href="/new">
+              Taruh idemu <Arrow diagonal />
+            </Link>
+          </div>
         </section>
       </main>
 
       <SiteFooter />
     </>
   );
+}
+
+/**
+ * Small, scoped entry points (research.md): one open role, one project, one
+ * click. Drawn from the board already fetched, so it costs no extra query.
+ */
+function OpenRoles({ projects }: { projects: ProjectSummary[] }) {
+  const openings = projects
+    .flatMap((project) => project.openRoles.map((role) => ({ project, role })))
+    .slice(0, 5);
+
+  return (
+    <section className="side-card role-card" aria-labelledby="roles-title">
+      <div className="side-heading">
+        <div>
+          <p className="section-label">Kontribusi</p>
+          <h2 id="roles-title">Mulai dari sini</h2>
+        </div>
+      </div>
+      <p className="side-intro">
+        Peran yang sedang dibuka, lengkap dengan konteks proyeknya — cocok untuk kontribusi pertamamu.
+      </p>
+
+      {openings.length === 0 ? (
+        <p className="side-intro">
+          Belum ada peran terbuka di saringan ini. <Link href="/">Lihat semua proyek</Link>.
+        </p>
+      ) : (
+        <ul className="role-list">
+          {openings.map(({ project, role }, index) => (
+            <li key={`${project.id}-${role}-${index}`}>
+              <Link className="role-row" href={`/projects/${project.slug}`}>
+                <span className={`role-symbol level-${project.stage}`} aria-hidden="true">
+                  {roleLabel(role).slice(0, 2).toUpperCase()}
+                </span>
+                <span>
+                  <strong>Butuh {roleLabel(role)}</strong>
+                  <small>{project.title}</small>
+                  <em>{stageMeta[project.stage].label}</em>
+                </span>
+                <span className="arrow arrow-diagonal" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** Who is actually on the board right now, ranked by projects they own here. */
+function topPeople(people: Awaited<ReturnType<typeof listPeople>>, projects: ProjectSummary[]) {
+  const owned = new Map<string, number>();
+  for (const project of projects) {
+    owned.set(project.owner.id, (owned.get(project.owner.id) ?? 0) + 1);
+  }
+
+  return people
+    .map((person) => ({ person, count: owned.get(person.id) ?? 0 }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
 }
 
 function linkTo(query: {

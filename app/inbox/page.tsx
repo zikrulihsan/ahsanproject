@@ -45,7 +45,7 @@ export default async function InboxPage() {
     <>
       <SiteHeader returnTo="/inbox" />
 
-      <main className="page-narrow inbox">
+      <main id="main-content" className="page-narrow inbox">
         <p className="eyebrow">
           <span /> Kotak masuk
         </p>

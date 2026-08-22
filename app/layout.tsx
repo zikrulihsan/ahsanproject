@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const viewport: Viewport = { themeColor: "#f3f0e8" };
+export const viewport: Viewport = { themeColor: "#f8f6f0" };
 
 // Each page sets its own title, description and canonical. The share metadata
 // here is the fallback: pages with an opengraph-image file (profiles,

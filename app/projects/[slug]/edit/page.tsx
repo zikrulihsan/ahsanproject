@@ -34,7 +34,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
     <>
       <SiteHeader returnTo={`/projects/${slug}/edit`} />
 
-      <main className="page-narrow">
+      <main id="main-content" className="page-narrow">
         <p className="breadcrumb">
           <Link href={`/projects/${project.slug}`}>{project.title}</Link>{" "}
           <span aria-hidden="true">/</span> Ubah

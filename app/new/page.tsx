@@ -22,7 +22,7 @@ export default async function NewProject() {
     <>
       <SiteHeader returnTo="/new" />
 
-      <main className="page-narrow">
+      <main id="main-content" className="page-narrow">
         <p className="eyebrow">
           <span /> Taruh ide
         </p>
