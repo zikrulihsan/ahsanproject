@@ -4,6 +4,12 @@
 > Ditulis 2026-08-22 dari hasil analisa codebase di branch
 > `claude/mvp-use-case-features-bx1lgh`.
 
+## Status: semua fase MVP sudah dikirim
+
+Fase A sampai C selesai di branch ini; Fase D tetap keputusan tertulis, bukan
+kode. Rinciannya di [Catatan penutup](#catatan-penutup) di bawah — bagian
+rencana di tengah dibiarkan apa adanya sebagai rekaman alasan tiap keputusan.
+
 ## Dua use case yang dilayani
 
 Platform ini melayani dua hal sekaligus, dan MVP harus menganggap keduanya
@@ -219,13 +225,63 @@ Tiap langkah: jalankan `npm run lint` dan `npm test` (build + unit) sebelum
 commit; logika murni baru (filter sorotan jejak, statistik, normalisasi
 role) dapat unit test di `tests/` mengikuti pola `domain.test.mjs`.
 
+## Catatan penutup
+
+Apa yang benar-benar dikirim, dan yang berubah dari rencana:
+
+| Fase | Hasil | Catatan |
+|------|-------|---------|
+| A1 | Peran tampil di "Ikut menggarap" | Sesuai rencana |
+| A2 | OG image dinamis profil + proyek, metadata sitewide | Ditambah `shareCard()` — lihat di bawah |
+| A3 | Statistik profil dari `events` | Sesuai rencana |
+| A4 | Sorotan + "muat jejak lebih lama" | Sesuai rencana |
+| B1 | Filter peran + migrasi `0007_open_roles.sql` | Chip peran juga tampil di tiap kartu |
+| B2 | Pencarian membaca solusi dan audiens | Full-text search tetap ditunda |
+| B3 | `/orang` + `app/sitemap.ts` | Sesuai rencana |
+| C1 | Reset password | Memakai ulang `/auth/confirm` yang sudah ada |
+| C2 | Notices + migrasi `0008_notices.sql` | Ditandai manual, bukan otomatis — lihat di bawah |
+
+Tiga hal yang berbeda dari rencana awal, dan alasannya:
+
+1. **`shareCard()` di `app/content.ts`.** Next.js mengganti seluruh objek
+   `openGraph` alih-alih menggabungkannya dengan milik layout, jadi halaman
+   yang menyebut judulnya sendiri diam-diam kehilangan gambar bagikannya.
+   Papan dan kedua halaman cerita sempat kena persis begitu sampai
+   test menangkapnya. Helper ini yang menahan kelas bug tersebut, dan ada
+   test yang menjaganya.
+
+2. **Notices ditandai lewat tombol, bukan saat halaman dibuka.** Rencana awal
+   menandai `seen` saat `/inbox` dirender. Itu salah: halaman yang menghapus
+   badge-nya sendiri saat render bisa menghapus kabar yang belum sempat
+   dibaca, dan GET seharusnya tidak mengubah apa pun.
+
+3. **`decide_seat` menulis notice sebelum menyentuh seat.** Menolak lamaran
+   itulah yang mengosongkan `user_id`; kalau pelamar dibaca setelahnya, sudah
+   tidak ada siapa-siapa untuk diberi tahu.
+
+### Sisa untuk gelombang berikutnya
+
+Urut kesiapan: moderasi/pelaporan (sebaiknya sebelum promosi dibuka lebar),
+hapus/edit komentar sendiri, tutup seat, tarik lamaran, lalu fitur keluar
+proyek — yang terakhir ini terkunci di belakang keputusan D1 dan tidak boleh
+dikirim sebelum "Ikut menggarap" diturunkan dari event `seat_filled`.
+
 ## Catatan rollout
 
 Migrasi dijalankan manual di SQL editor Supabase (konvensi repo ini), dan
 kode sudah toleran tabel yang belum ada (`isMissingTable`) — pola yang sama
-dipakai untuk `notices`: bila tabelnya belum ada, badge dan bagian
-"Keputusan" hilang diam-diam dengan warning di log, bukan error. View
-`project_overview` di-drop-and-recreate di migrasi 0007 (pola migrasi
-0004); deploy kode yang membaca `open_roles` sebelum migrasinya jalan akan
-gagal di kolom itu — urutannya: **migrasi dulu, deploy setelahnya** untuk
-langkah B1.
+dipakai untuk `notices`: bila tabelnya belum ada, badge dan bagian "Kabar
+untukmu" hilang diam-diam dengan warning di log, bukan error.
+
+Jalankan **`0007_open_roles.sql` dan `0008_notices.sql` sebelum men-deploy
+kode ini**, dengan satu catatan penting untuk masing-masing:
+
+- **0007** men-drop dan membuat ulang view `project_overview` (pola yang sama
+  dengan 0004 dan 0006). Membaca `open_roles` sebelum migrasinya jalan akan
+  gagal di kolom itu — jadi migrasi dulu, deploy setelahnya. Pembacaan biasa
+  tetap aman karena `toSummary` memberi `?? []`; yang butuh kolomnya adalah
+  filter perannya.
+- **0008** mengganti fungsi `decide_seat` sekaligus membuat tabel `notices`.
+  Keduanya ada di satu berkas dan harus dijalankan utuh: fungsi barunya
+  memanggil `record_notice()`, jadi menjalankan sebagian akan membuat
+  keputusan lamaran gagal.

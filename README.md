@@ -41,6 +41,7 @@ and everything that writes will say so rather than failing quietly.
    - `0005_activity.sql` — the activity trail
    - `0006_level_colour.sql` — drops the decorative accent colour
    - `0007_open_roles.sql` — the roles a project is asking for, on the overview
+   - `0008_notices.sql` — telling an applicant what was decided
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.

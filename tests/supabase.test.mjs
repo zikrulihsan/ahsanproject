@@ -62,3 +62,10 @@ test("a guest cannot take a seat", { skip }, async () => {
   const { error } = await supabase.rpc("apply_for_seat", { seat_id: 1, pitch: "Tamu melamar." });
   assert.notEqual(error, null, "tamu seharusnya tidak bisa mengambil peran");
 });
+
+test("a guest cannot read anybody's notices", { skip }, async () => {
+  // The SELECT policy in 0008 grants nothing to anon, so this comes back empty
+  // rather than showing a stranger somebody else's news.
+  const { data } = await supabase.from("notices").select("id").limit(1);
+  assert.equal(data?.length ?? 0, 0, "tamu seharusnya tidak melihat kabar siapa pun");
+});

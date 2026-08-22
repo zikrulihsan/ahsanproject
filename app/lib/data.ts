@@ -424,6 +424,68 @@ export async function countIncomingApplications(userId: string): Promise<number>
   return count ?? 0;
 }
 
+/* ------------------------------------------------------------------ *
+ * Notices — what happened while somebody was away
+ * ------------------------------------------------------------------ */
+
+export type NoticeView = {
+  id: number;
+  kind: string;
+  createdAt: string;
+  seen: boolean;
+  payload: Record<string, string>;
+};
+
+/** This person's notices, newest first. */
+export async function listNotices(userId: string, limit = 40): Promise<NoticeView[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("notices")
+    .select("*")
+    .eq("recipient_id", userId)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("notices");
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    createdAt: row.created_at,
+    seen: row.seen,
+    payload: row.payload ?? {},
+  }));
+}
+
+/**
+ * How many notices this person has not opened yet.
+ *
+ * Rides along in the header beside the incoming-application count, for the
+ * same reason: a decision nobody sees is a decision nobody acts on.
+ */
+export async function countUnseenNotices(userId: string): Promise<number> {
+  const supabase = await getSupabase();
+  if (!supabase) return 0;
+
+  const { count, error } = await supabase
+    .from("notices")
+    .select("id", { count: "exact", head: true })
+    .eq("recipient_id", userId)
+    .eq("seen", false);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("notices");
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
 /**
  * Somebody's trail, newest first.
  *

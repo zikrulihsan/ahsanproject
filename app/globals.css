@@ -282,6 +282,16 @@ a.seat-chip:hover { border-color: var(--ink); }
 /* ------------------------------------------------------------------ inbox */
 
 .inbox .section-title { margin-top: 44px; }
+.notice-list { list-style: none; margin: 0 0 14px; padding: 0; }
+.notice-list li {
+  background: var(--card); border-left: 3px solid transparent; border-radius: var(--radius);
+  margin-bottom: 10px; padding: 18px 22px;
+}
+.notice-list li.is-new { border-left-color: var(--orange); }
+.notice-list p { font-size: 15px; line-height: 1.6; margin: 0 0 6px; }
+.notice-list a { border-bottom: 1px solid var(--line); }
+.notice-list small { color: var(--muted); font-size: 12px; }
+
 .people-list { list-style: none; margin: 28px 0 0; padding: 0; }
 .people-list li {
   align-items: center; background: var(--card); border-radius: var(--radius); display: flex;
