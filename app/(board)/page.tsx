@@ -57,49 +57,6 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
       <SiteHeader returnTo="/" active="jelajah" />
 
       <main id="main-content">
-        <section className="feed-hero">
-          <div>
-            <p className="eyebrow">
-              <span /> Papan ide terbuka
-            </p>
-            <h1>
-              Ide kecil.
-              <br />
-              <em>Dikerjakan bareng.</em>
-            </h1>
-            <p className="hero-description">
-              Taruh idemu di sini lengkap dengan briefnya, lalu buka peran untuk siapa pun yang mau ikut
-              menggarap — PM, designer, engineer, peneliti. Yang sudah jalan juga tinggal di sini, jadi
-              satu halaman ini sekalian jadi portofolio orangnya.
-            </p>
-            <div className="hero-actions">
-              <Link className="primary-button" href="/new">
-                Taruh ide <Arrow />
-              </Link>
-              <Link className="ghost-button" href="/about">
-                Cara kerjanya
-              </Link>
-            </div>
-          </div>
-
-          <aside aria-label="Ringkasan papan">
-            <ul className="feed-stats">
-              <li>
-                <strong>{projects.length}</strong>
-                <span>proyek di papan</span>
-              </li>
-              <li>
-                <strong>{openSeats}</strong>
-                <span>peran menunggu diisi</span>
-              </li>
-              <li>
-                <strong>{tags.length}</strong>
-                <span>topik dibahas</span>
-              </li>
-            </ul>
-          </aside>
-        </section>
-
         {/* The level rail is the board's main cut, so it behaves like a set of
             application tabs and stays put while the list scrolls under it. */}
         <div className="section-tabs">
@@ -127,10 +84,14 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
           <section className="feed" aria-labelledby="feed-title">
             <div className="feed-header">
               <div>
-                <p className="section-label">Jelajahi</p>
-                <h2 id="feed-title">
-                  {q ? `Hasil untuk “${q}”` : isStage(stage) ? stageMeta[stage].label : "Proyek untuk kamu"}
-                </h2>
+                <h1 id="feed-title">
+                  {q ? `Hasil untuk “${q}”` : isStage(stage) ? stageMeta[stage].label : "Proyek di papan"}
+                </h1>
+                <p className="board-note">
+                  {projects.length} proyek
+                  {openSeats > 0 ? ` · ${openSeats} peran menunggu diisi` : ""}
+                  {tags.length > 0 ? ` · ${tags.length} topik` : ""}
+                </p>
               </div>
               <div className="sort-bar">
                 <span>Urutkan</span>
@@ -204,6 +165,13 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 ))}
               </ul>
             )}
+
+            <p className="feed-outro">
+              Punya masalah yang belum ada di papan ini?{" "}
+              <Link href="/new">
+                Taruh idemu <Arrow />
+              </Link>
+            </p>
           </section>
 
           <aside className="sidebar" aria-label="Cara ikut menggarap">
@@ -267,25 +235,6 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
           </aside>
         </div>
 
-        <section className="submit-section" aria-labelledby="submit-title">
-          <div>
-            <p className="section-label">Punya masalah yang layak dibereskan?</p>
-            <h2 id="submit-title">
-              Mulai dari brief.
-              <br />
-              <em>Orangnya menyusul.</em>
-            </h2>
-          </div>
-          <div>
-            <p>
-              Kamu tidak perlu datang dengan solusi yang sudah rapi. Ceritakan masalahnya, untuk siapa,
-              dan bantuan apa yang dibutuhkan — sisanya dikerjakan bareng.
-            </p>
-            <Link href="/new">
-              Taruh idemu <Arrow diagonal />
-            </Link>
-          </div>
-        </section>
       </main>
 
       <SiteFooter />
