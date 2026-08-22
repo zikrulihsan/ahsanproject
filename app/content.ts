@@ -87,6 +87,11 @@ export const about: Record<
         title: "Naik level pelan-pelan",
         body: "Dari ide, divalidasi, dikerjakan, sampai sudah jalan. Levelnya cuma naik kalau syaratnya benar-benar terpenuhi.",
       },
+      {
+        step: "04",
+        title: "Jejaknya jadi portofolio",
+        body: "Peran yang kamu jalani dan tugas yang kamu bereskan tercatat sendiri di profilmu — bukan diketik belakangan, jadi bisa dicek ke proyeknya.",
+      },
     ],
   },
   en: {
@@ -124,6 +129,11 @@ export const about: Record<
         step: "03",
         title: "Level up slowly",
         body: "From idea, to validating, to building, to live. A project only levels up once it actually meets the requirements.",
+      },
+      {
+        step: "04",
+        title: "The trail becomes a portfolio",
+        body: "The roles you take and the tasks you finish are recorded as they happen — not typed up afterwards, so anyone can check them against the project.",
       },
     ],
   },

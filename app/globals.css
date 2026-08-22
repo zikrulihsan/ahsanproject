@@ -204,11 +204,11 @@ nav form { display: flex; margin: 0; }
 .eyebrow.light > span { background: var(--lime); }
 .section-label { margin-bottom: 9px; }
 
-.display, .feed-hero h1, .page-narrow h1, .about-grid h1, .submit-section h2, .portfolio-intro h2 {
+.display, .page-narrow h1, .about-grid h1 {
   font-size: clamp(52px, 6.4vw, 92px); font-weight: 640; letter-spacing: -.07em; line-height: .9;
   margin-bottom: 24px;
 }
-.feed-hero h1 em, .about-grid h1 em, .submit-section h2 em, .page-narrow h1 em {
+.about-grid h1 em, .page-narrow h1 em {
   color: var(--coral); font-family: Georgia, "Times New Roman", serif; font-weight: 400;
   letter-spacing: -.04em;
 }
@@ -231,31 +231,11 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 
 /* ------------------------------------------------------------------ feed */
 
-.feed-hero {
-  align-items: flex-end; display: flex; gap: 50px; justify-content: space-between;
-  margin: 0 auto; max-width: var(--shell); padding: 74px var(--gutter) 54px; width: 100%;
-}
-.feed-hero > * { min-width: 0; }
-.feed-hero > div:first-child { max-width: 760px; }
-.hero-description { color: var(--muted); font-size: 17px; line-height: 1.7; margin-bottom: 28px; max-width: 620px; }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-
-.feed-stats {
-  background: #fff; border: 1px solid var(--line); border-radius: 14px; display: flex; flex: none;
-  list-style: none; margin: 0; padding: 0;
-}
-.feed-stats li, .feed-stats div {
-  border-right: 1px solid var(--line); min-width: 120px; padding: 20px 22px;
-}
-.feed-stats li:last-child, .feed-stats div:last-child { border-right: 0; }
-.feed-stats strong { display: block; font-size: 30px; font-weight: 600; letter-spacing: -.05em; }
-.feed-stats span { color: var(--muted); display: block; font-size: 12px; margin-top: 3px; }
-
 /* The stage rail is the board's primary cut, so it behaves like a set of
    application tabs and stays put while the list scrolls under it. */
 .section-tabs {
   backdrop-filter: blur(12px); background: rgba(248, 246, 240, .95); border-bottom: 1px solid var(--line);
-  border-top: 1px solid var(--line); position: sticky; top: var(--header-h); z-index: 20;
+  position: sticky; top: var(--header-h); z-index: 20;
 }
 .section-tabs ul {
   display: flex; gap: clamp(16px, 2.4vw, 31px); list-style: none; margin: 0 auto; max-width: var(--shell);
@@ -271,13 +251,22 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 
 .app-layout {
   display: grid; gap: 30px; grid-template-columns: minmax(0, 1fr) 340px; margin: 0 auto;
-  max-width: var(--shell); padding: 46px var(--gutter) 96px; width: 100%;
+  max-width: var(--shell); padding: 34px var(--gutter) 88px; width: 100%;
 }
 .feed { min-width: 0; }
 .feed-header, .side-heading {
   align-items: flex-end; display: flex; flex-wrap: wrap; gap: 14px 20px; justify-content: space-between;
 }
-.feed-header h2 { font-size: 26px; font-weight: 650; letter-spacing: -.045em; margin: 0; }
+.feed-header h1, .feed-header h2 { font-size: 30px; font-weight: 660; letter-spacing: -.05em; margin: 0; }
+/* The counts read as a caption under the heading rather than a panel of
+   numbers: useful context, not a scoreboard. */
+.board-note { color: var(--muted); font-size: 13px; margin: 7px 0 0; }
+.feed-outro {
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; margin: 22px 0 0;
+  padding-top: 22px;
+}
+.feed-outro a { border-bottom: 1px solid var(--line-2); font-weight: 650; }
+.feed-outro a:hover { border-color: var(--ink); color: var(--coral); }
 
 .sort-bar { align-items: center; color: var(--muted); display: flex; flex-wrap: wrap; font-size: 12px; gap: 12px; }
 .sort-bar ul, .role-bar ul, .filter-row, .tag-row, .seat-chips, .project-links, .profile-links, .profile-stats {
@@ -287,7 +276,9 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 .sort-bar a:hover { border-color: var(--line-2); }
 .sort-bar a.is-active { border-color: var(--coral); color: var(--ink); }
 
-.filter-row { gap: 7px; margin: 24px 0 16px; overflow-x: auto; scrollbar-width: none; }
+/* One scrollable line rather than three wrapped ones: the chips stay a rail,
+   and the first project stays above the fold on a phone. */
+.filter-row { flex-wrap: nowrap; gap: 7px; margin: 22px 0 16px; overflow-x: auto; scrollbar-width: none; }
 .filter-row::-webkit-scrollbar { display: none; }
 .filter-chip {
   background: #fff; border: 1px solid var(--line); border-radius: 99px; display: inline-block;
@@ -393,7 +384,7 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 .side-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
 .side-heading { align-items: center; }
 .side-heading h2 { font-size: 17px; font-weight: 680; letter-spacing: -.03em; margin: 0; }
-.side-heading a, .pinned-heading a {
+.side-heading a {
   color: #5f7169; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap;
 }
 .side-intro { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 13px 0 4px; }
@@ -511,24 +502,6 @@ a.seat-chip:hover { border-color: var(--ink); }
 .stage-building { background: #dfeae2; color: #3b5230; }
 .stage-live { background: var(--ink); color: #eef6ef; }
 .stage-resting { background: #e4e2db; color: #4d5751; }
-
-/* ------------------------------------------------------------- CTA bands */
-
-.submit-section {
-  align-items: end; background: var(--lime); display: grid; gap: 70px; grid-template-columns: 1.1fr .9fr;
-  padding: 92px var(--gutter);
-}
-.submit-section > * { min-width: 0; }
-.submit-section h2 { font-size: clamp(46px, 5.3vw, 78px); margin: 0; }
-.submit-section .section-label { color: #4c6258; }
-.submit-section p { color: #4c6258; line-height: 1.65; margin: 0 0 24px; max-width: 460px; }
-.submit-section a {
-  align-items: center; background: var(--ink); border-radius: 8px; color: #fff; display: inline-flex;
-  font-size: 14px; font-weight: 750; gap: 22px; justify-content: space-between; min-width: 190px;
-  padding: 15px 18px;
-}
-.submit-section a:hover { background: var(--ink-2); }
-.submit-section a:hover .arrow { transform: translate(3px, -3px) rotate(-45deg); }
 
 /* -------------------------------------------------------------- project */
 
@@ -870,7 +843,6 @@ form button.danger:hover { background: #96320f; }
 .trail-more a { border-bottom: 1px solid var(--line-2); font-size: 13px; font-weight: 650; }
 .section-title { font-size: 22px; font-weight: 680; letter-spacing: -.04em; margin: 36px 0 18px; }
 .profile-content .section-title:first-child { margin-top: 0; }
-.pinned-heading { align-items: center; display: flex; gap: 16px; justify-content: space-between; }
 
 /* ---------------------------------------------------------------- about */
 
@@ -975,9 +947,6 @@ footer nav a:hover { color: var(--ink); }
 
 @media (max-width: 1024px) {
   .header-search { display: none; }
-  .feed-hero { flex-direction: column; align-items: flex-start; gap: 34px; }
-  .feed-stats { width: 100%; }
-  .feed-stats li, .feed-stats div { flex: 1; min-width: 0; }
   .app-layout { grid-template-columns: minmax(0, 1fr); }
   .sidebar { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
   .role-card { grid-row: span 2; }
@@ -985,7 +954,6 @@ footer nav a:hover { color: var(--ink); }
   .project-side { position: static; }
   .profile-card { grid-template-columns: 220px minmax(0, 1fr); }
   .about-grid { gap: 32px; grid-template-columns: 1fr; }
-  .submit-section { gap: 34px; grid-template-columns: 1fr; }
   footer { grid-template-columns: auto 1fr auto; }
   footer > p { display: none; }
 }
@@ -995,14 +963,12 @@ footer nav a:hover { color: var(--ink); }
   .header-actions .nav-quiet, .header-actions > form, .header-actions .nav-cta { display: none; }
   .mobile-menu { display: block; }
   .header-actions { margin-left: auto; }
-  .feed-hero { padding-top: 48px; }
   .project-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
   :root { --header-h: 62px; }
-  .feed-hero { padding-bottom: 36px; }
-  .app-layout { padding-bottom: 72px; padding-top: 34px; }
+  .app-layout { padding-bottom: 72px; padding-top: 26px; }
   .feed-header { align-items: flex-start; flex-direction: column; }
   .project-item { grid-template-columns: 40px minmax(0, 1fr); padding: 17px; }
   .project-item .rank { display: none; }
@@ -1031,7 +997,6 @@ footer nav a:hover { color: var(--ink); }
   .about-section { padding: 60px 20px 52px; }
   .marquee { font-size: 26px; gap: 14px; margin-top: 52px; overflow: hidden; white-space: nowrap; }
   .marquee span:nth-of-type(2), .marquee i:nth-of-type(1) { display: none; }
-  .submit-section { padding: 68px 20px; }
   footer { align-items: flex-start; gap: 20px; grid-template-columns: 1fr; padding: 30px 20px; }
 }
 
