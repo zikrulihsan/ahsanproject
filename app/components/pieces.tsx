@@ -67,7 +67,12 @@ export function ProjectRow({
           <div className="project-title-row">
             <div>
               <h3>
-                <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+                {/* Stretched over the whole row — see `.card-cover-link` in
+                    globals.css — so a tap anywhere that isn't one of the
+                    more specific links below still opens the project. */}
+                <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+                  {project.title}
+                </Link>
               </h3>
               <StageBadge stage={project.stage} />
             </div>
