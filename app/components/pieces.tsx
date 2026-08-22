@@ -192,7 +192,12 @@ export function ProjectCard({
       </div>
 
       <h3>
-        <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+        {/* Covers the whole card (see `.card-cover-link` in globals.css) so a
+            tap anywhere that isn't one of the more specific links below still
+            opens the project — the usual "clickable card" pattern. */}
+        <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+          {project.title}
+        </Link>
       </h3>
       {contributionRole ? (
         <p className="card-role">Sebagai {roleLabel(contributionRole)}</p>
