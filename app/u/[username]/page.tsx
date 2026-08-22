@@ -19,10 +19,20 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const person = await getPerson(username);
   if (!person) return { title: "Orang tidak ditemukan — Ahsan Project" };
 
+  const description =
+    person.headline || `Proyek dan kontribusi ${person.name} di Ahsan Project.`;
+
   return {
     title: `${person.name} — Ahsan Project`,
-    description: person.headline || `Proyek dan kontribusi ${person.name} di Ahsan Project.`,
+    description,
     alternates: { canonical: `/u/${person.username}` },
+    // The card image comes from opengraph-image.tsx beside this file.
+    openGraph: {
+      type: "profile",
+      title: `${person.name} — Ahsan Project`,
+      description,
+      url: `/u/${person.username}`,
+    },
   };
 }
 

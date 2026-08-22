@@ -120,12 +120,44 @@ test("halaman orang sekaligus jadi portofolionya", async () => {
   assert.match(page, /Tap Tap Dzikr/);
 });
 
+test("profil punya kartu bagikan sendiri, bukan gambar bawaan", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /property="og:title" content="Zikrul Ihsan/);
+  assert.match(page, /name="twitter:card" content="summary_large_image"/);
+  assert.match(page, /property="og:image"[^>]*u\/zikrulihsan\/opengraph-image/);
+});
+
+test("kartu bagikan profil benar-benar tergambar", async () => {
+  const response = await fetch(`${BASE}/u/zikrulihsan/opengraph-image`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "image/png");
+});
+
+test("proyek juga punya kartu bagikannya sendiri", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.match(page, /property="og:title" content="Warung Antre/);
+  assert.match(page, /property="og:image"[^>]*projects\/warung-antre\/opengraph-image/);
+
+  const image = await fetch(`${BASE}/projects/warung-antre/opengraph-image`);
+  assert.equal(image.status, 200);
+  assert.equal(image.headers.get("content-type"), "image/png");
+});
+
+test("papan membawa gambar bagikan bawaan", async () => {
+  const page = await html("/");
+  assert.match(page, /property="og:image"[^>]*og\.png/);
+});
+
 test("halaman cerita tersedia dalam dua bahasa", async () => {
   const id = await html("/about");
   assert.match(id, /Nama saya Ihsan/);
   const en = await html("/en/about");
   assert.match(en, /My name is Ihsan/);
   assert.match(en, /lang="en"/);
+
+  // Menyebut judul sendiri tidak boleh menghapus gambar bagikannya — lihat
+  // shareCard() di app/content.ts.
+  for (const page of [id, en]) assert.match(page, /property="og:image"[^>]*og\.png/);
 });
 
 test("halaman masuk dan daftar bisa dibuka tamu", async () => {

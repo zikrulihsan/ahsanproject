@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { homeMeta } from "../content";
+import { homeMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
 import { ProjectCard } from "../components/pieces";
 import { listProjects, listTags, type FeedQuery } from "../lib/data";
@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: homeMeta.title,
   description: homeMeta.description,
   alternates: { canonical: "/" },
+  openGraph: shareCard({
+    title: homeMeta.title,
+    description: homeMeta.description,
+    url: "/",
+  }),
 };
 
 const SORTS: { key: NonNullable<FeedQuery["sort"]>; label: string }[] = [
