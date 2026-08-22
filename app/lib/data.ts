@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabase } from "./supabase";
 import type {
   CommentRow,
@@ -171,7 +172,11 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   return (data ?? []).map(toSummary);
 }
 
-export async function getProject(slug: string): Promise<ProjectDetail | null> {
+/**
+ * Cached per request: generateMetadata and the page both ask for the same
+ * project, and without this each render fetched the whole thing twice.
+ */
+export const getProject = cache(async (slug: string): Promise<ProjectDetail | null> => {
   const supabase = await getSupabase();
   if (!supabase) return seedDetail(slug);
 
@@ -239,9 +244,10 @@ export async function getProject(slug: string): Promise<ProjectDetail | null> {
         author: comment.author as BriefPerson,
       })),
   };
-}
+});
 
-export async function getPerson(username: string): Promise<Person | null> {
+/** Cached per request, for the same generateMetadata-plus-page reason. */
+export const getPerson = cache(async (username: string): Promise<Person | null> => {
   const supabase = await getSupabase();
   if (!supabase) {
     const seed = seedUsers.find((user) => user.username === username);
@@ -256,7 +262,7 @@ export async function getPerson(username: string): Promise<Person | null> {
   if (error) throw new Error(error.message);
 
   return data ? toPerson(data) : null;
-}
+});
 
 /** Projects this person owns, plus the ones they hold a filled seat on. */
 export async function getPortfolio(person: Person) {

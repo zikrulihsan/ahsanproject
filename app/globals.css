@@ -27,7 +27,6 @@
 
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background: var(--paper);
@@ -68,6 +67,7 @@ nav a:hover { opacity: .6; }
   display: inline-flex; font-size: 10px; font-weight: 700; justify-content: center;
   min-width: 18px; padding: 2px 6px;
 }
+form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 nav form { display: flex; margin: 0; }
 /* The sign-out control is a form button, so it has to shed the form styling. */
 nav .nav-quiet {
@@ -179,9 +179,17 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 .project-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
 .project-card {
   border-radius: 22px; display: flex; flex-direction: column; padding: 24px;
-  transition: transform .25s ease, box-shadow .25s ease;
+  position: relative; transition: transform .25s ease; z-index: 0;
 }
-.project-card:hover { box-shadow: 0 22px 50px rgba(23, 61, 50, .12); transform: translateY(-5px); }
+/* The hover shadow lives on a pseudo-element so only its opacity animates —
+   compositor work, not a repaint of a 50px blur on every scroll frame. */
+.project-card::after {
+  border-radius: 22px; box-shadow: 0 22px 50px rgba(23, 61, 50, .12); content: "";
+  inset: 0; opacity: 0; pointer-events: none; position: absolute;
+  transition: opacity .25s ease; z-index: -1;
+}
+.project-card:hover { transform: translateY(-5px); }
+.project-card:hover::after { opacity: 1; }
 .project-card.level-idea { background: var(--level-idea); }
 .project-card.level-validating { background: var(--level-validating); }
 .project-card.level-building { background: var(--level-building); }
@@ -240,7 +248,7 @@ nav .nav-quiet:hover { background: none; opacity: .6; }
 
 /* -------------------------------------------------------------- project */
 
-.project-page, .profile-page, .page-narrow { margin: 0 auto; max-width: 1296px; padding: 8px 5vw 90px; }
+.project-page, .profile-page, .page-narrow { margin: 0 auto; max-width: 1296px; padding: 8px 5vw 90px; width: 100%; }
 .page-narrow { max-width: 780px; }
 .breadcrumb { color: var(--muted); font-size: 12px; margin-bottom: 18px; }
 .breadcrumb a { border-bottom: 1px solid var(--line); }
@@ -578,6 +586,16 @@ details[open] summary { margin-bottom: 16px; }
 }
 .kind-list input { accent-color: var(--ink); height: 16px; margin: 0; width: 16px; }
 
+/* ------------------------------------------------------------- skeletons */
+
+/* What a page looks like while its data is still crossing the network.
+   A gentle opacity pulse, not a gradient sweep — opacity composites, and
+   the point of a skeleton is to feel calmer than a spinner, not busier. */
+.skeleton { animation: skeleton-pulse 1.4s ease-in-out infinite; background: var(--line-soft); border-radius: 10px; }
+.skeleton-card { background: var(--card); border-radius: 22px; min-height: 320px; padding: 24px; }
+.skeleton-panel { background: var(--card); border-radius: var(--radius); margin-bottom: 20px; padding: 32px; }
+@keyframes skeleton-pulse { 50% { opacity: .5; } }
+
 /* --------------------------------------------------------------- footer */
 
 footer {
@@ -632,6 +650,6 @@ footer > a:last-child { align-items: center; display: flex; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  .skeleton { animation: none; }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
