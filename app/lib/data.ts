@@ -164,8 +164,13 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   if (query.tag) request = request.contains("tags", [query.tag]);
   if (query.role) request = request.contains("open_roles", [query.role]);
   if (query.q) {
+    // The whole brief, not just its opening: somebody searching "flutter"
+    // should find the project that only says so under solution.
     const term = `%${escapeLike(query.q)}%`;
-    request = request.or(`title.ilike.${term},tagline.ilike.${term},problem.ilike.${term}`);
+    request = request.or(
+      `title.ilike.${term},tagline.ilike.${term},problem.ilike.${term},` +
+        `solution.ilike.${term},audience.ilike.${term}`,
+    );
   }
 
   const { data, error } = await request
@@ -317,6 +322,27 @@ export async function getPortfolio(person: Person) {
     role: roleByProject.get(row.id) ?? "other",
   }));
   return { owned, contributing };
+}
+
+/**
+ * Everybody with a profile, newest first.
+ *
+ * Feeds the people directory and the sitemap — until now a profile could only
+ * be reached by clicking through from a card or a comment, which is no way to
+ * be found.
+ */
+export async function listPeople(limit = 200): Promise<Person[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return seedUsers.map((user) => ({ ...user }));
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map(toPerson);
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
@@ -672,7 +698,15 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
       if (query.tag && !project.tags.includes(query.tag)) return false;
       if (query.role && !project.openRoles.includes(query.role)) return false;
       if (needle) {
-        const haystack = `${project.title} ${project.tagline} ${project.problem}`.toLowerCase();
+        const haystack = [
+          project.title,
+          project.tagline,
+          project.problem,
+          project.solution,
+          project.audience,
+        ]
+          .join(" ")
+          .toLowerCase();
         if (!haystack.includes(needle)) return false;
       }
       return true;

@@ -37,6 +37,7 @@ export function HeaderShell() {
       <Brand />
       <nav aria-label="Navigasi utama">
         <Link href="/">Jelajah</Link>
+        <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
       </nav>
     </header>
@@ -54,6 +55,7 @@ export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
       <Brand />
       <nav aria-label="Navigasi utama">
         <Link href="/">Jelajah</Link>
+        <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
         {viewer ? (
           <>

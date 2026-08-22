@@ -104,6 +104,37 @@ test("pencarian membaca brief, bukan cuma judul", async () => {
   assert.doesNotMatch(page, /Swegrowth/);
 });
 
+test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () => {
+  // "memindai" cuma ada di kolom solusi Warung Antre, "kedai kopi" cuma di
+  // audiensnya — dua kolom yang dulu tidak ikut dibaca.
+  const bySolution = await html("/?q=memindai");
+  assert.match(bySolution, /Warung Antre/);
+  assert.doesNotMatch(bySolution, /Swegrowth/);
+
+  const byAudience = await html("/?q=kedai%20kopi");
+  assert.match(byAudience, /Warung Antre/);
+  assert.doesNotMatch(byAudience, /Swegrowth/);
+});
+
+test("direktori orang menampilkan tiap profil dan tautannya", async () => {
+  const page = await html("/orang");
+  assert.match(page, /<title>Orang — Ahsan Project<\/title>/i);
+  assert.match(page, /Zikrul Ihsan/);
+  assert.match(page, /href="\/u\/zikrulihsan"/);
+});
+
+test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
+  const response = await fetch(`${BASE}/sitemap.xml`);
+  assert.equal(response.status, 200);
+  const xml = await response.text();
+  assert.match(xml, /<loc>https:\/\/ahsanproject-id\.netlify\.app\/<\/loc>/);
+  assert.match(xml, /projects\/warung-antre/);
+  assert.match(xml, /u\/zikrulihsan/);
+  assert.match(xml, /\/orang/);
+  // Yang di balik pintu masuk tidak diundang masuk sitemap.
+  assert.doesNotMatch(xml, /\/inbox/);
+});
+
 test("halaman proyek memuat brief, level, dan peran terbuka", async () => {
   const page = await html("/projects/warung-antre");
   assert.match(page, /<title>Warung Antre — Ahsan Project<\/title>/i);
