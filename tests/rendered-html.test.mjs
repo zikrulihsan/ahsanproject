@@ -218,6 +218,24 @@ test("profil menampilkan jejak, bukan cuma daftar proyek", async () => {
   assert.match(page, /membereskan tugas/);
 });
 
+test("jejak menyorot yang berbobot dulu, sisanya di balik semua", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /membereskan tugas/);
+  assert.doesNotMatch(page, /kebagian tugas/);
+  assert.match(page, /Semua jejak/);
+});
+
+test("mode semua jejak memuat entri yang bukan sorotan", async () => {
+  const page = await html("/u/zikrulihsan?jejak=semua");
+  assert.match(page, /kebagian tugas/);
+});
+
+test("profil menghitung pencapaiannya dari jejak", async () => {
+  const page = await html("/u/zikrulihsan");
+  assert.match(page, /tugas dibereskan/);
+  assert.match(page, /aktif sejak/);
+});
+
 test("tamu tidak bisa mengatur jejak orang lain", async () => {
   const page = await html("/u/zikrulihsan");
   assert.doesNotMatch(page, /Atur apa yang tampil/);

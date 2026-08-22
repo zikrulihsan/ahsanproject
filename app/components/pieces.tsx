@@ -127,6 +127,13 @@ export function initials(name: string): string {
     .join("");
 }
 
+/** "Mar 2025" — for "aktif sejak" on a profile. */
+export function monthYear(value: string): string {
+  const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
+  if (Number.isNaN(then)) return "";
+  return new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(then);
+}
+
 export function timeAgo(value: string): string {
   const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
   if (Number.isNaN(then)) return "";

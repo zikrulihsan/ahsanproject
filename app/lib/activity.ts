@@ -43,6 +43,23 @@ export function isEventKind(value: string): value is EventKind {
   return (EVENT_KINDS as readonly string[]).includes(value);
 }
 
+/**
+ * The kinds a profile leads with.
+ *
+ * A portfolio is a claim about work, so the default trail shows the entries
+ * that carry weight — starting something, moving it, joining, finishing —
+ * and keeps the running commentary (comments, boosts, applications, task
+ * bookkeeping) behind "tampilkan semua". Nothing is hidden by this: it is a
+ * reading order, not a visibility rule, which stays with `activity_hidden`.
+ */
+export const HIGHLIGHT_KINDS = [
+  "project_created",
+  "project_stage_changed",
+  "seat_opened",
+  "seat_filled",
+  "task_done",
+] as const satisfies readonly EventKind[];
+
 export type ActivityLike = {
   kind: string;
   projectTitle: string;

@@ -547,6 +547,18 @@ details[open] summary { margin-bottom: 16px; }
 .profile-links li + li { margin-left: 16px; }
 .profile-stats { color: var(--muted); font-size: 13px; gap: 22px; margin-top: 20px; }
 .profile-stats strong { color: var(--ink); font-size: 16px; }
+
+.trail-note { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
+.trail-modes { display: flex; gap: 8px; margin-bottom: 18px; }
+.trail-modes a {
+  border: 1px solid var(--line); border-radius: 100px; display: inline-block; font-size: 12px;
+  font-weight: 600; padding: 6px 13px;
+}
+.trail-modes a:hover { border-color: var(--ink); }
+.trail-modes a.is-active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.trail-more { margin-top: 16px; }
+.trail-more a { border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; }
+.trail-more a:hover { border-color: var(--ink); }
 .profile-edit { margin-bottom: 34px; }
 .section-title { font-size: 24px; font-weight: 650; letter-spacing: -.035em; margin: 40px 0 20px; }
 

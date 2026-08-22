@@ -401,20 +401,25 @@ export async function countIncomingApplications(userId: string): Promise<number>
 /**
  * Somebody's trail, newest first.
  *
- * No kind filtering here on purpose: the SELECT policy on `events` already
- * hides what this person chose to hide, and shows them their own hidden
- * entries. Re-filtering in the query would only be able to get that wrong.
+ * `kinds` narrows to a set of event kinds — the profile's "sorotan" reading
+ * mode. Visibility is not decided here on purpose: the SELECT policy on
+ * `events` already hides what this person chose to hide, and shows them their
+ * own hidden entries. Re-filtering that in the query would only get it wrong.
  */
-export async function listPersonActivity(personId: string, limit = 40): Promise<ActivityEvent[]> {
+export async function listPersonActivity(
+  personId: string,
+  { limit = 40, kinds }: { limit?: number; kinds?: readonly string[] } = {},
+): Promise<ActivityEvent[]> {
   const supabase = await getSupabase();
-  if (!supabase) return seedActivity(personId);
+  if (!supabase) {
+    const events = seedActivity(personId);
+    return (kinds ? events.filter((event) => kinds.includes(event.kind)) : events).slice(0, limit);
+  }
 
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("actor_id", personId)
-    .order("id", { ascending: false })
-    .limit(limit);
+  let request = supabase.from("events").select("*").eq("actor_id", personId);
+  if (kinds) request = request.in("kind", [...kinds]);
+
+  const { data, error } = await request.order("id", { ascending: false }).limit(limit);
   if (error) {
     if (!isMissingTable(error)) throw new Error(error.message);
     warnMissingTable("events");
@@ -422,6 +427,58 @@ export async function listPersonActivity(personId: string, limit = 40): Promise<
   }
 
   return (data ?? []).map((row) => toActivity(row as EventRow));
+}
+
+/** What a profile can claim in numbers, counted from the visible trail. */
+export type PersonStats = {
+  tasksDone: number;
+  /** Seats this person was accepted onto — the joins other people decided. */
+  rolesTaken: number;
+  /** When the first visible trail entry happened; "" with no trail yet. */
+  since: string;
+};
+
+/**
+ * Counted from the same `events` reads the trail uses, so the SELECT policy
+ * decides what a visitor's numbers include, exactly as it decides their trail.
+ * The cap saturates the counts on an absurdly long trail rather than paging;
+ * by the time that is a lie worth fixing, counting belongs in the database.
+ */
+export async function getPersonStats(personId: string): Promise<PersonStats> {
+  const supabase = await getSupabase();
+  if (!supabase) {
+    return statsFrom(
+      seedActivity(personId).map((event) => ({ kind: event.kind, created_at: event.createdAt })),
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("kind, created_at")
+    .eq("actor_id", personId)
+    .order("id", { ascending: true })
+    .limit(2000);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return { tasksDone: 0, rolesTaken: 0, since: "" };
+  }
+
+  return statsFrom(data ?? []);
+}
+
+function statsFrom(rows: { kind: string; created_at: string }[]): PersonStats {
+  let tasksDone = 0;
+  let rolesTaken = 0;
+  let since = "";
+
+  for (const row of rows) {
+    if (row.kind === "task_done") tasksDone += 1;
+    if (row.kind === "seat_filled") rolesTaken += 1;
+    if (!since || row.created_at < since) since = row.created_at;
+  }
+
+  return { tasksDone, rolesTaken, since };
 }
 
 /** What has happened on one project, newest first. */
