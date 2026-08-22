@@ -8,6 +8,7 @@ import { listIncomingApplications, listMyApplications, type ApplicationView } fr
 import { roleLabel } from "../lib/roles";
 import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
+import { SubmitButton } from "../components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -65,12 +66,12 @@ export default async function InboxPage() {
                   <form action={decideSeat}>
                     <input type="hidden" name="slug" value={application.project.slug} />
                     <input type="hidden" name="seatId" value={application.seatId} />
-                    <button type="submit" name="decision" value="terima">
+                    <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
                       Terima
-                    </button>
-                    <button className="quiet" type="submit" name="decision" value="tolak">
+                    </SubmitButton>
+                    <SubmitButton className="quiet" name="decision" value="tolak">
                       Buka lagi
-                    </button>
+                    </SubmitButton>
                   </form>
                 </li>
               ))}

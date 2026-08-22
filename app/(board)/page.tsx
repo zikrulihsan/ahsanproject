@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { homeMeta } from "./content";
-import { SiteFooter, SiteHeader, Arrow } from "./components/shell";
-import { ProjectCard } from "./components/pieces";
-import { listProjects, listTags, type FeedQuery } from "./lib/data";
-import { STAGES, stageMeta } from "./lib/stages";
+import { homeMeta } from "../content";
+import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
+import { ProjectCard } from "../components/pieces";
+import { listProjects, listTags, type FeedQuery } from "../lib/data";
+import { STAGES, stageMeta } from "../lib/stages";
 
 export const dynamic = "force-dynamic";
 

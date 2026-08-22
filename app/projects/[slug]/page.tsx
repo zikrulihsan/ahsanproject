@@ -15,6 +15,7 @@ import {
   toggleBoost,
 } from "../../actions";
 import { signInPath } from "../../lib/urls";
+import { SubmitButton } from "../../components/submit-button";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import { ActivityList, StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
 import { briefCompleteness, domainOf } from "../../lib/brief";
@@ -49,17 +50,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ProjectPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  // The project and the visitor are independent questions — ask them together.
+  const [project, viewer] = await Promise.all([getProject(slug), currentViewer()]);
   if (!project) notFound();
 
-  const viewer = await currentViewer();
   // Where this visitor stands. The database decides what may actually
   // happen; this only decides what is worth rendering.
   const access = accessOf(viewer?.id, project.owner.id, project.seats);
   const isOwner = access === "owner";
   const isManager = canManage(access);
-  const boosted = viewer ? await hasBoosted(project.id, viewer.id) : false;
-  const history = await listProjectActivity(project.id);
+  const [boosted, history] = await Promise.all([
+    viewer ? hasBoosted(project.id, viewer.id) : Promise.resolve(false),
+    listProjectActivity(project.id),
+  ]);
   const returnTo = `/projects/${project.slug}`;
 
   const stageInput = toStageInput(project);
@@ -115,10 +118,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
               {viewer ? (
                 <form action={toggleBoost}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <button className={`boost ${boosted ? "is-on" : ""}`} type="submit">
+                  <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
                     ▲ <strong>{project.boostCount}</strong>
                     <span>{boosted ? "Kamu dukung" : "Dukung"}</span>
-                  </button>
+                  </SubmitButton>
                 </form>
               ) : (
                 <Link className="boost" href={signInPath(returnTo)}>
@@ -217,12 +220,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
                       <form action={decideSeat}>
                         <input type="hidden" name="slug" value={project.slug} />
                         <input type="hidden" name="seatId" value={seat.id} />
-                        <button type="submit" name="decision" value="terima">
+                        <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
                           Terima
-                        </button>
-                        <button className="quiet" type="submit" name="decision" value="tolak">
+                        </SubmitButton>
+                        <SubmitButton className="quiet" name="decision" value="tolak">
                           Buka lagi
-                        </button>
+                        </SubmitButton>
                       </form>
                     </article>
                   ))}
@@ -256,7 +259,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                                 required
                                 placeholder="Contoh: saya pernah bantu riset serupa, bisa luangkan 3 jam per minggu."
                               />
-                              <button type="submit">Kirim lamaran</button>
+                              <SubmitButton pendingLabel="Mengirim…">Kirim lamaran</SubmitButton>
                             </form>
                           </details>
                         )
@@ -305,7 +308,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     </select>
                     <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
                     <textarea id="new-seat-brief" name="brief" rows={3} required />
-                    <button type="submit">Buka peran</button>
+                    <SubmitButton pendingLabel="Membuka…">Buka peran</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -322,14 +325,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
                       <input type="hidden" name="slug" value={project.slug} />
                       <input type="hidden" name="seatId" value={seat.id} />
                       <span>{seat.person?.name ?? "Tanpa nama"}</span>
-                      <button
-                        type="submit"
+                      <SubmitButton
                         name="access"
                         value={seat.access === "admin" ? "member" : "admin"}
                         className={seat.access === "admin" ? "quiet" : ""}
                       >
                         {seat.access === "admin" ? "Turunkan jadi anggota" : "Jadikan admin"}
-                      </button>
+                      </SubmitButton>
                     </form>
                   ))}
                 </details>
@@ -398,10 +400,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
                                         </option>
                                       ))}
                                     </select>
-                                    <button type="submit">Simpan</button>
-                                    <button className="quiet" type="submit" formAction={deleteTask}>
+                                    <SubmitButton pendingLabel="Sebentar…">Simpan</SubmitButton>
+                                    <SubmitButton className="quiet" formAction={deleteTask}>
                                       Hapus
-                                    </button>
+                                    </SubmitButton>
                                   </form>
                                 ) : null}
                               </div>
@@ -416,16 +418,15 @@ export default async function ProjectPage({ params }: { params: Params }) {
                                     <input type="hidden" name="slug" value={project.slug} />
                                     <input type="hidden" name="taskId" value={task.id} />
                                     {TASK_STATUSES.map((next) => (
-                                      <button
+                                      <SubmitButton
                                         key={next}
-                                        type="submit"
                                         name="status"
                                         value={next}
                                         disabled={next === task.status}
                                         title={taskStatusMeta[next].blurb}
                                       >
                                         {taskStatusMeta[next].label}
-                                      </button>
+                                      </SubmitButton>
                                     ))}
                                   </form>
                                 ) : null}
@@ -457,7 +458,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                         </option>
                       ))}
                     </select>
-                    <button type="submit">Tambah tugas</button>
+                    <SubmitButton pendingLabel="Menambah…">Tambah tugas</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -484,7 +485,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     required
                     placeholder="Bagian mana yang menurutmu paling berisiko? Ada cara yang lebih sederhana?"
                   />
-                  <button type="submit">Kirim</button>
+                  <SubmitButton pendingLabel="Mengirim…">Kirim</SubmitButton>
                 </form>
               ) : (
                 <p className="muted">
@@ -566,9 +567,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     {STAGES.filter((stage) => stage !== project.stage).map((stage) => {
                       const allowed = meetsStage(stage, stageInput);
                       return (
-                        <button
+                        <SubmitButton
                           key={stage}
-                          type="submit"
                           name="stage"
                           value={stage}
                           disabled={!allowed}
@@ -579,7 +579,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                           }
                         >
                           {stageMeta[stage].label}
-                        </button>
+                        </SubmitButton>
                       );
                     })}
                   </div>

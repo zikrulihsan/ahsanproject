@@ -15,6 +15,14 @@ export async function middleware(request: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) return response;
 
+  // A guest carries no auth cookie, so there is no session to refresh — and
+  // getUser() below is a network round trip to the auth server. Skipping it
+  // takes that latency off every anonymous page view, which is most of them.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+  if (!hasAuthCookie) return response;
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {

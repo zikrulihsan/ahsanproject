@@ -24,6 +24,25 @@ export function Brand({ footer = false }: { footer?: boolean }) {
   );
 }
 
+/**
+ * The header's static frame — same brand and links, no visitor yet.
+ *
+ * Every loading.tsx renders this so a navigation answers instantly with the
+ * page's skeleton instead of a blank strip where the header will be. The real
+ * SiteHeader streams in over it once the visitor is known.
+ */
+export function HeaderShell() {
+  return (
+    <header className="site-header">
+      <Brand />
+      <nav aria-label="Navigasi utama">
+        <Link href="/">Jelajah</Link>
+        <Link href="/about">Tentang</Link>
+      </nav>
+    </header>
+  );
+}
+
 export async function SiteHeader({ returnTo = "/" }: { returnTo?: string }) {
   const viewer = await currentViewer();
   // An application nobody sees is an application nobody answers, so the count

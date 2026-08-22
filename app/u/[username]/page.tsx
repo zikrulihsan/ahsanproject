@@ -4,6 +4,7 @@ import Link from "next/link";
 import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import { ActivityList, ProjectCard, initials } from "../../components/pieces";
+import { SubmitButton } from "../../components/submit-button";
 import { getPerson, getPortfolio, listPersonActivity } from "../../lib/data";
 import { EVENT_KINDS, eventKindMeta } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
@@ -27,13 +28,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ProfilePage({ params }: { params: Params }) {
   const { username } = await params;
-  const person = await getPerson(username);
+  const [person, viewer] = await Promise.all([getPerson(username), currentViewer()]);
   if (!person) notFound();
 
-  const viewer = await currentViewer();
   const isSelf = viewer?.id === person.id;
-  const { owned, contributing } = await getPortfolio(person);
-  const activity = await listPersonActivity(person.id);
+  const [{ owned, contributing }, activity] = await Promise.all([
+    getPortfolio(person),
+    listPersonActivity(person.id),
+  ]);
   const live = owned.filter((project) => project.stage === "live").length;
 
   return (
@@ -98,7 +100,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
               <input id="website" name="website" type="url" defaultValue={person.website} />
               <label htmlFor="github">GitHub</label>
               <input id="github" name="github" type="url" defaultValue={person.github} />
-              <button type="submit">Simpan</button>
+              <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
             </form>
           </details>
         ) : null}
@@ -143,7 +145,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
                     </li>
                   ))}
                 </ul>
-                <button type="submit">Simpan</button>
+                <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
               </form>
             </details>
           ) : null}

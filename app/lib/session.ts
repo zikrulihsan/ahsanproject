@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSupabase } from "./supabase";
 import type { Person } from "./data";
 import type { ProfileRow } from "./database.types";
@@ -11,8 +12,12 @@ export type Viewer = Person & { email: string };
  * the browser sent, while `getUser()` has the auth server vouch for it. Pages
  * decide what to show from this, but the database decides what may actually
  * happen — see `supabase/migrations/0003_policies.sql`.
+ *
+ * Wrapped in cache() because both the header and the page body ask who is
+ * looking, and getUser() is a network round trip to the auth server — without
+ * this, every page paid for it twice.
  */
-export async function currentViewer(): Promise<Viewer | null> {
+export const currentViewer = cache(async (): Promise<Viewer | null> => {
   const supabase = await getSupabase();
   if (!supabase) return null;
 
@@ -40,7 +45,7 @@ export async function currentViewer(): Promise<Viewer | null> {
     .maybeSingle();
 
   return created ? toViewer(created, user.email ?? "") : null;
-}
+});
 
 function toViewer(profile: ProfileRow, email: string): Viewer {
   return {

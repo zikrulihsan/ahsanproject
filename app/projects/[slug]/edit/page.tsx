@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { deleteProject } from "../../../actions";
 import { SiteFooter, SiteHeader } from "../../../components/shell";
+import { SubmitButton } from "../../../components/submit-button";
 import { EditForm } from "../../../components/edit-form";
 import { getProject } from "../../../lib/data";
 import { currentViewer } from "../../../lib/session";
@@ -20,10 +21,9 @@ type Params = Promise<{ slug: string }>;
 
 export default async function EditProjectPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const [project, viewer] = await Promise.all([getProject(slug), currentViewer()]);
   if (!project) notFound();
 
-  const viewer = await currentViewer();
   if (!viewer) redirect(signInPath(`/projects/${slug}/edit`));
 
   // Someone else's project is not theirs to edit, and not theirs to know about
@@ -79,9 +79,9 @@ export default async function EditProjectPage({ params }: { params: Params }) {
                 Ketik <code>{project.slug}</code> untuk memastikan ini bukan kepencet.
               </label>
               <input id="confirm" name="confirm" type="text" autoComplete="off" required />
-              <button className="danger" type="submit">
+              <SubmitButton className="danger" pendingLabel="Menghapus…">
                 Hapus proyek ini
-              </button>
+              </SubmitButton>
             </form>
           </details>
         </section>
