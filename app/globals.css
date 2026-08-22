@@ -74,6 +74,11 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
 
 :focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
 
+/* The header is sticky, so a jump to `#activity-heading` — the trail tabs on a
+   profile — would otherwise park the heading underneath it. Keep whatever we
+   scroll to clear of the bar. */
+[id] { scroll-margin-top: calc(var(--header-h) + 16px); }
+
 .muted { color: var(--muted); font-size: 15px; line-height: 1.7; }
 .muted a { border-bottom: 1px solid var(--line-2); }
 
@@ -430,8 +435,16 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 /* --------------------------------------------------------- project cards */
 
 /* The grid card is what a portfolio shows. Same vocabulary as a feed row —
-   tile, badge, brief, seats — laid out vertically. */
-.project-grid { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+   tile, badge, brief, seats — laid out vertically.
+
+   The column count travels as an inherited custom property rather than a
+   longer selector: `.profile-content .project-grid` used to set the two-up
+   directly, which outranked the one-column rule in the media queries below,
+   so a phone kept two columns and the profile card clipped the second one.
+   Set on the grid itself, the responsive value now always beats the one
+   inherited from the surrounding column. And `minmax(0, 1fr)` is what lets a
+   track shrink past its longest word instead of widening the grid. */
+.project-grid { display: grid; gap: 14px; grid-template-columns: repeat(var(--cards, 3), minmax(0, 1fr)); }
 .project-card {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); display: flex;
   flex-direction: column; padding: 22px; transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
@@ -826,9 +839,8 @@ form button.danger:hover { background: #96320f; }
   grid-template-columns: repeat(2, 1fr); margin-top: 20px; padding-top: 16px;
 }
 .profile-stats strong { color: var(--ink); display: block; font-size: 18px; font-weight: 650; letter-spacing: -.03em; }
-.profile-content { min-width: 0; padding: 26px 26px 30px; }
 /* Two up inside the card: the content column is narrower than a full page. */
-.profile-content .project-grid { grid-template-columns: repeat(2, 1fr); }
+.profile-content { --cards: 2; min-width: 0; padding: 26px 26px 30px; }
 .profile-edit { margin-bottom: 30px; }
 
 .trail-note { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
@@ -942,7 +954,7 @@ footer nav a:hover { color: var(--ink); }
 @media (max-width: 1180px) {
   .app-layout { grid-template-columns: minmax(0, 1fr) 300px; }
   .project-bottom { grid-template-columns: minmax(0, 1fr) auto auto; }
-  .project-grid { grid-template-columns: repeat(2, 1fr); }
+  .project-grid { --cards: 2; }
 }
 
 @media (max-width: 1024px) {
@@ -963,7 +975,7 @@ footer nav a:hover { color: var(--ink); }
   .header-actions .nav-quiet, .header-actions > form, .header-actions .nav-cta { display: none; }
   .mobile-menu { display: block; }
   .header-actions { margin-left: auto; }
-  .project-grid { grid-template-columns: 1fr; }
+  .project-grid { --cards: 1; }
 }
 
 @media (max-width: 700px) {
