@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
     <>
       <SiteHeader returnTo="/lupa-password" />
 
-      <main className="page-narrow auth-page">
+      <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
           <span /> Lupa kata sandi
         </p>

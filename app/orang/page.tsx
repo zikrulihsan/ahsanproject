@@ -30,9 +30,9 @@ export default async function PeoplePage() {
 
   return (
     <>
-      <SiteHeader returnTo="/orang" />
+      <SiteHeader returnTo="/orang" active="orang" />
 
-      <main className="page-narrow">
+      <main id="main-content" className="page-narrow">
         <p className="eyebrow">
           <span /> Orang
         </p>
@@ -45,7 +45,7 @@ export default async function PeoplePage() {
         {people.length === 0 ? (
           <p className="muted">Belum ada orang di sini.</p>
         ) : (
-          <ul className="people-list">
+          <ul className="people-index">
             {people.map((person) => {
               const owned = ownedCount.get(person.id) ?? 0;
 

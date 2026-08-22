@@ -12,10 +12,10 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Proyek di Ahsan Project";
 
-const PAPER = "#f3f0e8";
-const INK = "#173d32";
+const PAPER = "#f8f6f0";
+const INK = "#183d34";
 const MUTED = "#68746d";
-const ORANGE = "#ee6a3b";
+const ORANGE = "#ed714b";
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

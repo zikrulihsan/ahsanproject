@@ -6,11 +6,11 @@ export default function Loading() {
   return (
     <>
       <HeaderShell />
-      <main className="project-page">
+      <main id="main-content" className="project-page">
         <LoadingNote />
         <Skeleton height={12} width={220} style={{ marginBottom: 20 }} />
-        <div className="skeleton-panel" style={{ minHeight: 320 }}>
-          <Skeleton height={24} width={70} style={{ marginBottom: 24 }} />
+        <div className="skeleton-panel" style={{ minHeight: 300 }}>
+          <Skeleton height={58} width={58} style={{ borderRadius: 16, marginBottom: 22 }} />
           <Skeleton height={56} width="55%" style={{ marginBottom: 16 }} />
           <Skeleton height={18} width="70%" />
         </div>

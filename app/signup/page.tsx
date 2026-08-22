@@ -28,7 +28,7 @@ export default async function SignUpPage({ searchParams }: { searchParams?: Sear
     <>
       <SiteHeader returnTo="/signup" />
 
-      <main className="page-narrow auth-page">
+      <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
           <span /> Daftar
         </p>

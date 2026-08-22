@@ -91,7 +91,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
     <>
       <SiteHeader returnTo={returnTo} />
 
-      <main className="project-page">
+      <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
             <Link href="/">Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
@@ -99,13 +99,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
           {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah proyek</Link> : null}
         </div>
 
-        <section className={`project-hero level-${project.stage}`}>
+        <section className="project-hero">
           <div className="project-hero-copy">
             <div className="project-hero-top">
-              <StageBadge stage={project.stage} />
-              <span className="hero-glyph" aria-hidden="true">
-                {project.glyph}
+              <span className={`hero-glyph level-${project.stage}`} aria-hidden="true">
+                {project.glyph || initials(project.title)}
               </span>
+              <StageBadge stage={project.stage} />
             </div>
             <h1>{project.title}</h1>
             <p className="project-tagline">{project.tagline}</p>
@@ -126,13 +126,19 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 <form action={toggleBoost}>
                   <input type="hidden" name="slug" value={project.slug} />
                   <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
-                    ▲ <strong>{project.boostCount}</strong>
+                    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m12 5 7 8H5l7-8Z" />
+                    </svg>
+                    <strong>{project.boostCount}</strong>
                     <span>{boosted ? "Kamu dukung" : "Dukung"}</span>
                   </SubmitButton>
                 </form>
               ) : (
                 <Link className="boost" href={signInPath(returnTo)}>
-                  ▲ <strong>{project.boostCount}</strong>
+                  <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m12 5 7 8H5l7-8Z" />
+                  </svg>
+                  <strong>{project.boostCount}</strong>
                   <span>Dukung</span>
                 </Link>
               )}

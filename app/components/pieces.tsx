@@ -32,6 +32,148 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
   );
 }
 
+/**
+ * A project as a row on the board.
+ *
+ * The order is deliberate (see research.md, "progress before promotion"): what
+ * the project is, how far it has got, who is on it, and what help it is asking
+ * for — support count sits to the side rather than leading.
+ */
+export function ProjectRow({
+  project,
+  rank,
+  ribbon,
+}: {
+  project: ProjectSummary;
+  rank: number;
+  /** Only the leading row carries one, and it says what the sort actually did. */
+  ribbon?: string;
+}) {
+  const progress = stageProgress(project.stage);
+  const helpers = project.activeMemberCount;
+
+  return (
+    <li>
+      <article className={`project-item ${ribbon ? "is-lead" : ""}`}>
+        {ribbon ? <span className="ribbon">{ribbon}</span> : null}
+        <div className="rank" aria-hidden="true">
+          {String(rank).padStart(2, "0")}
+        </div>
+        <span className={`project-logo level-${project.stage}`} aria-hidden="true">
+          {project.glyph || initials(project.title)}
+        </span>
+
+        <div className="project-main">
+          <div className="project-title-row">
+            <div>
+              <h3>
+                <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+              </h3>
+              <StageBadge stage={project.stage} />
+            </div>
+            <Link
+              className="support-count"
+              href={`/projects/${project.slug}`}
+              aria-label={`${project.boostCount} dukungan untuk ${project.title}`}
+            >
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m12 5 7 8H5l7-8Z" />
+              </svg>
+              <span>{project.boostCount}</span>
+            </Link>
+          </div>
+
+          <p className="tagline">{project.tagline}</p>
+
+          <ul className="project-meta">
+            {project.tags.slice(0, 3).map((tag) => (
+              <li key={tag}>
+                <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+              </li>
+            ))}
+            <li className="updated">
+              <i aria-hidden="true" /> Ditaruh {timeAgo(project.createdAt)}
+            </li>
+          </ul>
+
+          <div className="progress-block">
+            <div className="progress-copy">
+              <span>Progres</span>
+              <strong>{progress.label}</strong>
+            </div>
+            <ul className={`progress-track ${project.stage === "resting" ? "is-resting" : ""}`}>
+              {[0, 1, 2, 3].map((step) => (
+                <li key={step} className={step < progress.done ? "is-done" : ""} />
+              ))}
+            </ul>
+          </div>
+
+          {/* The ask comes before the applause: each seat is its own link, so
+              "who needs a designer?" is one click from any row. */}
+          <div className="need-summary">
+            <span className="role-icon" aria-hidden="true">
+              <svg className="icon" viewBox="0 0 24 24">
+                <path d="M16 20v-2a4 4 0 0 0-8 0v2M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              </svg>
+            </span>
+            <div>
+              <small>
+                {project.openSeatCount > 0
+                  ? `Mencari ${project.openSeatCount} peran`
+                  : "Belum buka peran — diskusinya tetap terbuka"}
+              </small>
+              <SeatChips roles={project.openRoles} />
+            </div>
+          </div>
+
+          <div className="project-bottom">
+            <Link className="contributors" href={`/u/${project.owner.username}`}>
+              <span className="avatar" aria-hidden="true">
+                {initials(project.owner.name)}
+              </span>
+              <small>
+                {project.owner.name}
+                {helpers > 0 ? ` · ${helpers} orang menggarap` : ""}
+              </small>
+            </Link>
+
+            <span className="row-activity">{workingNote(project)}</span>
+
+            <Link className="detail-link" href={`/projects/${project.slug}`}>
+              Lihat proyek <Arrow />
+            </Link>
+          </div>
+        </div>
+      </article>
+    </li>
+  );
+}
+
+/** What is moving on a project, in one phrase. */
+function workingNote(project: ProjectSummary): string {
+  if (project.openTaskCount > 0) return `${project.openTaskCount} tugas jalan`;
+  if (project.doneTaskCount > 0) return `${project.doneTaskCount} tugas beres`;
+  if (project.commentCount > 0) return `${project.commentCount} komentar`;
+  return "Belum ada tugas";
+}
+
+/**
+ * How far along a project's four working levels it has got.
+ *
+ * "Diistirahatkan" is a decision rather than a rung, so it keeps whatever the
+ * track showed and says so in words instead of pretending to be step five.
+ */
+export function stageProgress(stage: Stage): { done: number; label: string } {
+  const rungs: Stage[] = ["idea", "validating", "building", "live"];
+  const index = rungs.indexOf(stage);
+  if (index < 0) return { done: 0, label: `${stageMeta[stage].label} · sedang tidak digarap` };
+
+  return {
+    done: index + 1,
+    label: `${stageMeta[stage].label} · ${index + 1} dari ${rungs.length} tahap`,
+  };
+}
+
 export function ProjectCard({
   project,
   contributionRole,
@@ -41,12 +183,12 @@ export function ProjectCard({
   contributionRole?: string;
 }) {
   return (
-    <article className={`project-card level-${project.stage}`}>
+    <article className="project-card">
       <div className="card-topline">
-        <StageBadge stage={project.stage} />
-        <span className="project-glyph" aria-hidden="true">
-          {project.glyph}
+        <span className={`project-glyph level-${project.stage}`} aria-hidden="true">
+          {project.glyph || initials(project.title)}
         </span>
+        <StageBadge stage={project.stage} />
       </div>
 
       <h3>

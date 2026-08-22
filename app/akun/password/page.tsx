@@ -29,7 +29,7 @@ export default async function NewPasswordPage() {
     <>
       <SiteHeader returnTo="/akun/password" />
 
-      <main className="page-narrow auth-page">
+      <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
           <span /> Kata sandi
         </p>

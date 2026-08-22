@@ -36,7 +36,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
     <>
       <SiteHeader returnTo="/signin" />
 
-      <main className="page-narrow auth-page">
+      <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
           <span /> Masuk
         </p>
