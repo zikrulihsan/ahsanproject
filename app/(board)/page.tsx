@@ -2,10 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { homeMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
-import { ProjectRow } from "../components/pieces";
-import { listProjects, listTags, type FeedQuery, type ProjectSummary } from "../lib/data";
+import { ProjectRow, initials } from "../components/pieces";
+import {
+  LANES,
+  isLane,
+  familiarRoles,
+  listProjects,
+  listTags,
+  type Lane,
+  type ProjectSummary,
+} from "../lib/data";
 import { ROLES, isRole, roleLabel, roleMeta } from "../lib/roles";
 import { STAGES, isStage, stageMeta } from "../lib/stages";
+import { currentViewer } from "../lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +29,40 @@ export const metadata: Metadata = {
   }),
 };
 
-const SORTS: { key: NonNullable<FeedQuery["sort"]>; label: string; lead: string }[] = [
-  { key: "terbaru", label: "Terbaru", lead: "Paling baru masuk" },
-  { key: "didukung", label: "Paling didukung", lead: "Paling banyak didukung" },
-  { key: "dibutuhkan", label: "Paling butuh orang", lead: "Paling butuh orang" },
-];
+/**
+ * The board's lanes.
+ *
+ * Each one is a question somebody actually arrives with. `heading` is what the
+ * list is called once they pick it — a lane with no name over it reads like a
+ * filter that failed.
+ */
+const LANE_META: Record<Lane, { label: string; heading: string; empty: string }> = {
+  untukmu: {
+    label: "Untuk kamu",
+    heading: "Yang mungkin cocok buat kamu",
+    empty: "Belum ada yang bisa ditawarkan di sini.",
+  },
+  terbaru: {
+    label: "Terbaru",
+    heading: "Baru ditunjukkan",
+    empty: "Belum ada project baru.",
+  },
+  "butuh-bantuan": {
+    label: "Butuh bantuan",
+    heading: "Sedang mencari orang",
+    empty: "Sedang tidak ada yang mencari bantuan.",
+  },
+  dibangun: {
+    label: "Sedang dibangun",
+    heading: "Yang sedang dibangun",
+    empty: "Belum ada yang sedang dibangun.",
+  },
+  berjalan: {
+    label: "Sudah berjalan",
+    heading: "Sudah bisa dipakai",
+    empty: "Belum ada yang sudah berjalan.",
+  },
+};
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -34,45 +72,64 @@ function one(value: string | string[] | undefined): string {
 
 export default async function Feed({ searchParams }: { searchParams?: SearchParams }) {
   const params = (await searchParams) ?? {};
-  const stage = one(params.stage);
-  const tag = one(params.tag);
-  // Anything that is not a known role reads as "no filter", so a mistyped URL
+  const lane: Lane = isLane(one(params.lane)) ? (one(params.lane) as Lane) : "untukmu";
+  // Anything that is not a known value reads as "no filter", so a mistyped URL
   // shows the whole board rather than an empty one.
+  const stage = isStage(one(params.stage)) ? one(params.stage) : "";
   const role = isRole(one(params.role)) ? one(params.role) : "";
+  const tag = one(params.tag);
   const q = one(params.q);
-  const sortOption = SORTS.find((option) => option.key === one(params.sort)) ?? SORTS[0];
-  const sort = sortOption.key;
 
-  const [projects, tags] = await Promise.all([
-    listProjects({ stage, tag, role, q, sort }),
+  const viewer = await currentViewer();
+  // What "untuk kamu" leans on. Only asked for when it is the lane being read.
+  const mine = viewer && lane === "untukmu" ? await familiarRoles(viewer.id) : [];
+
+  const [projects, tags, helpWanted] = await Promise.all([
+    listProjects({ lane, stage, tag, role, q, familiarRoles: mine }),
     listTags(),
+    // The sidebar asks its own question, so it asks the database its own way
+    // rather than filtering whatever the current lane happened to return.
+    listProjects({ lane: "butuh-bantuan" }),
   ]);
 
-  const openSeats = projects.reduce((total, project) => total + project.openSeatCount, 0);
+  const meta = LANE_META[lane];
   const filtered = Boolean(stage || tag || role || q);
+  // The lanes that already fix a level do not also offer level chips.
+  const showStageChips = lane === "untukmu" || lane === "terbaru" || lane === "butuh-bantuan";
 
   return (
     <>
       <SiteHeader returnTo="/" active="jelajah" />
 
       <main id="main-content">
-        {/* The level rail is the board's main cut, so it behaves like a set of
-            application tabs and stays put while the list scrolls under it. */}
-        <div className="section-tabs">
-          <ul aria-label="Saring menurut level proyek">
-            <li>
-              <Link className={stage ? "" : "is-active"} href={linkTo({ tag, role, q, sort })}>
-                Semua
+        {q ? null : (
+          <section className="board-intro" aria-labelledby="intro-title">
+            <h1 id="intro-title">Temukan sesuatu yang layak dibantu.</h1>
+            <p>
+              Lihat apa yang sedang dibangun orang lain, ikuti perjalanannya, atau ikut
+              mengerjakannya.
+            </p>
+            <div className="intro-actions">
+              <Link className="button-solid" href="/?lane=dibangun">
+                Jelajahi project
               </Link>
-            </li>
-            {STAGES.map((key) => (
+              <Link className="button-quiet" href="/?lane=butuh-bantuan">
+                Butuh bantuan <Arrow />
+              </Link>
+            </div>
+            <BoardPulse needing={helpWanted.length} />
+          </section>
+        )}
+
+        <div className="section-tabs">
+          <ul aria-label="Cara menjelajah papan">
+            {LANES.map((key) => (
               <li key={key}>
                 <Link
-                  className={stage === key ? "is-active" : ""}
-                  href={linkTo({ stage: key, tag, role, q, sort })}
-                  title={stageMeta[key].blurb}
+                  className={lane === key ? "is-active" : ""}
+                  href={linkTo({ lane: key, tag, q })}
                 >
-                  {stageMeta[key].label}
+                  {LANE_META[key].label}
                 </Link>
               </li>
             ))}
@@ -82,99 +139,113 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
         <div className="app-layout">
           <section className="feed" aria-labelledby="feed-title">
             <div className="feed-header">
-              <div>
-                <h1 id="feed-title">
-                  {q ? `Hasil untuk “${q}”` : isStage(stage) ? stageMeta[stage].label : "Proyek di papan"}
-                </h1>
-                <p className="board-note">
-                  {projects.length} proyek
-                  {openSeats > 0 ? ` · ${openSeats} peran menunggu diisi` : ""}
-                  {tags.length > 0 ? ` · ${tags.length} topik` : ""}
-                </p>
-              </div>
-              <div className="sort-bar">
-                <span>Urutkan</span>
-                <ul>
-                  {SORTS.map((option) => (
-                    <li key={option.key}>
+              <h2 id="feed-title">{q ? `Hasil untuk “${q}”` : meta.heading}</h2>
+              <p className="board-note">{projects.length} project</p>
+            </div>
+
+            <div className="filter-strip">
+              {showStageChips ? (
+                <ul className="filter-row" aria-label="Saring menurut tahap">
+                  <li>
+                    <Link
+                      className={`filter-chip ${stage ? "" : "is-active"}`}
+                      href={linkTo({ lane, tag, role, q })}
+                    >
+                      Semua tahap
+                    </Link>
+                  </li>
+                  {STAGES.map((key) => (
+                    <li key={key}>
                       <Link
-                        className={sort === option.key ? "is-active" : ""}
-                        href={linkTo({ stage, tag, role, q, sort: option.key })}
+                        className={`filter-chip ${stage === key ? "is-active" : ""}`}
+                        href={
+                          stage === key
+                            ? linkTo({ lane, tag, role, q })
+                            : linkTo({ lane, stage: key, tag, role, q })
+                        }
+                        title={stageMeta[key].blurb}
                       >
-                        {option.label}
+                        {stageMeta[key].label}
+                        {stage === key ? " ✕" : ""}
                       </Link>
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
+              ) : null}
 
-            {/* Contribution-first: the role you can fill is the first cut the
-                board offers, before topic or popularity. */}
-            <ul className="filter-row" aria-label="Saring menurut peran yang dibutuhkan">
-              <li>
-                <Link className={`filter-chip ${role ? "" : "is-active"}`} href={linkTo({ stage, tag, q, sort })}>
-                  Semua peran
-                </Link>
-              </li>
-              {ROLES.map((key) => (
-                <li key={key}>
-                  <Link
-                    className={`filter-chip ${role === key ? "is-active" : ""}`}
-                    href={
-                      role === key
-                        ? linkTo({ stage, tag, q, sort })
-                        : linkTo({ stage, tag, role: key, q, sort })
-                    }
-                    title={roleMeta[key].blurb}
-                  >
-                    {roleMeta[key].label}
-                    {role === key ? " ✕" : ""}
+              {/* Role chips belong to the one lane that is about roles. On the
+                  rest of the board they were six buttons answering a question
+                  nobody had asked yet. */}
+              {lane === "butuh-bantuan" ? (
+                <ul className="filter-row" aria-label="Saring menurut bantuan yang dicari">
+                  <li>
+                    <Link
+                      className={`filter-chip ${role ? "" : "is-active"}`}
+                      href={linkTo({ lane, stage, tag, q })}
+                    >
+                      Semua bantuan
+                    </Link>
+                  </li>
+                  {ROLES.map((key) => (
+                    <li key={key}>
+                      <Link
+                        className={`filter-chip ${role === key ? "is-active" : ""}`}
+                        href={
+                          role === key
+                            ? linkTo({ lane, stage, tag, q })
+                            : linkTo({ lane, stage, tag, role: key, q })
+                        }
+                        title={roleMeta[key].blurb}
+                      >
+                        {roleMeta[key].label}
+                        {role === key ? " ✕" : ""}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {tag || q ? (
+                <p className="role-bar">
+                  <span>
+                    Sedang menyaring{tag ? ` topik #${tag}` : ""}
+                    {q ? ` pencarian “${q}”` : ""}.
+                  </span>
+                  <Link className="filter-chip" href={linkTo({ lane, stage, role })}>
+                    Hapus saringan ✕
                   </Link>
-                </li>
-              ))}
-            </ul>
-
-            {tag || q ? (
-              <p className="role-bar">
-                <span>
-                  Sedang menyaring{tag ? ` topik #${tag}` : ""}
-                  {q ? ` pencarian “${q}”` : ""}.
-                </span>
-                <Link className="filter-chip" href={linkTo({ stage, role, sort })}>
-                  Hapus saringan ✕
-                </Link>
-              </p>
-            ) : null}
+                </p>
+              ) : null}
+            </div>
 
             {projects.length === 0 ? (
               <p className="empty">
-                Belum ada yang cocok dengan saringan ini.{" "}
-                {filtered ? <Link href="/">Lihat semua proyek</Link> : <Link href="/new">Taruh ide pertamanya</Link>}.
+                {filtered ? "Belum ada yang cocok dengan saringan ini." : meta.empty}{" "}
+                {filtered ? (
+                  <Link href="/">Lihat semua project</Link>
+                ) : (
+                  <Link href="/new">Tunjukkan projectmu</Link>
+                )}
+                .
               </p>
             ) : (
               <ul className="project-list">
-                {projects.map((project, index) => (
-                  <ProjectRow
-                    key={project.id}
-                    project={project}
-                    rank={index + 1}
-                    ribbon={index === 0 && projects.length > 1 ? sortOption.lead : undefined}
-                  />
+                {projects.map((project) => (
+                  <ProjectRow key={project.id} project={project} />
                 ))}
               </ul>
             )}
 
             <p className="feed-outro">
-              Punya masalah yang belum ada di papan ini?{" "}
+              Sedang membangun sesuatu?{" "}
               <Link href="/new">
-                Taruh idemu <Arrow />
+                Tunjukkan di sini <Arrow />
               </Link>
             </p>
           </section>
 
-          <aside className="sidebar" aria-label="Cara ikut menggarap">
-            <OpenRoles projects={projects} />
+          <aside className="sidebar" aria-label="Cara ikut membantu">
+            <HelpWanted projects={helpWanted} />
 
             {tags.length > 0 ? (
               <section className="side-card" aria-labelledby="topic-title">
@@ -185,7 +256,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 <ul className="topic-cloud">
                   {tag ? (
                     <li>
-                      <Link className="is-active" href={linkTo({ stage, role, q, sort })}>
+                      <Link className="is-active" href={linkTo({ lane, stage, role, q })}>
                         #{tag} <b>✕</b>
                       </Link>
                     </li>
@@ -195,7 +266,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                     .slice(0, 12)
                     .map((entry) => (
                       <li key={entry.tag}>
-                        <Link href={linkTo({ stage, tag: entry.tag, role, q, sort })}>
+                        <Link href={linkTo({ lane, stage, tag: entry.tag, role, q })}>
                           #{entry.tag} <b>{entry.count}</b>
                         </Link>
                       </li>
@@ -205,7 +276,6 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             ) : null}
           </aside>
         </div>
-
       </main>
 
       <SiteFooter />
@@ -214,65 +284,94 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
 }
 
 /**
- * Small, scoped entry points: one open role, one project, one click. Drawn from
- * the board already fetched, so it costs no extra query.
+ * Two numbers under the opening line, and no more.
+ *
+ * Enough to show the board is not empty; not so much that arriving feels like
+ * opening a dashboard. They count the same two lanes the buttons above lead to,
+ * so the numbers and the buttons can never disagree — and the "butuh bantuan"
+ * half is handed down from the sidebar's fetch rather than asked for twice.
  */
-function OpenRoles({ projects }: { projects: ProjectSummary[] }) {
+async function BoardPulse({ needing }: { needing: number }) {
+  const building = await listProjects({ lane: "dibangun" });
+
+  if (building.length === 0 && needing === 0) return null;
+
+  return (
+    <p className="board-pulse">
+      {building.length > 0 ? `${building.length} project sedang dibangun` : null}
+      {building.length > 0 && needing > 0 ? " · " : null}
+      {needing > 0 ? `${needing} sedang mencari bantuan` : null}
+    </p>
+  );
+}
+
+/**
+ * The sidebar's one job: a concrete way in.
+ *
+ * One opening, with the project it belongs to and what the help actually is —
+ * not a column of role names, which reads like a vacancy board and tells
+ * nobody what they would be doing. Four at most; the rest are one link away.
+ */
+function HelpWanted({ projects }: { projects: ProjectSummary[] }) {
   const openings = projects
-    .flatMap((project) => project.openRoles.map((role) => ({ project, role })))
-    .slice(0, 5);
+    .flatMap((project) => project.openRoles.slice(0, 1).map((role) => ({ project, role })))
+    .slice(0, 4);
 
   return (
     <section className="side-card role-card" aria-labelledby="roles-title">
       <div className="side-heading">
         <div>
           <p className="section-label">Kontribusi</p>
-          <h2 id="roles-title">Mulai dari sini</h2>
+          <h2 id="roles-title">Lagi butuh tangan</h2>
         </div>
       </div>
-      <p className="side-intro">
-        Peran yang sedang dibuka, lengkap dengan konteks proyeknya — cocok untuk kontribusi pertamamu.
-      </p>
 
       {openings.length === 0 ? (
         <p className="side-intro">
-          Belum ada peran terbuka di saringan ini. <Link href="/">Lihat semua proyek</Link>.
+          Sedang tidak ada yang mencari bantuan. <Link href="/">Lihat semua project</Link>.
         </p>
       ) : (
-        <ul className="role-list">
-          {openings.map(({ project, role }, index) => (
-            <li key={`${project.id}-${role}-${index}`}>
-              <Link className="role-row" href={`/projects/${project.slug}`}>
-                <span className={`role-symbol level-${project.stage}`} aria-hidden="true">
-                  {roleLabel(role).slice(0, 2).toUpperCase()}
-                </span>
-                <span>
-                  <strong>Butuh {roleLabel(role)}</strong>
-                  <small>{project.title}</small>
-                  <em>{stageMeta[project.stage].label}</em>
-                </span>
-                <span className="arrow arrow-diagonal" aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="role-list">
+            {openings.map(({ project, role }) => (
+              <li key={`${project.id}-${role}`}>
+                <Link className="role-row" href={`/projects/${project.slug}`}>
+                  <span className="role-symbol" aria-hidden="true">
+                    {initials(project.title)}
+                  </span>
+                  <span>
+                    <strong>{project.title}</strong>
+                    <em>Bantu sebagai {roleLabel(role)}</em>
+                    <small>{project.nowText || project.tagline}</small>
+                  </span>
+                  <span className="arrow arrow-diagonal" aria-hidden="true">
+                    →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="side-more">
+            <Link href="/?lane=butuh-bantuan">
+              Lihat semua kesempatan <Arrow />
+            </Link>
+          </p>
+        </>
       )}
     </section>
   );
 }
 
 function linkTo(query: {
+  lane?: string;
   stage?: string;
   tag?: string;
   role?: string;
   q?: string;
-  sort?: string;
 }): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value && !(key === "sort" && value === "terbaru")) params.set(key, value);
+    if (value && !(key === "lane" && value === "untukmu")) params.set(key, value);
   }
   const search = params.toString();
   return search ? `/?${search}` : "/";

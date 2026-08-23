@@ -10,7 +10,7 @@ export default function NotFound() {
         <p className="muted">Halamannya mungkin sudah pindah, atau tautannya keliru.</p>
         <p style={{ marginTop: 24 }}>
           <Link className="primary-button" href="/">
-            Kembali ke papan ide <Arrow />
+            Kembali ke papan <Arrow />
           </Link>
         </p>
       </main>

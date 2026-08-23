@@ -10,7 +10,7 @@ import { stageMeta, type Stage } from "../../lib/stages";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Proyek di Ahsan Project";
+export const alt = "Project di Ahsan Project";
 
 const PAPER = "#f8f6f0";
 const INK = "#183d34";
@@ -95,9 +95,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               {project.title}
             </div>
             <div style={{ display: "flex", fontSize: 34, color: MUTED, lineHeight: 1.35 }}>
-              {project.tagline.length > 150
-                ? `${project.tagline.slice(0, 150)}…`
-                : project.tagline}
+              {(() => {
+                // What it is doing beats what it is: a shared link should say
+                // the project is alive, not only what it is called.
+                const line = project.nowText ? `Sekarang: ${project.nowText}` : project.tagline;
+                return line.length > 150 ? `${line.slice(0, 150)}…` : line;
+              })()}
             </div>
           </div>
 

@@ -13,7 +13,7 @@ import { stageMeta } from "../../../lib/stages";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Ubah proyek — Ahsan Project",
+  title: "Ubah project — Ahsan Project",
   robots: { index: false },
 };
 
@@ -41,12 +41,12 @@ export default async function EditProjectPage({ params }: { params: Params }) {
         </p>
 
         <p className="eyebrow">
-          <span /> Ubah proyek
+          <span /> Ubah project
         </p>
         <h1>{project.title}</h1>
         <p className="lede">
           Alamatnya tetap <code>/projects/{project.slug}</code>, jadi tautan yang sudah kamu bagikan
-          tidak mati. Level sekarang: <strong>{stageMeta[project.stage].label}</strong>.
+          tidak mati. Tahap sekarang: <strong>{stageMeta[project.stage].label}</strong>.
         </p>
 
         <EditForm
@@ -58,6 +58,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             solution: project.solution,
             audience: project.audience,
             tags: project.tags,
+            nowText: project.nowText,
             docUrl: project.docUrl,
             repoUrl: project.repoUrl,
             liveUrl: project.liveUrl,
@@ -65,11 +66,11 @@ export default async function EditProjectPage({ params }: { params: Params }) {
         />
 
         <section className="danger-zone">
-          <h2>Hapus proyek</h2>
+          <h2>Hapus project</h2>
           <p>
             Ini permanen. Diskusi, lamaran, dan dukungan yang menempel ikut terhapus, dan tidak ada
             cara mengembalikannya. Kalau cuma sedang tidak digarap, pindahkan saja levelnya ke{" "}
-            <strong>Diistirahatkan</strong> dari halaman proyek — isinya tetap terbaca.
+            <strong>Diistirahatkan</strong> dari halaman project — isinya tetap terbaca.
           </p>
           <details>
             <summary>Saya tetap mau menghapus</summary>
@@ -80,7 +81,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
               </label>
               <input id="confirm" name="confirm" type="text" autoComplete="off" required />
               <SubmitButton className="danger" pendingLabel="Menghapus…">
-                Hapus proyek ini
+                Hapus project ini
               </SubmitButton>
             </form>
           </details>

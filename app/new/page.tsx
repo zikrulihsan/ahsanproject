@@ -9,7 +9,7 @@ import { about } from "../content";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Taruh ide — Ahsan Project",
+  title: "Tunjukkan project — Ahsan Project",
   description:
     "Tulis idemu lengkap dengan masalah, gambaran solusi, dan untuk siapa. Lalu buka peran supaya ada yang bisa ikut menggarap.",
   alternates: { canonical: "/new" },
@@ -24,12 +24,12 @@ export default async function NewProject() {
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
-          <span /> Taruh ide
+          <span /> Tunjukkan project
         </p>
-        <h1>Mulai dari brief.</h1>
+        <h1>Tunjukkan yang sedang kamu bangun.</h1>
         <p className="lede">
-          Ide yang ditulis lengkap jauh lebih mungkin dapat teman mengerjakan. Karena itu brief-nya wajib
-          diisi — yang kosongan tidak bisa dibuat di sini.
+          Ide, setengah jadi, atau sudah dipakai orang — semuanya boleh. Yang wajib cuma briefnya,
+          karena project yang ditulis lengkap jauh lebih mungkin dapat teman mengerjakan.
         </p>
 
         <ol className="how-list">
@@ -49,7 +49,7 @@ export default async function NewProject() {
         ) : (
           <p className="sign-in-callout">
             <Link className="primary-button" href={signInPath("/new")}>
-              Masuk dulu untuk menaruh ide
+              Masuk dulu untuk menunjukkan project
             </Link>
           </p>
         )}

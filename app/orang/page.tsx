@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { initials } from "../components/pieces";
-import { listPeople, listProjects } from "../lib/data";
+import { listPeopleAtWork } from "../lib/data";
 import { shareCard } from "../content";
 
 export const dynamic = "force-dynamic";
 
 const title = "Orang — Ahsan Project";
 const description =
-  "Siapa saja yang menaruh ide dan ikut menggarapnya di Ahsan Project. Tiap profil sekaligus portofolionya.";
+  "Siapa saja yang sedang membangun sesuatu di Ahsan Project, dan project apa yang mereka bantu.";
 
 export const metadata: Metadata = {
   title,
@@ -19,14 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PeoplePage() {
-  const [people, projects] = await Promise.all([listPeople(), listProjects()]);
-
-  // One pass over the board rather than a portfolio query each: this page only
-  // needs the counts, and a directory should not cost N round trips.
-  const ownedCount = new Map<string, number>();
-  for (const project of projects) {
-    ownedCount.set(project.owner.id, (ownedCount.get(project.owner.id) ?? 0) + 1);
-  }
+  const people = await listPeopleAtWork();
 
   return (
     <>
@@ -36,21 +29,19 @@ export default async function PeoplePage() {
         <p className="eyebrow">
           <span /> Orang
         </p>
-        <h1>Yang mengerjakan.</h1>
+        <h1>Yang sedang berkarya di sini.</h1>
         <p className="lede">
-          Tiap profil di sini sekaligus portofolionya: proyek yang ditaruh, peran yang dijalani, dan
-          jejak yang ditulis sistem saat kejadiannya.
+          Bukan daftar CV. Yang menerangkan seseorang di sini adalah project yang dia bangun dan
+          yang dia bantu — dan keduanya bisa dibuka dan dicek.
         </p>
 
         {people.length === 0 ? (
           <p className="muted">Belum ada orang di sini.</p>
         ) : (
           <ul className="people-index">
-            {people.map((person) => {
-              const owned = ownedCount.get(person.id) ?? 0;
-
-              return (
-                <li key={person.id}>
+            {people.map(({ person, building, helping }) => (
+              <li key={person.id}>
+                <div className="person-head">
                   <Link href={`/u/${person.username}`}>
                     <span className="avatar" aria-hidden="true">
                       {initials(person.name)}
@@ -60,17 +51,63 @@ export default async function PeoplePage() {
                       {person.headline ? <small>{person.headline}</small> : null}
                     </span>
                   </Link>
-                  <span className="person-count">
-                    {owned > 0 ? `${owned} proyek` : "Belum menaruh proyek"}
-                  </span>
-                </li>
-              );
-            })}
+                  <Link className="person-open" href={`/u/${person.username}`}>
+                    Lihat profil
+                  </Link>
+                </div>
+
+                {building.length > 0 || helping.length > 0 ? (
+                  <dl className="person-work">
+                    {building.length > 0 ? (
+                      <>
+                        <dt>Sedang mengerjakan</dt>
+                        <dd>
+                          <WorkList
+                            projects={building.map((project) => ({
+                              slug: project.slug,
+                              title: project.title,
+                            }))}
+                          />
+                        </dd>
+                      </>
+                    ) : null}
+                    {helping.length > 0 ? (
+                      <>
+                        <dt>Ikut membantu</dt>
+                        <dd>
+                          <WorkList
+                            projects={helping.map((project) => ({
+                              slug: project.slug,
+                              title: project.title,
+                            }))}
+                          />
+                        </dd>
+                      </>
+                    ) : null}
+                  </dl>
+                ) : (
+                  <p className="muted person-work-empty">Belum menunjukkan project apa pun.</p>
+                )}
+              </li>
+            ))}
           </ul>
         )}
       </main>
 
       <SiteFooter />
     </>
+  );
+}
+
+function WorkList({ projects }: { projects: { slug: string; title: string }[] }) {
+  return (
+    <ul className="work-list">
+      {projects.slice(0, 4).map((project) => (
+        <li key={project.slug}>
+          <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+        </li>
+      ))}
+      {projects.length > 4 ? <li className="muted">+{projects.length - 4} lagi</li> : null}
+    </ul>
   );
 }

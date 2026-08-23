@@ -29,6 +29,8 @@ export type SeedEvent = {
 export type SeedSeat = {
   role: string;
   brief: string;
+  /** Roughly how much time it takes, in the owner's words. May be empty. */
+  commitment: string;
   status: "open" | "pending" | "filled";
   /** Only a filled seat may be admin — see seats_admin_needs_holder. */
   access: "member" | "admin";
@@ -42,6 +44,13 @@ export type SeedTask = {
   status: "todo" | "doing" | "done";
   /** A seed user id, or null for a task nobody has picked up. */
   assigneeId: string | null;
+};
+
+/** One entry in a project's journey, written by whoever runs it. */
+export type SeedUpdate = {
+  title: string;
+  body: string;
+  createdAt: string;
 };
 
 export type SeedProject = {
@@ -59,9 +68,14 @@ export type SeedProject = {
   repoUrl: string;
   tags: string[];
   glyph: string;
+  /** What the project is working on right now. Empty means nobody has said. */
+  now: string;
+  /** When that line was last written. Empty when `now` is. */
+  nowUpdatedAt: string;
   createdAt: string;
   seats: SeedSeat[];
   tasks: SeedTask[];
+  updates: SeedUpdate[];
 };
 
 export const seedUsers: SeedUser[] = [
@@ -70,7 +84,7 @@ export const seedUsers: SeedUser[] = [
     username: "zikrulihsan",
     name: "Zikrul Ihsan",
     headline: "Bikin barang kecil yang kepakai",
-    bio: "Mengerjakan proyek satu per satu di waktu luang. Ahsan artinya melakukan sesuatu sebaik mungkin — itu yang saya usahakan di sini, sekecil apa pun yang sedang dikerjakan.",
+    bio: "Mengerjakan project satu per satu di waktu luang. Ahsan artinya melakukan sesuatu sebaik mungkin — itu yang saya usahakan di sini, sekecil apa pun yang sedang dikerjakan.",
     website: "https://ahsanproject-id.netlify.app",
     github: "https://github.com/zikrulihsan",
     activityHidden: [],
@@ -141,10 +155,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["ibadah", "kebiasaan", "mobile"],
     glyph: "○○○",
     createdAt: "2024-05-04 09:00:00",
+    now: "Menyiapkan mode gelap dan tata letak yang nyaman dipakai satu tangan.",
+    nowUpdatedAt: "2026-08-11 09:00:00",
     seats: [
       {
         role: "design",
         brief: "Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.",
+        commitment: "± 3 jam per minggu, santai",
         status: "open",
         access: "member",
         userId: null,
@@ -152,6 +169,18 @@ export const seedProjects: SeedProject[] = [
       },
     ],
     tasks: [],
+    updates: [
+      {
+        title: "Hitungannya sekarang bertahan setelah aplikasi ditutup",
+        body: "Sebelumnya hitungan hilang begitu tab ditutup, dan itu keluhan yang paling sering masuk. Sekarang tersimpan di perangkat sendiri, tanpa perlu akun.",
+        createdAt: "2026-08-11 09:00:00",
+      },
+      {
+        title: "Dipakai rutin oleh sebelas orang",
+        body: "Sebelas orang memakainya lebih dari seminggu berturut-turut. Cukup untuk tahu bentuk dasarnya sudah benar.",
+        createdAt: "2026-05-02 09:00:00",
+      },
+    ],
   },
   {
     id: 2,
@@ -171,10 +200,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["obrolan", "relasi", "kartu"],
     glyph: "▱",
     createdAt: "2024-07-18 09:00:00",
+    now: "Menyusun dek pertanyaan untuk obrolan rekan kerja, sekitar 40 kartu.",
+    nowUpdatedAt: "2026-07-28 09:00:00",
     seats: [
       {
         role: "content",
         brief: "Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.",
+        commitment: "± 2 jam per minggu",
         status: "open",
         access: "member",
         userId: null,
@@ -182,6 +214,13 @@ export const seedProjects: SeedProject[] = [
       },
     ],
     tasks: [],
+    updates: [
+      {
+        title: "Dek keluarga selesai, tinggal diuji",
+        body: "Empat puluh kartu untuk obrolan keluarga sudah rampung dan sedang dicoba di beberapa rumah sebelum dirapikan.",
+        createdAt: "2026-07-28 09:00:00",
+      },
+    ],
   },
   {
     id: 3,
@@ -201,25 +240,17 @@ export const seedProjects: SeedProject[] = [
     tags: ["warga", "direktori", "lokal"],
     glyph: "⌖",
     createdAt: "2024-09-02 09:00:00",
-    seats: [
+    now: "Merapikan kontak per kecamatan sebelum dibuka ke daerah lain.",
+    nowUpdatedAt: "2026-06-19 09:00:00",
+    seats: [],
+    tasks: [],
+    updates: [
       {
-        role: "growth",
-        brief: "Mengajak komunitas RT/RW di satu kota untuk mengisi datanya lebih dulu.",
-        status: "open",
-        access: "member",
-        userId: null,
-        pitch: "",
-      },
-      {
-        role: "engineering",
-        brief: "Menambah pencarian berdasarkan jarak dan penyaringan per kecamatan.",
-        status: "open",
-        access: "member",
-        userId: null,
-        pitch: "",
+        title: "Satu kecamatan pertama terisi penuh",
+        body: "Nomor tukang, bengkel, dan layanan darurat untuk satu kecamatan sudah lengkap. Dari sini baru masuk akal menambah daerah berikutnya.",
+        createdAt: "2026-06-19 09:00:00",
       },
     ],
-    tasks: [],
   },
   {
     id: 4,
@@ -239,10 +270,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["umkm", "keuangan", "tools"],
     glyph: "≡",
     createdAt: "2024-11-11 09:00:00",
+    now: "Menguji cetak ke printer termal yang paling umum dipakai penjual.",
+    nowUpdatedAt: "2026-04-30 09:00:00",
     seats: [
       {
         role: "pm",
         brief: "Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -250,6 +284,7 @@ export const seedProjects: SeedProject[] = [
       },
     ],
     tasks: [],
+    updates: [],
   },
   {
     id: 5,
@@ -269,10 +304,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["anak", "edukasi", "keamanan"],
     glyph: "✦",
     createdAt: "2025-01-20 09:00:00",
+    now: "Menyusun materi keselamatan pertama untuk anak usia 5–8 tahun.",
+    nowUpdatedAt: "2026-08-18 09:00:00",
     seats: [
       {
         role: "research",
         brief: "Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -280,6 +318,18 @@ export const seedProjects: SeedProject[] = [
       },
     ],
     tasks: [],
+    updates: [
+      {
+        title: "Draft materi pertama selesai",
+        body: "Dua puluh topik keselamatan dasar sudah dikumpulkan dan dirapikan. Berikutnya diuji ke beberapa orang tua sebelum ditulis ulang.",
+        createdAt: "2026-08-18 09:00:00",
+      },
+      {
+        title: "Mulai riset",
+        body: "Sedang mencari pendekatan yang paling cocok untuk anak usia 5–8 tahun: yang mudah dipahami, dan tidak menakutkan.",
+        createdAt: "2026-06-03 09:00:00",
+      },
+    ],
   },
   {
     id: 6,
@@ -299,10 +349,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["komunitas", "karier", "belajar"],
     glyph: "↗",
     createdAt: "2025-03-08 09:00:00",
+    now: "Membangun portal tempat program dan materi komunitas dikumpulkan.",
+    nowUpdatedAt: "2026-08-05 09:00:00",
     seats: [
       {
         role: "content",
         brief: "Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -310,6 +363,13 @@ export const seedProjects: SeedProject[] = [
       },
     ],
     tasks: [],
+    updates: [
+      {
+        title: "Struktur portal disepakati",
+        body: "Program, materi, dan aktivitas jadi tiga bagian utama. Bagian materi yang paling banyak isinya, jadi itu yang dikerjakan duluan.",
+        createdAt: "2026-08-05 09:00:00",
+      },
+    ],
   },
   {
     id: 7,
@@ -329,10 +389,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["umkm", "operasional", "ide"],
     glyph: "◔",
     createdAt: "2025-06-14 09:00:00",
+    now: "",
+    nowUpdatedAt: "",
     seats: [
       {
         role: "research",
         brief: "Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -341,6 +404,7 @@ export const seedProjects: SeedProject[] = [
       {
         role: "design",
         brief: "Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -349,6 +413,7 @@ export const seedProjects: SeedProject[] = [
       {
         role: "engineering",
         brief: "Prototipe antrean yang tetap jalan saat koneksi putus.",
+        commitment: "",
         status: "open",
         access: "member",
         userId: null,
@@ -375,6 +440,7 @@ export const seedProjects: SeedProject[] = [
         assigneeId: "seed-zikrul",
       },
     ],
+    updates: [],
   },
   {
     id: 8,
@@ -382,7 +448,7 @@ export const seedProjects: SeedProject[] = [
     title: "Titip Jemput",
     tagline: "Papan koordinasi antar-jemput sekolah antar orang tua satu kompleks.",
     ownerId: "seed-zikrul",
-    stage: "validating",
+    stage: "building",
     problem:
       "Orang tua di satu kompleks sering menjemput ke sekolah yang sama pada jam yang sama, tapi tetap berangkat sendiri-sendiri. Koordinasinya nyangkut di grup chat: pesan tenggelam, yang butuh tumpangan sungkan minta, yang punya kursi kosong tidak tahu siapa yang butuh.",
     solution:
@@ -394,10 +460,13 @@ export const seedProjects: SeedProject[] = [
     tags: ["keluarga", "komunitas", "ide"],
     glyph: "⌁",
     createdAt: "2025-08-01 09:00:00",
+    now: "Menghitung berapa orang tua yang sekolah tujuannya benar-benar searah.",
+    nowUpdatedAt: "2026-08-14 09:00:00",
     seats: [
       {
         role: "pm",
         brief: "Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.",
+        commitment: "± 2 jam per minggu",
         status: "open",
         access: "member",
         userId: null,
@@ -406,6 +475,7 @@ export const seedProjects: SeedProject[] = [
       {
         role: "design",
         brief: "Menyusun tampilan papan mingguan yang kebaca sekali lihat.",
+        commitment: "Fleksibel, borongan juga boleh",
         status: "open",
         access: "member",
         userId: null,
@@ -418,6 +488,13 @@ export const seedProjects: SeedProject[] = [
         detail: "Pakai data satu kompleks dulu, jangan langsung sekota.",
         status: "todo",
         assigneeId: null,
+      },
+    ],
+    updates: [
+      {
+        title: "Mulai dari satu kompleks dulu",
+        body: "Daripada langsung sekota, datanya dikumpulkan dari satu kompleks saja. Kalau di sana pun tidak cukup banyak yang searah, idenya memang tidak jalan.",
+        createdAt: "2026-08-14 09:00:00",
       },
     ],
   },

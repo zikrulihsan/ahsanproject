@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Masuk — Ahsan Project",
-  description: "Masuk untuk menaruh ide, ikut membahas, dan mengambil peran di proyek orang lain.",
+  description: "Masuk untuk menunjukkan projectmu, ikut membahas, dan membantu project orang lain.",
   robots: { index: false },
 };
 
@@ -41,7 +41,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
           <span /> Masuk
         </p>
         <h1>Selamat datang lagi.</h1>
-        <p className="lede">Masuk untuk menaruh ide, ikut membahas, dan mengambil peran.</p>
+        <p className="lede">Masuk untuk menunjukkan projectmu, ikut membahas, dan ikut membantu.</p>
 
         {linkProblem ? (
           <p className="form-error" role="alert">
@@ -53,7 +53,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
           <SignInForm next={next} />
         ) : (
           <p className="form-error">
-            Situs ini belum tersambung ke Supabase, jadi masuk belum bisa. Papan idenya tetap bisa
+            Situs ini belum tersambung ke Supabase, jadi masuk belum bisa. Papannya tetap bisa
             dibaca.
           </p>
         )}

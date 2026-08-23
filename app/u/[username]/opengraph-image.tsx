@@ -50,10 +50,10 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const live = owned.filter((project) => project.stage === "live").length;
 
   const numbers = [
-    `${owned.length} proyek`,
-    live > 0 ? `${live} sudah jalan` : "",
-    contributing.length > 0 ? `${contributing.length} ikut menggarap` : "",
-    stats.rolesTaken > 0 ? `${stats.rolesTaken} peran dijalani` : "",
+    `${owned.length} project`,
+    live > 0 ? `${live} sudah berjalan` : "",
+    contributing.length > 0 ? `${contributing.length} ikut membantu` : "",
+    stats.rolesTaken > 0 ? `${stats.rolesTaken} kali ikut membantu` : "",
     stats.tasksDone > 0 ? `${stats.tasksDone} tugas beres` : "",
   ]
     .filter(Boolean)

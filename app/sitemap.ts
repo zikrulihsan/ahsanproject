@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch (error) {
-    console.warn("[ahsan] Sitemap terbit tanpa daftar proyek dan orang:", error);
+    console.warn("[ahsan] Sitemap terbit tanpa daftar project dan orang:", error);
     return base;
   }
 }

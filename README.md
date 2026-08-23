@@ -1,12 +1,12 @@
 # Ahsan Project
 
-A board for ideas that are meant to be worked on together, plus a portfolio page
-for everyone who works on them.
+Where a project meets the people who want to help build it.
 
-Anyone can leave an idea here as long as it is written down properly, open the
-roles they need help with, and let other people take those roles. Each person's
-profile doubles as their portfolio: the projects they own and the ones they help
-build.
+Show what you are making — an idea, a half-built thing, or something people
+already use. Say what it is working on right now, write down its journey as it
+goes, and name the help you are looking for. Anyone else can follow along or
+join in. Each person's profile is the work with their name on it: what they are
+building, and what they helped build.
 
 Next.js on Netlify, with Supabase for both the database and sign-in.
 
@@ -44,6 +44,8 @@ and everything that writes will say so rather than failing quietly.
    - `0008_notices.sql` — telling an applicant what was decided
    - `0009_admins_decide_again.sql` — gives admins back the seat decisions
      0008 accidentally took from them
+   - `0010_showcase.sql` — what a project is working on now, its journey,
+     following, and four levels instead of five
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -60,10 +62,10 @@ confirmation off, sign-up signs people straight in instead.
 
 | Route | What it is |
 | --- | --- |
-| `/` | The board — every idea and project, filterable by level, tag and search |
-| `/projects/<slug>` | One project: brief, level, team, open roles, discussion |
-| `/u/<username>` | One person: their bio, the projects they own, the ones they help build |
-| `/new` | Post an idea. The brief is required — an empty project cannot be created |
+| `/` | The board — five lanes (`?lane=`), narrowed by level, topic, role, search |
+| `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
+| `/u/<username>` | One person: what they are building, what they helped build, their trail |
+| `/new` | Show a project. The brief is required — an empty project cannot be created |
 | `/signin`, `/signup` | Email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
@@ -71,12 +73,16 @@ confirmation off, sign-up signs people straight in instead.
 
 - `app/lib/brief.ts` — the minimum a project must carry before it can exist,
   plus the completeness meter. This is the "no empty ideas" rule.
-- `app/lib/stages.ts` — the levels (`idea → validating → building → live`, plus
-  `resting`) and what each one requires. No level asks for a team: working alone
-  is not a lesser project. What they ask for is evidence the work has moved.
+- `app/lib/stages.ts` — the levels (`idea → building → live`, plus `resting`)
+  and what each one requires. No level asks for a team: working alone is not a
+  lesser project. What they ask for is evidence the work has moved — a link, or
+  the line saying what is being worked on right now.
+- `app/lib/feed.ts` — the board's lanes, and how the "untuk kamu" lane is
+  arranged. Pure, so the unit tests read it directly.
+- `app/lib/updates.ts` — the journey a project writes for itself.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
 - `app/lib/tasks.ts` — the three task statuses and what a task must carry.
-- `app/lib/activity.ts` — the ten kinds of trail entry and how each one reads
+- `app/lib/activity.ts` — the eleven kinds of trail entry and how each one reads
   as a sentence.
 - `app/lib/access.ts` — owner, admin, member. Admins run the work — seats,
   applications, the task list. The project itself — the brief, the level,
@@ -91,7 +97,16 @@ Taking a seat goes through `apply_for_seat()` and `decide_seat()` rather than a
 plain update, so an applicant cannot rewrite the role on their way in. Moving a
 task goes through `move_task()` for the same reason: row level security is row
 level, not column level, so a policy letting the assignee update their own task
-would also let them retitle it and hand it to somebody else.
+would also let them retitle it and hand it to somebody else. `set_now()` is the
+third of the same shape — an admin may rewrite the one line saying what the
+project is working on, and nothing else on that row.
+
+`projects.now_updated_at` is written by a trigger for the same reason the trail
+is: it is the freshness people read to decide whether a project is still alive,
+so it must not be something a request can set. `updates` is the other half of
+that pair — the journey in the project's own words. It has no UPDATE policy and
+no update grant on purpose: an entry can be written and removed, never quietly
+reworded after people have read it.
 
 The activity trail is written by triggers, never by the app, and that is a
 security decision rather than a tidiness one: if server actions wrote events,

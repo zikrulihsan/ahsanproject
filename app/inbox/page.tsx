@@ -5,6 +5,7 @@ import { decideSeat, markNoticesSeen } from "../actions";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { initials, timeAgo } from "../components/pieces";
 import {
+  listFollowedUpdates,
   listIncomingApplications,
   listMyApplications,
   listNotices,
@@ -20,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Kotak masuk — Ahsan Project",
-  description: "Lamaran yang menunggu jawabanmu, dan lamaran yang kamu kirim.",
+  description: "Kabar dari project yang kamu ikuti, dan lamaran dari kedua sisinya.",
   robots: { index: false },
 };
 
@@ -39,10 +40,11 @@ export default async function InboxPage() {
   const viewer = await currentViewer();
   if (!viewer) redirect(signInPath("/inbox"));
 
-  const [incoming, mine, notices] = await Promise.all([
+  const [incoming, mine, notices, followed] = await Promise.all([
     listIncomingApplications(viewer.id),
     listMyApplications(viewer.id),
     listNotices(viewer.id),
+    listFollowedUpdates(viewer.id),
   ]);
   const unseen = notices.filter((notice) => !notice.seen).length;
 
@@ -54,10 +56,10 @@ export default async function InboxPage() {
         <p className="eyebrow">
           <span /> Kotak masuk
         </p>
-        <h1>Lamaran.</h1>
+        <h1>Kabar dan lamaran.</h1>
         <p className="lede">
-          Semua yang menunggu jawabanmu, dan semua yang sedang kamu tunggu jawabannya — di satu
-          tempat, tanpa perlu buka proyeknya satu per satu.
+          Yang bergerak di project yang kamu ikuti, yang menunggu jawabanmu, dan yang sedang kamu
+          tunggu jawabannya — di satu tempat.
         </p>
 
         {notices.length > 0 ? (
@@ -85,6 +87,30 @@ export default async function InboxPage() {
           </section>
         ) : null}
 
+        {followed.length > 0 ? (
+          <section aria-labelledby="followed-heading">
+            <h2 id="followed-heading" className="section-title">
+              Dari yang kamu ikuti
+            </h2>
+            <ul className="followed-list">
+              {followed.map((update) => (
+                <li key={update.id}>
+                  <p className="followed-project">
+                    {update.project.slug ? (
+                      <Link href={`/projects/${update.project.slug}`}>{update.project.title}</Link>
+                    ) : (
+                      <strong>{update.project.title}</strong>
+                    )}
+                  </p>
+                  <h3>{update.title}</h3>
+                  {update.body ? <p className="followed-body">{update.body}</p> : null}
+                  <small>{timeAgo(update.createdAt)}</small>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <section aria-labelledby="incoming-heading">
           <h2 id="incoming-heading" className="section-title">
             Menunggu jawabanmu {incoming.length > 0 ? `(${incoming.length})` : ""}
@@ -92,8 +118,8 @@ export default async function InboxPage() {
 
           {incoming.length === 0 ? (
             <p className="muted">
-              Belum ada yang melamar ke proyekmu. Proyek yang membuka peran jauh lebih mungkin
-              dapat teman mengerjakan — cek <Link href="/new">idemu</Link> dan buka perannya.
+              Belum ada yang mau ikut membantu. Project yang menyebut bantuannya jauh lebih mungkin
+              dapat teman mengerjakan — buka satu di halaman projectmu.
             </p>
           ) : (
             <ul className="application-list">
@@ -119,13 +145,13 @@ export default async function InboxPage() {
 
         <section aria-labelledby="mine-heading">
           <h2 id="mine-heading" className="section-title">
-            Lamaran yang kamu kirim
+            Yang kamu ikuti sendiri
           </h2>
 
           {mine.length === 0 ? (
             <p className="muted">
-              Kamu belum melamar ke mana-mana. <Link href="/?sort=dibutuhkan">Lihat proyek yang
-              paling butuh orang</Link>.
+              Kamu belum ikut di mana-mana.{" "}
+              <Link href="/?lane=butuh-bantuan">Lihat yang sedang butuh tangan</Link>.
             </p>
           ) : (
             <ul className="application-list">
@@ -156,7 +182,7 @@ export default async function InboxPage() {
  */
 function NoticeLine({ notice }: { notice: NoticeView }) {
   const role = notice.payload.role ? roleLabel(notice.payload.role) : "";
-  const title = notice.payload.title || "proyek yang sudah dihapus";
+  const title = notice.payload.title || "project yang sudah dihapus";
   const slug = notice.payload.slug;
   const project = slug ? (
     <Link href={`/projects/${slug}`}>{title}</Link>
@@ -204,7 +230,7 @@ function ApplicationHead({
           {showApplicant && application.person ? (
             <>
               <Link href={`/u/${application.person.username}`}>{application.person.name}</Link>{" "}
-              melamar sebagai <strong>{roleLabel(application.role)}</strong>
+              mau bantu sebagai <strong>{roleLabel(application.role)}</strong>
             </>
           ) : (
             <>

@@ -8,6 +8,14 @@
 > fitur. Yang dikerjakan di branch ini ada di [Yang dibuang](#yang-dibuang-sudah-dikerjakan-di-branch-ini);
 > sisanya usulan yang sengaja belum disentuh karena butuh keputusan produk.
 
+> **Menyusul (2026-08-23):** sebagian usulan di bagian "berlebihan" sudah
+> dikerjakan oleh redesign di [`redesign-showcase.md`](./redesign-showcase.md) —
+> sortir "paling didukung" hilang, chip peran pindah ke lajur yang memang soal
+> peran, kartu papan dipangkas, dan `seat_applied` sudah keluar dari perjalanan
+> project. Yang belum: `boost_given` sebagai jejak, dan default privasi
+> `seat_applied` di profil. Seluruh bagian "kurang atau belum pas" masih berlaku
+> apa adanya.
+
 ## Lima persona
 
 | | Siapa | Yang dia cari di sini |

@@ -21,6 +21,7 @@ export const EVENT_KINDS = [
   "task_done",
   "comment_posted",
   "boost_given",
+  "update_posted",
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];
@@ -28,15 +29,16 @@ export type EventKind = (typeof EVENT_KINDS)[number];
 /** Labels for the checkbox list where somebody chooses what stays public. */
 export const eventKindMeta: Record<EventKind, { label: string }> = {
   project_created: { label: "Menaruh ide baru" },
-  project_stage_changed: { label: "Memindahkan level proyek" },
+  project_stage_changed: { label: "Memindahkan tahap project" },
   seat_opened: { label: "Membuka peran" },
   seat_applied: { label: "Melamar peran" },
-  seat_filled: { label: "Gabung ke proyek" },
+  seat_filled: { label: "Gabung ke project" },
   task_created: { label: "Menambah tugas" },
   task_taken: { label: "Kebagian tugas" },
   task_done: { label: "Membereskan tugas" },
   comment_posted: { label: "Ikut membahas" },
-  boost_given: { label: "Mendukung proyek" },
+  boost_given: { label: "Mendukung project" },
+  update_posted: { label: "Mengabari perkembangan" },
 };
 
 export function isEventKind(value: string): value is EventKind {
@@ -58,6 +60,7 @@ export const HIGHLIGHT_KINDS = [
   "seat_opened",
   "seat_filled",
   "task_done",
+  "update_posted",
 ] as const satisfies readonly EventKind[];
 
 /**
@@ -80,6 +83,12 @@ export const PROJECT_MEMORY_KINDS = [
   "seat_filled",
 ] as const satisfies readonly EventKind[];
 
+/*
+ * `update_posted` is not in the list above on purpose: the project page renders
+ * the update itself, with its own words, in the same journey. Repeating it as
+ * "X mengabari perkembangan Y" would say the same thing twice, one line apart.
+ */
+
 export type ActivityLike = {
   kind: string;
   projectTitle: string;
@@ -100,7 +109,7 @@ export function activityParts(event: ActivityLike): { lead: string; trail: strin
     case "project_created":
       return { lead: "menaruh ide ", trail: "." };
     case "project_stage_changed":
-      return { lead: "memindahkan ", trail: ` ke level ${stage}.` };
+      return { lead: "memindahkan ", trail: ` ke tahap ${stage}.` };
     case "seat_opened":
       return { lead: `membuka peran ${role} di `, trail: "." };
     case "seat_applied":
@@ -117,6 +126,8 @@ export function activityParts(event: ActivityLike): { lead: string; trail: strin
       return { lead: "ikut membahas ", trail: "." };
     case "boost_given":
       return { lead: "mendukung ", trail: "." };
+    case "update_posted":
+      return { lead: "mengabari perkembangan ", trail: payload.update_title ? `: “${payload.update_title}”.` : "." };
     default:
       // A kind this build has not heard of still reads as something, the same
       // way roleLabel falls back rather than throwing.
