@@ -35,7 +35,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
 /**
  * A project as a row on the board.
  *
- * The order is deliberate (see research.md, "progress before promotion"): what
+ * The order is deliberate — progress before promotion: what
  * the project is, how far it has got, who is on it, and what help it is asking
  * for — support count sits to the side rather than leading.
  */

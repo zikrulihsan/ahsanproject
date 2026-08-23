@@ -253,9 +253,17 @@ export default async function ProjectPage({ params }: { params: Params }) {
                         <h3>{roleLabel(seat.role)}</h3>
                         <p>{seat.brief}</p>
                       </div>
-                      {viewer ? (
+                      {isOwner ? (
+                        // apply_for_seat refuses the owner outright, so offering
+                        // them the form was a button that could only ever fail.
+                        <p className="muted">Peran ini menunggu orang lain.</p>
+                      ) : viewer ? (
                         viewerSeat ? (
-                          <p className="muted">Kamu sudah melamar di proyek ini.</p>
+                          <p className="muted">
+                            {viewerSeat.status === "filled"
+                              ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role)}.`
+                              : "Lamaranmu di proyek ini masih menunggu jawaban."}
+                          </p>
                         ) : (
                           <details>
                             <summary>Ambil peran ini</summary>
@@ -479,7 +487,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
             {history.length > 0 ? (
               <section className="history" aria-labelledby="history-heading">
-                <h2 id="history-heading">Riwayat</h2>
+                <h2 id="history-heading">Perjalanan proyek</h2>
                 <ActivityList events={history} showActor />
               </section>
             ) : null}

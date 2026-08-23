@@ -385,12 +385,69 @@ update public.profiles set activity_hidden = array['task_done'] where id = '2222
 select checks.equal((select activity_hidden from public.profiles where id = '22222222-2222-4222-8222-222222222222'),
                     array['comment_posted'], 'pilihan orang lain tidak bisa diubah');
 
+-- ------------------------------------------------------------- keputusan --
+
+-- Who may answer an application, and what declining leaves behind.
+--
+-- 0004 widened decide_seat from the owner to can_manage_project() and made
+-- declining reset `access` too. 0008 rewrote the function to add the notice,
+-- built it on the 0002 body, and lost both without a word — while the project
+-- page kept offering admins the buttons. 0009 put them back; this is what
+-- keeps them there.
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$
+  insert into public.seats (project_id, role, brief)
+  select id, 'content', 'Menulis pengumuman mingguan.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'pemilik membuka peran penulis');
+
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.allowed($$
+  select public.apply_for_seat((select id from public.seats where role = 'content'), 'Bisa nulis tiap Jumat.')
+$$, 'orang luar melamar peran penulis');
+
+-- An admin flag on a seat nobody holds would hand over the keys the moment an
+-- application is accepted. Two things stop it, and this checks both: the
+-- constraint refuses to store it at all, and declining resets `access` anyway
+-- so the reopened seat is a plain member even if that constraint ever loosens.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.denied($$update public.seats set access = 'admin' where role = 'content'$$,
+                     'menandai admin di peran yang belum terisi');
+
+select checks.allowed($$select public.decide_seat((select id from public.seats where role = 'content'), false)$$,
+                      'pemilik menolak lamaran');
+select checks.equal((select status from public.seats where role = 'content'), 'open', 'peran terbuka lagi');
+select checks.equal((select access from public.seats where role = 'content'), 'member',
+                    'peran yang dibuka lagi tetap anggota');
+select checks.equal((select user_id from public.seats where role = 'content'), null::uuid,
+                    'pelamarnya dilepas dari peran');
+
+-- Dina is an admin on this project, and the project page offers her these
+-- buttons. The database has to agree.
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.allowed($$
+  select public.apply_for_seat((select id from public.seats where role = 'content'), 'Sekali lagi, masih bisa.')
+$$, 'melamar lagi setelah perannya dibuka');
+
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.allowed($$select public.decide_seat((select id from public.seats where role = 'content'), true)$$,
+                      'admin menjawab lamaran');
+select checks.equal((select status from public.seats where role = 'content'), 'filled',
+                    'peran terisi lewat keputusan admin');
+
+-- Both answers reached the applicant, and nobody else can read them.
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.equal((select count(*)::int from public.notices), 2, 'pelamar dikabari dua keputusan');
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.equal((select count(*)::int from public.notices), 0, 'kabar orang lain tidak terbaca');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
 -- because app/actions.ts deleteProject() leans on the cascade rather than
 -- clearing the children itself.
-select checks.equal((select count(*)::int from public.seats), 1, 'ada peran sebelum dihapus');
+select checks.equal((select count(*)::int from public.seats), 2, 'ada peran sebelum dihapus');
 select checks.equal((select count(*)::int from public.comments), 1, 'ada komentar sebelum dihapus');
 
 select checks.act_as('11111111-1111-4111-8111-111111111111');

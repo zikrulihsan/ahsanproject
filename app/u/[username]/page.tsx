@@ -81,7 +81,7 @@ export default async function ProfilePage({
     <>
       <SiteHeader returnTo={`/u/${person.username}`} />
 
-      {/* Portfolio by evidence (research.md): the band makes the claim, the
+      {/* Portfolio by evidence: the band makes the claim, the
           card under it is the evidence — identity on the left, what this
           person actually did on the right. */}
       <section className="profile-band">

@@ -24,10 +24,15 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
+/*
+ * Only two answers can reach this list. A declined application clears the seat
+ * back to 'open' and drops its holder, so it stops being one of *your*
+ * applications at that moment — the notice above is what carries that news
+ * now, and it outlives the seat because it belongs to the person, not the row.
+ */
 const STATUS_LABEL: Record<string, string> = {
   pending: "Menunggu jawaban",
   filled: "Diterima",
-  open: "Dibuka lagi",
 };
 
 export default async function InboxPage() {
@@ -130,9 +135,6 @@ export default async function InboxPage() {
                   {application.pitch ? <blockquote>{application.pitch}</blockquote> : null}
                   <p className={`application-status status-${application.status}`}>
                     {STATUS_LABEL[application.status] ?? application.status}
-                    {application.status === "open"
-                      ? " — pemiliknya membuka lagi peran ini, jadi lamaranmu tidak dilanjutkan."
-                      : ""}
                   </p>
                 </li>
               ))}
