@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--
+  Ahsan Project — landing page.
+
+  Berdiri sendiri: satu file, tanpa build, tanpa dependensi selain webfont.
+  Taruh di hosting mana pun (Netlify, Vercel, Cloudflare Pages, S3, shared
+  hosting) sebagai `index.html`. Halaman ini sengaja TIDAK ikut app Next di
+  repo ini — Next hanya melayani `app/` dan `public/`, jadi folder `landing/`
+  tidak pernah ter-route dan tidak ikut ter-build.
+
+  Satu hal yang perlu diganti kalau alamat berubah:
+  cari `https://ahsanproject-id.netlify.app` di file ini. Semua tautan ke app
+  memakai alamat itu. Tautan "papan" menunjuk ke `/` karena di produksi hari
+  ini papan memang ada di sana; kalau landing in-app (branch
+  claude/ahsan-landing-page-0qtcvg) jadi dipakai, papannya pindah ke
+  `/jelajah` dan tautan papan di sini perlu ikut diubah.
+-->
+
+<title>Ahsan Project — Ideas to real impact. Together.</title>
+<meta name="description" content="Ahsan Project adalah tempat orang membagikan project, membuka kontribusi, dan menemukan collaborator—agar ide baik benar-benar berjalan.">
+<link rel="canonical" href="https://ahsanproject-id.netlify.app/">
+<meta name="theme-color" content="#102f28">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ahsan Project">
+<meta property="og:locale" content="id_ID">
+<meta property="og:title" content="Ahsan Project — Ideas to real impact. Together.">
+<meta property="og:description" content="Bagikan project, buka kontribusi, temukan collaborator. Supaya ide baik benar-benar berjalan.">
+<meta property="og:url" content="https://ahsanproject-id.netlify.app/">
+<meta property="og:image" content="https://ahsanproject-id.netlify.app/og.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Kubah dari logo, sebagai data URI: nol permintaan tambahan. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23183d34'/%3E%3Cpath d='M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32' stroke='%23ddef83' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ---------------------------------------------------------------- tokens
+   Diambil dari app supaya halaman ini dan aplikasinya terasa satu tempat:
+   warna menyampaikan arti, bukan hiasan. Coral menandai yang perlu dilihat,
+   lime menandai ajakan bertindak, sisanya tinta di atas kertas. */
+:root {
+  --paper: #f8f6f0;
+  --card: #fff;
+  --ink: #183d34;
+  --ink-2: #102f28;
+  --muted: #66756f;
+  --muted-dark: #b9c9c3;
+  --muted-darker: #8ea59c;
+  --coral: #ed714b;
+  --lime: #ddef83;
+  --line: #dfe3dc;
+  --line-2: #cdd5cd;
+  --level-idea: #f6d9c6;
+  --level-validating: #f2d46b;
+  --level-building: #d8e7d9;
+  --level-live: #cfe4e8;
+  --radius: 18px;
+  --radius-lg: 22px;
+  --shell: 1240px;
+  --gutter: clamp(20px, 4vw, 56px);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p { margin-top: 0; }
+a { color: inherit; text-decoration: none; }
+img, svg { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+
+.sr-only {
+  border: 0; clip-path: inset(50%); height: 1px; margin: -1px; overflow: hidden;
+  padding: 0; position: absolute; white-space: nowrap; width: 1px;
+}
+.skip-link {
+  background: var(--lime); border-radius: 8px; color: var(--ink-2); left: 16px; padding: 11px 16px;
+  position: fixed; top: -80px; z-index: 200;
+}
+.skip-link:focus { top: 12px; }
+
+.shell { margin: 0 auto; max-width: var(--shell); width: 100%; }
+/* Setiap band memberi gutter-nya sendiri, lalu .shell di dalamnya yang
+   memusatkan isi. Tanpa aturan ini gutter kena dua kali dan blok di dalam
+   pembungkus jadi menjorok lebih dalam daripada hero. */
+.band { padding: 0 var(--gutter); }
+
+.eyebrow {
+  align-items: center; color: var(--coral); display: flex; font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 700; gap: 9px; letter-spacing: .13em; margin: 0 0 20px;
+  text-transform: uppercase;
+}
+.eyebrow b { background: currentColor; border-radius: 50%; flex: none; height: 7px; width: 7px; }
+.eyebrow.on-dark { color: var(--lime); }
+
+.arrow { display: inline-block; transition: transform .25s ease; }
+
+/* ---------------------------------------------------------------- header */
+
+.topbar {
+  backdrop-filter: blur(16px); background: rgba(255, 255, 255, .94); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar .shell {
+  align-items: center; display: flex; gap: clamp(14px, 2vw, 28px); height: 70px; padding: 0 var(--gutter);
+}
+.brand { align-items: center; display: inline-flex; font-size: 16px; font-weight: 750; gap: 10px; letter-spacing: -.03em; }
+.brand-mark { background: var(--ink); border-radius: 9px; color: var(--lime); display: block; height: 32px; padding: 4px; width: 32px; }
+.brand-alt { color: #789087; font-weight: 600; }
+.topbar nav { display: flex; font-size: 14px; font-weight: 650; gap: clamp(16px, 2vw, 26px); margin-left: auto; }
+.topbar nav a { color: #576961; }
+.topbar nav a:hover { color: var(--ink); }
+.topbar .enter {
+  align-items: center; background: var(--ink); border-radius: 9px; color: #fff; display: inline-flex;
+  font-size: 14px; font-weight: 700; gap: 10px; padding: 11px 17px; transition: background .2s ease;
+}
+.topbar .enter:hover { background: #245848; }
+.topbar .enter:hover .arrow { transform: translateX(3px); }
+
+/* ------------------------------------------------------------------ hero */
+
+.hero { background: var(--ink-2); color: #f7f2e7; padding: clamp(70px, 9vw, 128px) var(--gutter) clamp(60px, 7vw, 96px); }
+.hero h1 {
+  font-size: clamp(46px, 7.6vw, 112px); font-weight: 560; letter-spacing: -.065em; line-height: .94;
+  margin-bottom: 26px; max-width: 16ch;
+}
+.hero h1 em {
+  color: var(--lime); font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -.04em;
+}
+.hero-lead { color: var(--muted-dark); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.7; margin: 0 0 34px; max-width: 660px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.cta {
+  align-items: center; background: var(--lime); border: 1px solid var(--lime); border-radius: 100px;
+  color: var(--ink-2); display: inline-flex; font-size: 15px; font-weight: 750; gap: 18px;
+  padding: 16px 26px; transition: background .2s ease, transform .2s ease;
+}
+.cta:hover { background: #e8f7a0; transform: translateY(-2px); }
+.cta:hover .arrow { transform: translateX(4px); }
+.cta.quiet { background: transparent; border-color: rgba(255, 255, 255, .28); color: #f7f2e7; }
+.cta.quiet:hover { background: rgba(255, 255, 255, .08); border-color: #f7f2e7; }
+.reassure { color: var(--muted-darker); font-size: 14px; margin: 18px 0 0; }
+
+/* Kalimat inti dipecah jadi tiga, biar yang cuma memindai tetap dapat isinya. */
+.hero-verbs {
+  border-top: 1px solid rgba(255, 255, 255, .16); display: flex; flex-wrap: wrap; gap: 16px 56px;
+  list-style: none; margin: clamp(48px, 5vw, 76px) 0 0; padding: 30px 0 0;
+}
+.hero-verbs li { color: var(--muted-dark); font-size: 15px; }
+.hero-verbs strong { color: #fff; display: block; font-size: 19px; font-weight: 680; letter-spacing: -.03em; margin-bottom: 4px; }
+
+/* --------------------------------------------------------------- pillars */
+
+.pillars { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: clamp(48px, 5vw, 84px) 0 0; }
+.pillars article { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(24px, 2.4vw, 34px); }
+.pillars .num {
+  color: var(--coral); display: block; font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px;
+  font-weight: 700; letter-spacing: .13em; margin-bottom: 16px;
+}
+.pillars h2 { font-size: 22px; font-weight: 680; letter-spacing: -.035em; margin-bottom: 10px; }
+.pillars p { color: var(--muted); font-size: 15px; line-height: 1.65; margin: 0; }
+
+/* ------------------------------------------------------------------- how */
+
+.how { display: grid; gap: clamp(32px, 4vw, 64px); grid-template-columns: 1.05fr .95fr; padding: clamp(56px, 6vw, 96px) 0; }
+.how > * { min-width: 0; }
+.how h2 { font-size: clamp(30px, 3.6vw, 46px); font-weight: 620; letter-spacing: -.05em; line-height: 1; margin-bottom: 12px; }
+.how-intro { color: var(--muted); font-size: 16px; line-height: 1.7; margin: 0 0 28px; max-width: 46ch; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps li { border-top: 1px solid var(--line); display: flex; gap: 22px; padding: 22px 0; }
+.steps .n { color: #8b968f; flex: none; font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px; padding-top: 5px; }
+.steps h3 { font-size: 19px; font-weight: 680; letter-spacing: -.02em; margin-bottom: 6px; }
+.steps p { color: var(--muted); font-size: 15px; line-height: 1.65; margin: 0; }
+
+/* Satu kartu proyek, digambar diam-diam di sini supaya orang tahu bentuk
+   yang dijanjikan — bukan tangkapan layar yang ikut basi setiap redesign. */
+.sample { position: sticky; top: 100px; }
+.sample-label { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+.card-top { align-items: flex-start; display: flex; gap: 14px; }
+.card-logo {
+  align-items: center; background: var(--level-idea); border-radius: 12px; display: flex; flex: none;
+  height: 46px; justify-content: center; width: 46px;
+}
+.card-title { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+.card-title h3 { font-size: 20px; font-weight: 700; letter-spacing: -.03em; margin: 0; }
+.badge {
+  background: var(--level-idea); border-radius: 99px; font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; padding: 4px 9px; text-transform: uppercase;
+}
+.card p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 8px 0 0; }
+.tags { color: #8b968f; font-family: "Geist Mono", ui-monospace, monospace; font-size: 12px; margin: 12px 0 0; }
+.progress-row { align-items: center; color: var(--muted); display: flex; font-size: 12px; gap: 12px; justify-content: space-between; margin-top: 18px; }
+.progress { display: flex; gap: 6px; margin-top: 8px; }
+.progress span { background: #e8ece5; border-radius: 99px; flex: 1; height: 5px; }
+.progress span.on { background: var(--ink); }
+.needs { border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; padding-top: 16px; }
+.needs .chip { background: var(--card); border: 1px solid var(--line); border-radius: 99px; font-size: 12.5px; font-weight: 650; padding: 7px 13px; }
+.needs .who { color: var(--muted); font-size: 12.5px; padding: 7px 0; }
+
+/* ---------------------------------------------------------------- levels */
+
+.levels { border-top: 1px solid var(--line); padding: clamp(48px, 5vw, 80px) var(--gutter); }
+.levels h2 { font-size: clamp(26px, 3vw, 38px); font-weight: 640; letter-spacing: -.045em; margin-bottom: 10px; }
+.levels-intro { color: var(--muted); font-size: 16px; line-height: 1.65; margin: 0 0 30px; max-width: 62ch; }
+.level-row { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; }
+.level-row li { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.level-row .dot { border-radius: 6px; display: block; height: 26px; margin-bottom: 14px; width: 26px; }
+.level-row strong { display: block; font-size: 16px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 5px; }
+.level-row span.text { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+
+/* ------------------------------------------------------------- CTA band */
+
+.join {
+  align-items: end; background: var(--lime); display: grid; gap: clamp(28px, 4vw, 70px);
+  grid-template-columns: 1.1fr .9fr;
+  padding: clamp(62px, 7vw, 100px) max(var(--gutter), calc((100% - var(--shell)) / 2));
+}
+.join > * { min-width: 0; }
+.join .eyebrow { color: #4c6258; }
+.join h2 { font-size: clamp(36px, 5.2vw, 74px); font-weight: 620; letter-spacing: -.06em; line-height: .96; margin: 0; }
+.join p { color: #3f544a; font-size: 17px; line-height: 1.7; margin: 0 0 26px; max-width: 470px; }
+.join .cta { background: var(--ink); border-color: var(--ink); color: #fff; justify-content: space-between; min-width: 210px; }
+.join .cta:hover { background: var(--ink-2); border-color: var(--ink-2); }
+.signin { color: #4c6258; font-size: 14px; margin: 18px 0 0; }
+.signin a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------------------------------------------------------------- footer */
+
+footer { align-items: center; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 16px 28px; padding: 32px var(--gutter); }
+footer .brand { font-size: 15px; }
+footer .note { color: var(--muted); font-size: 14px; margin: 0; }
+footer nav { display: flex; flex-wrap: wrap; gap: 20px; margin-left: auto; }
+footer nav a { color: var(--muted); font-size: 14px; }
+footer nav a:hover { color: var(--ink); }
+footer small { color: #8b968f; font-size: 13px; }
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1000px) {
+  .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .how { grid-template-columns: 1fr; }
+  .sample { position: static; }
+  .level-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .join { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .topbar nav { display: none; }
+  .topbar .enter { margin-left: auto; }
+  .hero { padding: 56px 20px 48px; }
+  .hero h1 { max-width: none; }
+  .hero-verbs { gap: 18px 30px; }
+  .cta { flex: 1 0 auto; justify-content: center; }
+  .pillars { grid-template-columns: 1fr; }
+  .level-row { grid-template-columns: 1fr; }
+  .join { padding-left: 20px; padding-right: 20px; }
+  footer nav { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+
+<header class="topbar">
+  <div class="shell">
+    <a class="brand" href="https://ahsanproject-id.netlify.app/" aria-label="Ahsan Project, ke aplikasi">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <path d="M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Ahsan <span class="brand-alt">Project</span></span>
+    </a>
+    <nav aria-label="Navigasi utama">
+      <a href="https://ahsanproject-id.netlify.app/">Papan proyek</a>
+      <a href="https://ahsanproject-id.netlify.app/orang">Orang</a>
+      <a href="https://ahsanproject-id.netlify.app/about">Tentang</a>
+    </nav>
+    <a class="enter" href="https://ahsanproject-id.netlify.app/signin">Masuk <span class="arrow" aria-hidden="true">&rarr;</span></a>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero">
+    <div class="shell">
+      <p class="eyebrow on-dark"><b></b> Ahsan Project</p>
+      <h1>Ideas to real impact.<br><em>Together.</em></h1>
+      <p class="hero-lead">
+        Ahsan Project adalah tempat orang membagikan project, membuka kontribusi, dan menemukan
+        collaborator&mdash;agar ide baik benar-benar berjalan.
+      </p>
+
+      <div class="actions">
+        <a class="cta" href="https://ahsanproject-id.netlify.app/signup">Gabung sekarang <span class="arrow" aria-hidden="true">&rarr;</span></a>
+        <a class="cta quiet" href="https://ahsanproject-id.netlify.app/">Lihat papan proyek <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      </div>
+      <p class="reassure">Gratis, dan idemu tetap milikmu.</p>
+
+      <ul class="hero-verbs">
+        <li><strong>Bagikan</strong>project yang sedang kamu garap</li>
+        <li><strong>Buka</strong>peran yang kamu butuh</li>
+        <li><strong>Temukan</strong>orang yang mau ikut mengerjakan</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="band">
+    <section class="shell pillars" aria-label="Yang bisa kamu lakukan di sini">
+      <article>
+        <span class="num" aria-hidden="true">01</span>
+        <h2>Bagikan project</h2>
+        <p>Tulis idemu terbuka: masalahnya apa, kira-kira solusinya bagaimana, dan buat siapa. Sekali ditulis, ia berhenti jadi wacana di kepala.</p>
+      </article>
+      <article>
+        <span class="num" aria-hidden="true">02</span>
+        <h2>Buka kontribusi</h2>
+        <p>Sebutkan peran yang kamu butuh &mdash; PM, designer, engineer, peneliti, penulis &mdash; supaya orang tahu persis di mana mereka bisa menolong.</p>
+      </article>
+      <article>
+        <span class="num" aria-hidden="true">03</span>
+        <h2>Temukan collaborator</h2>
+        <p>Ambil peran di proyek orang lain, atau terima yang melamar ke proyekmu. Jejaknya tercatat sendiri dan jadi portofoliomu.</p>
+      </article>
+    </section>
+
+    <section class="shell how" aria-labelledby="how-title">
+      <div>
+        <h2 id="how-title">Cara kerjanya</h2>
+        <p class="how-intro">
+          Empat langkah, dan tidak ada yang bisa dilompati. Yang bikin ide berhenti biasanya bukan idenya,
+          tapi tidak adanya teman mengerjakan.
+        </p>
+        <ol class="steps">
+          <li>
+            <span class="n" aria-hidden="true">01</span>
+            <div>
+              <h3>Tulis idenya, jangan setengah</h3>
+              <p>Setiap proyek wajib punya brief: masalah, gambaran solusi, dan untuk siapa. Yang kosongan tidak bisa dibuat.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">02</span>
+            <div>
+              <h3>Buka peran yang kamu butuh</h3>
+              <p>PM, designer, engineer, peneliti, penulis. Tulis apa yang perlu dibantu, biar yang tertarik tahu harus mulai dari mana.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">03</span>
+            <div>
+              <h3>Naik level pelan-pelan</h3>
+              <p>Dari ide, divalidasi, dikerjakan, sampai sudah jalan. Levelnya cuma naik kalau syaratnya benar-benar terpenuhi.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">04</span>
+            <div>
+              <h3>Jejaknya jadi portofolio</h3>
+              <p>Peran yang kamu jalani dan tugas yang kamu bereskan tercatat sendiri di profilmu &mdash; bukan diketik belakangan, jadi bisa dicek ke proyeknya.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="sample">
+        <p class="sample-label">Bentuk satu proyek di papan:</p>
+        <article class="card">
+          <div class="card-top">
+            <span class="card-logo" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#183d34" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>
+              </svg>
+            </span>
+            <div>
+              <div class="card-title">
+                <h3>Warung Antre</h3>
+                <span class="badge">Ide</span>
+              </div>
+              <p>Antrean digital untuk warung dan kedai kecil yang ramai di jam makan.</p>
+            </div>
+          </div>
+
+          <p class="tags">#umkm #operasional #ide</p>
+
+          <div>
+            <div class="progress-row"><span>Progres</span><span><strong>Ide &middot; 1 dari 4 tahap</strong></span></div>
+            <div class="progress" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
+          </div>
+
+          <div class="needs">
+            <span class="who">Mencari 3 peran</span>
+            <span class="chip">Butuh Researcher</span>
+            <span class="chip">Butuh Designer</span>
+            <span class="chip">Butuh Engineer</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <section class="levels" aria-labelledby="levels-title">
+    <div class="shell">
+      <h2 id="levels-title">Level naik karena kerjaan, bukan karena ramai</h2>
+      <p class="levels-intro">
+        Setiap proyek punya level, dan levelnya cuma naik kalau syaratnya benar-benar terpenuhi.
+        Tidak ada level yang mensyaratkan punya tim &mdash; mengerjakan sendirian bukan proyek kelas dua.
+      </p>
+      <ul class="level-row">
+        <li>
+          <span class="dot" style="background: var(--level-idea)" aria-hidden="true"></span>
+          <strong>Ide</strong>
+          <span class="text">Baru ditulis. Masalah, gambaran solusi, dan untuk siapa sudah jelas.</span>
+        </li>
+        <li>
+          <span class="dot" style="background: var(--level-validating)" aria-hidden="true"></span>
+          <strong>Divalidasi</strong>
+          <span class="text">Sudah diajak bicara ke calon penggunanya, bukan cuma diyakini sendiri.</span>
+        </li>
+        <li>
+          <span class="dot" style="background: var(--level-building)" aria-hidden="true"></span>
+          <strong>Dikerjakan</strong>
+          <span class="text">Ada yang sedang dibangun, dan kemajuannya kelihatan di daftar tugasnya.</span>
+        </li>
+        <li>
+          <span class="dot" style="background: var(--level-live)" aria-hidden="true"></span>
+          <strong>Sudah jalan</strong>
+          <span class="text">Dipakai orang di luar yang mengerjakan. Ada alamatnya, bisa dicoba.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="join" aria-labelledby="join-title">
+    <div>
+      <p class="eyebrow"><b></b> Ayo mulai</p>
+      <h2 id="join-title">Ide baik tidak berhenti di kepala.</h2>
+    </div>
+    <div>
+      <p>Bikin akun, taruh satu ide, buka satu peran. Sisanya dikerjakan bareng &mdash; mulai hari ini.</p>
+      <a class="cta" href="https://ahsanproject-id.netlify.app/signup">Gabung sekarang <span class="arrow" aria-hidden="true">&rarr;</span></a>
+      <p class="signin">Sudah punya akun? <a href="https://ahsanproject-id.netlify.app/signin">Masuk</a>.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <a class="brand" href="https://ahsanproject-id.netlify.app/">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <path d="M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32"
+            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Ahsan <span class="brand-alt">Project</span></span>
+  </a>
+  <p class="note">Ide kecil, dikerjakan bareng.</p>
+  <nav aria-label="Navigasi footer">
+    <a href="https://ahsanproject-id.netlify.app/">Papan proyek</a>
+    <a href="https://ahsanproject-id.netlify.app/orang">Orang</a>
+    <a href="https://ahsanproject-id.netlify.app/about">Tentang</a>
+    <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">GitHub</a>
+  </nav>
+  <small>&copy; <span id="year">2026</span> Ahsan Project</small>
+</footer>
+
+<!-- Satu-satunya skrip di halaman ini: tahun di footer, supaya tidak basi
+     sendiri setahun lagi. Tanpa JavaScript, angka di markup tetap tampil. -->
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+
+</body>
+</html>
