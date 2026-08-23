@@ -42,7 +42,7 @@ export function SignUpForm({ next }: { next: string }) {
 
       <label htmlFor="name">Nama</label>
       <input id="name" name="name" type="text" autoComplete="name" required defaultValue={state.values.name} />
-      <p className="hint">Nama ini yang muncul di halaman proyek dan di profilmu.</p>
+      <p className="hint">Nama ini yang muncul di halaman project dan di profilmu.</p>
 
       <label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state.values.email} />

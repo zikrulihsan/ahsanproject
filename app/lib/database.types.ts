@@ -18,6 +18,10 @@ export type ProjectRow = {
   repo_url: string;
   tags: string[];
   glyph: string;
+  /** One line: what the project is working on right now — 0010_showcase.sql. */
+  now_text: string;
+  /** Set by a trigger when now_text changes, never by the app. */
+  now_updated_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -31,9 +35,13 @@ export type ProjectOverviewRow = Omit<ProjectRow, "updated_at"> & {
   /** Distinct roles with an open seat — 0007_open_roles.sql. */
   open_roles: string[];
   boost_count: number;
+  follower_count: number;
   comment_count: number;
+  update_count: number;
   open_task_count: number;
   done_task_count: number;
+  /** Newest of the project's own writes, its updates, comments, tasks, seats. */
+  last_activity_at: string;
 };
 
 export type ProfileRow = {
@@ -68,6 +76,8 @@ export type SeatRow = {
   access: string;
   user_id: string | null;
   pitch: string;
+  /** Roughly how much time the help would take, in the owner's own words. */
+  commitment: string;
   created_at: string;
 };
 
@@ -88,6 +98,21 @@ export type CommentRow = {
   project_id: number;
   author_id: string;
   body: string;
+  created_at: string;
+};
+
+export type UpdateRow = {
+  id: number;
+  project_id: number;
+  author_id: string | null;
+  title: string;
+  body: string;
+  created_at: string;
+};
+
+export type FollowRow = {
+  project_id: number;
+  user_id: string;
   created_at: string;
 };
 
@@ -135,6 +160,17 @@ export type Database = {
         Insert: Omit<BoostRow, "created_at">;
         Update: never;
       };
+      follows: {
+        Row: FollowRow;
+        Insert: Omit<FollowRow, "created_at">;
+        Update: never;
+      };
+      updates: {
+        Row: UpdateRow;
+        Insert: Omit<UpdateRow, "id" | "created_at">;
+        // A log, not a document: it can be written and removed, never edited.
+        Update: never;
+      };
       events: {
         Row: EventRow;
         // Written only by the triggers in 0005_activity.sql. Typing the write
@@ -164,6 +200,7 @@ export type Database = {
       apply_for_seat: { Args: { seat_id: number; pitch: string }; Returns: undefined };
       move_task: { Args: { task_id: number; next_status: string }; Returns: undefined };
       decide_seat: { Args: { seat_id: number; accept: boolean }; Returns: undefined };
+      set_now: { Args: { project: number; line: string }; Returns: undefined };
     };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;

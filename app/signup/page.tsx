@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Daftar — Ahsan Project",
-  description: "Bikin akun untuk menaruh ide dan ikut menggarap proyek orang lain.",
+  description: "Bikin akun untuk menunjukkan yang sedang kamu bangun dan ikut membantu project orang lain.",
   robots: { index: false },
 };
 
@@ -34,7 +34,7 @@ export default async function SignUpPage({ searchParams }: { searchParams?: Sear
         </p>
         <h1>Bikin akun dulu.</h1>
         <p className="lede">
-          Setelah punya akun, kamu bisa menaruh ide, membuka peran, dan ikut menggarap proyek orang
+          Setelah punya akun, kamu bisa menunjukkan project, menyebut bantuan yang dicari, dan ikut membantu project orang
           lain. Halaman profilmu sekalian jadi portofolio.
         </p>
 

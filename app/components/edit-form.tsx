@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateProject, type EditState } from "../actions";
-import { MINIMUM } from "../lib/brief";
+import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { Field } from "./field";
 
 export type EditableProject = {
@@ -13,6 +13,7 @@ export type EditableProject = {
   solution: string;
   audience: string;
   tags: string[];
+  nowText: string;
   docUrl: string;
   repoUrl: string;
   liveUrl: string;
@@ -21,7 +22,7 @@ export type EditableProject = {
 export function EditForm({ project }: { project: EditableProject }) {
   const initial: EditState = {
     errors: {},
-    values: { ...project, tags: project.tags.join(", ") },
+    values: { ...project, tags: project.tags.join(", "), now: project.nowText },
   };
   const [state, formAction, pending] = useActionState(updateProject, initial);
   const { errors, values } = state;
@@ -36,10 +37,10 @@ export function EditForm({ project }: { project: EditableProject }) {
 
       <input type="hidden" name="slug" value={project.slug} />
 
-      <Field label="Nama proyek" name="title" error={errors.title} defaultValue={values.title} required />
+      <Field label="Nama project" name="title" error={errors.title} defaultValue={values.title} required />
 
       <Field
-        label="Satu kalimat ringkas"
+        label="Satu kalimat"
         name="tagline"
         hint={`Minimal ${MINIMUM.tagline} karakter.`}
         error={errors.tagline}
@@ -48,7 +49,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Masalah yang mau dibereskan"
+        label="Masalah yang ingin diselesaikan"
         name="problem"
         hint={`Minimal ${MINIMUM.problem} karakter.`}
         error={errors.problem}
@@ -58,7 +59,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Gambaran solusinya"
+        label="Apa yang sedang dibuat"
         name="solution"
         hint={`Minimal ${MINIMUM.solution} karakter.`}
         error={errors.solution}
@@ -78,7 +79,14 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Tag"
+        label="Sekarang sedang…"
+        name="now"
+        hint={`Satu kalimat tentang yang sedang dikerjakan. Maksimal ${MAXIMUM.now} karakter — bisa juga diganti langsung dari halaman project.`}
+        defaultValue={values.now}
+      />
+
+      <Field
+        label="Topik"
         name="tags"
         hint="Pisahkan dengan koma, maksimal enam."
         error={errors.tags}
@@ -89,7 +97,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       <fieldset>
         <legend>Tautan</legend>
         <p className="hint">
-          Tautan ini yang menentukan level proyek. Kalau salah satunya dihapus dan levelnya jadi
+          Tautan ini ikut menentukan tahap project. Kalau salah satunya dihapus dan tahapnya jadi
           tidak terpenuhi, levelnya ikut turun sendiri.
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} />

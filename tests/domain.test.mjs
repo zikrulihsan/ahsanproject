@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { MINIMUM, briefCompleteness, normaliseTags, slugify, validateBrief } from "../app/lib/brief.ts";
-import { meetsStage, reachableStages, requirementsFor, settleStage } from "../app/lib/stages.ts";
+import { MINIMUM, normaliseTags, slugify, validateBrief } from "../app/lib/brief.ts";
+import { meetsStage, reachableStages, requirementsFor, rungIndex, settleStage } from "../app/lib/stages.ts";
+import { validateUpdate, journeyDate } from "../app/lib/updates.ts";
+import { arrangeForYou } from "../app/lib/feed.ts";
 import { taskStatusLabel, validateTask } from "../app/lib/tasks.ts";
 import { accessOf, canManage, isOwner } from "../app/lib/access.ts";
 import { EVENT_KINDS, activitySentence, hiddenFrom } from "../app/lib/activity.ts";
@@ -50,10 +52,10 @@ const stageInput = {
   solution: fullBrief.solution,
   audience: fullBrief.audience,
   tags: ["umkm", "operasional"],
+  nowText: "",
   docUrl: "",
   repoUrl: "",
   liveUrl: "",
-  seatCount: 0,
 };
 
 test("a written-down idea sits at the idea level", () => {
@@ -62,20 +64,26 @@ test("a written-down idea sits at the idea level", () => {
 });
 
 test("levels only open once their requirements are actually met", () => {
-  const withSeat = { ...stageInput, seatCount: 1 };
-  assert.ok(meetsStage("validating", withSeat));
-  assert.ok(!meetsStage("building", withSeat), "building needs something to show for it");
+  assert.ok(!meetsStage("building", stageInput), "building needs something to show for it");
 
-  const building = { ...withSeat, repoUrl: "https://example.com/repo" };
+  const building = { ...stageInput, repoUrl: "https://example.com/repo" };
   assert.ok(meetsStage("building", building));
   assert.ok(!meetsStage("live", building), "live needs a link people can open");
 
   assert.ok(meetsStage("live", { ...building, liveUrl: "https://example.com" }));
 });
 
+test("saying what you are working on is evidence enough to be building", () => {
+  // Somebody who has just started has nothing to link yet, and is still
+  // building. The CHECK constraint in 0010_showcase.sql agrees.
+  const started = { ...stageInput, nowText: "Menyusun materi pertama." };
+  assert.ok(meetsStage("building", started));
+  assert.ok(!meetsStage("live", started), "still nothing anybody else can open");
+});
+
 test("working alone is not a lesser project", () => {
   // Every project on the board started solo. No level may ask for a team.
-  const solo = { ...stageInput, seatCount: 0, liveUrl: "https://example.com" };
+  const solo = { ...stageInput, liveUrl: "https://example.com" };
   assert.ok(meetsStage("live", solo), "a solo project can still be live");
 });
 
@@ -85,39 +93,86 @@ test("the requirement list explains what is still missing", () => {
   assert.ok(missing.every((requirement) => requirement.label.length > 0));
 });
 
-test("completeness rewards a fuller brief", () => {
-  const bare = briefCompleteness({ ...fullBrief, tags: ["umkm"], seatCount: 0 });
-  const full = briefCompleteness({
-    ...fullBrief,
-    tags: ["umkm"],
-    docUrl: "https://example.com/doc",
-    liveUrl: "https://example.com",
-    seatCount: 2,
-  });
-  assert.ok(full > bare);
-  assert.equal(full, 100);
+test("the journey rail has three rungs, and resting is not one of them", () => {
+  assert.equal(rungIndex("idea"), 0);
+  assert.equal(rungIndex("building"), 1);
+  assert.equal(rungIndex("live"), 2);
+  assert.equal(rungIndex("resting"), -1, "resting is a decision, not a rung");
 });
 
 test("an edit that removes what a level stood on drops the level", () => {
   const live = {
     ...stageInput,
-    seatCount: 1,
     repoUrl: "https://example.com/repo",
     liveUrl: "https://example.com",
   };
   assert.equal(settleStage("live", live), "live", "an earned level is left alone");
 
-  // The owner clears the live link. "Sudah jalan" is no longer true.
+  // The owner clears the live link. "Sudah berjalan" is no longer true.
   const withoutLink = { ...live, liveUrl: "" };
   assert.equal(settleStage("live", withoutLink), "building");
 
   // And clearing everything drops it all the way back to an idea.
-  const bare = { ...stageInput, seatCount: 0 };
-  assert.equal(settleStage("live", bare), "idea");
+  assert.equal(settleStage("live", stageInput), "idea");
+});
+
+test("clearing the now line can cost a project its level", () => {
+  const started = { ...stageInput, nowText: "Lagi bikin prototipe." };
+  assert.equal(settleStage("building", started), "building");
+  assert.equal(settleStage("building", { ...started, nowText: "" }), "idea");
 });
 
 test("resting is a decision, so an edit never moves it", () => {
-  assert.equal(settleStage("resting", { ...stageInput, seatCount: 0 }), "resting");
+  assert.equal(settleStage("resting", stageInput), "resting");
+});
+
+/* ------------------------------------------------------------------ *
+ * The journey a project writes for itself
+ * ------------------------------------------------------------------ */
+
+test("an update needs a headline worth reading", () => {
+  assert.ok(validateUpdate({ title: "", body: "" }).title);
+  assert.ok(validateUpdate({ title: "ab", body: "" }).title, "two characters is not a headline");
+  assert.deepEqual(validateUpdate({ title: "Draft pertama selesai", body: "" }), {});
+  assert.ok(validateUpdate({ title: "Selesai juga", body: "x".repeat(1001) }).body);
+});
+
+test("journey entries are dated by day and month", () => {
+  assert.match(journeyDate("2026-08-18 09:00:00"), /18/);
+  assert.equal(journeyDate("bukan tanggal"), "", "an unreadable date says nothing rather than NaN");
+});
+
+/* ------------------------------------------------------------------ *
+ * The board's "untuk kamu" lane
+ * ------------------------------------------------------------------ */
+
+const listing = [
+  { id: 1, openRoles: [], openSeatCount: 0 },
+  { id: 2, openRoles: ["design"], openSeatCount: 1 },
+  { id: 3, openRoles: ["research"], openSeatCount: 2 },
+];
+
+test("projects asking for help come before ones that are not", () => {
+  const arranged = arrangeForYou(listing, []);
+  assert.deepEqual(arranged.map((project) => project.id), [2, 3, 1]);
+});
+
+test("a role somebody has held before comes first", () => {
+  const arranged = arrangeForYou(listing, ["research"]);
+  assert.deepEqual(arranged.map((project) => project.id), [3, 2, 1]);
+});
+
+test("arranging never drops or duplicates a project", () => {
+  const arranged = arrangeForYou(listing, ["design", "research"]);
+  assert.equal(arranged.length, listing.length);
+  assert.deepEqual(new Set(arranged.map((project) => project.id)), new Set([1, 2, 3]));
+});
+
+test("within a band the order the board gave is kept", () => {
+  // Both ask for help and neither is familiar, so "moved most recently" — the
+  // order the database returned — has to survive the sort.
+  const arranged = arrangeForYou([listing[2], listing[1], listing[0]], []);
+  assert.deepEqual(arranged.map((project) => project.id), [3, 2, 1]);
 });
 
 /* ------------------------------------------------------------------ *
@@ -176,7 +231,7 @@ const trail = (kind, payload = {}) => ({ kind, projectTitle: "Warung Antre", pay
 test("every kind of trail entry reads as a sentence", () => {
   const cases = {
     project_created: /menaruh ide Warung Antre\./,
-    project_stage_changed: /memindahkan Warung Antre ke level Sudah jalan\./,
+    project_stage_changed: /memindahkan Warung Antre ke tahap Sudah berjalan\./,
     seat_opened: /membuka peran Researcher di Warung Antre\./,
     seat_applied: /melamar sebagai Researcher di Warung Antre\./,
     seat_filled: /mulai menggarap Warung Antre sebagai Researcher\./,
@@ -185,6 +240,7 @@ test("every kind of trail entry reads as a sentence", () => {
     task_done: /membereskan tugas .Tulis brief-nya. di Warung Antre\./,
     comment_posted: /ikut membahas Warung Antre\./,
     boost_given: /mendukung Warung Antre\./,
+    update_posted: /mengabari perkembangan Warung Antre/,
   };
 
   for (const kind of EVENT_KINDS) {

@@ -23,8 +23,9 @@ const body = seedProjects
     const seats = project.seats
       .map(
         (seat) => `
-    insert into public.seats (project_id, role, brief, access)
-    select new_project, ${quote(seat.role)}, ${quote(seat.brief)}, ${quote(seat.access)}
+    insert into public.seats (project_id, role, brief, commitment, access)
+    select new_project, ${quote(seat.role)}, ${quote(seat.brief)},
+           ${quote(seat.commitment)}, ${quote(seat.access)}
     where new_project is not null;`,
       )
       .join("");
@@ -41,20 +42,34 @@ const body = seedProjects
       )
       .join("");
 
+    // The journey entries are the project's own words, so they carry their own
+    // dates rather than all landing on the day the file was run.
+    const updates = project.updates
+      .map(
+        (update) => `
+    insert into public.updates (project_id, author_id, title, body, created_at)
+    select new_project, owner, ${quote(update.title)}, ${quote(update.body)}, ${quote(update.createdAt)}
+    where new_project is not null;`,
+      )
+      .join("");
+
     return `
   -- ${project.title}
   insert into public.projects
     (slug, title, tagline, owner_id, stage, problem, solution, audience,
-     doc_url, live_url, repo_url, tags, glyph, created_at, updated_at)
+     now_text, now_updated_at, doc_url, live_url, repo_url, tags, glyph,
+     created_at, updated_at)
   values
     (${quote(project.slug)}, ${quote(project.title)}, ${quote(project.tagline)}, owner,
      ${quote(project.stage)}, ${quote(project.problem)}, ${quote(project.solution)},
-     ${quote(project.audience)}, ${quote(project.docUrl)}, ${quote(project.liveUrl)},
+     ${quote(project.audience)}, ${quote(project.now)},
+     ${project.nowUpdatedAt ? quote(project.nowUpdatedAt) : "null"},
+     ${quote(project.docUrl)}, ${quote(project.liveUrl)},
      ${quote(project.repoUrl)}, ${array(project.tags)}, ${quote(project.glyph)},
-     ${quote(project.createdAt)}, ${quote(project.createdAt)})
+     ${quote(project.createdAt)}, ${quote(project.nowUpdatedAt || project.createdAt)})
   on conflict (slug) do nothing
   returning id into new_project;
-${seats}${tasks}`;
+${seats}${tasks}${updates}`;
   })
   .join("\n");
 

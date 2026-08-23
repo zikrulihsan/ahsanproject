@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!person) return { title: "Orang tidak ditemukan — Ahsan Project" };
 
   const description =
-    person.headline || `Proyek dan kontribusi ${person.name} di Ahsan Project.`;
+    person.headline || `Yang sedang dibangun ${person.name}, dan yang dia bantu, di Ahsan Project.`;
 
   return {
     title: `${person.name} — Ahsan Project`,
@@ -67,7 +67,6 @@ export default async function ProfilePage({
   ]);
   const hasOlder = activity.length > limit;
   const trail = activity.slice(0, limit);
-  const live = owned.filter((project) => project.stage === "live").length;
 
   const trailPath = (next: { jejak?: string; batas?: number }) => {
     const params = new URLSearchParams();
@@ -87,7 +86,7 @@ export default async function ProfilePage({
       <section className="profile-band">
         <div className="profile-band-inner">
           <p className="eyebrow light">
-            <span /> Portofolio
+            <span /> Yang sedang dia bangun
           </p>
           <h1>{person.name}</h1>
           {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
@@ -121,19 +120,15 @@ export default async function ProfilePage({
               ) : null}
             </ul>
 
+            {/* Enough to place somebody, not enough to rank them. What they
+                have actually built is right below, in their own words. */}
             <ul className="profile-stats">
               <li>
-                <strong>{owned.length}</strong> proyek dimiliki
+                <strong>{owned.length}</strong> project
               </li>
-              <li>
-                <strong>{live}</strong> sudah jalan
-              </li>
-              <li>
-                <strong>{contributing.length}</strong> ikut menggarap
-              </li>
-              {stats.rolesTaken > 0 ? (
+              {contributing.length > 0 ? (
                 <li>
-                  <strong>{stats.rolesTaken}</strong> peran dijalani
+                  <strong>{contributing.length}</strong> ikut membantu
                 </li>
               ) : null}
               {stats.tasksDone > 0 ? (
@@ -165,9 +160,39 @@ export default async function ProfilePage({
               </details>
             ) : null}
 
+            <section aria-labelledby="owned-heading">
+              <h2 id="owned-heading" className="section-title">
+                Sedang dikerjakan
+              </h2>
+              {owned.length === 0 ? (
+                <p className="muted">
+                  Belum ada project.{" "}
+                  {isSelf ? <Link href="/new">Tunjukkan yang pertama</Link> : null}
+                </p>
+              ) : (
+                <div className="project-grid">
+                  {owned.map((project) => (
+                    <ProjectCard key={project.id} project={project} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {contributing.length > 0 ? (
+              <section aria-labelledby="contrib-heading">
+                <h2 id="contrib-heading" className="section-title">
+                  Ikut membantu
+                </h2>
+                <div className="project-grid">
+                  {contributing.map((project) => (
+                    <ProjectCard key={project.id} project={project} contributionRole={project.role} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <section aria-labelledby="activity-heading">
               <h2 id="activity-heading" className="section-title">
-                Jejak
+                Jejak kerja
               </h2>
               <p className="trail-note">
                 Jejak ini ditulis sistem saat kejadiannya — bukan diketik belakangan.
@@ -236,35 +261,6 @@ export default async function ProfilePage({
               ) : null}
             </section>
 
-            <section aria-labelledby="owned-heading">
-              <h2 id="owned-heading" className="section-title">
-                Proyeknya
-              </h2>
-              {owned.length === 0 ? (
-                <p className="muted">
-                  Belum ada proyek. {isSelf ? <Link href="/new">Taruh ide pertamamu</Link> : null}
-                </p>
-              ) : (
-                <div className="project-grid">
-                  {owned.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {contributing.length > 0 ? (
-              <section aria-labelledby="contrib-heading">
-                <h2 id="contrib-heading" className="section-title">
-                  Ikut menggarap
-                </h2>
-                <div className="project-grid">
-                  {contributing.map((project) => (
-                    <ProjectCard key={project.id} project={project} contributionRole={project.role} />
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </div>
         </article>
       </main>

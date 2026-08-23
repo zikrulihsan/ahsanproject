@@ -67,7 +67,7 @@ export function AboutPage({ lang }: { lang: Lang }) {
             ))}
           </ol>
           <Link className="primary-button" href="/new">
-            {lang === "id" ? "Taruh ide" : "Post an idea"} <Arrow />
+            {lang === "id" ? "Tunjukkan project" : "Show a project"} <Arrow />
           </Link>
         </section>
       </main>

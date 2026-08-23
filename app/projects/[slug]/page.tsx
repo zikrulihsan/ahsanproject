@@ -8,21 +8,41 @@ import {
   createTask,
   decideSeat,
   deleteTask,
+  deleteUpdate,
   moveTask,
   openSeat,
+  postUpdate,
+  setNow,
   setSeatAccess,
   setStage,
   toggleBoost,
+  toggleFollow,
 } from "../../actions";
 import { signInPath } from "../../lib/urls";
 import { SubmitButton } from "../../components/submit-button";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
-import { ActivityList, StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
-import { briefCompleteness, domainOf } from "../../lib/brief";
-import { getProject, hasBoosted, listProjectActivity, type ProjectDetail } from "../../lib/data";
+import {
+  ActivityList,
+  JourneyList,
+  RungRail,
+  StageBadge,
+  TagRow,
+  freshness,
+  initials,
+  timeAgo,
+} from "../../components/pieces";
+import { MAXIMUM, domainOf } from "../../lib/brief";
+import {
+  getProject,
+  hasBoosted,
+  isFollowing,
+  listProjectActivity,
+  type ProjectDetail,
+} from "../../lib/data";
 import { ROLES, roleLabel, roleMeta } from "../../lib/roles";
-import { STAGES, meetsStage, requirementsFor, stageMeta, type Stage, type StageInput } from "../../lib/stages";
+import { STAGES, meetsStage, requirementsFor, stageMeta, type StageInput } from "../../lib/stages";
 import { accessOf, canManage } from "../../lib/access";
+import { UPDATE_LIMITS } from "../../lib/updates";
 import {
   TASK_ORDER,
   TASK_STATUSES,
@@ -39,17 +59,18 @@ type Params = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProject(slug);
-  if (!project) return { title: "Proyek tidak ditemukan — Ahsan Project" };
+  if (!project) return { title: "Project tidak ditemukan — Ahsan Project" };
 
   return {
     title: `${project.title} — Ahsan Project`,
-    description: project.tagline,
+    // What it is doing now says more than what it is, when there is one.
+    description: project.nowText || project.tagline,
     alternates: { canonical: `/projects/${project.slug}` },
     // The card image comes from opengraph-image.tsx beside this file.
     openGraph: {
       type: "article",
       title: `${project.title} — Ahsan Project`,
-      description: project.tagline,
+      description: project.nowText || project.tagline,
       url: `/projects/${project.slug}`,
     },
   };
@@ -66,14 +87,14 @@ export default async function ProjectPage({ params }: { params: Params }) {
   const access = accessOf(viewer?.id, project.owner.id, project.seats);
   const isOwner = access === "owner";
   const isManager = canManage(access);
-  const [boosted, history] = await Promise.all([
+  const [boosted, following, history] = await Promise.all([
     viewer ? hasBoosted(project.id, viewer.id) : Promise.resolve(false),
+    viewer ? isFollowing(project.id, viewer.id) : Promise.resolve(false),
     listProjectActivity(project.id),
   ]);
   const returnTo = `/projects/${project.slug}`;
 
   const stageInput = toStageInput(project);
-  const completeness = briefCompleteness({ ...project, seatCount: project.seatCount });
 
   const team = project.seats.filter((seat) => seat.status === "filled");
   const pending = project.seats.filter((seat) => seat.status === "pending");
@@ -94,11 +115,14 @@ export default async function ProjectPage({ params }: { params: Params }) {
       <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
-            <Link href="/">Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
+            <Link href="/">Jelajah</Link> <span aria-hidden="true">/</span> {project.title}
           </p>
-          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah proyek</Link> : null}
+          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah project</Link> : null}
         </div>
 
+        {/* Identity, then what it is, then who is behind it, then the two
+            things a visitor can do about it. Nothing measures the project
+            here — that is what the journey further down is for. */}
         <section className="project-hero">
           <div className="project-hero-copy">
             <div className="project-hero-top">
@@ -117,31 +141,47 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   {initials(project.owner.name)}
                 </span>
                 <span>
-                  <strong>{project.owner.name}</strong>
-                  <small>pemilik proyek · {timeAgo(project.createdAt)}</small>
+                  <strong>
+                    {project.owner.name}
+                    {team.length > 0 ? ` + ${team.length} orang` : ""}
+                  </strong>
+                  <small>{freshness(project)}</small>
                 </span>
               </Link>
 
-              {viewer ? (
-                <form action={toggleBoost}>
-                  <input type="hidden" name="slug" value={project.slug} />
-                  <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
-                    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m12 5 7 8H5l7-8Z" />
-                    </svg>
+              <div className="hero-actions">
+                {viewer ? (
+                  <form action={toggleFollow}>
+                    <input type="hidden" name="slug" value={project.slug} />
+                    <SubmitButton className={`follow ${following ? "is-on" : ""}`}>
+                      {following ? "Diikuti" : "Ikuti project"}
+                    </SubmitButton>
+                  </form>
+                ) : (
+                  <Link className="follow" href={signInPath(returnTo)}>
+                    Ikuti project
+                  </Link>
+                )}
+
+                {/* Support stays, small and to the side: it is a nice signal,
+                    not the point of the page. */}
+                {viewer ? (
+                  <form action={toggleBoost}>
+                    <input type="hidden" name="slug" value={project.slug} />
+                    <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
+                      <span aria-hidden="true">♡</span>
+                      <strong>{project.boostCount}</strong>
+                      <span className="sr-only">dukungan</span>
+                    </SubmitButton>
+                  </form>
+                ) : (
+                  <Link className="boost" href={signInPath(returnTo)}>
+                    <span aria-hidden="true">♡</span>
                     <strong>{project.boostCount}</strong>
-                    <span>{boosted ? "Kamu dukung" : "Dukung"}</span>
-                  </SubmitButton>
-                </form>
-              ) : (
-                <Link className="boost" href={signInPath(returnTo)}>
-                  <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m12 5 7 8H5l7-8Z" />
-                  </svg>
-                  <strong>{project.boostCount}</strong>
-                  <span>Dukung</span>
-                </Link>
-              )}
+                    <span className="sr-only">dukungan</span>
+                  </Link>
+                )}
+              </div>
             </div>
 
             {(project.liveUrl || project.docUrl || project.repoUrl) && (
@@ -175,13 +215,13 @@ export default async function ProjectPage({ params }: { params: Params }) {
         <div className="project-body">
           <div className="project-main">
             <section className="brief" aria-labelledby="brief-heading">
-              <h2 id="brief-heading">Brief</h2>
+              <h2 id="brief-heading">Tentang project ini</h2>
               <article>
-                <h3>Masalah yang mau dibereskan</h3>
+                <h3>Masalah yang ingin dibereskan</h3>
                 <p>{project.problem}</p>
               </article>
               <article>
-                <h3>Gambaran solusinya</h3>
+                <h3>Yang sedang dibuat</h3>
                 <p>{project.solution}</p>
               </article>
               <article>
@@ -190,156 +230,281 @@ export default async function ProjectPage({ params }: { params: Params }) {
               </article>
             </section>
 
-            <section className="team" aria-labelledby="team-heading">
-              <h2 id="team-heading">Tim dan peran</h2>
+            {/* Right under the story, because "what are they doing about it"
+                is the next question anybody has — and the answer is what makes
+                the project look alive rather than parked. */}
+            <section className="now-card" aria-labelledby="now-heading">
+              <h2 id="now-heading">Sedang dikerjakan</h2>
 
-              {team.length > 0 ? (
-                <ul className="member-list">
-                  {team.map((seat) => (
-                    <li key={seat.id}>
-                      <span className="avatar" aria-hidden="true">
-                        {initials(seat.person?.name ?? "?")}
-                      </span>
-                      <span>
-                        <strong>
-                          {seat.person ? (
-                            <Link href={`/u/${seat.person.username}`}>{seat.person.name}</Link>
-                          ) : (
-                            "Tanpa nama"
-                          )}
-                        </strong>
-                        <small>
-                          {roleLabel(seat.role)}
-                          {seat.access === "admin" ? <span className="access-badge">admin</span> : null}
-                        </small>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              {project.nowText ? (
+                <>
+                  <p className="now-headline">{project.nowText}</p>
+                  {project.nowUpdatedAt ? (
+                    <p className="now-when">Ditulis {timeAgo(project.nowUpdatedAt)}</p>
+                  ) : null}
+                </>
               ) : (
-                <p className="muted">Belum ada yang bergabung. Peran di bawah masih kosong.</p>
+                <p className="muted">
+                  Belum ada yang ditulis.
+                  {isManager ? " Satu kalimat saja sudah cukup bikin project ini terlihat hidup." : ""}
+                </p>
               )}
-
-              {isManager && pending.length > 0 ? (
-                <div className="pending-list">
-                  <h3>Menunggu keputusanmu</h3>
-                  {pending.map((seat) => (
-                    <article key={seat.id} className="pending-card">
-                      <p>
-                        <strong>{seat.person?.name ?? "Seseorang"}</strong> melamar sebagai{" "}
-                        {roleLabel(seat.role)}
-                      </p>
-                      <blockquote>{seat.pitch}</blockquote>
-                      <form action={decideSeat}>
-                        <input type="hidden" name="slug" value={project.slug} />
-                        <input type="hidden" name="seatId" value={seat.id} />
-                        <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
-                          Terima
-                        </SubmitButton>
-                        <SubmitButton className="quiet" name="decision" value="tolak">
-                          Buka lagi
-                        </SubmitButton>
-                      </form>
-                    </article>
-                  ))}
-                </div>
-              ) : null}
-
-              {open.length > 0 ? (
-                <ul className="seat-list">
-                  {open.map((seat) => (
-                    <li key={seat.id}>
-                      <div>
-                        <h3>{roleLabel(seat.role)}</h3>
-                        <p>{seat.brief}</p>
-                      </div>
-                      {isOwner ? (
-                        // apply_for_seat refuses the owner outright, so offering
-                        // them the form was a button that could only ever fail.
-                        <p className="muted">Peran ini menunggu orang lain.</p>
-                      ) : viewer ? (
-                        viewerSeat ? (
-                          <p className="muted">
-                            {viewerSeat.status === "filled"
-                              ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role)}.`
-                              : "Lamaranmu di proyek ini masih menunggu jawaban."}
-                          </p>
-                        ) : (
-                          <details>
-                            <summary>Ambil peran ini</summary>
-                            <form action={applyForSeat}>
-                              <input type="hidden" name="slug" value={project.slug} />
-                              <input type="hidden" name="seatId" value={seat.id} />
-                              <label htmlFor={`pitch-${seat.id}`}>
-                                Ceritakan kenapa kamu cocok dan berapa waktu yang bisa kamu luangkan.
-                              </label>
-                              <textarea
-                                id={`pitch-${seat.id}`}
-                                name="pitch"
-                                rows={4}
-                                required
-                                placeholder="Contoh: saya pernah bantu riset serupa, bisa luangkan 3 jam per minggu."
-                              />
-                              <SubmitButton pendingLabel="Mengirim…">Kirim lamaran</SubmitButton>
-                            </form>
-                          </details>
-                        )
-                      ) : (
-                        <Link className="ghost-button" href={signInPath(returnTo)}>
-                          Masuk untuk ambil peran
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : pending.length === 0 ? (
-                <p className="muted">Belum ada peran yang dibuka.</p>
-              ) : null}
-
-              {!isManager && pending.length > 0 ? (
-                <ul className="seat-list waiting-list">
-                  {pending.map((seat) => (
-                    <li key={seat.id}>
-                      <div>
-                        <h3>{roleLabel(seat.role)}</h3>
-                        <p>
-                          {seat.person?.id === viewer?.id
-                            ? "Lamaranmu sudah masuk, tinggal menunggu jawaban pemilik proyek."
-                            : `${seat.person?.name ?? "Seseorang"} sedang menunggu jawaban pemilik proyek.`}
-                        </p>
-                      </div>
-                      <span className="waiting-flag">Menunggu konfirmasi</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
 
               {isManager ? (
                 <details className="owner-tool">
-                  <summary>Buka peran baru</summary>
-                  <form action={openSeat}>
+                  <summary>{project.nowText ? "Perbarui" : "Tulis sekarang sedang apa"}</summary>
+                  <form action={setNow}>
                     <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="new-seat-role">Peran</label>
-                    <select id="new-seat-role" name="role" defaultValue="pm">
-                      {ROLES.map((role) => (
-                        <option key={role} value={role}>
-                          {roleMeta[role].label}
-                        </option>
-                      ))}
-                    </select>
-                    <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
-                    <textarea id="new-seat-brief" name="brief" rows={3} required />
-                    <SubmitButton pendingLabel="Membuka…">Buka peran</SubmitButton>
+                    <label htmlFor="now-text">Sekarang sedang…</label>
+                    <input
+                      id="now-text"
+                      name="now"
+                      type="text"
+                      maxLength={MAXIMUM.now}
+                      defaultValue={project.nowText}
+                      placeholder="Menyusun materi keselamatan pertama."
+                    />
+                    <p className="hint">
+                      Satu kalimat, ganti kapan pun arahnya berubah. Ini yang dibaca orang untuk
+                      tahu project ini masih jalan.
+                    </p>
+                    <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
                   </form>
                 </details>
               ) : null}
+            </section>
+
+            {/* The invitation comes after somebody has had a chance to
+                understand the project, never before it. */}
+            {(open.length > 0 || isManager) && (
+              <section className="help" aria-labelledby="help-heading">
+                <h2 id="help-heading">Mau ikut bantu?</h2>
+
+                {open.length > 0 ? (
+                  <ul className="seat-list">
+                    {open.map((seat) => (
+                      <li key={seat.id}>
+                        <div>
+                          <h3>{roleLabel(seat.role)}</h3>
+                          <p>{seat.brief}</p>
+                          {seat.commitment ? (
+                            <p className="seat-commitment">{seat.commitment}</p>
+                          ) : null}
+                        </div>
+                        {isOwner ? (
+                          // apply_for_seat refuses the owner outright, so
+                          // offering them the form was a button that could
+                          // only ever fail.
+                          <p className="muted">Menunggu orang lain.</p>
+                        ) : viewer ? (
+                          viewerSeat ? (
+                            <p className="muted">
+                              {viewerSeat.status === "filled"
+                                ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role)}.`
+                                : "Lamaranmu masih menunggu jawaban."}
+                            </p>
+                          ) : (
+                            <details>
+                              <summary>Saya tertarik</summary>
+                              <form action={applyForSeat}>
+                                <input type="hidden" name="slug" value={project.slug} />
+                                <input type="hidden" name="seatId" value={seat.id} />
+                                <label htmlFor={`pitch-${seat.id}`}>
+                                  Ceritakan kenapa kamu cocok dan berapa waktu yang bisa kamu
+                                  luangkan.
+                                </label>
+                                <textarea
+                                  id={`pitch-${seat.id}`}
+                                  name="pitch"
+                                  rows={4}
+                                  required
+                                  placeholder="Contoh: saya pernah bantu riset serupa, bisa luangkan 3 jam per minggu."
+                                />
+                                <SubmitButton pendingLabel="Mengirim…">Kirim</SubmitButton>
+                              </form>
+                            </details>
+                          )
+                        ) : (
+                          <Link className="ghost-button" href={signInPath(returnTo)}>
+                            Masuk untuk ikut
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">
+                    Belum ada bantuan yang dicari.
+                    {isManager ? " Buka satu di bawah kalau ada yang bisa dibagi." : ""}
+                  </p>
+                )}
+
+                {!isManager && pending.length > 0 ? (
+                  <ul className="seat-list waiting-list">
+                    {pending.map((seat) => (
+                      <li key={seat.id}>
+                        <div>
+                          <h3>{roleLabel(seat.role)}</h3>
+                          <p>
+                            {seat.person?.id === viewer?.id
+                              ? "Lamaranmu sudah masuk, tinggal menunggu jawaban."
+                              : `${seat.person?.name ?? "Seseorang"} sedang menunggu jawaban.`}
+                          </p>
+                        </div>
+                        <span className="waiting-flag">Menunggu konfirmasi</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {isManager && pending.length > 0 ? (
+                  <div className="pending-list">
+                    <h3>Menunggu keputusanmu</h3>
+                    {pending.map((seat) => (
+                      <article key={seat.id} className="pending-card">
+                        <p>
+                          <strong>{seat.person?.name ?? "Seseorang"}</strong> mau bantu sebagai{" "}
+                          {roleLabel(seat.role)}
+                        </p>
+                        <blockquote>{seat.pitch}</blockquote>
+                        <form action={decideSeat}>
+                          <input type="hidden" name="slug" value={project.slug} />
+                          <input type="hidden" name="seatId" value={seat.id} />
+                          <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
+                            Terima
+                          </SubmitButton>
+                          <SubmitButton className="quiet" name="decision" value="tolak">
+                            Buka lagi
+                          </SubmitButton>
+                        </form>
+                      </article>
+                    ))}
+                  </div>
+                ) : null}
+
+                {isManager ? (
+                  <details className="owner-tool">
+                    <summary>Cari bantuan baru</summary>
+                    <form action={openSeat}>
+                      <input type="hidden" name="slug" value={project.slug} />
+                      <label htmlFor="new-seat-role">Bantu sebagai</label>
+                      <select id="new-seat-role" name="role" defaultValue="pm">
+                        {ROLES.map((role) => (
+                          <option key={role} value={role}>
+                            {roleMeta[role].label}
+                          </option>
+                        ))}
+                      </select>
+                      <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
+                      <textarea id="new-seat-brief" name="brief" rows={3} required />
+                      <label htmlFor="new-seat-commitment">Kira-kira berapa waktunya</label>
+                      <input
+                        id="new-seat-commitment"
+                        name="commitment"
+                        type="text"
+                        maxLength={MAXIMUM.commitment}
+                        placeholder="± 2 jam per minggu"
+                      />
+                      <SubmitButton pendingLabel="Membuka…">Buka</SubmitButton>
+                    </form>
+                  </details>
+                ) : null}
+              </section>
+            )}
+
+            <section className="journey-section" aria-labelledby="journey-heading">
+              <h2 id="journey-heading">Perjalanan project</h2>
+              <p className="muted">Ditulis orang yang mengerjakannya, dari yang terbaru.</p>
+
+              <JourneyList
+                updates={project.updates}
+                startedAt={project.createdAt}
+                slug={project.slug}
+                onDelete={
+                  isManager
+                    ? (update) => (
+                        <form className="journey-remove" action={deleteUpdate}>
+                          <input type="hidden" name="slug" value={project.slug} />
+                          <input type="hidden" name="updateId" value={update.id} />
+                          <SubmitButton className="quiet">Hapus</SubmitButton>
+                        </form>
+                      )
+                    : undefined
+                }
+              />
+
+              {isManager ? (
+                <details className="owner-tool">
+                  <summary>Tulis kabar baru</summary>
+                  <form action={postUpdate}>
+                    <input type="hidden" name="slug" value={project.slug} />
+                    <label htmlFor="update-title">Kabarnya apa</label>
+                    <input
+                      id="update-title"
+                      name="title"
+                      type="text"
+                      required
+                      minLength={UPDATE_LIMITS.title.min}
+                      maxLength={UPDATE_LIMITS.title.max}
+                      placeholder="Draft materi pertama selesai"
+                    />
+                    <label htmlFor="update-body">Ceritanya</label>
+                    <textarea
+                      id="update-body"
+                      name="body"
+                      rows={4}
+                      maxLength={UPDATE_LIMITS.body.max}
+                      placeholder="Apa yang berubah, apa yang dipelajari, apa yang berikutnya."
+                    />
+                    <SubmitButton pendingLabel="Mengirim…">Kirim kabar</SubmitButton>
+                  </form>
+                </details>
+              ) : null}
+            </section>
+
+            <section className="team" aria-labelledby="team-heading">
+              <h2 id="team-heading">Orang di balik project</h2>
+
+              <ul className="member-list">
+                <li>
+                  <span className="avatar" aria-hidden="true">
+                    {initials(project.owner.name)}
+                  </span>
+                  <span>
+                    <strong>
+                      <Link href={`/u/${project.owner.username}`}>{project.owner.name}</Link>
+                    </strong>
+                    <small>Yang memulai</small>
+                  </span>
+                </li>
+                {team.map((seat) => (
+                  <li key={seat.id}>
+                    <span className="avatar" aria-hidden="true">
+                      {initials(seat.person?.name ?? "?")}
+                    </span>
+                    <span>
+                      <strong>
+                        {seat.person ? (
+                          <Link href={`/u/${seat.person.username}`}>{seat.person.name}</Link>
+                        ) : (
+                          "Tanpa nama"
+                        )}
+                      </strong>
+                      <small>
+                        {roleLabel(seat.role)}
+                        {seat.access === "admin" ? <span className="access-badge">admin</span> : null}
+                      </small>
+                    </span>
+                  </li>
+                ))}
+              </ul>
 
               {isOwner && team.length > 0 ? (
                 <details className="owner-tool">
                   <summary>Atur akses</summary>
                   <p className="hint">
-                    Admin bisa mengurus tugas, membuka peran, dan menjawab lamaran. Brief, level, dan
-                    hapus proyek tetap cuma kamu.
+                    Admin bisa mengurus tugas, mencari bantuan, menjawab yang tertarik, dan menulis
+                    kabar. Brief, level, dan hapus project tetap cuma kamu.
                   </p>
                   {team.map((seat) => (
                     <form className="access-form" action={setSeatAccess} key={seat.id}>
@@ -359,138 +524,135 @@ export default async function ProjectPage({ params }: { params: Params }) {
               ) : null}
             </section>
 
-            <section className="tasks" aria-labelledby="tasks-heading">
-              <h2 id="tasks-heading">
-                Tugas
-                {project.tasks.length > 0 ? ` (${doneTasks} dari ${project.tasks.length} beres)` : ""}
-              </h2>
+            {/* The task list is for the people already on it, so it sits below
+                everything a visitor came for. */}
+            {(project.tasks.length > 0 || isManager) && (
+              <section className="tasks" aria-labelledby="tasks-heading">
+                <h2 id="tasks-heading">
+                  Tugas
+                  {project.tasks.length > 0 ? ` (${doneTasks} dari ${project.tasks.length} beres)` : ""}
+                </h2>
 
-              {project.tasks.length === 0 ? (
-                <p className="muted">
-                  Belum ada tugas di sini.
-                  {isManager ? " Tulis satu supaya orang tahu apa yang lagi jalan." : ""}
-                </p>
-              ) : (
-                TASK_ORDER.map((status) => {
-                  const items = project.tasks.filter((task) => task.status === status);
-                  if (items.length === 0) return null;
+                {project.tasks.length === 0 ? (
+                  <p className="muted">
+                    Belum ada tugas di sini.
+                    {isManager ? " Tulis satu supaya orang tahu apa yang lagi jalan." : ""}
+                  </p>
+                ) : (
+                  TASK_ORDER.map((status) => {
+                    const items = project.tasks.filter((task) => task.status === status);
+                    if (items.length === 0) return null;
 
-                  return (
-                    <div className="task-group" key={status}>
-                      <h3>{taskStatusMeta[status].label}</h3>
-                      <ul className="task-list">
-                        {items.map((task) => {
-                          const mine = Boolean(viewer && task.assignee?.id === viewer.id);
+                    return (
+                      <div className="task-group" key={status}>
+                        <h3>{taskStatusMeta[status].label}</h3>
+                        <ul className="task-list">
+                          {items.map((task) => {
+                            const mine = Boolean(viewer && task.assignee?.id === viewer.id);
 
-                          return (
-                            <li key={task.id} className={status === "done" ? "is-done" : ""}>
-                              <div>
-                                <h4>{task.title}</h4>
-                                {task.detail ? <p className="muted">{task.detail}</p> : null}
-                                <p className="task-holder">
-                                  {task.assignee ? (
-                                    <>
-                                      <span className="avatar" aria-hidden="true">
-                                        {initials(task.assignee.name)}
-                                      </span>
-                                      <Link href={`/u/${task.assignee.username}`}>
-                                        {task.assignee.name}
-                                      </Link>
-                                    </>
-                                  ) : (
-                                    <span className="muted">Belum ada yang ambil</span>
-                                  )}
-                                </p>
+                            return (
+                              <li key={task.id} className={status === "done" ? "is-done" : ""}>
+                                <div>
+                                  <h4>{task.title}</h4>
+                                  {task.detail ? <p className="muted">{task.detail}</p> : null}
+                                  <p className="task-holder">
+                                    {task.assignee ? (
+                                      <>
+                                        <span className="avatar" aria-hidden="true">
+                                          {initials(task.assignee.name)}
+                                        </span>
+                                        <Link href={`/u/${task.assignee.username}`}>
+                                          {task.assignee.name}
+                                        </Link>
+                                      </>
+                                    ) : (
+                                      <span className="muted">Belum ada yang ambil</span>
+                                    )}
+                                  </p>
 
-                                {isManager ? (
-                                  <form className="task-manage" action={assignTask}>
-                                    <input type="hidden" name="slug" value={project.slug} />
-                                    <input type="hidden" name="taskId" value={task.id} />
-                                    <label className="sr-only" htmlFor={`assignee-${task.id}`}>
-                                      Siapa yang pegang {task.title}
-                                    </label>
-                                    <select
-                                      id={`assignee-${task.id}`}
-                                      name="assigneeId"
-                                      defaultValue={task.assignee?.id ?? ""}
-                                    >
-                                      <option value="">Belum ada yang ambil</option>
-                                      {assignable.map((person) => (
-                                        <option key={person.id} value={person.id}>
-                                          {person.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <SubmitButton pendingLabel="Sebentar…">Simpan</SubmitButton>
-                                    <SubmitButton className="quiet" formAction={deleteTask}>
-                                      Hapus
-                                    </SubmitButton>
-                                  </form>
-                                ) : null}
-                              </div>
-
-                              <div className="task-side">
-                                <span className={`task-status ${taskStatusTone(task.status)}`}>
-                                  {taskStatusLabel(task.status)}
-                                </span>
-
-                                {mine || isManager ? (
-                                  <form className="task-move" action={moveTask}>
-                                    <input type="hidden" name="slug" value={project.slug} />
-                                    <input type="hidden" name="taskId" value={task.id} />
-                                    {TASK_STATUSES.map((next) => (
-                                      <SubmitButton
-                                        key={next}
-                                        name="status"
-                                        value={next}
-                                        disabled={next === task.status}
-                                        title={taskStatusMeta[next].blurb}
+                                  {isManager ? (
+                                    <form className="task-manage" action={assignTask}>
+                                      <input type="hidden" name="slug" value={project.slug} />
+                                      <input type="hidden" name="taskId" value={task.id} />
+                                      <label className="sr-only" htmlFor={`assignee-${task.id}`}>
+                                        Siapa yang pegang {task.title}
+                                      </label>
+                                      <select
+                                        id={`assignee-${task.id}`}
+                                        name="assigneeId"
+                                        defaultValue={task.assignee?.id ?? ""}
                                       >
-                                        {taskStatusMeta[next].label}
+                                        <option value="">Belum ada yang ambil</option>
+                                        {assignable.map((person) => (
+                                          <option key={person.id} value={person.id}>
+                                            {person.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <SubmitButton pendingLabel="Sebentar…">Simpan</SubmitButton>
+                                      <SubmitButton className="quiet" formAction={deleteTask}>
+                                        Hapus
                                       </SubmitButton>
-                                    ))}
-                                  </form>
-                                ) : null}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  );
-                })
-              )}
+                                    </form>
+                                  ) : null}
+                                </div>
 
-              {isManager ? (
-                <details className="owner-tool">
-                  <summary>Tambah tugas</summary>
-                  <form action={createTask}>
-                    <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="task-title">Tugasnya apa</label>
-                    <input id="task-title" name="title" type="text" required maxLength={120} />
-                    <label htmlFor="task-detail">Penjelasan singkat</label>
-                    <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
-                    <label htmlFor="task-assignee">Siapa yang pegang</label>
-                    <select id="task-assignee" name="assigneeId" defaultValue="">
-                      <option value="">Belum ada yang ambil</option>
-                      {assignable.map((person) => (
-                        <option key={person.id} value={person.id}>
-                          {person.name}
-                        </option>
-                      ))}
-                    </select>
-                    <SubmitButton pendingLabel="Menambah…">Tambah tugas</SubmitButton>
-                  </form>
-                </details>
-              ) : null}
-            </section>
+                                <div className="task-side">
+                                  <span className={`task-status ${taskStatusTone(task.status)}`}>
+                                    {taskStatusLabel(task.status)}
+                                  </span>
 
-            {history.length > 0 ? (
-              <section className="history" aria-labelledby="history-heading">
-                <h2 id="history-heading">Perjalanan proyek</h2>
-                <ActivityList events={history} showActor />
+                                  {mine || isManager ? (
+                                    <form className="task-move" action={moveTask}>
+                                      <input type="hidden" name="slug" value={project.slug} />
+                                      <input type="hidden" name="taskId" value={task.id} />
+                                      {TASK_STATUSES.map((next) => (
+                                        <SubmitButton
+                                          key={next}
+                                          name="status"
+                                          value={next}
+                                          disabled={next === task.status}
+                                          title={taskStatusMeta[next].blurb}
+                                        >
+                                          {taskStatusMeta[next].label}
+                                        </SubmitButton>
+                                      ))}
+                                    </form>
+                                  ) : null}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })
+                )}
+
+                {isManager ? (
+                  <details className="owner-tool">
+                    <summary>Tambah tugas</summary>
+                    <form action={createTask}>
+                      <input type="hidden" name="slug" value={project.slug} />
+                      <label htmlFor="task-title">Tugasnya apa</label>
+                      <input id="task-title" name="title" type="text" required maxLength={120} />
+                      <label htmlFor="task-detail">Penjelasan singkat</label>
+                      <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
+                      <label htmlFor="task-assignee">Siapa yang pegang</label>
+                      <select id="task-assignee" name="assigneeId" defaultValue="">
+                        <option value="">Belum ada yang ambil</option>
+                        {assignable.map((person) => (
+                          <option key={person.id} value={person.id}>
+                            {person.name}
+                          </option>
+                        ))}
+                      </select>
+                      <SubmitButton pendingLabel="Menambah…">Tambah tugas</SubmitButton>
+                    </form>
+                  </details>
+                ) : null}
               </section>
-            ) : null}
+            )}
 
             <section className="discussion" aria-labelledby="discussion-heading">
               <h2 id="discussion-heading">Diskusi ({project.comments.length})</h2>
@@ -510,7 +672,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 </form>
               ) : (
                 <p className="muted">
-                  <Link href={signInPath(returnTo)}>Masuk</Link> untuk ikut membahas ide ini.
+                  <Link href={signInPath(returnTo)}>Masuk</Link> untuk ikut membahas project ini.
                 </p>
               )}
 
@@ -533,31 +695,24 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 </ul>
               )}
             </section>
+
+            {history.length > 0 ? (
+              <section className="history" aria-labelledby="history-heading">
+                <h2 id="history-heading">Tercatat sistem</h2>
+                <p className="muted">
+                  Ditulis sendiri saat kejadian — bukan diketik. Melengkapi perjalanan di atas.
+                </p>
+                <ActivityList events={history} showActor />
+              </section>
+            ) : null}
           </div>
 
           <aside className="project-side">
             <section className="level-card">
-              <h2>Level proyek</h2>
-              <p className="muted">{stageMeta[project.stage].blurb}</p>
+              <h2>Sejauh ini</h2>
+              <RungRail stage={project.stage} />
 
-              <ol className="level-track">
-                {STAGES.filter((stage) => stage !== "resting").map((stage) => (
-                  <li
-                    key={stage}
-                    className={
-                      stage === project.stage
-                        ? "is-current"
-                        : passed(stage, project.stage)
-                          ? "is-passed"
-                          : ""
-                    }
-                  >
-                    <span>{stageMeta[stage].label}</span>
-                  </li>
-                ))}
-              </ol>
-
-              <h3>Syarat level ini</h3>
+              <h3>Syarat tahap ini</h3>
               <ul className="requirement-list">
                 {requirementsFor(project.stage, stageInput).map((requirement) => (
                   <li key={requirement.label} className={requirement.met ? "met" : ""}>
@@ -567,23 +722,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 ))}
               </ul>
 
-              <h3>Kelengkapan brief</h3>
-              <div
-                className="meter"
-                role="meter"
-                aria-valuenow={completeness}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Kelengkapan brief"
-              >
-                <span style={{ width: `${completeness}%` }} />
-              </div>
-              <p className="meter-value">{completeness}% terisi</p>
-
               {isOwner ? (
                 <form className="stage-form" action={setStage}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <h3>Pindahkan level</h3>
+                  <h3>Pindahkan tahap</h3>
                   <div className="stage-buttons">
                     {STAGES.filter((stage) => stage !== project.stage).map((stage) => {
                       const allowed = meetsStage(stage, stageInput);
@@ -596,7 +738,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                           title={
                             allowed
                               ? stageMeta[stage].blurb
-                              : "Syaratnya belum terpenuhi untuk level ini."
+                              : "Syaratnya belum terpenuhi untuk tahap ini."
                           }
                         >
                           {stageMeta[stage].label}
@@ -605,6 +747,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     })}
                   </div>
                 </form>
+              ) : null}
+
+              {project.followerCount > 0 ? (
+                <p className="follower-count">
+                  {project.followerCount} orang mengikuti project ini.
+                </p>
               ) : null}
             </section>
           </aside>
@@ -622,13 +770,9 @@ function toStageInput(project: ProjectDetail): StageInput {
     solution: project.solution,
     audience: project.audience,
     tags: project.tags,
+    nowText: project.nowText,
     docUrl: project.docUrl,
     repoUrl: project.repoUrl,
     liveUrl: project.liveUrl,
-    seatCount: project.seatCount,
   };
-}
-
-function passed(stage: Stage, current: Stage): boolean {
-  return STAGES.indexOf(stage) < STAGES.indexOf(current);
 }

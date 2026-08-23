@@ -47,8 +47,8 @@ function HeaderSearch() {
     <form className="header-search" method="get" action="/" role="search">
       <label>
         <SearchIcon />
-        <span className="sr-only">Cari proyek, masalah, atau topik</span>
-        <input type="search" name="q" placeholder="Cari proyek, masalah, atau topik…" autoComplete="off" />
+        <span className="sr-only">Cari project, topik, atau sesuatu yang ingin kamu bantu</span>
+        <input type="search" name="q" placeholder="Cari project, topik, atau sesuatu yang ingin kamu bantu…" autoComplete="off" />
       </label>
     </form>
   );
@@ -144,7 +144,7 @@ export async function SiteHeader({
                 </button>
               </form>
               <Link className="primary-action" href="/new">
-                Taruh ide <Arrow />
+                Tunjukkan project <Arrow />
               </Link>
             </>
           ) : (
@@ -171,7 +171,7 @@ export async function SiteHeader({
                     Kotak masuk{waiting > 0 ? ` (${waiting})` : ""}
                   </Link>
                   <Link href={`/u/${viewer.username}`}>{viewer.name}</Link>
-                  <Link href="/new">Taruh ide</Link>
+                  <Link href="/new">Tunjukkan project</Link>
                   <form action={signOut}>
                     <button type="submit">Keluar</button>
                   </form>
@@ -190,7 +190,7 @@ export async function SiteHeader({
 /** One badge, two meanings — the label says which, rather than just a number. */
 function inboxLabel(incoming: number, unseen: number): string {
   const parts = [
-    incoming > 0 ? `${incoming} lamaran menunggu jawaban` : "",
+    incoming > 0 ? `${incoming} orang menunggu jawaban` : "",
     unseen > 0 ? `${unseen} kabar baru` : "",
   ].filter(Boolean);
 
@@ -210,7 +210,7 @@ export function SiteFooter() {
   return (
     <footer>
       <Brand footer />
-      <p>Ide kecil, dikerjakan bareng.</p>
+      <p>Tunjukkan yang sedang kamu bangun. Temukan yang mau ikut membantu.</p>
       <nav aria-label="Navigasi footer">
         <Link href="/">Jelajah</Link>
         <Link href="/orang">Orang</Link>

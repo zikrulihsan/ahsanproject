@@ -24,6 +24,10 @@ export const MAXIMUM = {
   pitch: 1000,
   comment: 2000,
   seatBrief: 400,
+  /** projects.now_text — one line, so it stays a sentence and not a changelog. */
+  now: 200,
+  /** seats.commitment — "± 2 jam per minggu", not a contract. */
+  commitment: 80,
 } as const;
 
 /** The raw form values, before tags are split into a list. */
@@ -42,7 +46,7 @@ export type BriefInput = {
 export type FieldErrors = Partial<Record<keyof BriefInput, string>>;
 
 const FIELD_LABELS: Record<keyof typeof MINIMUM, string> = {
-  title: "Nama proyek",
+  title: "Nama project",
   tagline: "Satu kalimat ringkas",
   problem: "Masalah yang mau dibereskan",
   solution: "Gambaran solusinya",
@@ -86,30 +90,6 @@ export function isHttpUrl(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-/** How full the brief is, 0–100. Drives the meter on the project page. */
-export function briefCompleteness(project: {
-  problem: string;
-  solution: string;
-  audience: string;
-  tags: string[];
-  docUrl: string;
-  repoUrl: string;
-  liveUrl: string;
-  seatCount: number;
-}): number {
-  const checks = [
-    project.problem.length >= MINIMUM.problem,
-    project.solution.length >= MINIMUM.solution,
-    project.audience.length >= MINIMUM.audience,
-    project.tags.length > 0,
-    Boolean(project.docUrl || project.repoUrl),
-    project.seatCount > 0,
-    Boolean(project.liveUrl),
-  ];
-
-  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
 /** The tag field as the database wants it: lowercase, unique, at most six. */

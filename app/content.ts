@@ -7,9 +7,9 @@ export const siteUrl = "https://ahsanproject-id.netlify.app";
 export const aboutPaths: Record<Lang, string> = { id: "/about", en: "/en/about" };
 
 export const homeMeta = {
-  title: "Ahsan Project — Tempat ide dikerjakan bareng",
+  title: "Ahsan Project — Tunjukkan yang sedang kamu bangun",
   description:
-    "Papan ide dan proyek terbuka. Tulis idemu lengkap dengan briefnya, buka peran untuk PM, designer, engineer, dan siapa pun yang mau ikut menggarap.",
+    "Tempat project bertemu orang yang ingin ikut mewujudkannya. Lihat apa yang sedang dibangun orang lain, ikuti perjalanannya, atau ikut mengerjakannya.",
 };
 
 /** The shared picture, for pages that do not draw a card of their own. */
@@ -74,23 +74,23 @@ export const about: Record<
     how: [
       {
         step: "01",
-        title: "Tulis idenya, jangan setengah",
-        body: "Setiap proyek wajib punya brief: masalah, gambaran solusi, dan untuk siapa. Yang kosongan tidak bisa dibuat.",
+        title: "Tunjukkan yang sedang kamu bangun",
+        body: "Ide, setengah jadi, atau sudah dipakai orang — semuanya boleh. Yang wajib cuma briefnya: masalahnya apa, buatnya apa, buat siapa.",
       },
       {
         step: "02",
-        title: "Buka peran yang kamu butuh",
-        body: "PM, designer, engineer, peneliti, penulis. Tulis apa yang perlu dibantu, biar yang tertarik tahu harus mulai dari mana.",
+        title: "Ceritakan perjalanannya",
+        body: "Satu kalimat tentang yang sedang dikerjakan sekarang, dan kabar tiap ada yang selesai atau berubah arah. Itu yang bikin projectmu terlihat hidup.",
       },
       {
         step: "03",
-        title: "Naik level pelan-pelan",
-        body: "Dari ide, divalidasi, dikerjakan, sampai sudah jalan. Levelnya cuma naik kalau syaratnya benar-benar terpenuhi.",
+        title: "Sebutkan bantuan yang kamu cari",
+        body: "Bukan lowongan — cukup bilang apa yang perlu dibantu dan kira-kira berapa waktunya, biar yang tertarik tahu mulai dari mana.",
       },
       {
         step: "04",
-        title: "Jejaknya jadi portofolio",
-        body: "Peran yang kamu jalani dan tugas yang kamu bereskan tercatat sendiri di profilmu — bukan diketik belakangan, jadi bisa dicek ke proyeknya.",
+        title: "Jejaknya jadi bukti kerja",
+        body: "Yang kamu bangun dan yang kamu bantu tercatat sendiri saat kejadiannya — bukan diketik belakangan, jadi bisa dicek ke projectnya.",
       },
     ],
   },
@@ -117,23 +117,23 @@ export const about: Record<
     how: [
       {
         step: "01",
-        title: "Write the idea down properly",
-        body: "Every project carries a brief: the problem, a guess at the solution, and who it is for. Empty ones cannot be created.",
+        title: "Show what you are building",
+        body: "An idea, a half-built thing, or something people already use — all of it belongs. The only requirement is the brief: the problem, what you are making, who it is for.",
       },
       {
         step: "02",
-        title: "Open the roles you need",
-        body: "PM, designer, engineer, researcher, writer. Say what you need help with, so whoever is interested knows where to start.",
+        title: "Tell its journey",
+        body: "One line about what you are working on right now, and a note whenever something lands or changes direction. That is what makes a project look alive.",
       },
       {
         step: "03",
-        title: "Level up slowly",
-        body: "From idea, to validating, to building, to live. A project only levels up once it actually meets the requirements.",
+        title: "Say what help you need",
+        body: "Not a vacancy — just what needs doing and roughly how much time it takes, so whoever is interested knows where to start.",
       },
       {
         step: "04",
-        title: "The trail becomes a portfolio",
-        body: "The roles you take and the tasks you finish are recorded as they happen — not typed up afterwards, so anyone can check them against the project.",
+        title: "The trail becomes proof of work",
+        body: "What you build and what you help with are recorded as they happen — not typed up afterwards, so anyone can check them against the project.",
       },
     ],
   },

@@ -442,6 +442,111 @@ select checks.equal((select count(*)::int from public.notices), 2, 'pelamar dika
 select checks.act_as('33333333-3333-4333-8333-333333333333');
 select checks.equal((select count(*)::int from public.notices), 0, 'kabar orang lain tidak terbaca');
 
+-- ----------------------------------------------------- kabar & mengikuti --
+
+-- The journey a project writes for itself: who may add to it, who may not,
+-- and the fact that it can never be quietly reworded after people read it.
+
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.denied($$
+  insert into public.updates (project_id, author_id, title, body)
+  select id, '33333333-3333-4333-8333-333333333333', 'Kabar dari anggota', 'Bukan urusan saya.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'anggota menulis kabar project');
+
+-- Dina is an admin here, and admins run the work.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.allowed($$
+  insert into public.updates (project_id, author_id, title, body)
+  select id, '22222222-2222-4222-8222-222222222222', 'Draft pertama selesai', 'Dua puluh topik terkumpul.'
+  from public.projects where slug = 'kelas-sore'
+$$, 'admin menulis kabar project');
+
+select checks.denied($$
+  insert into public.updates (project_id, author_id, title)
+  select id, '11111111-1111-4111-8111-111111111111', 'Atas nama orang lain'
+  from public.projects where slug = 'kelas-sore'
+$$, 'menulis kabar atas nama orang lain');
+
+-- No UPDATE policy and no update grant: a log entry can be removed, never
+-- reworded. Rewriting one after people have read it is a different lie from
+-- deleting it, and only one of the two is honest.
+-- Refused at the grant, before any policy is consulted, so it raises rather
+-- than quietly matching nothing.
+select checks.denied($$update public.updates set title = 'Diam-diam diganti'$$,
+                     'menulis ulang kabar yang sudah dibaca orang');
+select checks.equal((select title from public.updates limit 1), 'Draft pertama selesai',
+                    'kabar tetap seperti saat ditulis');
+
+select checks.equal((select count(*)::int from public.events where kind = 'update_posted'), 1,
+                    'menulis kabar meninggalkan jejak');
+
+-- A USING clause filters instead of raising, so this is checked by what
+-- survives rather than by checks.denied.
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+delete from public.updates;
+select checks.equal((select count(*)::int from public.updates), 1, 'orang luar tidak menghapus kabar');
+
+-- Following is a private intention with a public count: anybody may see who
+-- follows what, but only you can start or stop following as you.
+select checks.allowed($$
+  insert into public.follows (project_id, user_id)
+  select id, '44444444-4444-4444-8444-444444444444' from public.projects where slug = 'kelas-sore'
+$$, 'mengikuti project');
+
+select checks.denied($$
+  insert into public.follows (project_id, user_id)
+  select id, '33333333-3333-4333-8333-333333333333' from public.projects where slug = 'kelas-sore'
+$$, 'mengikuti atas nama orang lain');
+
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+delete from public.follows;
+select checks.equal((select count(*)::int from public.follows), 1,
+                    'orang lain tidak bisa membatalkan ikutan siapa-siapa');
+
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.allowed($$delete from public.follows where user_id = '44444444-4444-4444-8444-444444444444'$$,
+                      'berhenti mengikuti sendiri');
+
+-- The "sekarang" line is the freshness people read, so its timestamp is the
+-- trigger's to write and nobody else's.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+update public.projects set now_text = 'Menyusun jadwal minggu depan.', now_updated_at = '2001-01-01'
+where slug = 'kelas-sore';
+select checks.equal(
+  (select now_updated_at > '2020-01-01'::timestamptz from public.projects where slug = 'kelas-sore'),
+  true, 'tanggal "sekarang" ditulis trigger, bukan pengirimnya');
+
+-- An admin may write that one line and nothing else on the project row, which
+-- is exactly why set_now() is a function and not a policy.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+update public.projects set now_text = 'Lewat pintu belakang.' where slug = 'kelas-sore';
+select checks.equal((select now_text from public.projects where slug = 'kelas-sore'),
+                    'Menyusun jadwal minggu depan.', 'admin tidak menulis langsung ke barisnya');
+
+select checks.allowed($$
+  select public.set_now((select id from public.projects where slug = 'kelas-sore'), 'Menguji ke lima orang tua.')
+$$, 'admin menulis kalimat sekarang');
+select checks.equal((select now_text from public.projects where slug = 'kelas-sore'),
+                    'Menguji ke lima orang tua.', 'kalimatnya berubah');
+select checks.equal((select title from public.projects where slug = 'kelas-sore'),
+                    'Kelas Sore', 'brief-nya tidak ikut tersentuh');
+
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.denied($$
+  select public.set_now((select id from public.projects where slug = 'kelas-sore'), 'Anggota menulis.')
+$$, 'anggota menulis kalimat sekarang');
+
+-- Clearing the line can cost the project the level it stood on. It has to drop
+-- honestly rather than be refused by the CHECK constraint.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+update public.projects set stage = 'building' where slug = 'kelas-sore';
+select checks.allowed($$
+  select public.set_now((select id from public.projects where slug = 'kelas-sore'), '')
+$$, 'mengosongkan kalimat sekarang');
+select checks.equal((select stage from public.projects where slug = 'kelas-sore'), 'idea',
+                    'tanpa sandaran lain, tahapnya turun sendiri');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
@@ -454,6 +559,8 @@ select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.allowed($$delete from public.projects where slug = 'kelas-sore'$$, 'pemilik menghapus proyeknya');
 select checks.equal((select count(*)::int from public.seats), 0, 'peran ikut terhapus');
 select checks.equal((select count(*)::int from public.comments), 0, 'komentar ikut terhapus');
+select checks.equal((select count(*)::int from public.updates), 0, 'kabar ikut terhapus');
+select checks.equal((select count(*)::int from public.follows), 0, 'ikutan ikut terhapus');
 select checks.equal((select count(*)::int from public.boosts), 0, 'dukungan ikut terhapus');
 select checks.equal((select count(*)::int from public.tasks), 0, 'tugas ikut terhapus');
 

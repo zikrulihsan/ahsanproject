@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { roleLabel } from "../lib/roles";
-import { stageMeta, type Stage } from "../lib/stages";
-import type { ActivityEvent, ProjectSummary } from "../lib/data";
+import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
+import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
 import { activityParts } from "../lib/activity";
+import { journeyDate } from "../lib/updates";
 import { Arrow } from "./shell";
 
 export function StageBadge({ stage }: { stage: Stage }) {
   const meta = stageMeta[stage] ?? stageMeta.idea;
   return (
     <span className={`stage-badge ${meta.tone}`} title={meta.blurb}>
+      <i aria-hidden="true" />
       {meta.label}
     </span>
   );
@@ -35,148 +37,122 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
 /**
  * A project as a row on the board.
  *
- * The order is deliberate — progress before promotion: what
- * the project is, how far it has got, who is on it, and what help it is asking
- * for — support count sits to the side rather than leading.
+ * The order answers the three questions somebody arriving actually has, in the
+ * order they have them: what is this, what are they doing about it right now,
+ * and could I help. Everything that only measures the project — support count,
+ * task tallies, how many stages of four — is either further down or gone.
+ * There is no rank number: the board is a place to look around, not a chart.
  */
-export function ProjectRow({
-  project,
-  rank,
-  ribbon,
-}: {
-  project: ProjectSummary;
-  rank: number;
-  /** Only the leading row carries one, and it says what the sort actually did. */
-  ribbon?: string;
-}) {
-  const progress = stageProgress(project.stage);
+export function ProjectRow({ project }: { project: ProjectSummary }) {
   const helpers = project.activeMemberCount;
 
   return (
     <li>
-      <article className={`project-item ${ribbon ? "is-lead" : ""}`}>
-        {ribbon ? <span className="ribbon">{ribbon}</span> : null}
-        <div className="rank" aria-hidden="true">
-          {String(rank).padStart(2, "0")}
+      <article className="project-item">
+        <div className="project-head">
+          <span className={`project-logo level-${project.stage}`} aria-hidden="true">
+            {project.glyph || initials(project.title)}
+          </span>
+          <div>
+            <h3>
+              {/* Stretched over the whole row — see `.card-cover-link` in
+                  globals.css — so a tap anywhere that isn't one of the more
+                  specific links below still opens the project. */}
+              <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+                {project.title}
+              </Link>
+            </h3>
+            <p className="tagline">{project.tagline}</p>
+          </div>
+          <StageBadge stage={project.stage} />
         </div>
-        <span className={`project-logo level-${project.stage}`} aria-hidden="true">
-          {project.glyph || initials(project.title)}
-        </span>
 
-        <div className="project-main">
-          <div className="project-title-row">
-            <div>
-              <h3>
-                {/* Stretched over the whole row — see `.card-cover-link` in
-                    globals.css — so a tap anywhere that isn't one of the
-                    more specific links below still opens the project. */}
-                <Link className="card-cover-link" href={`/projects/${project.slug}`}>
-                  {project.title}
-                </Link>
-              </h3>
-              <StageBadge stage={project.stage} />
-            </div>
-            <Link
-              className="support-count"
-              href={`/projects/${project.slug}`}
-              aria-label={`${project.boostCount} dukungan untuk ${project.title}`}
-            >
-              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m12 5 7 8H5l7-8Z" />
-              </svg>
-              <span>{project.boostCount}</span>
-            </Link>
+        <NowLine project={project} />
+
+        {project.openRoles.length > 0 ? (
+          <div className="open-call">
+            <p className="open-call-head">
+              <span className="dot" aria-hidden="true" /> Terbuka untuk kontribusi
+            </p>
+            <SeatChips roles={project.openRoles} />
           </div>
+        ) : null}
 
-          <p className="tagline">{project.tagline}</p>
-
-          <ul className="project-meta">
-            {project.tags.slice(0, 3).map((tag) => (
-              <li key={tag}>
-                <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
-              </li>
-            ))}
-            <li className="updated">
-              <i aria-hidden="true" /> Ditaruh {timeAgo(project.createdAt)}
-            </li>
-          </ul>
-
-          <div className="progress-block">
-            <div className="progress-copy">
-              <span>Progres</span>
-              <strong>{progress.label}</strong>
-            </div>
-            <ul className={`progress-track ${project.stage === "resting" ? "is-resting" : ""}`}>
-              {[0, 1, 2, 3].map((step) => (
-                <li key={step} className={step < progress.done ? "is-done" : ""} />
-              ))}
-            </ul>
-          </div>
-
-          {/* The ask comes before the applause: each seat is its own link, so
-              "who needs a designer?" is one click from any row. */}
-          <div className="need-summary">
-            <span className="role-icon" aria-hidden="true">
-              <svg className="icon" viewBox="0 0 24 24">
-                <path d="M16 20v-2a4 4 0 0 0-8 0v2M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-              </svg>
+        <div className="project-foot">
+          <Link className="contributors" href={`/u/${project.owner.username}`}>
+            <span className="avatar" aria-hidden="true">
+              {initials(project.owner.name)}
             </span>
-            <div>
-              <small>
-                {project.openSeatCount > 0
-                  ? `Mencari ${project.openSeatCount} peran`
-                  : "Belum buka peran — diskusinya tetap terbuka"}
-              </small>
-              <SeatChips roles={project.openRoles} />
-            </div>
-          </div>
+            <small>
+              {project.owner.name}
+              {helpers > 0 ? ` + ${helpers} orang` : ""}
+            </small>
+          </Link>
 
-          <div className="project-bottom">
-            <Link className="contributors" href={`/u/${project.owner.username}`}>
-              <span className="avatar" aria-hidden="true">
-                {initials(project.owner.name)}
-              </span>
-              <small>
-                {project.owner.name}
-                {helpers > 0 ? ` · ${helpers} orang menggarap` : ""}
-              </small>
-            </Link>
+          <span className="row-freshness">{freshness(project)}</span>
 
-            <span className="row-activity">{workingNote(project)}</span>
-
-            <Link className="detail-link" href={`/projects/${project.slug}`}>
-              Lihat proyek <Arrow />
-            </Link>
-          </div>
+          <Link className="detail-link" href={`/projects/${project.slug}`}>
+            Lihat <Arrow />
+          </Link>
         </div>
       </article>
     </li>
   );
 }
 
-/** What is moving on a project, in one phrase. */
-function workingNote(project: ProjectSummary): string {
-  if (project.openTaskCount > 0) return `${project.openTaskCount} tugas jalan`;
-  if (project.doneTaskCount > 0) return `${project.doneTaskCount} tugas beres`;
-  if (project.commentCount > 0) return `${project.commentCount} komentar`;
-  return "Belum ada tugas";
+/**
+ * The line that makes a project look alive.
+ *
+ * A project started a year ago but touched last week is active; one started
+ * last week and untouched since is not. Neither of those is something a
+ * "created 1 year ago" line can tell you, which is why that line is gone.
+ */
+export function NowLine({ project }: { project: ProjectSummary }) {
+  if (!project.nowText) return null;
+
+  return (
+    <div className="now-line">
+      <p className="now-label">Sekarang</p>
+      <p className="now-text">{project.nowText}</p>
+    </div>
+  );
+}
+
+/** "Bergerak 3 hari lalu" — freshness, which beats any percentage of done. */
+export function freshness(project: ProjectSummary): string {
+  const when = timeAgo(project.lastActivityAt || project.createdAt);
+  return when ? `Bergerak ${when}` : "";
 }
 
 /**
- * How far along a project's four working levels it has got.
+ * Where the project is, as three dots.
  *
- * "Diistirahatkan" is a decision rather than a rung, so it keeps whatever the
- * track showed and says so in words instead of pretending to be step five.
+ * Not a bar and not a percentage: a project is not 68% finished, and drawing it
+ * that way is what made this look like a tracker. "Diistirahatkan" is a
+ * decision rather than a rung, so it says so in words instead of pretending to
+ * be a fourth dot.
  */
-export function stageProgress(stage: Stage): { done: number; label: string } {
-  const rungs: Stage[] = ["idea", "validating", "building", "live"];
-  const index = rungs.indexOf(stage);
-  if (index < 0) return { done: 0, label: `${stageMeta[stage].label} · sedang tidak digarap` };
+export function RungRail({ stage }: { stage: Stage }) {
+  const here = rungIndex(stage);
 
-  return {
-    done: index + 1,
-    label: `${stageMeta[stage].label} · ${index + 1} dari ${rungs.length} tahap`,
-  };
+  if (here < 0) {
+    return <p className="rung-resting">{stageMeta[stage].blurb}</p>;
+  }
+
+  return (
+    <ol className="rung-rail" aria-label="Perjalanan project">
+      {RUNGS.map((rung, index) => (
+        <li
+          key={rung}
+          className={index < here ? "is-passed" : index === here ? "is-here" : ""}
+          aria-current={index === here ? "step" : undefined}
+        >
+          <span className="rung-dot" aria-hidden="true" />
+          <span>{stageMeta[rung].label}</span>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 export function ProjectCard({
@@ -184,7 +160,7 @@ export function ProjectCard({
   contributionRole,
 }: {
   project: ProjectSummary;
-  /** Set on a portfolio's "ikut menggarap" card: the role held there. */
+  /** Set on a portfolio's "ikut membantu" card: the role held there. */
   contributionRole?: string;
 }) {
   return (
@@ -209,40 +185,12 @@ export function ProjectCard({
       ) : null}
       <p className="card-tagline">{project.tagline}</p>
 
-      <dl className="card-brief">
-        <dt>Masalah</dt>
-        <dd>{project.problem}</dd>
-      </dl>
+      {project.nowText ? <p className="card-now">Sekarang: {project.nowText}</p> : null}
 
       <SeatChips roles={project.openRoles} />
-      <TagRow tags={project.tags} />
-
-      <div className="card-meta">
-        <Link className="card-owner" href={`/u/${project.owner.username}`}>
-          <span className="avatar" aria-hidden="true">
-            {initials(project.owner.name)}
-          </span>
-          {project.owner.name}
-        </Link>
-        <span className="card-stats">
-          <span title="Dukungan">▲ {project.boostCount}</span>
-          <span title="Diskusi">💬 {project.commentCount}</span>
-        </span>
-      </div>
 
       <div className="card-footer">
-        <span>
-          {/* What is moving beats what is wanted, which beats what is finished. */}
-          {project.openTaskCount > 0
-            ? `${project.openTaskCount} tugas jalan`
-            : project.openSeatCount > 0
-              ? `${project.openSeatCount} peran terbuka`
-              : project.doneTaskCount > 0
-                ? `${project.doneTaskCount} tugas beres`
-                : project.activeMemberCount > 0
-                  ? `${project.activeMemberCount} orang menggarap`
-                  : "Belum buka peran"}
-        </span>
+        <span>{freshness(project)}</span>
         <Link className="round-arrow" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
           <Arrow diagonal />
         </Link>
@@ -254,19 +202,72 @@ export function ProjectCard({
 export function SeatChips({ roles, linked = true }: { roles: string[]; linked?: boolean }) {
   if (roles.length === 0) return null;
   return (
-    <ul className="seat-chips" aria-label="Peran yang dibuka">
+    <ul className="seat-chips" aria-label="Bantuan yang dicari">
       {roles.map((role, index) => (
         <li key={`${role}-${index}`}>
           {linked ? (
-            <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
-              {`Butuh ${roleLabel(role)}`}
+            <Link className="seat-chip" href={`/?lane=butuh-bantuan&role=${encodeURIComponent(role)}`}>
+              {roleLabel(role)}
             </Link>
           ) : (
-            <span className="seat-chip">{`Butuh ${roleLabel(role)}`}</span>
+            <span className="seat-chip">{roleLabel(role)}</span>
           )}
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * A project's journey, newest first.
+ *
+ * The entries people wrote, and — as the last line, always — the day the
+ * project started. That closing line is drawn from the project itself rather
+ * than stored, because "this began" is true of every project and nobody should
+ * have to type it.
+ */
+export function JourneyList({
+  updates,
+  startedAt,
+  slug,
+  onDelete,
+}: {
+  updates: UpdateView[];
+  startedAt: string;
+  slug: string;
+  /** Rendered under each entry when the viewer may remove it. */
+  onDelete?: (update: UpdateView) => React.ReactNode;
+}) {
+  return (
+    <ol className="journey">
+      {updates.map((update) => (
+        <li key={update.id}>
+          <p className="journey-when">{journeyDate(update.createdAt)}</p>
+          <div>
+            <h3>{update.title}</h3>
+            {update.body ? <p>{update.body}</p> : null}
+            <p className="journey-by">
+              {update.author ? (
+                <Link href={`/u/${update.author.username}`}>{update.author.name}</Link>
+              ) : (
+                "Seseorang"
+              )}{" "}
+              · {timeAgo(update.createdAt)}
+            </p>
+            {onDelete?.(update)}
+          </div>
+        </li>
+      ))}
+      <li className="journey-start">
+        <p className="journey-when">{journeyDate(startedAt)}</p>
+        <div>
+          <h3>Project dimulai</h3>
+          <p>
+            <Link href={`/projects/${slug}`}>Ditunjukkan di sini</Link> {timeAgo(startedAt)}.
+          </p>
+        </div>
+      </li>
+    </ol>
   );
 }
 
@@ -338,7 +339,7 @@ export function ActivityList({
             </p>
             <small>
               {timeAgo(event.createdAt)}
-              {gone ? " · proyeknya sudah dihapus" : ""}
+              {gone ? " · projectnya sudah dihapus" : ""}
               {isHidden ? " · cuma kamu yang lihat" : ""}
             </small>
           </li>

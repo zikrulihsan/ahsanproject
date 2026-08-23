@@ -57,6 +57,21 @@ async function html(path) {
   return response.text();
 }
 
+/**
+ * Just the feed list.
+ *
+ * The sidebar answers its own question — "who needs help right now" — whatever
+ * the board is filtered to, so a page-wide match would see projects the filter
+ * excluded and call it a leak. Anything about filtering looks in here.
+ */
+function feedList(page) {
+  const start = page.indexOf('<ul class="project-list">');
+  // Sliced to the outro rather than to the first </ul>: a row now contains its
+  // own list of chips, so the first close tag is inside the first card.
+  const end = page.indexOf('class="feed-outro"');
+  return start < 0 || end < 0 ? "" : page.slice(start, end);
+}
+
 const SEEDED = [
   "Tap Tap Dzikr",
   "Wecard",
@@ -70,50 +85,90 @@ const SEEDED = [
 
 test("papan menampilkan semua proyek bawaan", async () => {
   const page = await html("/");
-  assert.match(page, /<title>Ahsan Project — Tempat ide dikerjakan bareng<\/title>/i);
+  assert.match(page, /<title>Ahsan Project — Tunjukkan yang sedang kamu bangun<\/title>/i);
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
-test("saringan level mempersempit papan", async () => {
-  const page = await html("/?stage=idea");
-  assert.match(page, /Warung Antre/);
-  assert.doesNotMatch(page, /Tap Tap Dzikr/);
+test("saringan tahap mempersempit papan", async () => {
+  const list = feedList(await html("/?stage=idea"));
+  assert.match(list, /Warung Antre/);
+  assert.doesNotMatch(list, /Tap Tap Dzikr/);
 });
 
-test("saringan peran menampilkan proyek yang membukanya saja", async () => {
-  const page = await html("/?role=pm");
-  assert.match(page, /Invoice Cepat/);
-  assert.match(page, /Titip Jemput/);
-  assert.doesNotMatch(page, /Wecard/);
+test("tiap lajur menjawab pertanyaannya sendiri", async () => {
+  const building = feedList(await html("/?lane=dibangun"));
+  assert.match(building, /Titip Jemput/, "Titip Jemput sedang dibangun");
+  assert.doesNotMatch(building, /Tap Tap Dzikr/, "yang sudah berjalan bukan yang sedang dibangun");
+
+  const live = feedList(await html("/?lane=berjalan"));
+  assert.match(live, /Tap Tap Dzikr/);
+  assert.doesNotMatch(live, /Warung Antre/, "sebuah ide belum berjalan");
+
+  const helping = feedList(await html("/?lane=butuh-bantuan"));
+  assert.match(helping, /Tap Tap Dzikr/, "masih mencari designer");
+  assert.doesNotMatch(helping, /CariKontak/, "tidak sedang mencari siapa-siapa");
 });
 
-test("peran yang mengada-ada tidak mengosongkan papan", async () => {
-  const page = await html("/?role=hacker");
-  for (const name of SEEDED) assert.match(page, new RegExp(name));
+test("lajur yang mengada-ada jatuh ke lajur bawaan, bukan papan kosong", async () => {
+  const list = feedList(await html("/?lane=entah"));
+  for (const name of SEEDED) assert.match(list, new RegExp(name));
 });
 
-test("kartu di papan menyebut peran yang dibuka", async () => {
+test("saringan bantuan menampilkan project yang mencarinya saja", async () => {
+  const list = feedList(await html("/?lane=butuh-bantuan&role=pm"));
+  assert.match(list, /Invoice Cepat/);
+  assert.match(list, /Titip Jemput/);
+  assert.doesNotMatch(list, /Wecard/);
+});
+
+test("bantuan yang mengada-ada tidak mengosongkan papan", async () => {
+  const list = feedList(await html("/?role=hacker"));
+  for (const name of SEEDED) assert.match(list, new RegExp(name));
+});
+
+test("kartu di papan menyebut bantuan yang dicari", async () => {
+  const list = feedList(await html("/"));
+  assert.match(list, /Terbuka untuk kontribusi/);
+  assert.match(list, /Product Manager/);
+  assert.match(list, /Designer/);
+});
+
+test("kartu memimpin dengan yang sedang dikerjakan, bukan dengan angka", async () => {
+  const list = feedList(await html("/"));
+  assert.match(list, /Sekarang/, "kalimat sekarang ada di kartunya");
+  assert.match(list, /Menyusun materi keselamatan pertama/);
+  assert.match(list, /Bergerak /, "kesegaran, bukan persentase");
+  assert.doesNotMatch(list, /tahap<\/strong>/, "tidak ada lagi rel progres empat ruas");
+});
+
+test("papan membuka dengan ajakan, bukan dengan dasbor", async () => {
   const page = await html("/");
-  assert.match(page, /Butuh Product Manager/);
-  assert.match(page, /Butuh Designer/);
+  assert.match(page, /Temukan sesuatu yang layak dibantu/);
+  assert.match(page, /Lagi butuh tangan/, "sidebar menawarkan satu jalan masuk");
+  assert.match(page, /project sedang dibangun/, "dua angka kecil, bukan tiga");
 });
 
 test("pencarian membaca brief, bukan cuma judul", async () => {
-  const page = await html("/?q=antrean");
-  assert.match(page, /Warung Antre/);
-  assert.doesNotMatch(page, /Swegrowth/);
+  const list = feedList(await html("/?q=antrean"));
+  assert.match(list, /Warung Antre/);
+  assert.doesNotMatch(list, /Swegrowth/);
 });
 
 test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () => {
   // "memindai" cuma ada di kolom solusi Warung Antre, "kedai kopi" cuma di
   // audiensnya — dua kolom yang dulu tidak ikut dibaca.
-  const bySolution = await html("/?q=memindai");
+  const bySolution = feedList(await html("/?q=memindai"));
   assert.match(bySolution, /Warung Antre/);
   assert.doesNotMatch(bySolution, /Swegrowth/);
 
-  const byAudience = await html("/?q=kedai%20kopi");
+  const byAudience = feedList(await html("/?q=kedai%20kopi"));
   assert.match(byAudience, /Warung Antre/);
   assert.doesNotMatch(byAudience, /Swegrowth/);
+
+  // "keselamatan" hanya ada di kalimat "sekarang" Main Aman.
+  const byNow = feedList(await html("/?q=keselamatan%20pertama"));
+  assert.match(byNow, /Main Aman/);
+  assert.doesNotMatch(byNow, /Swegrowth/);
 });
 
 test("direktori orang menampilkan tiap profil dan tautannya", async () => {
@@ -135,20 +190,61 @@ test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
   assert.doesNotMatch(xml, /\/inbox/);
 });
 
-test("halaman proyek memuat brief, level, dan peran terbuka", async () => {
+test("halaman project memuat cerita, tahap, dan ajakan membantu", async () => {
   const page = await html("/projects/warung-antre");
   assert.match(page, /<title>Warung Antre — Ahsan Project<\/title>/i);
-  assert.match(page, /Masalah yang mau dibereskan/);
-  assert.match(page, /Level proyek/);
+  assert.match(page, /Tentang project ini/);
+  assert.match(page, /Masalah yang ingin dibereskan/);
+  assert.match(page, /Sejauh ini/);
+  assert.match(page, /Mau ikut bantu\?/);
   assert.match(page, /Researcher/);
-  assert.match(page, /Masuk untuk ambil peran/);
+  assert.match(page, /Masuk untuk ikut/);
 });
 
-test("halaman orang sekaligus jadi portofolionya", async () => {
+test("halaman project bercerita sebelum meminta bantuan", async () => {
+  const page = await html("/projects/main-aman");
+  // Understand, then contribute: the brief has to come before the invitation.
+  assert.ok(
+    page.indexOf("Tentang project ini") < page.indexOf("Mau ikut bantu?"),
+    "ceritanya dulu, ajakannya belakangan",
+  );
+  assert.ok(
+    page.indexOf("Sedang dikerjakan") < page.indexOf("Mau ikut bantu?"),
+    "yang sedang dikerjakan sebelum ajakan",
+  );
+});
+
+test("perjalanan project ditampilkan dari yang terbaru sampai hari pertamanya", async () => {
+  const page = await html("/projects/main-aman");
+  assert.match(page, /Perjalanan project/);
+  assert.match(page, /Draft materi pertama selesai/);
+  assert.match(page, /Mulai riset/);
+  assert.match(page, /Project dimulai/, "hari pertamanya selalu jadi baris terakhir");
+  assert.ok(
+    page.indexOf("Draft materi pertama selesai") < page.indexOf("Mulai riset"),
+    "yang terbaru di atas",
+  );
+});
+
+test("tamu ditawari mengikuti project, bukan cuma mendukungnya", async () => {
+  const page = await html("/projects/main-aman");
+  assert.match(page, /Ikuti project/);
+});
+
+test("bantuan yang dicari menyebut berapa waktunya", async () => {
+  const page = await html("/projects/tap-tap-dzikr");
+  assert.match(page, /3 jam per minggu/);
+});
+
+test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   const page = await html("/u/zikrulihsan");
   assert.match(page, /Zikrul Ihsan/);
-  assert.match(page, /Proyeknya/);
+  assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
+  assert.ok(
+    page.indexOf("Sedang dikerjakan") < page.indexOf("Jejak kerja"),
+    "karyanya dulu, jejaknya belakangan",
+  );
 });
 
 test("profil punya kartu bagikan sendiri, bukan gambar bawaan", async () => {
@@ -281,19 +377,21 @@ test("tamu tidak melihat kontrol pengelola", async () => {
   assert.doesNotMatch(page, /name="taskId"/);
 });
 
-test("kartu di papan menunjukkan tugas yang jalan", async () => {
-  const page = await html("/");
-  assert.match(page, /2 tugas jalan/, "Warung Antre punya dua tugas belum beres");
+test("daftar tugas tetap ada di halaman project", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.match(page, /Tulis brief-nya/);
+  assert.match(page, /Belum jalan/);
 });
 
-test("proyek tanpa tugas mengatakannya, bukan diam", async () => {
-  const page = await html("/projects/tap-tap-dzikr");
-  assert.match(page, /Belum ada tugas di sini/);
+test("project yang belum menulis kabar tidak berpura-pura", async () => {
+  const page = await html("/projects/warung-antre");
+  assert.match(page, /Sedang dikerjakan/);
+  assert.match(page, /Belum ada yang ditulis/);
 });
 
-test("profil menampilkan jejak, bukan cuma daftar proyek", async () => {
+test("profil menampilkan jejak, bukan cuma daftar project", async () => {
   const page = await html("/u/zikrulihsan");
-  assert.match(page, /Jejak/);
+  assert.match(page, /Jejak kerja/);
   assert.match(page, /menaruh ide/);
   assert.match(page, /membereskan tugas/);
 });

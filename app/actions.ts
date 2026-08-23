@@ -7,6 +7,7 @@ import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from
 import { isRole } from "./lib/roles";
 import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
+import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
 import { currentViewer } from "./lib/session";
 
@@ -31,21 +32,39 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     solution: text(formData, "solution"),
     audience: text(formData, "audience"),
     tags: text(formData, "tags"),
+    now: text(formData, "now").slice(0, MAXIMUM.now),
+    stage: text(formData, "stage"),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
     seatRole: text(formData, "seatRole"),
     seatBrief: text(formData, "seatBrief"),
+    seatCommitment: text(formData, "seatCommitment").slice(0, MAXIMUM.commitment),
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu sebelum menaruh ide di sini." }, values };
+  if (!viewer) return { errors: { form: "Masuk dulu sebelum menunjukkan project di sini." }, values };
 
   const errors: CreateState["errors"] = validateBrief(values);
   if (values.seatBrief && !isRole(values.seatRole)) {
     errors.form = "Pilih peran untuk bantuan yang kamu cari.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
+
+  // The level somebody picks has to be one the project actually earns; a badge
+  // is a claim, and an unearned claim is the one thing this board will not
+  // carry. Anything that does not hold up settles to the highest level it does.
+  const tags = normaliseTags(values.tags);
+  const stage = settleStage(isStage(values.stage) ? values.stage : "idea", {
+    problem: values.problem,
+    solution: values.solution,
+    audience: values.audience,
+    tags,
+    nowText: values.now,
+    docUrl: values.docUrl,
+    repoUrl: values.repoUrl,
+    liveUrl: values.liveUrl,
+  });
 
   let slug = "";
   try {
@@ -59,14 +78,18 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         title: values.title,
         tagline: values.tagline,
         owner_id: viewer.id,
-        stage: values.liveUrl ? "building" : "idea",
+        stage,
         problem: values.problem,
         solution: values.solution,
         audience: values.audience,
+        now_text: values.now,
+        // The trigger only touches this on UPDATE, so a project that starts
+        // life already saying what it is doing gets its first timestamp here.
+        now_updated_at: values.now ? new Date().toISOString() : null,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
-        tags: normaliseTags(values.tags),
+        tags,
         glyph: pick(GLYPHS, values.tagline),
       })
       .select("id")
@@ -78,6 +101,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         project_id: project.id,
         role: values.seatRole,
         brief: values.seatBrief.slice(0, MAXIMUM.seatBrief),
+        commitment: values.seatCommitment,
       });
       if (seatError) throw new Error(seatError.message);
     }
@@ -105,13 +129,14 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     solution: text(formData, "solution"),
     audience: text(formData, "audience"),
     tags: text(formData, "tags"),
+    now: text(formData, "now").slice(0, MAXIMUM.now),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah proyek ini." }, values };
+  if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah project ini." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
   if (Object.keys(errors).length > 0) return { errors, values };
@@ -120,13 +145,13 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     const supabase = await requireSupabase();
     const { data: project, error } = await supabase
       .from("project_overview")
-      .select("id, owner_id, stage, seat_count")
+      .select("id, owner_id, stage")
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!project) return { errors: { form: "Proyeknya tidak ketemu." }, values };
+    if (!project) return { errors: { form: "Projectnya tidak ketemu." }, values };
     if (project.owner_id !== viewer.id) {
-      return { errors: { form: "Cuma pemilik proyek yang bisa mengubahnya." }, values };
+      return { errors: { form: "Cuma pemilik project yang bisa mengubahnya." }, values };
     }
 
     const tags = normaliseTags(values.tags);
@@ -135,10 +160,10 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
       solution: values.solution,
       audience: values.audience,
       tags,
+      nowText: values.now,
       docUrl: values.docUrl,
       repoUrl: values.repoUrl,
       liveUrl: values.liveUrl,
-      seatCount: Number(project.seat_count),
     });
 
     const { error: updateError } = await supabase
@@ -149,6 +174,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         problem: values.problem,
         solution: values.solution,
         audience: values.audience,
+        now_text: values.now,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
@@ -207,10 +233,10 @@ export async function setStage(formData: FormData): Promise<void> {
     solution: project.solution,
     audience: project.audience,
     tags: project.tags,
+    nowText: project.now_text ?? "",
     docUrl: project.doc_url,
     repoUrl: project.repo_url,
     liveUrl: project.live_url,
-    seatCount: Number(project.seat_count),
   });
   if (!allowed) return;
 
@@ -234,6 +260,7 @@ export async function openSeat(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
   const role = text(formData, "role");
   const brief = text(formData, "brief").slice(0, MAXIMUM.seatBrief);
+  const commitment = text(formData, "commitment").slice(0, MAXIMUM.commitment);
   if (!isRole(role) || !brief) return;
 
   const supabase = await requireSupabase();
@@ -246,7 +273,7 @@ export async function openSeat(formData: FormData): Promise<void> {
 
   const { error } = await supabase
     .from("seats")
-    .insert({ project_id: project.id, role, brief });
+    .insert({ project_id: project.id, role, brief, commitment });
   if (error) throw new Error(error.message);
 
   revalidatePath(`/projects/${slug}`);
@@ -281,6 +308,129 @@ export async function decideSeat(formData: FormData): Promise<void> {
 
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
+}
+
+/* ------------------------------------------------------------------ *
+ * What the project is doing right now, and how it got here
+ * ------------------------------------------------------------------ */
+
+/**
+ * Rewrites the one line that says what the project is working on.
+ *
+ * Its own action rather than part of the brief, because it is meant to be
+ * changed often — a brief is written once and revisited, this is answered
+ * every couple of weeks, and burying it behind the whole edit form is what
+ * would make it go stale.
+ *
+ * `set_now()` rather than a plain update, for the reason `move_task` is a
+ * function too: row level security is row level, not column level, so the
+ * policy that let an admin write this line would also let them rewrite the
+ * brief. The function also settles the level, because clearing the line can
+ * cost a project the level it stood on — and `now_updated_at` is written by a
+ * trigger, so the freshness people read is never something a request can set.
+ */
+export async function setNow(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const now = text(formData, "now").slice(0, MAXIMUM.now);
+
+  const supabase = await requireSupabase();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!project) return;
+
+  const { error } = await supabase.rpc("set_now", { project: project.id, line: now });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
+/**
+ * Adds an entry to the project's journey.
+ *
+ * Deliberately append-only: `updates` has no UPDATE policy and no update
+ * grant, so a log entry can be written and removed but never quietly reworded
+ * after people have read it.
+ */
+export async function postUpdate(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const title = text(formData, "title").slice(0, UPDATE_LIMITS.title.max);
+  const body = text(formData, "body").slice(0, UPDATE_LIMITS.body.max);
+  if (Object.keys(validateUpdate({ title, body })).length > 0) return;
+
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const supabase = await requireSupabase();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!project) return;
+
+  const { error } = await supabase
+    .from("updates")
+    .insert({ project_id: project.id, author_id: viewer.id, title, body });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
+export async function deleteUpdate(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const updateId = Number(text(formData, "updateId"));
+  if (!Number.isInteger(updateId)) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("updates").delete().eq("id", updateId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+}
+
+/**
+ * Follow a project, or stop.
+ *
+ * Separate from support on purpose: supporting is a verdict, following is an
+ * intention to keep watching. Somebody should not have to praise a project to
+ * hear about it.
+ */
+export async function toggleFollow(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const viewer = await currentViewer();
+  if (!viewer) return;
+
+  const supabase = await requireSupabase();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!project) return;
+
+  const { data: existing } = await supabase
+    .from("follows")
+    .select("user_id")
+    .eq("project_id", project.id)
+    .eq("user_id", viewer.id)
+    .maybeSingle();
+
+  const { error } = existing
+    ? await supabase
+        .from("follows")
+        .delete()
+        .eq("project_id", project.id)
+        .eq("user_id", viewer.id)
+    : await supabase.from("follows").insert({ project_id: project.id, user_id: viewer.id });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/inbox");
 }
 
 /* ------------------------------------------------------------------ *
@@ -529,7 +679,7 @@ function text(formData: FormData, key: string): string {
 }
 
 async function freeSlug(supabase: Supabase, title: string): Promise<string> {
-  const base = slugify(title) || "proyek";
+  const base = slugify(title) || "project";
 
   for (let suffix = 0; suffix < 50; suffix += 1) {
     const candidate = suffix === 0 ? base : `${base}-${suffix + 1}`;

@@ -7,9 +7,11 @@ import type {
   ProjectOverviewRow,
   SeatRow,
   TaskRow,
+  UpdateRow,
 } from "./database.types";
 import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
+import { arrangeForYou, type Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
 
 export type Person = {
@@ -51,6 +53,12 @@ export type ProjectSummary = {
   liveUrl: string;
   repoUrl: string;
   createdAt: string;
+  /** What the project is working on right now. Empty until somebody says. */
+  nowText: string;
+  /** When that line last changed — the freshness signal people actually read. */
+  nowUpdatedAt: string | null;
+  /** Newest thing that happened anywhere on the project. */
+  lastActivityAt: string;
   owner: Pick<Person, "id" | "username" | "name">;
   seatCount: number;
   openSeatCount: number;
@@ -58,7 +66,9 @@ export type ProjectSummary = {
   openRoles: string[];
   activeMemberCount: number;
   boostCount: number;
+  followerCount: number;
   commentCount: number;
+  updateCount: number;
   openTaskCount: number;
   doneTaskCount: number;
 };
@@ -70,6 +80,8 @@ export type SeatView = {
   status: string;
   /** member | admin — see app/lib/access.ts. */
   access: string;
+  /** How much time the help would take, in the owner's words. May be empty. */
+  commitment: string;
   pitch: string;
   person: Pick<Person, "id" | "username" | "name"> | null;
 };
@@ -90,10 +102,20 @@ export type CommentView = {
   author: Pick<Person, "id" | "username" | "name">;
 };
 
+/** One entry in a project's journey, written by whoever runs the project. */
+export type UpdateView = {
+  id: number;
+  title: string;
+  body: string;
+  createdAt: string;
+  author: Pick<Person, "id" | "username" | "name"> | null;
+};
+
 export type ProjectDetail = ProjectSummary & {
   seats: SeatView[];
   tasks: TaskView[];
   comments: CommentView[];
+  updates: UpdateView[];
 };
 
 /** A seat somebody has applied for, shown from either side of the decision. */
@@ -109,19 +131,17 @@ export type ApplicationView = {
 };
 
 export type FeedQuery = {
+  lane?: Lane;
   stage?: string;
   tag?: string;
   /** One of ROLES — the feed only passes values isRole() has accepted. */
   role?: string;
   q?: string;
-  sort?: "terbaru" | "didukung" | "dibutuhkan";
+  /** Roles this visitor has held before, used to arrange the "untukmu" lane. */
+  familiarRoles?: readonly string[];
 };
 
-const SORT_COLUMN: Record<NonNullable<FeedQuery["sort"]>, string> = {
-  terbaru: "created_at",
-  didukung: "boost_count",
-  dibutuhkan: "open_seat_count",
-};
+export { LANES, isLane, arrangeForYou, type Lane } from "./feed";
 
 /* ------------------------------------------------------------------ *
  * Reads
@@ -154,33 +174,67 @@ function warnMissingTable(table: string): void {
   );
 }
 
+/**
+ * What each lane asks the database for.
+ *
+ * "untukmu" asks for everything and arranges it afterwards, in
+ * `arrangeForYou()` — what belongs at the top depends on who is looking, and
+ * that is not a thing an ORDER BY can express.
+ */
+const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: string }> = {
+  untukmu: { column: "last_activity_at" },
+  terbaru: { column: "created_at" },
+  "butuh-bantuan": { needsHelp: true, column: "last_activity_at" },
+  dibangun: { stage: "building", column: "last_activity_at" },
+  berjalan: { stage: "live", column: "last_activity_at" },
+};
+
 export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
+  const lane = query.lane ?? "untukmu";
+  const shape = LANE_QUERY[lane];
+
   const supabase = await getSupabase();
   if (!supabase) return seedFeed(query);
 
-  const sort = query.sort ?? "terbaru";
   let request = supabase.from("project_overview").select("*");
 
-  if (query.stage) request = request.eq("stage", query.stage);
+  // The lane's own stage wins over the filter chips, which are not offered in
+  // the lanes that already fix one.
+  const stage = shape.stage ?? query.stage;
+  if (stage) request = request.eq("stage", stage);
+  if (shape.needsHelp) request = request.gt("open_seat_count", 0);
   if (query.tag) request = request.contains("tags", [query.tag]);
   if (query.role) request = request.contains("open_roles", [query.role]);
   if (query.q) {
     // The whole brief, not just its opening: somebody searching "flutter"
-    // should find the project that only says so under solution.
+    // should find the project that only says so under solution. `now_text` is
+    // in there too — what a project is doing right now is worth finding by.
     const term = `%${escapeLike(query.q)}%`;
     request = request.or(
       `title.ilike.${term},tagline.ilike.${term},problem.ilike.${term},` +
-        `solution.ilike.${term},audience.ilike.${term}`,
+        `solution.ilike.${term},audience.ilike.${term},now_text.ilike.${term}`,
     );
   }
 
   const { data, error } = await request
-    .order(SORT_COLUMN[sort], { ascending: false })
+    .order(shape.column, { ascending: false })
     .order("id", { ascending: false })
     .limit(120);
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map(toSummary);
+  const projects = (data ?? []).map(toSummary);
+  return lane === "untukmu" ? arrangeForYou(projects, query.familiarRoles) : projects;
+}
+
+/** The roles somebody has held or applied for — what "untukmu" leans on. */
+export async function familiarRoles(userId: string): Promise<string[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.from("seats").select("role").eq("user_id", userId);
+  if (error) throw new Error(error.message);
+
+  return [...new Set((data ?? []).map((row) => row.role))];
 }
 
 /**
@@ -199,7 +253,7 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
   if (error) throw new Error(error.message);
   if (!project) return null;
 
-  const [seats, comments, tasks] = await Promise.all([
+  const [seats, comments, tasks, updates] = await Promise.all([
     supabase
       .from("seats")
       .select("*, person:profiles(id, username, name)")
@@ -217,15 +271,23 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
       .select("*, assignee:profiles!tasks_assignee_id_fkey(id, username, name)")
       .eq("project_id", project.id)
       .order("id"),
+    supabase
+      .from("updates")
+      .select("*, author:profiles(id, username, name)")
+      .eq("project_id", project.id)
+      .order("id", { ascending: false }),
   ]);
   if (seats.error) throw new Error(seats.error.message);
   if (comments.error) throw new Error(comments.error.message);
   if (tasks.error && !isMissingTable(tasks.error)) throw new Error(tasks.error.message);
   if (tasks.error) warnMissingTable("tasks");
+  if (updates.error && !isMissingTable(updates.error)) throw new Error(updates.error.message);
+  if (updates.error) warnMissingTable("updates");
 
   type SeatWithPerson = SeatRow & { person: BriefPerson | null };
   type CommentWithAuthor = CommentRow & { author: BriefPerson | null };
   type TaskWithAssignee = TaskRow & { assignee: BriefPerson | null };
+  type UpdateWithAuthor = UpdateRow & { author: BriefPerson | null };
 
   return {
     ...toSummary(project),
@@ -235,8 +297,16 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
       brief: seat.brief,
       status: seat.status,
       access: seat.access,
+      commitment: seat.commitment ?? "",
       pitch: seat.pitch,
       person: seat.person ?? null,
+    })),
+    updates: (((updates.data ?? []) as UpdateWithAuthor[] | null) ?? []).map((entry) => ({
+      id: entry.id,
+      title: entry.title,
+      body: entry.body,
+      createdAt: entry.created_at,
+      author: entry.author ?? null,
     })),
     tasks: ((tasks.data ?? []) as TaskWithAssignee[] | null ?? []).map((task) => ({
       id: task.id,
@@ -344,6 +414,56 @@ export async function listPeople(limit = 200): Promise<Person[]> {
   if (error) throw new Error(error.message);
 
   return (data ?? []).map(toPerson);
+}
+
+/**
+ * Everybody, with what they are actually working on.
+ *
+ * A directory of headlines is a thin CV wall; what makes somebody worth
+ * opening here is the work with their name on it. Built from one pass over the
+ * board and one pass over the filled seats rather than a portfolio query per
+ * person, so the page costs two round trips however many people there are.
+ */
+export type PersonAtWork = {
+  person: Person;
+  building: ProjectSummary[];
+  helping: ProjectSummary[];
+};
+
+export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
+  const [people, projects] = await Promise.all([listPeople(limit), listProjects({ lane: "terbaru" })]);
+
+  const byId = new Map(projects.map((project) => [project.id, project]));
+  const helping = new Map<string, ProjectSummary[]>();
+
+  const supabase = await getSupabase();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("seats")
+      .select("project_id, user_id")
+      .eq("status", "filled");
+    if (error) throw new Error(error.message);
+
+    for (const seat of data ?? []) {
+      const project = seat.user_id ? byId.get(seat.project_id) : undefined;
+      if (!project || !seat.user_id) continue;
+      helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
+    }
+  } else {
+    for (const project of seedProjects) {
+      for (const seat of project.seats) {
+        const summary = seat.status === "filled" && seat.userId ? byId.get(project.id) : undefined;
+        if (!summary || !seat.userId) continue;
+        helping.set(seat.userId, [...(helping.get(seat.userId) ?? []), summary]);
+      }
+    }
+  }
+
+  return people.map((person) => ({
+    person,
+    building: projects.filter((project) => project.owner.id === person.id),
+    helping: helping.get(person.id) ?? [],
+  }));
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
@@ -645,6 +765,77 @@ export async function listProjectActivity(projectId: number, limit = 20): Promis
   return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
 }
 
+export async function isFollowing(projectId: number, userId: string): Promise<boolean> {
+  const supabase = await getSupabase();
+  if (!supabase) return false;
+
+  const { data, error } = await supabase
+    .from("follows")
+    .select("user_id")
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("follows");
+    return false;
+  }
+
+  return Boolean(data);
+}
+
+/** An update, with enough of its project to read as a line in somebody's inbox. */
+export type FollowedUpdate = UpdateView & { project: { slug: string; title: string } };
+
+/**
+ * What has moved on the projects somebody follows.
+ *
+ * This is the whole point of following: the inbox is where a follow pays off,
+ * otherwise the button is decoration. Two queries rather than an embed with a
+ * filter, because "updates whose project I follow" is a join PostgREST cannot
+ * express from this side.
+ */
+export async function listFollowedUpdates(userId: string, limit = 12): Promise<FollowedUpdate[]> {
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const follows = await supabase.from("follows").select("project_id").eq("user_id", userId);
+  if (follows.error) {
+    if (!isMissingTable(follows.error)) throw new Error(follows.error.message);
+    warnMissingTable("follows");
+    return [];
+  }
+
+  const projectIds = (follows.data ?? []).map((row) => row.project_id);
+  if (projectIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("updates")
+    .select("*, author:profiles(id, username, name), project:projects(slug, title)")
+    .in("project_id", projectIds)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("updates");
+    return [];
+  }
+
+  type Row = UpdateRow & {
+    author: BriefPerson | null;
+    project: { slug: string; title: string } | null;
+  };
+
+  return ((data ?? []) as Row[]).map((entry) => ({
+    id: entry.id,
+    title: entry.title,
+    body: entry.body,
+    createdAt: entry.created_at,
+    author: entry.author ?? null,
+    project: entry.project ?? { slug: "", title: "Project yang sudah dihapus" },
+  }));
+}
+
 export async function hasBoosted(projectId: number, userId: string): Promise<boolean> {
   const supabase = await getSupabase();
   if (!supabase) return false;
@@ -686,7 +877,7 @@ function toApplication(row: unknown): ApplicationView {
     status: seat.status,
     pitch: seat.pitch,
     createdAt: seat.created_at,
-    project: seat.project ?? { slug: "", title: "Proyek terhapus" },
+    project: seat.project ?? { slug: "", title: "Project terhapus" },
     person: seat.person ?? null,
   };
 }
@@ -707,6 +898,11 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     liveUrl: row.live_url,
     repoUrl: row.repo_url,
     createdAt: row.created_at,
+    nowText: row.now_text ?? "",
+    nowUpdatedAt: row.now_updated_at ?? null,
+    // ?? keeps reads alive on a database that has not run 0010 yet; a board
+    // without the column simply falls back to "when the project last changed".
+    lastActivityAt: row.last_activity_at ?? row.created_at,
     owner: { id: row.owner_id, username: row.owner_username, name: row.owner_name },
     seatCount: Number(row.seat_count),
     openSeatCount: Number(row.open_seat_count),
@@ -715,7 +911,9 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     openRoles: row.open_roles ?? [],
     activeMemberCount: Number(row.active_member_count),
     boostCount: Number(row.boost_count),
+    followerCount: Number(row.follower_count ?? 0),
     commentCount: Number(row.comment_count),
+    updateCount: Number(row.update_count ?? 0),
     openTaskCount: Number(row.open_task_count),
     doneTaskCount: Number(row.done_task_count),
   };
@@ -742,7 +940,7 @@ function toActivity(row: EventRow & { actor?: BriefPerson | null }): ActivityEve
     createdAt: row.created_at,
     projectId: row.project_id,
     projectSlug: payload.slug ?? "",
-    projectTitle: payload.title ?? "proyek yang sudah dihapus",
+    projectTitle: payload.title ?? "project yang sudah dihapus",
     payload,
     actor: row.actor ?? null,
   };
@@ -790,6 +988,16 @@ function seedSummaries(): ProjectSummary[] {
         username: owner?.username ?? "ahsan",
         name: owner?.name ?? "Ahsan Project",
       },
+      nowText: project.now,
+      nowUpdatedAt: project.nowUpdatedAt || null,
+      lastActivityAt: [
+        project.createdAt,
+        project.nowUpdatedAt,
+        ...project.updates.map((entry) => entry.createdAt),
+      ]
+        .filter(Boolean)
+        .sort()
+        .at(-1) as string,
       seatCount: project.seats.length,
       openSeatCount: project.seats.filter((seat) => seat.status === "open").length,
       openRoles: [
@@ -799,7 +1007,9 @@ function seedSummaries(): ProjectSummary[] {
       ],
       activeMemberCount: project.seats.filter((seat) => seat.status === "filled").length,
       boostCount: 0,
+      followerCount: 0,
       commentCount: 0,
+      updateCount: project.updates.length,
       openTaskCount: project.tasks.filter((task) => task.status !== "done").length,
       doneTaskCount: project.tasks.filter((task) => task.status === "done").length,
     };
@@ -807,37 +1017,39 @@ function seedSummaries(): ProjectSummary[] {
 }
 
 function seedFeed(query: FeedQuery): ProjectSummary[] {
-  const sort = query.sort ?? "terbaru";
+  const lane = query.lane ?? "untukmu";
+  const shape = LANE_QUERY[lane];
   const needle = query.q?.toLowerCase() ?? "";
+  const stage = shape.stage ?? query.stage;
 
-  return seedSummaries()
-    .filter((project) => {
-      if (query.stage && project.stage !== query.stage) return false;
-      if (query.tag && !project.tags.includes(query.tag)) return false;
-      if (query.role && !project.openRoles.includes(query.role)) return false;
-      if (needle) {
-        const haystack = [
-          project.title,
-          project.tagline,
-          project.problem,
-          project.solution,
-          project.audience,
-        ]
-          .join(" ")
-          .toLowerCase();
-        if (!haystack.includes(needle)) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sort === "didukung") return b.boostCount - a.boostCount || newest(a, b);
-      if (sort === "dibutuhkan") return b.openSeatCount - a.openSeatCount || newest(a, b);
-      return newest(a, b);
-    });
-}
+  const matching = seedSummaries().filter((project) => {
+    if (stage && project.stage !== stage) return false;
+    if (shape.needsHelp && project.openSeatCount === 0) return false;
+    if (query.tag && !project.tags.includes(query.tag)) return false;
+    if (query.role && !project.openRoles.includes(query.role)) return false;
+    if (needle) {
+      const haystack = [
+        project.title,
+        project.tagline,
+        project.problem,
+        project.solution,
+        project.audience,
+        project.nowText,
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(needle)) return false;
+    }
+    return true;
+  });
 
-function newest(a: ProjectSummary, b: ProjectSummary): number {
-  return b.createdAt.localeCompare(a.createdAt) || b.id - a.id;
+  const ordered = matching.sort(
+    lane === "terbaru"
+      ? (a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id
+      : (a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt) || b.id - a.id,
+  );
+
+  return lane === "untukmu" ? arrangeForYou(ordered, query.familiarRoles) : ordered;
 }
 
 /** Seed projects where this person holds a filled seat, with the role held. */
@@ -867,6 +1079,7 @@ function seedDetail(slug: string): ProjectDetail | null {
       brief: seat.brief,
       status: seat.status,
       access: seat.access,
+      commitment: seat.commitment,
       pitch: seat.pitch,
       person: null,
     })),
@@ -886,5 +1099,12 @@ function seedDetail(slug: string): ProjectDetail | null {
         : null,
     })),
     comments: [],
+    updates: source.updates.map((entry, index) => ({
+      id: index + 1,
+      title: entry.title,
+      body: entry.body,
+      createdAt: entry.createdAt,
+      author: null,
+    })),
   };
 }
