@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
-import { signInPath } from "../lib/urls";
+import { boardPath, signInPath } from "../lib/urls";
 import { currentViewer } from "../lib/session";
 import { countIncomingApplications, countUnseenNotices } from "../lib/data";
 
@@ -44,7 +44,7 @@ function SearchIcon() {
  */
 function HeaderSearch() {
   return (
-    <form className="header-search" method="get" action="/" role="search">
+    <form className="header-search" method="get" action={boardPath} role="search">
       <label>
         <SearchIcon />
         <span className="sr-only">Cari proyek, masalah, atau topik</span>
@@ -55,7 +55,7 @@ function HeaderSearch() {
 }
 
 const LINKS: { href: string; label: string; key: Section }[] = [
-  { href: "/", label: "Jelajah", key: "jelajah" },
+  { href: boardPath, label: "Jelajah", key: "jelajah" },
   { href: "/orang", label: "Orang", key: "orang" },
   { href: "/about", label: "Tentang", key: "tentang" },
 ];
@@ -212,7 +212,7 @@ export function SiteFooter() {
       <Brand footer />
       <p>Ide kecil, dikerjakan bareng.</p>
       <nav aria-label="Navigasi footer">
-        <Link href="/">Jelajah</Link>
+        <Link href={boardPath}>Jelajah</Link>
         <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
         <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">

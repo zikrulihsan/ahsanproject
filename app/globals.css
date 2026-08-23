@@ -229,7 +229,7 @@ nav form { display: flex; margin: 0; }
 .ghost-button {
   align-items: center; background: transparent; border: 1px solid var(--line-2); border-radius: 100px;
   color: inherit; display: inline-flex; font-family: inherit; font-size: 13px; font-weight: 600;
-  padding: 14px 21px;
+  gap: 14px; padding: 14px 21px;
 }
 .ghost-button:hover { border-color: var(--ink); }
 form button[aria-busy="true"] { cursor: progress; opacity: .6; }
@@ -874,6 +874,116 @@ form button.danger:hover { background: #96320f; }
 .section-title { font-size: 22px; font-weight: 680; letter-spacing: -.04em; margin: 36px 0 18px; }
 .profile-content .section-title:first-child { margin-top: 0; }
 
+/* -------------------------------------------------------------- landing */
+
+/* The front door, and the only page here that argues for the site rather than
+   being it. The pitch borrows the story page's dark band; everything under it
+   is the board's own furniture — white cards on paper, real project rows — so
+   the promise and the product never look like two different products. */
+
+.landing-hero {
+  background: var(--ink-2); color: #f7f2e7;
+  padding: clamp(70px, 9vw, 126px) var(--gutter) clamp(60px, 7vw, 92px);
+}
+.landing-hero-inner { margin: 0 auto; max-width: var(--shell); }
+.landing-hero h1 {
+  font-size: clamp(46px, 7.6vw, 112px); font-weight: 560; letter-spacing: -.065em; line-height: .94;
+  margin-bottom: 26px; max-width: 16ch;
+}
+.landing-hero h1 em {
+  color: var(--lime); font-family: Georgia, "Times New Roman", serif; font-weight: 400;
+  letter-spacing: -.04em;
+}
+.landing-lead {
+  color: #b9c9c3; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.7; margin: 0 0 32px; max-width: 660px;
+}
+
+.landing-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.landing-cta {
+  align-items: center; background: var(--lime); border: 1px solid var(--lime); border-radius: 100px;
+  color: var(--ink-2); display: inline-flex; font-size: 14px; font-weight: 750; gap: 18px;
+  padding: 16px 24px; transition: background .2s ease, transform .2s ease;
+}
+.landing-cta:hover { background: #e8f7a0; transform: translateY(-2px); }
+.landing-cta:hover .arrow { transform: translateX(4px); }
+.landing-cta.is-quiet { background: transparent; border-color: rgba(255, 255, 255, .28); color: #f7f2e7; }
+.landing-cta.is-quiet:hover { background: rgba(255, 255, 255, .08); border-color: #f7f2e7; }
+.landing-reassurance { color: #8ea59c; font-size: 13px; margin: 16px 0 0; }
+
+/* Counted from the board itself, so the numbers cannot promise more than the
+   board actually holds. */
+.landing-stats {
+  border-top: 1px solid rgba(255, 255, 255, .16); display: flex; flex-wrap: wrap; gap: 18px 64px;
+  list-style: none; margin: clamp(44px, 5vw, 72px) 0 0; padding: 30px 0 0;
+}
+.landing-stats strong {
+  display: block; font-size: clamp(30px, 3.4vw, 44px); font-weight: 600; letter-spacing: -.05em;
+}
+.landing-stats span { color: #8ea59c; display: block; font-size: 12px; margin-top: 4px; }
+
+.landing-pillars {
+  display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 auto;
+  max-width: var(--shell); padding: clamp(48px, 5vw, 80px) var(--gutter) 0;
+}
+.landing-pillars article {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(24px, 2.4vw, 34px);
+}
+.pillar-number {
+  color: var(--coral); display: block; font-family: var(--font-geist-mono), monospace; font-size: 11px;
+  font-weight: 700; letter-spacing: .13em; margin-bottom: 16px;
+}
+.landing-pillars h2 { font-size: 21px; font-weight: 680; letter-spacing: -.035em; margin-bottom: 10px; }
+.landing-pillars p { color: var(--muted); font-size: 14.5px; line-height: 1.65; margin: 0; }
+
+/* The story page's four steps, on paper here rather than full width. */
+.landing .how-section {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  margin: clamp(48px, 5vw, 80px) auto 0; max-width: min(900px, 100%);
+  padding: clamp(40px, 4.6vw, 66px) clamp(24px, 3vw, 54px); width: calc(100% - var(--gutter) * 2);
+}
+
+.landing-board { margin: 0 auto; max-width: var(--shell); padding: clamp(48px, 5vw, 80px) var(--gutter); }
+.landing-board-head {
+  align-items: flex-end; display: flex; flex-wrap: wrap; gap: 18px 28px; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.landing-board-head h2 {
+  font-size: clamp(26px, 3vw, 38px); font-weight: 640; letter-spacing: -.045em; margin: 0;
+}
+.landing-board-head p { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 9px 0 0; max-width: 54ch; }
+.landing-roles { border-top: 1px solid var(--line); margin-top: 26px; padding-top: 22px; }
+.landing-roles .filter-row { flex-wrap: wrap; margin: 0; }
+
+/* ------------------------------------------------------------- CTA band */
+
+.submit-section {
+  align-items: end; background: var(--lime); display: grid; gap: clamp(28px, 4vw, 70px);
+  grid-template-columns: 1.1fr .9fr;
+  padding: clamp(62px, 7vw, 98px) max(var(--gutter), calc((100% - var(--shell)) / 2));
+}
+.submit-section > * { min-width: 0; }
+.submit-section .section-label { color: #4c6258; }
+.submit-section h2 {
+  font-size: clamp(36px, 5.2vw, 74px); font-weight: 620; letter-spacing: -.06em; line-height: .96; margin: 0;
+}
+.submit-section p { color: #3f544a; font-size: 16px; line-height: 1.7; margin: 0 0 24px; max-width: 470px; }
+.submit-section a {
+  align-items: center; background: var(--ink); border-radius: 100px; color: #fff; display: inline-flex;
+  font-size: 14px; font-weight: 750; gap: 22px; justify-content: space-between; min-width: 200px;
+  padding: 16px 22px;
+}
+.submit-section a:hover { background: var(--ink-2); }
+.submit-section a:hover .arrow { transform: translateX(4px); }
+/* A quiet way back for somebody who already has an account, without giving it
+   a second button that competes with the one above. */
+.landing-signin { color: #4c6258; font-size: 13px; margin: 18px 0 0; }
+.landing-signin a {
+  background: none; color: var(--ink); display: inline; font-weight: 700; min-width: 0; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.landing-signin a:hover { background: none; }
+
 /* ---------------------------------------------------------------- about */
 
 .page-narrow h1 { font-size: clamp(38px, 5vw, 60px); margin-bottom: 20px; }
@@ -984,6 +1094,8 @@ footer nav a:hover { color: var(--ink); }
   .project-side { position: static; }
   .profile-card { grid-template-columns: 220px minmax(0, 1fr); }
   .about-grid { gap: 32px; grid-template-columns: 1fr; }
+  .landing-pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .submit-section { grid-template-columns: 1fr; }
   footer { grid-template-columns: auto 1fr auto; }
   footer > p { display: none; }
 }
@@ -1025,6 +1137,13 @@ footer nav a:hover { color: var(--ink); }
   .profile-sidebar { border-bottom: 1px solid var(--line); border-right: 0; }
   .profile-content { padding: 22px 20px 26px; }
   .about-section { padding: 60px 20px 52px; }
+  .landing-hero { padding: 56px 20px 48px; }
+  .landing-hero h1 { max-width: none; }
+  .landing-stats { gap: 16px 30px; }
+  .landing-stats li { min-width: 88px; }
+  .landing-cta { flex: 1 0 auto; justify-content: center; }
+  .landing-pillars { grid-template-columns: 1fr; }
+  .submit-section { padding-left: 20px; padding-right: 20px; }
   .marquee { font-size: 26px; gap: 14px; margin-top: 52px; overflow: hidden; white-space: nowrap; }
   .marquee span:nth-of-type(2), .marquee i:nth-of-type(1) { display: none; }
   footer { align-items: flex-start; gap: 20px; grid-template-columns: 1fr; padding: 30px 20px; }

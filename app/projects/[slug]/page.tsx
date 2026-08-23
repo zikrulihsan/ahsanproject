@@ -14,7 +14,7 @@ import {
   setStage,
   toggleBoost,
 } from "../../actions";
-import { signInPath } from "../../lib/urls";
+import { boardPath, signInPath } from "../../lib/urls";
 import { SubmitButton } from "../../components/submit-button";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import { ActivityList, StageBadge, TagRow, initials, timeAgo } from "../../components/pieces";
@@ -94,7 +94,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
       <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
-            <Link href="/">Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
+            <Link href={boardPath}>Papan ide</Link> <span aria-hidden="true">/</span> {project.title}
           </p>
           {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah proyek</Link> : null}
         </div>

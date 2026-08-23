@@ -68,38 +68,66 @@ const SEEDED = [
   "Titip Jemput",
 ];
 
-test("papan menampilkan semua proyek bawaan", async () => {
+test("beranda menjual tempat ini dan mengajak bergabung", async () => {
   const page = await html("/");
   assert.match(page, /<title>Ahsan Project — Tempat ide dikerjakan bareng<\/title>/i);
+  assert.match(page, /Ideas to real impact/);
+  assert.match(page, /Together/);
+  assert.match(page, /membagikan project/);
+  assert.match(page, /Gabung sekarang/);
+  assert.match(page, /href="\/signup"/, "ajakannya harus benar-benar bisa diklik");
+  assert.match(page, /href="\/jelajah"/, "yang mau lihat-lihat dulu juga punya jalan");
+});
+
+test("beranda memakai proyek asli, bukan contoh karangan", async () => {
+  const page = await html("/");
+  // Diurutkan menurut yang paling butuh orang, jadi yang muncul empat teratas.
+  assert.match(page, /href="\/projects\//);
+  assert.ok(
+    SEEDED.some((name) => page.includes(name)),
+    "beranda harus memuat proyek yang benar-benar ada di papan",
+  );
+});
+
+test("yang sudah pernah dibagikan tetap sampai ke papan", async () => {
+  // Tautan lama menunjuk ke `/?…`; papannya pindah, saringannya jangan ikut hilang.
+  const response = await fetch(`${BASE}/?stage=idea`, { redirect: "manual" });
+  assert.ok([307, 308].includes(response.status), `dapat ${response.status}`);
+  assert.match(response.headers.get("location") ?? "", /\/jelajah\?stage=idea$/);
+});
+
+test("papan menampilkan semua proyek bawaan", async () => {
+  const page = await html("/jelajah");
+  assert.match(page, /<title>Papan proyek — Ahsan Project<\/title>/i);
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
 test("saringan level mempersempit papan", async () => {
-  const page = await html("/?stage=idea");
+  const page = await html("/jelajah?stage=idea");
   assert.match(page, /Warung Antre/);
   assert.doesNotMatch(page, /Tap Tap Dzikr/);
 });
 
 test("saringan peran menampilkan proyek yang membukanya saja", async () => {
-  const page = await html("/?role=pm");
+  const page = await html("/jelajah?role=pm");
   assert.match(page, /Invoice Cepat/);
   assert.match(page, /Titip Jemput/);
   assert.doesNotMatch(page, /Wecard/);
 });
 
 test("peran yang mengada-ada tidak mengosongkan papan", async () => {
-  const page = await html("/?role=hacker");
+  const page = await html("/jelajah?role=hacker");
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
 test("kartu di papan menyebut peran yang dibuka", async () => {
-  const page = await html("/");
+  const page = await html("/jelajah");
   assert.match(page, /Butuh Product Manager/);
   assert.match(page, /Butuh Designer/);
 });
 
 test("pencarian membaca brief, bukan cuma judul", async () => {
-  const page = await html("/?q=antrean");
+  const page = await html("/jelajah?q=antrean");
   assert.match(page, /Warung Antre/);
   assert.doesNotMatch(page, /Swegrowth/);
 });
@@ -107,11 +135,11 @@ test("pencarian membaca brief, bukan cuma judul", async () => {
 test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () => {
   // "memindai" cuma ada di kolom solusi Warung Antre, "kedai kopi" cuma di
   // audiensnya — dua kolom yang dulu tidak ikut dibaca.
-  const bySolution = await html("/?q=memindai");
+  const bySolution = await html("/jelajah?q=memindai");
   assert.match(bySolution, /Warung Antre/);
   assert.doesNotMatch(bySolution, /Swegrowth/);
 
-  const byAudience = await html("/?q=kedai%20kopi");
+  const byAudience = await html("/jelajah?q=kedai%20kopi");
   assert.match(byAudience, /Warung Antre/);
   assert.doesNotMatch(byAudience, /Swegrowth/);
 });
@@ -128,6 +156,7 @@ test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
   assert.equal(response.status, 200);
   const xml = await response.text();
   assert.match(xml, /<loc>https:\/\/ahsanproject-id\.netlify\.app\/<\/loc>/);
+  assert.match(xml, /\/jelajah/);
   assert.match(xml, /projects\/warung-antre/);
   assert.match(xml, /u\/zikrulihsan/);
   assert.match(xml, /\/orang/);
@@ -174,9 +203,11 @@ test("proyek juga punya kartu bagikannya sendiri", async () => {
   assert.equal(image.headers.get("content-type"), "image/png");
 });
 
-test("papan membawa gambar bagikan bawaan", async () => {
-  const page = await html("/");
-  assert.match(page, /property="og:image"[^>]*og\.png/);
+test("beranda dan papan sama-sama membawa gambar bagikan bawaan", async () => {
+  for (const path of ["/", "/jelajah"]) {
+    const page = await html(path);
+    assert.match(page, /property="og:image"[^>]*og\.png/);
+  }
 });
 
 test("halaman cerita tersedia dalam dua bahasa", async () => {
@@ -282,7 +313,7 @@ test("tamu tidak melihat kontrol pengelola", async () => {
 });
 
 test("kartu di papan menunjukkan tugas yang jalan", async () => {
-  const page = await html("/");
+  const page = await html("/jelajah");
   assert.match(page, /2 tugas jalan/, "Warung Antre punya dua tugas belum beres");
 });
 

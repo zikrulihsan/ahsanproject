@@ -13,7 +13,7 @@ import {
 } from "../lib/data";
 import { roleLabel } from "../lib/roles";
 import { currentViewer } from "../lib/session";
-import { signInPath } from "../lib/urls";
+import { boardLink, signInPath } from "../lib/urls";
 import { SubmitButton } from "../components/submit-button";
 
 export const dynamic = "force-dynamic";
@@ -119,7 +119,7 @@ export default async function InboxPage() {
 
           {mine.length === 0 ? (
             <p className="muted">
-              Kamu belum melamar ke mana-mana. <Link href="/?sort=dibutuhkan">Lihat proyek yang
+              Kamu belum melamar ke mana-mana. <Link href={boardLink({ sort: "dibutuhkan" })}>Lihat proyek yang
               paling butuh orang</Link>.
             </p>
           ) : (

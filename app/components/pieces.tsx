@@ -3,6 +3,7 @@ import { roleLabel } from "../lib/roles";
 import { stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary } from "../lib/data";
 import { activityParts } from "../lib/activity";
+import { boardLink } from "../lib/urls";
 import { Arrow } from "./shell";
 
 export function StageBadge({ stage }: { stage: Stage }) {
@@ -22,7 +23,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
       {tags.map((tag) =>
         linked ? (
           <li key={tag}>
-            <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+            <Link href={boardLink({ tag })}>#{tag}</Link>
           </li>
         ) : (
           <li key={tag}>#{tag}</li>
@@ -93,7 +94,7 @@ export function ProjectRow({
           <ul className="project-meta">
             {project.tags.slice(0, 3).map((tag) => (
               <li key={tag}>
-                <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+                <Link href={boardLink({ tag })}>#{tag}</Link>
               </li>
             ))}
             <li className="updated">
@@ -258,7 +259,7 @@ export function SeatChips({ roles, linked = true }: { roles: string[]; linked?: 
       {roles.map((role, index) => (
         <li key={`${role}-${index}`}>
           {linked ? (
-            <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
+            <Link className="seat-chip" href={boardLink({ role })}>
               {`Butuh ${roleLabel(role)}`}
             </Link>
           ) : (

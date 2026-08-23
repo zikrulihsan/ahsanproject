@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { homeMeta, shareCard } from "../content";
+import { boardMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
 import { ProjectRow, initials } from "../components/pieces";
 import { listPeople, listProjects, listTags, type FeedQuery, type ProjectSummary } from "../lib/data";
 import { ROLES, isRole, roleLabel, roleMeta } from "../lib/roles";
+import { boardLink, boardPath } from "../lib/urls";
 import { STAGES, isStage, stageMeta } from "../lib/stages";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: homeMeta.title,
-  description: homeMeta.description,
-  alternates: { canonical: "/" },
+  title: boardMeta.title,
+  description: boardMeta.description,
+  alternates: { canonical: boardPath },
   openGraph: shareCard({
-    title: homeMeta.title,
-    description: homeMeta.description,
-    url: "/",
+    title: boardMeta.title,
+    description: boardMeta.description,
+    url: boardPath,
   }),
 };
 
@@ -54,7 +55,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
 
   return (
     <>
-      <SiteHeader returnTo="/" active="jelajah" />
+      <SiteHeader returnTo={boardPath} active="jelajah" />
 
       <main id="main-content">
         {/* The level rail is the board's main cut, so it behaves like a set of
@@ -62,7 +63,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
         <div className="section-tabs">
           <ul aria-label="Saring menurut level proyek">
             <li>
-              <Link className={stage ? "" : "is-active"} href={linkTo({ tag, role, q, sort })}>
+              <Link className={stage ? "" : "is-active"} href={boardLink({ tag, role, q, sort })}>
                 Semua
               </Link>
             </li>
@@ -70,7 +71,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
               <li key={key}>
                 <Link
                   className={stage === key ? "is-active" : ""}
-                  href={linkTo({ stage: key, tag, role, q, sort })}
+                  href={boardLink({ stage: key, tag, role, q, sort })}
                   title={stageMeta[key].blurb}
                 >
                   {stageMeta[key].label}
@@ -100,7 +101,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                     <li key={option.key}>
                       <Link
                         className={sort === option.key ? "is-active" : ""}
-                        href={linkTo({ stage, tag, role, q, sort: option.key })}
+                        href={boardLink({ stage, tag, role, q, sort: option.key })}
                       >
                         {option.label}
                       </Link>
@@ -114,7 +115,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 board offers, before topic or popularity. */}
             <ul className="filter-row" aria-label="Saring menurut peran yang dibutuhkan">
               <li>
-                <Link className={`filter-chip ${role ? "" : "is-active"}`} href={linkTo({ stage, tag, q, sort })}>
+                <Link className={`filter-chip ${role ? "" : "is-active"}`} href={boardLink({ stage, tag, q, sort })}>
                   Semua peran
                 </Link>
               </li>
@@ -124,8 +125,8 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                     className={`filter-chip ${role === key ? "is-active" : ""}`}
                     href={
                       role === key
-                        ? linkTo({ stage, tag, q, sort })
-                        : linkTo({ stage, tag, role: key, q, sort })
+                        ? boardLink({ stage, tag, q, sort })
+                        : boardLink({ stage, tag, role: key, q, sort })
                     }
                     title={roleMeta[key].blurb}
                   >
@@ -142,7 +143,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                   Sedang menyaring{tag ? ` topik #${tag}` : ""}
                   {q ? ` pencarian “${q}”` : ""}.
                 </span>
-                <Link className="filter-chip" href={linkTo({ stage, role, sort })}>
+                <Link className="filter-chip" href={boardLink({ stage, role, sort })}>
                   Hapus saringan ✕
                 </Link>
               </p>
@@ -151,7 +152,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
             {projects.length === 0 ? (
               <p className="empty">
                 Belum ada yang cocok dengan saringan ini.{" "}
-                {filtered ? <Link href="/">Lihat semua proyek</Link> : <Link href="/new">Taruh ide pertamanya</Link>}.
+                {filtered ? <Link href={boardPath}>Lihat semua proyek</Link> : <Link href="/new">Taruh ide pertamanya</Link>}.
               </p>
             ) : (
               <ul className="project-list">
@@ -214,7 +215,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 <ul className="topic-cloud">
                   {tag ? (
                     <li>
-                      <Link className="is-active" href={linkTo({ stage, role, q, sort })}>
+                      <Link className="is-active" href={boardLink({ stage, role, q, sort })}>
                         #{tag} <b>✕</b>
                       </Link>
                     </li>
@@ -224,7 +225,7 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                     .slice(0, 12)
                     .map((entry) => (
                       <li key={entry.tag}>
-                        <Link href={linkTo({ stage, tag: entry.tag, role, q, sort })}>
+                        <Link href={boardLink({ stage, tag: entry.tag, role, q, sort })}>
                           #{entry.tag} <b>{entry.count}</b>
                         </Link>
                       </li>
@@ -265,7 +266,7 @@ function OpenRoles({ projects }: { projects: ProjectSummary[] }) {
 
       {openings.length === 0 ? (
         <p className="side-intro">
-          Belum ada peran terbuka di saringan ini. <Link href="/">Lihat semua proyek</Link>.
+          Belum ada peran terbuka di saringan ini. <Link href={boardPath}>Lihat semua proyek</Link>.
         </p>
       ) : (
         <ul className="role-list">
@@ -303,19 +304,4 @@ function topPeople(people: Awaited<ReturnType<typeof listPeople>>, projects: Pro
     .map((person) => ({ person, count: owned.get(person.id) ?? 0 }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
-}
-
-function linkTo(query: {
-  stage?: string;
-  tag?: string;
-  role?: string;
-  q?: string;
-  sort?: string;
-}): string {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value && !(key === "sort" && value === "terbaru")) params.set(key, value);
-  }
-  const search = params.toString();
-  return search ? `/?${search}` : "/";
 }

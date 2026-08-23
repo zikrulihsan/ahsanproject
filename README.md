@@ -58,7 +58,8 @@ confirmation off, sign-up signs people straight in instead.
 
 | Route | What it is |
 | --- | --- |
-| `/` | The board — every idea and project, filterable by level, tag and search |
+| `/` | The landing page — what this place is, and the invitation to join. A signed-in visitor is sent straight to the board, and any `/?…` address is handed on to it with its filters |
+| `/jelajah` | The board — every idea and project, filterable by level, tag and search |
 | `/projects/<slug>` | One project: brief, level, team, open roles, discussion |
 | `/u/<username>` | One person: their bio, the projects they own, the ones they help build |
 | `/new` | Post an idea. The brief is required — an empty project cannot be created |

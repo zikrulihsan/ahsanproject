@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { aboutPaths, siteUrl } from "./content";
+import { boardPath } from "./lib/urls";
 import { listPeople, listProjects } from "./lib/data";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,8 @@ export const dynamic = "force-dynamic";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
-    { url: `${siteUrl}/`, changeFrequency: "daily", priority: 1 },
+    { url: `${siteUrl}/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${siteUrl}${boardPath}`, changeFrequency: "daily", priority: 0.9 },
     { url: `${siteUrl}${aboutPaths.id}`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}${aboutPaths.en}`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/orang`, changeFrequency: "daily", priority: 0.7 },

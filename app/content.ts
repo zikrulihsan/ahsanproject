@@ -9,7 +9,61 @@ export const aboutPaths: Record<Lang, string> = { id: "/about", en: "/en/about" 
 export const homeMeta = {
   title: "Ahsan Project — Tempat ide dikerjakan bareng",
   description:
+    "Bagikan projectmu, buka kontribusi, dan temukan collaborator. Ahsan Project adalah papan ide terbuka supaya ide baik benar-benar berjalan.",
+};
+
+/** The board itself, which now lives one door in from the landing page. */
+export const boardMeta = {
+  title: "Papan proyek — Ahsan Project",
+  description:
     "Papan ide dan proyek terbuka. Tulis idemu lengkap dengan briefnya, buka peran untuk PM, designer, engineer, dan siapa pun yang mau ikut menggarap.",
+};
+
+/**
+ * The landing page: what this place is, for somebody who has never seen it.
+ *
+ * The copy lives here rather than in the component so the pitch can be read,
+ * argued with, and changed without touching layout.
+ */
+export const landing = {
+  eyebrow: "Ahsan Project",
+  headingTop: "Ideas to real impact.",
+  headingEm: "Together.",
+  lead: "Ahsan Project adalah tempat orang membagikan project, membuka kontribusi, dan menemukan collaborator—agar ide baik benar-benar berjalan.",
+  primaryCta: "Gabung sekarang",
+  secondaryCta: "Lihat papan proyek",
+  reassurance: "Gratis, dan idemu tetap milikmu.",
+  pillars: [
+    {
+      title: "Bagikan project",
+      body: "Tulis idemu terbuka: masalahnya apa, kira-kira solusinya bagaimana, dan buat siapa. Sekali ditulis, ia berhenti jadi wacana di kepala.",
+    },
+    {
+      title: "Buka kontribusi",
+      body: "Sebutkan peran yang kamu butuh — PM, designer, engineer, peneliti, penulis — supaya orang tahu persis di mana mereka bisa menolong.",
+    },
+    {
+      title: "Temukan collaborator",
+      body: "Ambil peran di proyek orang lain, atau terima yang melamar ke proyekmu. Jejaknya tercatat sendiri dan jadi portofoliomu.",
+    },
+  ],
+  boardHeading: "Yang sedang dikerjakan",
+  boardNote: "Semuanya proyek nyata di papan ini, lengkap dengan peran yang masih kosong.",
+  boardLink: "Lihat semua proyek",
+  rolesHeading: "Peran yang masih kosong",
+  emptyBoard: "Papannya masih kosong. Idemu bisa jadi yang pertama.",
+  closingEyebrow: "Ayo mulai",
+  closingHeading: "Ide baik tidak berhenti di kepala.",
+  closingBody:
+    "Bikin akun, taruh satu ide, buka satu peran. Sisanya dikerjakan bareng — mulai hari ini.",
+  closingCta: "Gabung sekarang",
+  closingAlt: "Sudah punya akun?",
+  closingAltCta: "Masuk",
+  stats: {
+    projects: "proyek di papan",
+    roles: "peran menunggu diisi",
+    people: "orang ikut menggarap",
+  },
 };
 
 /** The shared picture, for pages that do not draw a card of their own. */
