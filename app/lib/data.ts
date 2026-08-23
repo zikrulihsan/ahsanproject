@@ -227,6 +227,28 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
 }
 
 /**
+ * Topics are the tags people have actually used, ordered by how many projects
+ * carry each one. Count a tag at most once per project so a malformed duplicate
+ * cannot inflate the rail.
+ */
+export async function tagCounts(
+  query: FeedQuery = {},
+): Promise<{ tag: string; count: number }[]> {
+  const projects = await listProjects(query);
+  const counts = new Map<string, number>();
+
+  for (const project of projects) {
+    for (const tag of new Set(project.tags)) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "id"));
+}
+
+/**
  * How many seats each project has open, per role.
  *
  * `project_overview` only carries the distinct roles a project is asking for,

@@ -224,7 +224,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}&cari=peran`}>
+              <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
                 {label}
               </Link>
             ) : (
@@ -269,20 +269,12 @@ export function BoardCard({
 
         <p className="card-tagline">{project.tagline}</p>
 
-        {project.tags.length > 0 ? (
-          <ul className="card-tags">
-            {project.tags.slice(0, 3).map((tag) => (
-              <li key={tag}>
-                <Link href={`/?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <NowLine project={project} />
 
         <div className="card-roles">
           {project.openRoles.length > 0 ? (
             <>
-              <p className="card-roles-label">Peran yang dibutuhkan</p>
+              <p className="card-roles-label">Butuh:</p>
               <SeatChips roles={project.openRoles} counts={roleCounts} />
             </>
           ) : (
@@ -291,6 +283,18 @@ export function BoardCard({
               {freshness(project) ? ` · ${freshness(project)}` : ""}
             </p>
           )}
+        </div>
+
+        <div className="board-card-footer">
+          <Link className="contributors" href={`/u/${project.owner.username}`}>
+            <span className="avatar" aria-hidden="true">
+              {initials(project.owner.name)}
+            </span>
+            <small>
+              {project.owner.name} + {project.activeMemberCount} orang
+            </small>
+          </Link>
+          <span className="row-freshness">{freshness(project)}</span>
         </div>
       </article>
     </li>

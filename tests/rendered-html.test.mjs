@@ -133,17 +133,19 @@ test("bantuan yang mengada-ada tidak mengosongkan papan", async () => {
 
 test("kartu di papan menyebut bantuan yang dicari, berikut jumlahnya", async () => {
   const list = feedList(await html("/"));
-  assert.match(list, /Peran yang dibutuhkan/);
+  assert.match(list, /Butuh:/);
   assert.match(list, /Product Manager/);
   assert.match(list, /Designer/);
   // "Designer · 1" — berapa tangan yang dicari, bukan cuma perannya.
   assert.match(list, /<b> · <!-- -->1<\/b>/);
 });
 
-test("kartu menutup dengan peran, dan menyebut topiknya", async () => {
+test("kartu mengikuti urutan judul, sekarang, bantuan, lalu pemilik", async () => {
   const list = feedList(await html("/"));
-  assert.match(list, /card-tags/, "topiknya bisa diklik dari kartunya");
-  assert.match(list, /href="\/\?tag=anak"/);
+  assert.doesNotMatch(list, /card-tags/, "bidang sekarang hidup di rail, bukan di kartu");
+  assert.match(list, /class="now-line"/);
+  assert.match(list, /class="board-card-footer"/);
+  assert.match(list, /Zikrul Ihsan<!-- --> \+ <!-- -->0<!-- --> orang/);
   assert.match(
     list,
     /Belum membuka peran<!-- --> · Bergerak /,
@@ -152,37 +154,61 @@ test("kartu menutup dengan peran, dan menyebut topiknya", async () => {
   assert.doesNotMatch(list, /tahap<\/strong>/, "tidak ada lagi rel progres empat ruas");
 });
 
-test("papan membuka dengan tahap, judul, dan satu pertanyaan", async () => {
+test("papan membuka dengan rail bidang, tahap, dan peran", async () => {
   const page = await html("/");
-  assert.match(page, /Semua <small>8<\/small>/, "tab menghitung seluruh papan");
-  assert.match(page, /Ide<!-- --> <small>1<\/small>/, "tiap tahap membawa jumlahnya");
+  assert.match(page, />Bidang<\/h2>/);
+  assert.match(page, />Tahap<\/h2>/);
+  assert.match(page, />Butuh bantuan sebagai<\/h2>/);
+  assert.match(page, /Ide<\/span><small>1<\/small>/, "tiap tahap membawa jumlahnya");
+  assert.match(page, /umkm<\/span><small>2<\/small>/, "bidang berasal dari frekuensi tag");
+  assert.match(page, /\+ <!-- -->15<!-- --> lainnya/, "bidang selebihnya ada di disclosure");
   assert.match(page, /Temukan proyek/);
-  assert.match(page, /proyek aktif/, "dua angka kecil, bukan dasbor");
-  assert.match(page, /peran sedang dicari/);
-  assert.match(page, /Mau mulai dari mana\?/, "satu panel, dua cara mencari");
+  assert.match(page, /project ·/);
+  assert.match(page, /butuh tangan/);
+  assert.doesNotMatch(page, /Mau mulai dari mana\?/, "toggle lama sudah diganti rail");
   assert.match(page, /Cari nama proyek atau topik/);
 });
 
-test("tab tahap menyaring papan, dan menamai daftarnya", async () => {
+test("rail tahap menyaring papan dan menandai pilihan aktif", async () => {
   const page = await html("/?stage=building");
-  assert.match(page, /Yang sedang dibangun/);
+  assert.match(page, /rail-row is-active[^>]*aria-current="page"[^>]*title="Ada yang sedang menggarapnya/);
   const list = feedList(page);
   assert.match(list, /Titip Jemput/);
   assert.doesNotMatch(list, /Tap Tap Dzikr/, "yang sudah berjalan bukan yang sedang dibangun");
 });
 
-test("cari peran menawarkan peran yang benar-benar dicari", async () => {
+test("rail peran menawarkan peran yang benar-benar dicari dan menerima URL lama", async () => {
   const page = await html("/?cari=peran");
-  assert.match(page, /Semua peran/);
+  assert.match(page, /aria-label="Peran yang sedang dicari"/);
   assert.match(
     page,
-    /Designer<!-- --> <small>/,
+    /Designer<\/span><small>/,
     "tiap peran menyebut berapa project yang mencarinya",
   );
 
   const list = feedList(await html("/?cari=peran&role=design"));
   assert.match(list, /Tap Tap Dzikr/);
   assert.doesNotMatch(list, /CariKontak/, "tidak sedang mencari siapa-siapa");
+});
+
+test("bidang mengubah judul dan lingkup pencarian", async () => {
+  const page = await html("/?tag=umkm");
+  assert.match(page, /<h1 id="board-title">umkm<\/h1>/);
+  assert.match(page, /placeholder="Cari di umkm…"/);
+  assert.match(page, /bidang: <!-- -->umkm<!-- --> ✕/);
+  const list = feedList(page);
+  assert.match(list, /Invoice Cepat/);
+  assert.match(list, /Warung Antre/);
+  assert.doesNotMatch(list, /Tap Tap Dzikr/);
+});
+
+test("semua saringan aktif bisa dilepas sendiri atau sekaligus", async () => {
+  const page = await html("/?tag=umkm&stage=idea&role=research&q=antre");
+  assert.match(page, /bidang: <!-- -->umkm<!-- --> ✕/);
+  assert.match(page, /tahap: <!-- -->Ide<!-- --> ✕/);
+  assert.match(page, /peran: <!-- -->Researcher<!-- --> ✕/);
+  assert.match(page, /pencarian: “<!-- -->antre<!-- -->” ✕/);
+  assert.match(page, /Hapus semua saringan/);
 });
 
 test("urutan papan bisa diganti tanpa kehilangan saringannya", async () => {
