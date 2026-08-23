@@ -3,7 +3,7 @@
 /* =====================================================================
    Ahsan Project — design tokens
    =====================================================================
-   The redesign follows research.md: an application, not a landing page.
+   The board reads as an application rather than a landing page.
    Colour carries meaning rather than decoration — coral marks momentum and
    the thing you are meant to notice, lime marks the invitation to act, and
    the stage tints say how far a project has got. Everything else is ink on
@@ -412,12 +412,7 @@ form button[aria-busy="true"] { cursor: progress; opacity: .6; }
 .role-row em { color: #85908b; font-size: 11px; font-style: normal; }
 .role-row em b { color: #518467; }
 
-.people-list { list-style: none; margin: 8px 0 0; padding: 0; }
-.people-list li {
-  align-items: center; border-top: 1px solid var(--line-soft); display: grid; gap: 12px;
-  grid-template-columns: 36px minmax(0, 1fr) auto; padding: 12px 0;
-}
-.people-list li > a { align-items: center; display: contents; }
+/* .person-text and .person-count are shared with the people index below. */
 .person-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .person-text strong { font-size: 13px; }
 .person-text small { color: var(--muted); font-size: 11px; line-height: 1.45; }
@@ -812,7 +807,6 @@ form button.danger:hover { background: #96320f; }
 .application-status { font-size: 13px; font-weight: 650; margin: 14px 0 0; }
 .status-pending { color: #7a5a05; }
 .status-filled { color: var(--moss); }
-.status-open { color: var(--muted); font-weight: 500; }
 
 /* --------------------------------------------------------- people index */
 

@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { getSupabase } from "./supabase";
+import { getSupabase, type Supabase } from "./supabase";
 import type {
   CommentRow,
   EventRow,
@@ -10,6 +10,7 @@ import type {
 } from "./database.types";
 import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
+import { PROJECT_MEMORY_KINDS } from "./activity";
 
 export type Person = {
   id: string;
@@ -373,15 +374,54 @@ const APPLICATION_COLUMNS =
   "project:projects!inner(slug, title, owner_id), " +
   "person:profiles(id, username, name)";
 
-/** Applications waiting on this person's own projects. */
+/**
+ * Which projects this person may answer applications on.
+ *
+ * The same set `can_manage_project()` decides in the database: the ones they
+ * own, plus the ones they hold an admin seat on. It takes two queries rather
+ * than one because PostgREST cannot express "owner of the parent row, or holder
+ * of a sibling row" as a single filter — they go out together, so the header
+ * badge pays one extra round trip rather than two, and both are index lookups.
+ */
+async function managedProjectIds(supabase: Supabase, userId: string): Promise<number[]> {
+  const [owned, administered] = await Promise.all([
+    supabase.from("projects").select("id").eq("owner_id", userId),
+    supabase
+      .from("seats")
+      .select("project_id")
+      .eq("user_id", userId)
+      .eq("status", "filled")
+      .eq("access", "admin"),
+  ]);
+  if (owned.error) throw new Error(owned.error.message);
+  if (administered.error) throw new Error(administered.error.message);
+
+  return [
+    ...new Set([
+      ...(owned.data ?? []).map((row) => row.id),
+      ...(administered.data ?? []).map((row) => row.project_id),
+    ]),
+  ];
+}
+
+/**
+ * Applications waiting on the projects this person runs.
+ *
+ * Admins are included on purpose: they are offered the Terima/Buka lagi
+ * buttons on the project page, so leaving them out here meant the inbox and
+ * the project page disagreed about what was waiting for them.
+ */
 export async function listIncomingApplications(userId: string): Promise<ApplicationView[]> {
   const supabase = await getSupabase();
   if (!supabase) return [];
 
+  const projectIds = await managedProjectIds(supabase, userId);
+  if (projectIds.length === 0) return [];
+
   const { data, error } = await supabase
     .from("seats")
     .select(APPLICATION_COLUMNS)
-    .eq("project.owner_id", userId)
+    .in("project_id", projectIds)
     .eq("status", "pending")
     .order("id", { ascending: false });
   if (error) throw new Error(error.message);
@@ -389,7 +429,13 @@ export async function listIncomingApplications(userId: string): Promise<Applicat
   return (data ?? []).map(toApplication);
 }
 
-/** Seats this person has applied for, whatever came of them. */
+/**
+ * Seats this person is holding or still waiting on.
+ *
+ * Not a full history: declining releases the seat and clears its holder, so a
+ * refused application leaves this list at that moment. What it left behind is
+ * the notice in `notices`, which belongs to the applicant rather than the seat.
+ */
 export async function listMyApplications(userId: string): Promise<ApplicationView[]> {
   const supabase = await getSupabase();
   if (!supabase) return [];
@@ -405,7 +451,7 @@ export async function listMyApplications(userId: string): Promise<ApplicationVie
 }
 
 /**
- * How many applications are waiting on this person's projects.
+ * How many applications are waiting on the projects this person runs.
  *
  * Runs on every page for a signed-in visitor to feed the header badge, so it
  * asks for the count alone rather than the rows.
@@ -414,10 +460,13 @@ export async function countIncomingApplications(userId: string): Promise<number>
   const supabase = await getSupabase();
   if (!supabase) return 0;
 
+  const projectIds = await managedProjectIds(supabase, userId);
+  if (projectIds.length === 0) return 0;
+
   const { count, error } = await supabase
     .from("seats")
-    .select("id, project:projects!inner(owner_id)", { count: "exact", head: true })
-    .eq("project.owner_id", userId)
+    .select("id", { count: "exact", head: true })
+    .in("project_id", projectIds)
     .eq("status", "pending");
   if (error) throw new Error(error.message);
 
@@ -569,7 +618,13 @@ function statsFrom(rows: { kind: string; created_at: string }[]): PersonStats {
   return { tasksDone, rolesTaken, since };
 }
 
-/** What has happened on one project, newest first. */
+/**
+ * How a project got to where it is, newest first.
+ *
+ * Narrowed to PROJECT_MEMORY_KINDS: the page shows its own tasks, discussion
+ * and support as live state a few sections up, so the trail carries only what
+ * nothing else on the page can say.
+ */
 export async function listProjectActivity(projectId: number, limit = 20): Promise<ActivityEvent[]> {
   const supabase = await getSupabase();
   if (!supabase) return [];
@@ -578,6 +633,7 @@ export async function listProjectActivity(projectId: number, limit = 20): Promis
     .from("events")
     .select("*, actor:profiles(id, username, name)")
     .eq("project_id", projectId)
+    .in("kind", [...PROJECT_MEMORY_KINDS])
     .order("id", { ascending: false })
     .limit(limit);
   if (error) {

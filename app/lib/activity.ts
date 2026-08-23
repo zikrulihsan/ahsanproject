@@ -60,6 +60,26 @@ export const HIGHLIGHT_KINDS = [
   "task_done",
 ] as const satisfies readonly EventKind[];
 
+/**
+ * The kinds a project's own history keeps.
+ *
+ * The project page already shows its tasks, its discussion and its support as
+ * live state, right above the trail — replaying them underneath said the same
+ * thing twice, and pushed the entries only the trail can carry off the bottom
+ * of the section. What is left is how the project got here: it started, it
+ * moved level, it asked for help, somebody joined.
+ *
+ * `seat_applied` is deliberately out. Who applied, and was still waiting, is
+ * between them and the people running the project — the pending list above
+ * already shows it to exactly those people, and this trail is public.
+ */
+export const PROJECT_MEMORY_KINDS = [
+  "project_created",
+  "project_stage_changed",
+  "seat_opened",
+  "seat_filled",
+] as const satisfies readonly EventKind[];
+
 export type ActivityLike = {
   kind: string;
   projectTitle: string;

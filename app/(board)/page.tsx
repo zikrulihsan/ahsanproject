@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { homeMeta, shareCard } from "../content";
 import { SiteFooter, SiteHeader, Arrow } from "../components/shell";
-import { ProjectRow, initials } from "../components/pieces";
-import { listPeople, listProjects, listTags, type FeedQuery, type ProjectSummary } from "../lib/data";
+import { ProjectRow } from "../components/pieces";
+import { listProjects, listTags, type FeedQuery, type ProjectSummary } from "../lib/data";
 import { ROLES, isRole, roleLabel, roleMeta } from "../lib/roles";
 import { STAGES, isStage, stageMeta } from "../lib/stages";
 
@@ -43,10 +43,9 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
   const sortOption = SORTS.find((option) => option.key === one(params.sort)) ?? SORTS[0];
   const sort = sortOption.key;
 
-  const [projects, tags, people] = await Promise.all([
+  const [projects, tags] = await Promise.all([
     listProjects({ stage, tag, role, q, sort }),
     listTags(),
-    listPeople(60),
   ]);
 
   const openSeats = projects.reduce((total, project) => total + project.openSeatCount, 0);
@@ -177,34 +176,6 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
           <aside className="sidebar" aria-label="Cara ikut menggarap">
             <OpenRoles projects={projects} />
 
-            <section className="side-card" aria-labelledby="people-title">
-              <div className="side-heading">
-                <div>
-                  <p className="section-label">Komunitas</p>
-                  <h2 id="people-title">Orang di papan</h2>
-                </div>
-                <Link href="/orang">Lihat semua</Link>
-              </div>
-              <ul className="people-list">
-                {topPeople(people, projects).map(({ person, count }) => (
-                  <li key={person.id}>
-                    <Link href={`/u/${person.username}`}>
-                      <span className="avatar" aria-hidden="true">
-                        {initials(person.name)}
-                      </span>
-                      <span className="person-text">
-                        <strong>{person.name}</strong>
-                        <small>{person.headline || "Ikut menggarap di Ahsan Project"}</small>
-                      </span>
-                      <span className="person-count">
-                        {count > 0 ? `${count} proyek` : "baru gabung"}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
             {tags.length > 0 ? (
               <section className="side-card" aria-labelledby="topic-title">
                 <p className="section-label">Sedang dibahas</p>
@@ -243,8 +214,8 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
 }
 
 /**
- * Small, scoped entry points (research.md): one open role, one project, one
- * click. Drawn from the board already fetched, so it costs no extra query.
+ * Small, scoped entry points: one open role, one project, one click. Drawn from
+ * the board already fetched, so it costs no extra query.
  */
 function OpenRoles({ projects }: { projects: ProjectSummary[] }) {
   const openings = projects
@@ -290,19 +261,6 @@ function OpenRoles({ projects }: { projects: ProjectSummary[] }) {
       )}
     </section>
   );
-}
-
-/** Who is actually on the board right now, ranked by projects they own here. */
-function topPeople(people: Awaited<ReturnType<typeof listPeople>>, projects: ProjectSummary[]) {
-  const owned = new Map<string, number>();
-  for (const project of projects) {
-    owned.set(project.owner.id, (owned.get(project.owner.id) ?? 0) + 1);
-  }
-
-  return people
-    .map((person) => ({ person, count: owned.get(person.id) ?? 0 }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 4);
 }
 
 function linkTo(query: {
