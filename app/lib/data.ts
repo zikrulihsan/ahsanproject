@@ -226,6 +226,48 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   return lane === "untukmu" ? arrangeForYou(projects, query.familiarRoles) : projects;
 }
 
+/**
+ * How many seats each project has open, per role.
+ *
+ * `project_overview` only carries the distinct roles a project is asking for,
+ * and "Designer" against "Designer · 2" is the difference between a project
+ * that wants a hand and one that wants two. Asked once for every project the
+ * board is about to draw, rather than once per card.
+ */
+export async function openSeatsByRole(
+  projectIds: number[],
+): Promise<Map<number, Record<string, number>>> {
+  const counts = new Map<number, Record<string, number>>();
+  if (projectIds.length === 0) return counts;
+
+  const add = (projectId: number, role: string) => {
+    const perRole = counts.get(projectId) ?? {};
+    perRole[role] = (perRole[role] ?? 0) + 1;
+    counts.set(projectId, perRole);
+  };
+
+  const supabase = await getSupabase();
+  if (!supabase) {
+    for (const project of seedProjects) {
+      if (!projectIds.includes(project.id)) continue;
+      for (const seat of project.seats) {
+        if (seat.status === "open") add(project.id, seat.role);
+      }
+    }
+    return counts;
+  }
+
+  const { data, error } = await supabase
+    .from("seats")
+    .select("project_id, role")
+    .eq("status", "open")
+    .in("project_id", projectIds);
+  if (error) throw new Error(error.message);
+
+  for (const seat of data ?? []) add(seat.project_id, seat.role);
+  return counts;
+}
+
 /** The roles somebody has held or applied for — what "untukmu" leans on. */
 export async function familiarRoles(userId: string): Promise<string[]> {
   const supabase = await getSupabase();

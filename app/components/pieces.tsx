@@ -199,22 +199,101 @@ export function ProjectCard({
   );
 }
 
-export function SeatChips({ roles, linked = true }: { roles: string[]; linked?: boolean }) {
+export function SeatChips({
+  roles,
+  linked = true,
+  counts,
+}: {
+  roles: string[];
+  linked?: boolean;
+  /** Open seats per role. Given one, a chip says how many hands are wanted. */
+  counts?: Record<string, number>;
+}) {
   if (roles.length === 0) return null;
   return (
     <ul className="seat-chips" aria-label="Bantuan yang dicari">
-      {roles.map((role, index) => (
-        <li key={`${role}-${index}`}>
-          {linked ? (
-            <Link className="seat-chip" href={`/?lane=butuh-bantuan&role=${encodeURIComponent(role)}`}>
-              {roleLabel(role)}
-            </Link>
-          ) : (
-            <span className="seat-chip">{roleLabel(role)}</span>
-          )}
-        </li>
-      ))}
+      {roles.map((role, index) => {
+        const many = counts?.[role] ?? 0;
+        const label = (
+          <>
+            {roleLabel(role)}
+            {many > 0 ? <b> · {many}</b> : null}
+          </>
+        );
+
+        return (
+          <li key={`${role}-${index}`}>
+            {linked ? (
+              <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}&cari=peran`}>
+                {label}
+              </Link>
+            ) : (
+              <span className="seat-chip">{label}</span>
+            )}
+          </li>
+        );
+      })}
     </ul>
+  );
+}
+
+/**
+ * A project as a card on the board.
+ *
+ * The four things somebody scanning a grid actually reads, in the order the
+ * question arrives: what is this called and how far has it got, what is it for,
+ * what is it about, and — under a rule of its own, because it is the reason
+ * most people are here — which hands it is short of.
+ */
+export function BoardCard({
+  project,
+  roleCounts,
+}: {
+  project: ProjectSummary;
+  roleCounts?: Record<string, number>;
+}) {
+  return (
+    <li>
+      <article className="project-card board-card">
+        <div className="card-topline">
+          <h3>
+            {/* Stretched over the whole card — see `.card-cover-link` in
+                globals.css — so a tap anywhere that is not one of the chips
+                below still opens the project. */}
+            <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+              {project.title}
+            </Link>
+          </h3>
+          <StageBadge stage={project.stage} />
+        </div>
+
+        <p className="card-tagline">{project.tagline}</p>
+
+        {project.tags.length > 0 ? (
+          <ul className="card-tags">
+            {project.tags.slice(0, 3).map((tag) => (
+              <li key={tag}>
+                <Link href={`/?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="card-roles">
+          {project.openRoles.length > 0 ? (
+            <>
+              <p className="card-roles-label">Peran yang dibutuhkan</p>
+              <SeatChips roles={project.openRoles} counts={roleCounts} />
+            </>
+          ) : (
+            <p className="card-roles-none">
+              Belum membuka peran
+              {freshness(project) ? ` · ${freshness(project)}` : ""}
+            </p>
+          )}
+        </div>
+      </article>
+    </li>
   );
 }
 

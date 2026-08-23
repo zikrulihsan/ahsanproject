@@ -1,7 +1,7 @@
 import { HeaderShell } from "../components/shell";
 import { LoadingNote, Skeleton } from "../components/skeleton";
 
-/** The board's skeleton: the level rail, then feed rows beside the sidebar. */
+/** The board's skeleton: the level rail, the opening, then the card grid. */
 export default function Loading() {
   return (
     <>
@@ -16,30 +16,35 @@ export default function Loading() {
           </ul>
         </div>
 
-        <div className="app-layout">
-          <section className="feed">
-            <Skeleton height={30} width={260} style={{ marginBottom: 12 }} />
-            <Skeleton height={13} width={200} style={{ marginBottom: 26 }} />
-            <Skeleton height={34} width="70%" style={{ marginBottom: 20 }} />
-            {[0, 1, 2, 3, 4].map((slot) => (
+        <div className="board-layout">
+          <div className="board-head">
+            <div>
+              <Skeleton height={40} width={280} style={{ marginBottom: 12 }} />
+              <Skeleton height={13} width={220} />
+            </div>
+            <Skeleton height={44} width={190} />
+          </div>
+
+          <div className="skeleton-panel" style={{ marginBottom: 26 }}>
+            <Skeleton height={18} width={170} style={{ marginBottom: 18 }} />
+            <Skeleton height={52} />
+          </div>
+
+          <div className="feed-header" style={{ marginBottom: 16 }}>
+            <Skeleton height={19} width={160} />
+            <Skeleton height={13} width={60} />
+          </div>
+
+          <div className="board-grid">
+            {[0, 1, 2, 3, 4, 5].map((slot) => (
               <div className="skeleton-row" key={slot}>
-                <Skeleton height={19} width="45%" style={{ marginBottom: 12 }} />
-                <Skeleton height={14} width="80%" style={{ marginBottom: 18 }} />
-                <Skeleton height={5} style={{ marginBottom: 18 }} />
-                <Skeleton height={14} width="55%" />
+                <Skeleton height={21} width="55%" style={{ marginBottom: 14 }} />
+                <Skeleton height={14} style={{ marginBottom: 8 }} />
+                <Skeleton height={14} width="70%" style={{ marginBottom: 18 }} />
+                <Skeleton height={28} width="60%" />
               </div>
             ))}
-          </section>
-          <aside className="sidebar">
-            {[0, 1].map((slot) => (
-              <div className="skeleton-panel" key={slot} style={{ minHeight: 230 }}>
-                <Skeleton height={18} width={140} style={{ marginBottom: 20 }} />
-                <Skeleton height={14} style={{ marginBottom: 12 }} />
-                <Skeleton height={14} width="75%" style={{ marginBottom: 12 }} />
-                <Skeleton height={14} width="60%" />
-              </div>
-            ))}
-          </aside>
+          </div>
         </div>
       </main>
     </>
