@@ -192,12 +192,14 @@ export function ProjectCard({
         </div>
       ) : null}
 
-      {project.openRoles.length > 0 ? (
-        <div className="profile-project-roles">
-          <small>Sedang mencari</small>
+      <div className={`profile-project-roles${project.openRoles.length === 0 ? " profile-project-roles-empty" : ""}`}>
+        <small>Sedang mencari</small>
+        {project.openRoles.length > 0 ? (
           <SeatChips roles={project.openRoles} maxVisible={2} />
-        </div>
-      ) : null}
+        ) : (
+          <span className="profile-project-roles-none">Belum membuka posisi</span>
+        )}
+      </div>
 
       <div className="profile-project-footer">
         <span>{freshness(project) || "Baru ditampilkan"}</span>

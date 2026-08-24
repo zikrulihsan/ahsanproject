@@ -1002,7 +1002,7 @@ form button.danger:hover { background: #96320f; }
 .profile-page { max-width: 1240px; padding-top: 52px; }
 .profile-content { min-width: 0; }
 .profile-edit { margin-bottom: 36px; }
-.profile-project-grid { align-items: start; display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.profile-project-grid { align-items: stretch; display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .profile-project-card {
   background: #fff; border: 1px solid #dce3df; border-radius: 18px; display: flex; flex-direction: column;
   min-height: 0; padding: 20px; position: relative;
@@ -1037,17 +1037,21 @@ form button.danger:hover { background: #96320f; }
   font-size: 8px; font-weight: 800; letter-spacing: .12em; margin-bottom: 5px; text-transform: uppercase;
 }
 .profile-project-now p { color: #50665d; font-size: 11.5px; line-height: 1.5; margin: 0; }
-.profile-project-roles { align-items: center; display: flex; flex-wrap: wrap; gap: 7px 9px; margin-top: 12px; }
+.profile-project-roles {
+  align-items: center; display: flex; flex-wrap: wrap; gap: 7px 9px;
+  margin: 12px 0 14px; min-height: 28px;
+}
 .profile-project-roles > small {
   color: #7d8b85; font-family: var(--font-geist-mono), monospace; font-size: 8px;
   font-weight: 760; letter-spacing: .08em; text-transform: uppercase;
 }
 .profile-project-roles .seat-chips { margin: 0; }
 .profile-project-roles .seat-chip { padding: 4px 9px; }
+.profile-project-roles-none { color: #87938e; font-size: 10.5px; }
 .seat-chip-more { background: #f0f5f2; border-color: #d7e2dc; color: #5d7168; }
 .profile-project-footer {
   align-items: center; border-top: 1px solid var(--line-soft); color: #87938e; display: flex;
-  font-size: 9.5px; gap: 14px; justify-content: space-between; margin-top: 14px; padding-top: 12px;
+  font-size: 9.5px; gap: 14px; justify-content: space-between; margin-top: auto; padding-top: 12px;
 }
 .profile-project-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .profile-project-actions a {
