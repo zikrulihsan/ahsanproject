@@ -18,12 +18,15 @@ export function SortSelect({
   value,
   options,
   label,
+  action = "/",
   hidden = {},
 }: {
   name: string;
   value: string;
   options: SortOption[];
   label: string;
+  /** Route that owns this set of query controls. */
+  action?: string;
   /** The rest of the board's query, kept across the change. */
   hidden?: Record<string, string>;
 }) {
@@ -31,7 +34,7 @@ export function SortSelect({
   const controlId = `board-${name}`;
 
   return (
-    <form className="sort-field" method="get" action="/" ref={form}>
+    <form className="sort-field" method="get" action={action} ref={form}>
       {Object.entries(hidden).map(([key, entry]) =>
         entry ? <input key={key} type="hidden" name={key} value={entry} /> : null,
       )}

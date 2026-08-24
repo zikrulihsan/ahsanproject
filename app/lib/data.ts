@@ -26,7 +26,11 @@ export type Person = {
   yearsExperience: number | null;
   fields: string[];
   website: string;
+  publicEmail: string;
   github: string;
+  linkedin: string;
+  x: string;
+  resume: string;
   /** Trail kinds kept off this person's public profile. */
   activityHidden: string[];
 };
@@ -141,6 +145,8 @@ export type FeedQuery = {
   lane?: Lane;
   stage?: string;
   tag?: string;
+  /** Only projects that are actively asking for at least one collaborator. */
+  needsHelp?: boolean;
   /** One of ROLES — the feed only passes values isRole() has accepted. */
   role?: string;
   q?: string;
@@ -210,7 +216,7 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   // the lanes that already fix one.
   const stage = shape.stage ?? query.stage;
   if (stage) request = request.eq("stage", stage);
-  if (shape.needsHelp) request = request.gt("open_seat_count", 0);
+  if (shape.needsHelp || query.needsHelp) request = request.gt("open_seat_count", 0);
   if (query.tag) request = request.contains("tags", [query.tag]);
   if (query.role) {
     const role = normaliseRole(query.role);
@@ -1024,7 +1030,7 @@ function toPerson(row: ProfileRow): Person {
     username: row.username,
     name: row.name,
     // Defaults keep reads working during the short window between deploying
-    // this build and applying migration 0013 to Supabase.
+    // this build and applying the profile migrations to Supabase.
     profession: row.profession ?? "",
     headline: row.headline ?? "",
     bio: row.bio ?? "",
@@ -1032,7 +1038,11 @@ function toPerson(row: ProfileRow): Person {
     yearsExperience: row.years_experience ?? null,
     fields: row.fields ?? [],
     website: row.website ?? "",
+    publicEmail: row.public_email ?? "",
     github: row.github ?? "",
+    linkedin: row.linkedin ?? "",
+    x: row.x_url ?? "",
+    resume: row.resume_url ?? "",
     activityHidden: row.activity_hidden ?? [],
   };
 }
@@ -1129,7 +1139,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
 
   const matching = seedSummaries().filter((project) => {
     if (stage && project.stage !== stage) return false;
-    if (shape.needsHelp && project.openSeatCount === 0) return false;
+    if ((shape.needsHelp || query.needsHelp) && project.openSeatCount === 0) return false;
     if (query.tag && !project.tags.includes(query.tag)) return false;
     if (query.role) {
       const wantedRole = normaliseRole(query.role);

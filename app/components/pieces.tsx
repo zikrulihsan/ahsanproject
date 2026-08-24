@@ -6,6 +6,9 @@ import { activityParts } from "../lib/activity";
 import { journeyDate } from "../lib/updates";
 import { Arrow } from "./shell";
 import { ProjectLogo } from "./project-logo";
+import { LinkIcon } from "./link-icons";
+
+const PROFILE_DESCRIPTION_LIMIT = 150;
 
 export function StageBadge({ stage }: { stage: Stage }) {
   const meta = stageMeta[stage] ?? stageMeta.idea;
@@ -25,7 +28,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
       {tags.map((tag) =>
         linked ? (
           <li key={tag}>
-            <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+            <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
           </li>
         ) : (
           <li key={tag}>#{tag}</li>
@@ -158,45 +161,78 @@ export function RungRail({ stage }: { stage: Stage }) {
 
 export function ProjectCard({
   project,
-  contributionRole,
 }: {
   project: ProjectSummary;
-  /** Set on a portfolio's "ikut membantu" card: the role held there. */
-  contributionRole?: string;
 }) {
   return (
-    <article className="project-card">
-      <div className="card-topline">
-        <span className={`project-glyph level-${project.stage}`} aria-hidden="true">
-          {project.glyph || initials(project.title)}
-        </span>
+    <article className="profile-project-card">
+      <div className="profile-project-head">
+        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-logo" />
+        <div className="profile-project-heading">
+          <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+          <h3>
+            <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+              {project.title}
+            </Link>
+          </h3>
+          <p className="profile-project-tagline">{project.tagline}</p>
+        </div>
         <StageBadge stage={project.stage} />
       </div>
 
-      <h3>
-        {/* Covers the whole card (see `.card-cover-link` in globals.css) so a
-            tap anywhere that isn't one of the more specific links below still
-            opens the project — the usual "clickable card" pattern. */}
-        <Link className="card-cover-link" href={`/projects/${project.slug}`}>
-          {project.title}
-        </Link>
-      </h3>
-      {contributionRole ? (
-        <p className="card-role">Sebagai {roleLabel(contributionRole)}</p>
+      <div className="profile-project-description">
+        <span>Deskripsi singkat</span>
+        <p>{shortText(project.problem, PROFILE_DESCRIPTION_LIMIT)}</p>
+      </div>
+
+      {project.nowText ? (
+        <div className="profile-project-now">
+          <span>Sekarang</span>
+          <p>{project.nowText}</p>
+        </div>
       ) : null}
-      <p className="card-tagline">{project.tagline}</p>
 
-      {project.nowText ? <p className="card-now">Sekarang: {project.nowText}</p> : null}
+      <div className={`profile-project-roles${project.openRoles.length === 0 ? " profile-project-roles-empty" : ""}`}>
+        <small>Sedang mencari</small>
+        {project.openRoles.length > 0 ? (
+          <SeatChips roles={project.openRoles} maxVisible={2} />
+        ) : (
+          <span className="profile-project-roles-none">Belum membuka posisi</span>
+        )}
+      </div>
 
-      <SeatChips roles={project.openRoles} />
-
-      <div className="card-footer">
-        <span>{freshness(project)}</span>
-        <Link className="round-arrow" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
-          <Arrow diagonal />
-        </Link>
+      <div className="profile-project-footer">
+        <span>{freshness(project) || "Baru ditampilkan"}</span>
+        <nav className="profile-project-actions" aria-label={`Tautan ${project.title}`}>
+          {project.liveUrl ? (
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={`Buka website ${project.title}`}>
+              <LinkIcon kind="website" />
+              <span>Website</span>
+            </a>
+          ) : null}
+          {project.repoUrl ? (
+            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={`Buka GitHub ${project.title}`}>
+              <LinkIcon kind="github" />
+              <span>GitHub</span>
+            </a>
+          ) : null}
+          <Link className="profile-project-detail" href={`/projects/${project.slug}`}>
+            Detail <Arrow />
+          </Link>
+        </nav>
       </div>
     </article>
+  );
+}
+
+/** A project logo is enough evidence here; its page carries the full context. */
+export function ProjectIconLink({ project }: { project: ProjectSummary }) {
+  return (
+    <li>
+      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
+        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-icon" />
+      </Link>
+    </li>
   );
 }
 
@@ -204,16 +240,22 @@ export function SeatChips({
   roles,
   linked = true,
   counts,
+  maxVisible,
 }: {
   roles: string[];
   linked?: boolean;
   /** Open seats per role. Given one, a chip says how many hands are wanted. */
   counts?: Record<string, number>;
+  /** Keep dense contexts readable while still disclosing additional roles. */
+  maxVisible?: number;
 }) {
   if (roles.length === 0) return null;
+  const shownRoles = maxVisible ? roles.slice(0, maxVisible) : roles;
+  const remaining = roles.length - shownRoles.length;
+
   return (
     <ul className="seat-chips" aria-label="Bantuan yang dicari">
-      {roles.map((role, index) => {
+      {shownRoles.map((role, index) => {
         const many = counts?.[role] ?? 0;
         const label = (
           <>
@@ -225,7 +267,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
+              <Link className="seat-chip" href={`/kolaborasi?role=${encodeURIComponent(role)}`}>
                 {label}
               </Link>
             ) : (
@@ -234,8 +276,21 @@ export function SeatChips({
           </li>
         );
       })}
+      {remaining > 0 ? (
+        <li>
+          <span className="seat-chip seat-chip-more" aria-label={`${remaining} role lain tersedia`}>+{remaining}</span>
+        </li>
+      ) : null}
     </ul>
   );
+}
+
+function shortText(text: string, limit: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= limit) return clean;
+
+  const lastSpace = clean.lastIndexOf(" ", limit - 1);
+  return `${clean.slice(0, lastSpace > 0 ? lastSpace : limit).trimEnd()}…`;
 }
 
 /**
@@ -266,7 +321,6 @@ export function BoardCard({
             <div className="home-project-identity">
               <ProjectLogo title={project.title} website={project.liveUrl} />
               <div className="home-project-heading">
-                <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
                 <h3>
                   <Link className="card-cover-link" href={`/projects/${project.slug}`}>
                     {project.title}
@@ -289,13 +343,13 @@ export function BoardCard({
           {project.openRoles.length > 0 ? (
             <div className="home-open-call">
               <div className="home-open-label">
-                <p><PeopleIcon /> Sedang mencari</p>
+                <p><PeopleIcon /> Role yang dicari</p>
                 <small>Membuka {project.openSeatCount} posisi</small>
               </div>
               <ul className="home-role-chips" aria-label="Posisi yang sedang dibuka">
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
-                    <Link href={`/?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
+                    <Link href={`/kolaborasi?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
                       {roleLabel(role)} · {count}
                     </Link>
                   </li>
@@ -304,9 +358,23 @@ export function BoardCard({
             </div>
           ) : (
             <div className="home-open-call home-open-call-empty">
+              <div className="home-open-label">
+                <p><PeopleIcon /> Role yang dicari</p>
+                <small>Tidak ada posisi</small>
+              </div>
               <p>Belum membuka posisi kontribusi</p>
             </div>
           )}
+
+          {project.tags.length > 0 ? (
+            <ul className="home-category-chips" aria-label="Kategori project">
+              {project.tags.map((tag) => (
+                <li key={tag}>
+                  <Link href={`/?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <div className="home-project-footer">
             <Link className="home-project-owner" href={`/u/${project.owner.username}`}>

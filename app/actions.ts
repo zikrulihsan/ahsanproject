@@ -708,8 +708,12 @@ export async function updateProfile(formData: FormData): Promise<void> {
       skills: normalisePeopleTerms(text(formData, "skills"), 20),
       years_experience: yearsExperience,
       fields: normalisePeopleTerms(text(formData, "fields"), 10),
-      website: text(formData, "website").slice(0, 200),
-      github: text(formData, "github").slice(0, 200),
+      website: profileUrl(formData, "website"),
+      public_email: profileEmail(formData, "publicEmail"),
+      github: profileUrl(formData, "github"),
+      linkedin: profileUrl(formData, "linkedin"),
+      x_url: profileUrl(formData, "x"),
+      resume_url: profileUrl(formData, "resume"),
     })
     .eq("id", viewer.id);
   if (error) throw new Error(error.message);
@@ -726,6 +730,22 @@ export async function updateProfile(formData: FormData): Promise<void> {
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+function profileUrl(formData: FormData, key: string): string {
+  const value = text(formData, key).slice(0, 300);
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? value : "";
+  } catch {
+    return "";
+  }
+}
+
+function profileEmail(formData: FormData, key: string): string {
+  const value = text(formData, key).toLowerCase().slice(0, 254);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : "";
 }
 
 /** Topic chips and the free-text escape hatch share the old comma-list shape. */

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after, before } from "node:test";
 import { spawn } from "node:child_process";
+import path from "node:path";
 
 /**
  * Renders the built site and reads what comes back.
@@ -16,7 +17,11 @@ const BASE = `http://127.0.0.1:${PORT}`;
 let server;
 
 before(async () => {
-  server = spawn("npx", ["next", "start", "-p", String(PORT)], {
+  // Use the same Node runtime as the test process. Calling `npx` here can
+  // silently fall back to an older system Node even when the suite itself was
+  // launched with the version required by package.json.
+  const nextCli = path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
+  server = spawn(process.execPath, [nextCli, "start", "-p", String(PORT)], {
     // Its own process group, so shutting down takes the whole tree with it.
     detached: true,
     // Nothing reads the server's output, and an undrained pipe eventually
@@ -133,7 +138,7 @@ test("bantuan yang mengada-ada tidak mengosongkan papan", async () => {
 
 test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async () => {
   const list = feedList(await html("/"));
-  assert.match(list, /Sedang mencari/);
+  assert.match(list, /Role yang dicari/);
   assert.match(list, /Product Manager/);
   assert.match(list, /UI\/UX Designer/);
   assert.match(list, /UI\/UX Designer<!-- --> · <!-- -->1/);
@@ -141,9 +146,16 @@ test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async 
 
 test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", async () => {
   const list = feedList(await html("/"));
+  const swegrowth = feedList(await html("/?q=swegrowth"));
+  assert.match(list, /Role yang dicari/);
+  assert.match(
+    swegrowth,
+    /aria-label="Kategori project">.*href="\/\?tag=komunitas">komunitas<\/a>.*href="\/\?tag=karier">karier<\/a>.*href="\/\?tag=belajar">belajar<\/a>/s,
+  );
   assert.match(list, /class="home-project-meta"/);
   assert.match(list, /class="home-open-call"/);
   assert.match(list, /Digagas oleh/);
+  assert.match(list, /Tidak ada posisi/);
   assert.match(list, /Belum membuka posisi kontribusi/);
 });
 
@@ -157,27 +169,44 @@ test("project yang punya website memakai favicon sebagai logo card", async () =>
 
 test("halaman detail memakai favicon yang sama sebagai logo project", async () => {
   const page = await html("/projects/tap-tap-dzikr");
-  assert.match(page, /class="hero-glyph level-live"/);
+  assert.match(page, /class="home-project-logo hero-glyph level-live"/);
   assert.match(
     page,
     /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fdzikir-harian\.netlify\.app&amp;sz=128/,
   );
 });
 
-test("beranda membuka dengan hero, pencarian, kategori, dan role populer", async () => {
+test("beranda membuka dengan dua aksi utama dan kotak berbagi di atas role populer", async () => {
   const page = await html("/");
   assert.match(page, /berkarya, berkolaborasi, berdampak/);
   assert.match(page, /Bagikan dan Temukan Project Untuk Kolaborasi/);
-  assert.match(page, /Cari project, program, atau kata kunci/);
-  assert.match(page, /Semua kategori/);
+  assert.match(page, /Bagikan project/);
+  assert.match(page, /Cari project kolaborasi/);
+  assert.doesNotMatch(page, /class="discovery-search/);
+  assert.doesNotMatch(page, /Semua kategori/);
   assert.match(page, /Role yang paling dicari/);
   assert.match(page, /Punya sesuatu yang sedang dibangun/);
   assert.match(page, /Bukan sekadar etalase/);
+  assert.ok(
+    page.indexOf("Punya sesuatu yang sedang dibangun") < page.indexOf("Role yang paling dicari"),
+    "kotak berbagi project harus tampil sebelum ranking role",
+  );
 });
 
-test("tahap lama tetap menyaring beranda dan tampil sebagai filter aktif", async () => {
+test("menu cari kolaborasi menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
+  const page = await html("/kolaborasi");
+  assert.match(page, /<h1 id="collaboration-title">Cari project kolaborasi<\/h1>/);
+  assert.match(page, /Cari project, program, atau kata kunci/);
+  assert.match(page, /Semua kategori/);
+  assert.match(page, /Level project/);
+  assert.match(page, /Semua level/);
+  assert.match(page, /Mencari kolaborator/);
+  assert.match(page, /Pilihan untukmu/);
+});
+
+test("tahap lama tetap berpindah ke kolaborasi dan tampil sebagai filter aktif", async () => {
   const page = await html("/?stage=building");
-  assert.match(page, /Tahap:.*Sedang dibangun/s);
+  assert.match(page, /Level:.*Sedang dibangun/s);
   const list = feedList(page);
   assert.match(list, /Titip Jemput/);
   assert.doesNotMatch(list, /Tap Tap Dzikr/, "yang sudah berjalan bukan yang sedang dibangun");
@@ -206,16 +235,16 @@ test("kategori mengubah pilihan dropdown dan lingkup pencarian", async () => {
 test("semua saringan aktif bisa dilepas sendiri atau sekaligus", async () => {
   const page = await html("/?tag=umkm&stage=idea&role=research&q=antre");
   assert.match(page, /Kategori:.*umkm/s);
-  assert.match(page, /Tahap:.*Ide/s);
-  assert.match(page, /Menampilkan kebutuhan untuk.*Researcher/s);
+  assert.match(page, /Level:.*Ide/s);
+  assert.match(page, /Role:.*Researcher/s);
   assert.match(page, /Pencarian:.*antre/s);
   assert.match(page, /Hapus semua/);
 });
 
 test("urutan papan bisa diganti tanpa kehilangan saringannya", async () => {
   const page = await html("/?stage=live&lane=terbaru");
-  assert.match(page, /class="is-active" aria-current="page" href="\/\?lane=terbaru&amp;stage=live">Terbaru<\/a>/);
-  assert.match(page, /href="\/\?lane=aktif&amp;stage=live"/);
+  assert.match(page, /<option value="terbaru" selected="">Project terbaru<\/option>/);
+  assert.match(page, /name="stage" value="live"/);
 });
 
 test("pencarian membaca brief, bukan cuma judul", async () => {
@@ -283,6 +312,7 @@ test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
   assert.match(xml, /projects\/warung-antre/);
   assert.match(xml, /u\/zikrulihsan/);
   assert.match(xml, /\/orang/);
+  assert.match(xml, /\/kolaborasi/);
   // Yang di balik pintu masuk tidak diundang masuk sitemap.
   assert.doesNotMatch(xml, /\/inbox/);
 });
@@ -336,11 +366,41 @@ test("bantuan yang dicari menyebut berapa waktunya", async () => {
 test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   const page = await html("/u/zikrulihsan");
   assert.match(page, /Zikrul Ihsan/);
+  assert.doesNotMatch(page, /Yang sedang dia bangun/);
+  assert.match(page, /Portofolio Personal/);
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
+  assert.match(page, /class="profile-contact-list"/);
+  assert.match(page, /Projects:/);
+  assert.match(page, /class="profile-project-icon-list"/);
+  assert.match(page, /Ringkasan/);
+  assert.doesNotMatch(page, /avatar-lg/);
+  assert.doesNotMatch(page, /@zikrulihsan/);
+  assert.match(page, /class="profile-project-card"/);
+  assert.equal(
+    (page.match(/class="profile-project-card"/g) ?? []).length,
+    (page.match(/class="profile-project-roles(?: profile-project-roles-empty)?"/g) ?? []).length,
+    "setiap card selalu menampilkan bagian sedang mencari",
+  );
+  assert.match(page, /class="profile-project-roles profile-project-roles-empty"/);
+  assert.match(page, /Belum membuka posisi/);
+  assert.match(page, /Deskripsi singkat/);
+  assert.match(page, /Anak-anak diminta hati-hati, tapi jarang diberi contoh situasinya seperti apa\./);
+  assert.match(page, />Website</);
+  assert.match(page, />GitHub</);
+  assert.match(page, />Detail/);
+  assert.match(
+    page,
+    /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fswegrowth\.id&amp;sz=128/,
+  );
   assert.ok(
     page.indexOf("Sedang dikerjakan") < page.indexOf("Jejak kerja"),
     "karyanya dulu, jejaknya belakangan",
+  );
+  assert.ok(
+    page.indexOf("Zikrul Ihsan") < page.indexOf("Projects:") &&
+      page.indexOf("Projects:") < page.indexOf("Ringkasan"),
+    "di mobile urutannya highlight, projects, lalu ringkasan",
   );
 });
 

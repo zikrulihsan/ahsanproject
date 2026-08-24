@@ -16,7 +16,11 @@ export type SeedUser = {
   yearsExperience: number | null;
   fields: string[];
   website: string;
+  publicEmail: string;
   github: string;
+  linkedin: string;
+  x: string;
+  resume: string;
   /** Trail kinds kept off the public profile. Empty means everything shows. */
   activityHidden: string[];
 };
@@ -96,7 +100,11 @@ export const seedUsers: SeedUser[] = [
     yearsExperience: 6,
     fields: ["Civic Tech", "Productivity"],
     website: "https://ahsanproject-id.netlify.app",
+    publicEmail: "",
     github: "https://github.com/zikrulihsan",
+    linkedin: "",
+    x: "",
+    resume: "",
     activityHidden: [],
   },
 ];
