@@ -77,6 +77,7 @@ export type ProjectSummary = {
 export type SeatView = {
   id: number;
   role: string;
+  roleTitle: string;
   brief: string;
   status: string;
   /** member | admin — see app/lib/access.ts. */
@@ -123,6 +124,7 @@ export type ProjectDetail = ProjectSummary & {
 export type ApplicationView = {
   seatId: number;
   role: string;
+  roleTitle: string;
   brief: string;
   status: string;
   pitch: string;
@@ -363,6 +365,7 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
     seats: ((seats.data ?? []) as SeatWithPerson[]).map((seat) => ({
       id: seat.id,
       role: seat.role,
+      roleTitle: seat.role_title ?? "",
       brief: seat.brief,
       status: seat.status,
       access: seat.access,
@@ -559,7 +562,7 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
  * ------------------------------------------------------------------ */
 
 const APPLICATION_COLUMNS =
-  "id, role, brief, status, pitch, created_at, " +
+  "id, role, role_title, brief, status, pitch, created_at, " +
   "project:projects!inner(slug, title, owner_id), " +
   "person:profiles(id, username, name)";
 
@@ -929,6 +932,7 @@ type BriefPerson = Pick<Person, "id" | "username" | "name">;
 type ApplicationRow = {
   id: number;
   role: string;
+  role_title: string;
   brief: string;
   status: string;
   pitch: string;
@@ -942,6 +946,7 @@ function toApplication(row: unknown): ApplicationView {
   return {
     seatId: seat.id,
     role: seat.role,
+    roleTitle: seat.role_title ?? "",
     brief: seat.brief,
     status: seat.status,
     pitch: seat.pitch,
@@ -1150,6 +1155,7 @@ function seedDetail(slug: string): ProjectDetail | null {
     seats: source.seats.map((seat, index) => ({
       id: index + 1,
       role: seat.role,
+      roleTitle: "",
       brief: seat.brief,
       status: seat.status,
       access: seat.access,

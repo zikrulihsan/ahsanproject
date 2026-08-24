@@ -26,32 +26,41 @@ export default async function NewProject() {
         <p className="eyebrow">
           <span /> Tunjukkan project
         </p>
-        <h1>Tunjukkan yang sedang kamu bangun.</h1>
-        <p className="lede">
-          Ide, setengah jadi, atau sudah dipakai orang — semuanya boleh. Yang wajib cuma briefnya,
-          karena project yang ditulis lengkap jauh lebih mungkin dapat teman mengerjakan.
-        </p>
-
-        <ol className="how-list">
-          {about.id.how.map((step) => (
-            <li key={step.step}>
-              <span>{step.step}</span>
-              <div>
-                <h2>{step.title}</h2>
-                <p>{step.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-
         {viewer ? (
-          <CreateForm />
+          <>
+            <h1>Buat halaman projectmu.</h1>
+            <p className="lede">
+              Isi yang kamu tahu sekarang—ide pun boleh. Brief singkatnya membantu orang memahami
+              dan memutuskan apakah mereka bisa ikut.
+            </p>
+            <CreateForm />
+          </>
         ) : (
-          <p className="sign-in-callout">
-            <Link className="primary-button" href={signInPath("/new")}>
-              Masuk dulu untuk menunjukkan project
-            </Link>
-          </p>
+          <>
+            <h1>Tunjukkan yang sedang kamu bangun.</h1>
+            <p className="lede">
+              Ide, setengah jadi, atau sudah dipakai orang—semuanya boleh. Tulis brief singkatnya,
+              lalu buka bantuan kalau memang dibutuhkan.
+            </p>
+
+            <ol className="how-list">
+              {about.id.how.map((step) => (
+                <li key={step.step}>
+                  <span>{step.step}</span>
+                  <div>
+                    <h2>{step.title}</h2>
+                    <p>{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <p className="sign-in-callout">
+              <Link className="primary-button" href={signInPath("/new")}>
+                Masuk dulu untuk menunjukkan project
+              </Link>
+            </p>
+          </>
         )}
       </main>
 

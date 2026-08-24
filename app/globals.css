@@ -780,6 +780,12 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .create-form, .auth-form {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 30px; padding: 30px;
 }
+.form-start-note {
+  background: var(--paper); border-radius: 12px; color: var(--muted); font-size: 13px;
+  line-height: 1.6; margin: 0 0 24px; padding: 13px 15px;
+}
+.step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
+.create-submit { justify-content: center; width: 100%; }
 .auth-page { max-width: 520px; }
 .auth-form .hint { margin: -12px 0 18px; }
 .auth-form button { justify-content: center; width: 100%; }
@@ -1179,6 +1185,47 @@ footer nav a:hover { color: var(--ink); }
 .stage-choice strong { font-size: 14.5px; font-weight: 660; }
 .stage-choice small { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 .link-row { display: grid; gap: 0 18px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+
+/* Topic suggestions remove the blank-page problem while keeping custom tags. */
+.topic-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+form label.topic-option {
+  align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 99px;
+  cursor: pointer; display: inline-flex; font-size: 12px; font-weight: 620; margin: 0; padding: 8px 12px;
+}
+form label.topic-option:hover { border-color: #aab9b0; }
+form label.topic-option.is-selected { background: var(--ink); border-color: var(--ink); color: #fff; }
+.topic-option input { height: 1px; opacity: 0; position: absolute; width: 1px; }
+.topic-option:has(input:focus-visible) { outline: 2px solid rgba(23, 61, 50, .25); outline-offset: 2px; }
+.topic-option:has(input:disabled) { cursor: not-allowed; opacity: .45; }
+.optional-label { color: var(--muted); font-size: 11px; font-weight: 500; }
+
+/* Optional details stay compact until somebody actually has something to add. */
+.optional-fields { border: 0; border-radius: 0; margin: 6px 0 0; padding: 0; }
+.optional-fields > summary {
+  align-items: center; border: 1px solid var(--line-2); border-radius: 99px; display: inline-flex;
+  font-size: 12px; font-weight: 650; gap: 7px; padding: 9px 14px;
+}
+.optional-fields > summary span { color: var(--muted); font-size: 10px; font-weight: 500; }
+.optional-fields[open] > summary { margin-bottom: 18px; }
+.optional-fields-body { background: var(--paper); border-radius: 14px; padding: 18px 18px 1px; }
+.optional-fields.is-required > summary { display: none; }
+.optional-fields.is-required .optional-fields-body { margin-top: 18px; }
+
+/* Asking for help is one choice first; the detailed ask appears only after it. */
+form label.help-toggle {
+  align-items: flex-start; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  cursor: pointer; display: flex; gap: 12px; margin: 14px 0 0; padding: 14px 16px;
+}
+form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
+.help-toggle input { margin-top: 3px; }
+.help-toggle span { display: flex; flex-direction: column; gap: 3px; }
+.help-toggle strong { font-size: 14px; }
+.help-toggle small { color: var(--muted); font-size: 12px; font-weight: 450; line-height: 1.5; }
+.progressive-panel { border-top: 1px solid var(--line-soft); margin-top: 20px; padding-top: 20px; }
+.role-field-error { margin-top: -4px; }
+.commitment-field select { margin-bottom: 10px; }
+.commitment-field input { margin-bottom: 10px; }
+.commitment-error { margin-top: 0; }
 
 /* ------------------------------------------------------------ responsive */
 

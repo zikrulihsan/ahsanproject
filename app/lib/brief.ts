@@ -10,9 +10,9 @@ import { tagList } from "./stages";
 export const MINIMUM = {
   title: 3,
   tagline: 20,
-  problem: 120,
-  solution: 120,
-  audience: 40,
+  problem: 80,
+  solution: 80,
+  audience: 25,
 } as const;
 
 export const MAXIMUM = {
@@ -28,6 +28,8 @@ export const MAXIMUM = {
   now: 200,
   /** seats.commitment — "± 2 jam per minggu", not a contract. */
   commitment: 80,
+  /** seats.role_title — only used when the shared catalogue does not fit. */
+  roleTitle: 80,
 } as const;
 
 /** The raw form values, before tags are split into a list. */

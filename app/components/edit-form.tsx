@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { updateProject, type EditState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { Field } from "./field";
+import { TopicPicker } from "./topic-picker";
 
 export type EditableProject = {
   slug: string;
@@ -42,39 +43,47 @@ export function EditForm({ project }: { project: EditableProject }) {
       <Field
         label="Satu kalimat"
         name="tagline"
-        hint={`Minimal ${MINIMUM.tagline} karakter.`}
+        hint="Jelaskan manfaat utamanya dengan bahasa sehari-hari."
         error={errors.tagline}
         defaultValue={values.tagline}
+        minLength={MINIMUM.tagline}
+        maxLength={MAXIMUM.tagline}
         required
       />
 
       <Field
         label="Masalah yang ingin diselesaikan"
         name="problem"
-        hint={`Minimal ${MINIMUM.problem} karakter.`}
+        hint="Satu–dua kalimat yang konkret sudah cukup."
         error={errors.problem}
         defaultValue={values.problem}
         rows={6}
+        minLength={MINIMUM.problem}
+        maxLength={MAXIMUM.problem}
         required
       />
 
       <Field
         label="Apa yang sedang dibuat"
         name="solution"
-        hint={`Minimal ${MINIMUM.solution} karakter.`}
+        hint="Jelaskan bentuk solusi dan arah yang ingin dicoba."
         error={errors.solution}
         defaultValue={values.solution}
         rows={6}
+        minLength={MINIMUM.solution}
+        maxLength={MAXIMUM.solution}
         required
       />
 
       <Field
         label="Untuk siapa"
         name="audience"
-        hint={`Minimal ${MINIMUM.audience} karakter.`}
+        hint="Sebut kelompok orang yang paling terbantu secara spesifik."
         error={errors.audience}
         defaultValue={values.audience}
         rows={3}
+        minLength={MINIMUM.audience}
+        maxLength={MAXIMUM.audience}
         required
       />
 
@@ -85,14 +94,7 @@ export function EditForm({ project }: { project: EditableProject }) {
         defaultValue={values.now}
       />
 
-      <Field
-        label="Topik"
-        name="tags"
-        hint="Pisahkan dengan koma, maksimal enam."
-        error={errors.tags}
-        defaultValue={values.tags}
-        required
-      />
+      <TopicPicker defaultValue={values.tags} error={errors.tags} />
 
       <fieldset>
         <legend>Tautan</legend>

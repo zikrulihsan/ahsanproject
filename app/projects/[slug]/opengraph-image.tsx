@@ -46,7 +46,11 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   const stage = stageMeta[project.stage as Stage] ?? stageMeta.idea;
   const openRoles = [
-    ...new Set(project.seats.filter((seat) => seat.status === "open").map((seat) => seat.role)),
+    ...new Set(
+      project.seats
+        .filter((seat) => seat.status === "open")
+        .map((seat) => roleLabel(seat.role, seat.roleTitle)),
+    ),
   ];
 
   return (
@@ -126,7 +130,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                       padding: "8px 22px",
                     }}
                   >
-                    {`Butuh ${roleLabel(role)}`}
+                    {`Butuh ${role}`}
                   </div>
                 ))}
               </div>

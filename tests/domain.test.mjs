@@ -52,8 +52,11 @@ test("posisi project hanya menerima role dari katalog bersama", () => {
   assert.ok(ROLES.length > 10, "katalog cukup spesifik untuk beberapa jenis project");
   assert.ok(isRole("ui-ux-designer"));
   assert.ok(isRole("frontend-developer"));
+  assert.ok(isRole("other"), "role di luar katalog punya jalur yang sah");
   assert.ok(!isRole("desainer sesuka pemilik"));
   assert.equal(roleLabel("ui-ux-designer"), "UI/UX Designer");
+  assert.equal(roleLabel("other", "Videografer"), "Videografer");
+  assert.equal(roleLabel("other"), "Role lainnya");
 });
 
 test("role lama dinormalisasi supaya tautan dan data existing tetap bekerja", () => {

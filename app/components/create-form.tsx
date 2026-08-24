@@ -1,30 +1,34 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createProject, type CreateState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
-import { STAGES, stageMeta } from "../lib/stages";
+import { STAGES, stageMeta, type Stage } from "../lib/stages";
+import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
-import { RoleSelect } from "./role-select";
+import { RoleFields } from "./role-fields";
+import { TopicPicker } from "./topic-picker";
 
 const EMPTY: CreateState = { errors: {}, values: {} };
 
 /**
- * Four steps, all on one page.
- *
- * Numbered so it reads as a short conversation rather than a form to survive,
- * but not split across screens: a wizard loses what somebody typed the moment
- * anything goes wrong, and this one still works with no JavaScript at all.
- *
- * The order matters. What it is, then why, then where it stands, then what
- * help it needs — the same order somebody reading the project will meet it in.
+ * One page, with optional questions revealed only when they become relevant.
+ * The core brief stays structured, while links and collaboration details no
+ * longer make a new idea look like a proposal that must be finished at once.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
   const { errors, values } = state;
+  const initialStage = STAGES.includes(values.stage as Stage) ? (values.stage as Stage) : "idea";
+  const [stage, setStage] = useState<Stage>(initialStage);
+  const [wantsHelp, setWantsHelp] = useState(values.openSeat === "yes");
 
   return (
     <form className="create-form" action={formAction}>
+      <p className="form-start-note">
+        Mulai dari yang kamu tahu sekarang. Semua isi bisa diubah lagi setelah project terbit.
+      </p>
+
       {errors.form ? (
         <p className="form-error" role="alert">
           {errors.form}
@@ -33,7 +37,7 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">1</span> Apa yang sedang kamu buat?
+          <span className="step-number">1</span> Kenalkan projectmu
         </legend>
 
         <Field
@@ -42,168 +46,216 @@ export function CreateForm() {
           hint="Sebut apa adanya. Nama bisa diubah nanti."
           error={errors.title}
           defaultValue={values.title}
+          minLength={MINIMUM.title}
+          maxLength={MAXIMUM.title}
+          placeholder="Contoh: Main Aman"
           required
         />
 
         <Field
-          label="Satu kalimat"
+          label="Ringkasan satu kalimat"
           name="tagline"
-          hint={`Kalimat yang muncul di kartu. Minimal ${MINIMUM.tagline} karakter.`}
+          hint="Jelaskan manfaat utamanya dengan bahasa sehari-hari."
           error={errors.tagline}
           defaultValue={values.tagline}
+          minLength={MINIMUM.tagline}
+          maxLength={MAXIMUM.tagline}
+          placeholder="Contoh: Materi keselamatan digital yang bisa dipakai orang tua dan anak."
           required
         />
 
-        <Field
-          label="Topik"
-          name="tags"
-          hint="Pisahkan dengan koma, maksimal enam. Contoh: pendidikan, anak, komunitas"
-          error={errors.tags}
-          defaultValue={values.tags}
-          required
-        />
+        <TopicPicker defaultValue={values.tags} error={errors.tags} />
       </fieldset>
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">2</span> Ceritakan sedikit
+          <span className="step-number">2</span> Brief singkat
         </legend>
+        <p className="step-intro">
+          Tidak perlu seperti proposal. Satu–dua kalimat yang konkret untuk setiap pertanyaan sudah
+          cukup.
+        </p>
 
         <Field
-          label="Masalah apa yang ingin diselesaikan"
+          label="Masalah apa yang ingin diselesaikan?"
           name="problem"
-          hint={`Siapa yang kesulitan, dalam situasi apa, dan kenapa cara sekarang belum cukup. Minimal ${MINIMUM.problem} karakter.`}
+          hint="Siapa yang kesulitan, dalam situasi apa, dan kenapa cara sekarang belum cukup."
           error={errors.problem}
           defaultValue={values.problem}
-          rows={6}
+          rows={4}
+          minLength={MINIMUM.problem}
+          maxLength={MAXIMUM.problem}
           required
         />
 
         <Field
-          label="Apa yang sedang kamu buat"
+          label="Apa yang sedang kamu buat?"
           name="solution"
-          hint={`Belum harus detail — cukup jelas mau dibawa ke arah mana. Minimal ${MINIMUM.solution} karakter.`}
+          hint="Belum harus detail—cukup jelaskan bentuk solusi dan arah yang ingin dicoba."
           error={errors.solution}
           defaultValue={values.solution}
-          rows={6}
+          rows={4}
+          minLength={MINIMUM.solution}
+          maxLength={MAXIMUM.solution}
           required
         />
 
         <Field
-          label="Untuk siapa"
+          label="Untuk siapa?"
           name="audience"
-          hint={`Orang seperti apa yang paling terbantu. Minimal ${MINIMUM.audience} karakter.`}
+          hint="Sebut kelompok orang yang paling terbantu secara spesifik."
           error={errors.audience}
           defaultValue={values.audience}
-          rows={3}
+          rows={2}
+          minLength={MINIMUM.audience}
+          maxLength={MAXIMUM.audience}
           required
         />
       </fieldset>
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">3</span> Sekarang ada di tahap mana?
+          <span className="step-number">3</span> Kondisinya sekarang
         </legend>
 
         <ul className="stage-choice">
-          {STAGES.map((stage, index) => (
-            <li key={stage}>
-              <label htmlFor={`stage-${stage}`}>
+          {STAGES.map((item) => (
+            <li key={item}>
+              <label htmlFor={`stage-${item}`}>
                 <input
-                  id={`stage-${stage}`}
+                  id={`stage-${item}`}
                   type="radio"
                   name="stage"
-                  value={stage}
-                  defaultChecked={values.stage ? values.stage === stage : index === 0}
+                  value={item}
+                  checked={stage === item}
+                  onChange={() => setStage(item)}
                 />
                 <span>
-                  <strong>{stageMeta[stage].label}</strong>
-                  <small>{stageMeta[stage].blurb}</small>
+                  <strong>{stageMeta[item].label}</strong>
+                  <small>{stageMeta[item].blurb}</small>
                 </span>
               </label>
             </li>
           ))}
         </ul>
-        <p className="hint">
-          Tahap yang syaratnya belum terpenuhi akan turun sendiri — badge di sini tidak boleh
-          menjanjikan yang belum ada.
-        </p>
 
-        <label htmlFor="now">Sekarang sedang…</label>
-        <input
-          id="now"
-          name="now"
-          type="text"
-          maxLength={MAXIMUM.now}
-          defaultValue={values.now}
-          placeholder="Menyusun materi keselamatan pertama."
-        />
-        <p className="hint">
-          Satu kalimat tentang yang sedang dikerjakan minggu ini. Inilah yang bikin projectmu
-          terlihat hidup di papan — dan bisa diganti kapan saja.
-        </p>
+        {stage === "building" || stage === "live" ? (
+          <Field
+            label="Sekarang sedang mengerjakan apa?"
+            name="now"
+            hint="Satu kalimat saja. Bisa diganti kapan pun dari halaman project."
+            error={errors.now}
+            defaultValue={values.now}
+            maxLength={MAXIMUM.now}
+            placeholder="Contoh: Menyusun materi keselamatan pertama."
+          />
+        ) : null}
 
-        <div className="link-row">
-          <Field
-            label="Dokumen"
-            name="docUrl"
-            hint="Riset, catatan, atau dokumen produk. Opsional."
-            error={errors.docUrl}
-            defaultValue={values.docUrl}
-          />
-          <Field
-            label="Repo"
-            name="repoUrl"
-            hint="Opsional."
-            error={errors.repoUrl}
-            defaultValue={values.repoUrl}
-          />
-          <Field
-            label="Tautan produk"
-            name="liveUrl"
-            hint="Isi kalau sudah ada yang bisa dibuka orang lain."
-            error={errors.liveUrl}
-            defaultValue={values.liveUrl}
-          />
-        </div>
+        <details
+          className={`optional-fields ${stage === "live" ? "is-required" : ""}`}
+          open={stage === "live" || Boolean(errors.docUrl || errors.repoUrl || errors.liveUrl)}
+        >
+          <summary>
+            Tambahkan tautan <span>opsional</span>
+          </summary>
+          <div className="optional-fields-body">
+            <Field
+              label={stage === "live" ? "Tautan yang sudah bisa dibuka" : "Tautan produk"}
+              name="liveUrl"
+              hint={
+                stage === "live"
+                  ? "Wajib untuk project yang sudah berjalan."
+                  : "Isi kalau sudah ada sesuatu yang bisa dibuka orang lain."
+              }
+              error={errors.liveUrl}
+              defaultValue={values.liveUrl}
+              type="url"
+              placeholder="https://"
+              required={stage === "live"}
+            />
+            <Field
+              label="Dokumen atau riset"
+              name="docUrl"
+              error={errors.docUrl}
+              defaultValue={values.docUrl}
+              type="url"
+              placeholder="https://"
+            />
+            <Field
+              label="Repo"
+              name="repoUrl"
+              error={errors.repoUrl}
+              defaultValue={values.repoUrl}
+              type="url"
+              placeholder="https://"
+            />
+          </div>
+        </details>
       </fieldset>
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">4</span> Ada yang bisa dibantu?
+          <span className="step-number">4</span> Mencari bantuan?
         </legend>
         <p className="hint">
-          Boleh dikosongkan dulu. Tapi project yang menyebut bantuannya jauh lebih mungkin dapat
-          teman mengerjakan.
+          Bagian ini benar-benar opsional. Kamu bisa membuka role nanti dari halaman project.
         </p>
 
-        <label htmlFor="seatRole">Role yang dibuka</label>
-        <RoleSelect id="seatRole" name="seatRole" defaultValue={values.seatRole} />
-        <p className="hint role-catalogue-hint">
-          Pilih dari katalog agar role yang sama bisa ditemukan dan dibandingkan di semua project.
-        </p>
+        <label className={`help-toggle ${wantsHelp ? "is-on" : ""}`}>
+          <input
+            type="checkbox"
+            checked={wantsHelp}
+            onChange={(event) => setWantsHelp(event.target.checked)}
+          />
+          <span>
+            <strong>Ya, saya sedang mencari bantuan</strong>
+            <small>Tampilkan role, pekerjaan yang dibantu, dan perkiraan waktunya.</small>
+          </span>
+        </label>
 
-        <label htmlFor="seatBrief">Yang perlu dibantu</label>
-        <textarea
-          id="seatBrief"
-          name="seatBrief"
-          rows={3}
-          defaultValue={values.seatBrief}
-          placeholder="Contoh: bantu ngobrol dengan lima calon pengguna dan rangkum temuannya."
-        />
+        {wantsHelp ? (
+          <div className="progressive-panel">
+            <input type="hidden" name="openSeat" value="yes" />
+            <RoleFields
+              id="seatRole"
+              roleName="seatRole"
+              roleTitleName="seatRoleTitle"
+              defaultRole={values.seatRole}
+              defaultRoleTitle={values.seatRoleTitle}
+              roleError={errors.seatRole}
+              roleTitleError={errors.seatRoleTitle}
+            />
 
-        <label htmlFor="seatCommitment">Kira-kira berapa waktunya</label>
-        <input
-          id="seatCommitment"
-          name="seatCommitment"
-          type="text"
-          maxLength={MAXIMUM.commitment}
-          defaultValue={values.seatCommitment}
-          placeholder="± 2 jam per minggu"
-        />
+            <div className={errors.seatBrief ? "field has-error" : "field"}>
+              <label htmlFor="seatBrief">Yang perlu dibantu</label>
+              <textarea
+                id="seatBrief"
+                name="seatBrief"
+                rows={3}
+                maxLength={MAXIMUM.seatBrief}
+                defaultValue={values.seatBrief}
+                required
+                aria-invalid={errors.seatBrief ? true : undefined}
+                placeholder="Contoh: ngobrol dengan lima calon pengguna dan rangkum temuannya."
+              />
+              {errors.seatBrief ? (
+                <p className="field-error" role="alert">
+                  {errors.seatBrief}
+                </p>
+              ) : null}
+            </div>
+
+            <CommitmentField
+              id="seatCommitment"
+              name="seatCommitment"
+              defaultValue={values.seatCommitment}
+              error={errors.seatCommitment}
+            />
+          </div>
+        ) : null}
       </fieldset>
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button create-submit" type="submit" disabled={pending}>
         {pending ? "Menyimpan…" : "Tunjukkan project"}
       </button>
     </form>

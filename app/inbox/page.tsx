@@ -230,11 +230,11 @@ function ApplicationHead({
           {showApplicant && application.person ? (
             <>
               <Link href={`/u/${application.person.username}`}>{application.person.name}</Link>{" "}
-              mau bantu sebagai <strong>{roleLabel(application.role)}</strong>
+              mau bantu sebagai <strong>{roleLabel(application.role, application.roleTitle)}</strong>
             </>
           ) : (
             <>
-              <strong>{roleLabel(application.role)}</strong> di{" "}
+              <strong>{roleLabel(application.role, application.roleTitle)}</strong> di{" "}
               <Link href={`/projects/${application.project.slug}`}>
                 {application.project.title}
               </Link>

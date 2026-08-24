@@ -70,6 +70,8 @@ export type SeatRow = {
   id: number;
   project_id: number;
   role: string;
+  /** Specific label when role is `other`; empty for catalogue roles. */
+  role_title: string;
   brief: string;
   status: string;
   /** member | admin — only meaningful on a filled seat. */

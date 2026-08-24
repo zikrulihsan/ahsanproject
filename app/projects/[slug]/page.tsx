@@ -40,7 +40,8 @@ import {
   type ProjectDetail,
 } from "../../lib/data";
 import { roleLabel } from "../../lib/roles";
-import { RoleSelect } from "../../components/role-select";
+import { CommitmentField } from "../../components/commitment-field";
+import { RoleFields } from "../../components/role-fields";
 import { STAGES, meetsStage, requirementsFor, stageMeta, type StageInput } from "../../lib/stages";
 import { accessOf, canManage } from "../../lib/access";
 import { UPDATE_LIMITS } from "../../lib/updates";
@@ -286,7 +287,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     {open.map((seat) => (
                       <li key={seat.id}>
                         <div>
-                          <h3>{roleLabel(seat.role)}</h3>
+                          <h3>{roleLabel(seat.role, seat.roleTitle)}</h3>
                           <p>{seat.brief}</p>
                           {seat.commitment ? (
                             <p className="seat-commitment">{seat.commitment}</p>
@@ -301,7 +302,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                           viewerSeat ? (
                             <p className="muted">
                               {viewerSeat.status === "filled"
-                                ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role)}.`
+                                ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role, viewerSeat.roleTitle)}.`
                                 : "Lamaranmu masih menunggu jawaban."}
                             </p>
                           ) : (
@@ -345,7 +346,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     {pending.map((seat) => (
                       <li key={seat.id}>
                         <div>
-                          <h3>{roleLabel(seat.role)}</h3>
+                          <h3>{roleLabel(seat.role, seat.roleTitle)}</h3>
                           <p>
                             {seat.person?.id === viewer?.id
                               ? "Lamaranmu sudah masuk, tinggal menunggu jawaban."
@@ -365,7 +366,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                       <article key={seat.id} className="pending-card">
                         <p>
                           <strong>{seat.person?.name ?? "Seseorang"}</strong> mau bantu sebagai{" "}
-                          {roleLabel(seat.role)}
+                          {roleLabel(seat.role, seat.roleTitle)}
                         </p>
                         <blockquote>{seat.pitch}</blockquote>
                         <form action={decideSeat}>
@@ -388,20 +389,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     <summary>Cari bantuan baru</summary>
                     <form action={openSeat}>
                       <input type="hidden" name="slug" value={project.slug} />
-                      <label htmlFor="new-seat-role">Role yang dibuka</label>
-                      <RoleSelect id="new-seat-role" />
-                      <p className="hint role-catalogue-hint">
-                        Role memakai katalog bersama, bukan nama yang diketik bebas.
-                      </p>
+                      <RoleFields id="new-seat-role" />
                       <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
                       <textarea id="new-seat-brief" name="brief" rows={3} required />
-                      <label htmlFor="new-seat-commitment">Kira-kira berapa waktunya</label>
-                      <input
+                      <CommitmentField
                         id="new-seat-commitment"
                         name="commitment"
-                        type="text"
-                        maxLength={MAXIMUM.commitment}
-                        placeholder="± 2 jam per minggu"
                       />
                       <SubmitButton pendingLabel="Membuka…">Buka</SubmitButton>
                     </form>
@@ -489,7 +482,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                         )}
                       </strong>
                       <small>
-                        {roleLabel(seat.role)}
+                        {roleLabel(seat.role, seat.roleTitle)}
                         {seat.access === "admin" ? <span className="access-badge">admin</span> : null}
                       </small>
                     </span>

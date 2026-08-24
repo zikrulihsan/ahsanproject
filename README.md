@@ -46,6 +46,9 @@ and everything that writes will say so rather than failing quietly.
      0008 accidentally took from them
    - `0010_showcase.sql` — what a project is working on now, its journey,
      following, and four levels instead of five
+   - `0011_predefined_roles.sql` — the shared, filterable role catalogue
+   - `0012_custom_role_titles.sql` — a specific title when a needed role is not
+     in that catalogue
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.

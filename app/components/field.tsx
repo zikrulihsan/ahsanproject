@@ -9,6 +9,10 @@ export function Field({
   defaultValue = "",
   rows,
   required = false,
+  placeholder,
+  minLength,
+  maxLength,
+  type = "text",
 }: {
   label: string;
   name: string;
@@ -17,6 +21,10 @@ export function Field({
   defaultValue?: string;
   rows?: number;
   required?: boolean;
+  placeholder?: string;
+  minLength?: number;
+  maxLength?: number;
+  type?: "text" | "url";
 }) {
   const hintId = hint ? `${name}-hint` : undefined;
   const errorId = error ? `${name}-error` : undefined;
@@ -42,16 +50,22 @@ export function Field({
           aria-describedby={describedBy}
           aria-invalid={error ? true : undefined}
           required={required}
+          placeholder={placeholder}
+          minLength={minLength}
+          maxLength={maxLength}
         />
       ) : (
         <input
           id={name}
           name={name}
-          type="text"
+          type={type}
           defaultValue={defaultValue}
           aria-describedby={describedBy}
           aria-invalid={error ? true : undefined}
           required={required}
+          placeholder={placeholder}
+          minLength={minLength}
+          maxLength={maxLength}
         />
       )}
       {error ? (

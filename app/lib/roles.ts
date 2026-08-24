@@ -23,11 +23,17 @@ export const ROLES = [
   "mentor",
   "teacher",
   "legal-researcher",
+  "other",
 ] as const;
 
 export type Role = (typeof ROLES)[number];
 
-export type RoleGroup = "Produk & Desain" | "Teknologi" | "Riset & Konten" | "Komunitas & Bisnis";
+export type RoleGroup =
+  | "Produk & Desain"
+  | "Teknologi"
+  | "Riset & Konten"
+  | "Komunitas & Bisnis"
+  | "Lainnya";
 
 export const roleMeta: Record<Role, { label: string; blurb: string; group: RoleGroup }> = {
   "product-manager": {
@@ -120,6 +126,11 @@ export const roleMeta: Record<Role, { label: string; blurb: string; group: RoleG
     blurb: "Meneliti aturan dan menjelaskan konteks hukum dengan jernih.",
     group: "Riset & Konten",
   },
+  other: {
+    label: "Role lainnya",
+    blurb: "Gunakan nama role yang lebih sesuai dengan kebutuhan projectmu.",
+    group: "Lainnya",
+  },
 };
 
 export const ROLE_GROUPS: RoleGroup[] = [
@@ -127,6 +138,7 @@ export const ROLE_GROUPS: RoleGroup[] = [
   "Teknologi",
   "Riset & Konten",
   "Komunitas & Bisnis",
+  "Lainnya",
 ];
 
 /** Values stored before the canonical catalogue was introduced. */
@@ -156,8 +168,9 @@ export function roleAliases(role: Role): string[] {
   return [role, ...legacy];
 }
 
-export function roleLabel(value: string): string {
+export function roleLabel(value: string, customTitle = ""): string {
   const role = normaliseRole(value);
+  if (role === "other") return customTitle.trim() || roleMeta.other.label;
   if (role) return roleMeta[role].label;
-  return value === "other" ? "Peran lainnya" : "Peran";
+  return "Peran";
 }

@@ -12,7 +12,14 @@ import { hiddenFrom } from "./lib/activity";
 import { currentViewer } from "./lib/session";
 
 export type CreateState = {
-  errors: FieldErrors & { form?: string };
+  errors: FieldErrors & {
+    form?: string;
+    now?: string;
+    seatRole?: string;
+    seatRoleTitle?: string;
+    seatBrief?: string;
+    seatCommitment?: string;
+  };
   values: Record<string, string>;
 };
 
@@ -31,23 +38,45 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     problem: text(formData, "problem"),
     solution: text(formData, "solution"),
     audience: text(formData, "audience"),
-    tags: text(formData, "tags"),
+    tags: formTopics(formData),
     now: text(formData, "now").slice(0, MAXIMUM.now),
     stage: text(formData, "stage"),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
     seatRole: text(formData, "seatRole"),
+    seatRoleTitle: text(formData, "seatRoleTitle").slice(0, MAXIMUM.roleTitle),
     seatBrief: text(formData, "seatBrief"),
-    seatCommitment: text(formData, "seatCommitment").slice(0, MAXIMUM.commitment),
+    seatCommitment: formCommitment(formData, "seatCommitment"),
+    openSeat: text(formData, "openSeat"),
   };
 
   const viewer = await currentViewer();
   if (!viewer) return { errors: { form: "Masuk dulu sebelum menunjukkan project di sini." }, values };
 
   const errors: CreateState["errors"] = validateBrief(values);
-  if (values.seatBrief && !isRole(values.seatRole)) {
-    errors.form = "Pilih peran untuk bantuan yang kamu cari.";
+  const requestedStage = isStage(values.stage) ? values.stage : "idea";
+  if (
+    requestedStage === "building" &&
+    !values.now &&
+    !values.docUrl &&
+    !values.repoUrl &&
+    !values.liveUrl
+  ) {
+    errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
+  }
+  if (requestedStage === "live" && !values.liveUrl) {
+    errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+  }
+  if (values.openSeat === "yes") {
+    if (!isRole(values.seatRole)) errors.seatRole = "Pilih role yang sedang dicari.";
+    if (values.seatRole === "other" && !values.seatRoleTitle) {
+      errors.seatRoleTitle = "Tulis nama role yang belum ada di katalog.";
+    }
+    if (!values.seatBrief) errors.seatBrief = "Jelaskan pekerjaan konkret yang perlu dibantu.";
+    if (!values.seatCommitment) {
+      errors.seatCommitment = "Berikan perkiraan waktu agar orang tahu apakah mereka bisa ikut.";
+    }
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -55,7 +84,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   // is a claim, and an unearned claim is the one thing this board will not
   // carry. Anything that does not hold up settles to the highest level it does.
   const tags = normaliseTags(values.tags);
-  const stage = settleStage(isStage(values.stage) ? values.stage : "idea", {
+  const stage = settleStage(requestedStage, {
     problem: values.problem,
     solution: values.solution,
     audience: values.audience,
@@ -96,10 +125,11 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
       .single();
     if (error) throw new Error(error.message);
 
-    if (values.seatBrief && isRole(values.seatRole)) {
+    if (values.openSeat === "yes" && values.seatBrief && isRole(values.seatRole)) {
       const { error: seatError } = await supabase.from("seats").insert({
         project_id: project.id,
         role: values.seatRole,
+        role_title: values.seatRole === "other" ? values.seatRoleTitle : "",
         brief: values.seatBrief.slice(0, MAXIMUM.seatBrief),
         commitment: values.seatCommitment,
       });
@@ -128,7 +158,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     problem: text(formData, "problem"),
     solution: text(formData, "solution"),
     audience: text(formData, "audience"),
-    tags: text(formData, "tags"),
+    tags: formTopics(formData),
     now: text(formData, "now").slice(0, MAXIMUM.now),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
@@ -259,9 +289,10 @@ export async function setStage(formData: FormData): Promise<void> {
 export async function openSeat(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
   const role = text(formData, "role");
+  const roleTitle = text(formData, "roleTitle").slice(0, MAXIMUM.roleTitle);
   const brief = text(formData, "brief").slice(0, MAXIMUM.seatBrief);
-  const commitment = text(formData, "commitment").slice(0, MAXIMUM.commitment);
-  if (!isRole(role) || !brief) return;
+  const commitment = formCommitment(formData, "commitment");
+  if (!isRole(role) || !brief || !commitment || (role === "other" && !roleTitle)) return;
 
   const supabase = await requireSupabase();
   const { data: project } = await supabase
@@ -273,7 +304,13 @@ export async function openSeat(formData: FormData): Promise<void> {
 
   const { error } = await supabase
     .from("seats")
-    .insert({ project_id: project.id, role, brief, commitment });
+    .insert({
+      project_id: project.id,
+      role,
+      role_title: role === "other" ? roleTitle : "",
+      brief,
+      commitment,
+    });
   if (error) throw new Error(error.message);
 
   revalidatePath(`/projects/${slug}`);
@@ -676,6 +713,25 @@ export async function updateProfile(formData: FormData): Promise<void> {
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+/** Topic chips and the free-text escape hatch share the old comma-list shape. */
+function formTopics(formData: FormData): string {
+  const selected = formData
+    .getAll("topics")
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const custom = text(formData, "customTags");
+  const legacy = text(formData, "tags");
+  return [...selected, custom || (selected.length === 0 ? legacy : "")].filter(Boolean).join(", ");
+}
+
+/** A preset is stored as ordinary copy; custom text takes its place when chosen. */
+function formCommitment(formData: FormData, key: string): string {
+  const preset = text(formData, `${key}Preset`);
+  const custom = text(formData, key);
+  return (preset === "custom" ? custom : preset || custom).slice(0, MAXIMUM.commitment);
 }
 
 async function freeSlug(supabase: Supabase, title: string): Promise<string> {
