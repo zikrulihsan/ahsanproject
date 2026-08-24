@@ -266,7 +266,15 @@ export function BoardCard({
             <div className="home-project-identity">
               <ProjectLogo title={project.title} website={project.liveUrl} />
               <div className="home-project-heading">
-                <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+                {project.tags[0] ? (
+                  <Link className="project-kind" href={`/?tag=${encodeURIComponent(project.tags[0])}`}>
+                    {project.tags[0]}
+                  </Link>
+                ) : (
+                  <Link className="project-kind" href={`/?stage=${project.stage}`}>
+                    {stageMeta[project.stage].label}
+                  </Link>
+                )}
                 <h3>
                   <Link className="card-cover-link" href={`/projects/${project.slug}`}>
                     {project.title}
