@@ -86,6 +86,15 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
   const projectCount = new Set(
     allPeople.flatMap((entry) => [...entry.building, ...entry.helping].map((project) => project.id)),
   ).size;
+  const topContributors = [...allPeople]
+    .filter((entry) => entry.helping.length > 0)
+    .sort(
+      (a, b) =>
+        b.helping.length - a.helping.length ||
+        b.building.length - a.building.length ||
+        a.person.name.localeCompare(b.person.name, "id"),
+    )
+    .slice(0, 5);
   const returnTo = directoryHref({});
 
   return (
@@ -239,68 +248,74 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
         ) : null}
 
         <section className="people-results" aria-labelledby="people-results-heading" aria-live="polite">
-          <div className="people-results-head">
-            <div>
-              <p className="section-label">Hasil pencarian</p>
-              <h2 id="people-results-heading">{matched.length} orang ditemukan</h2>
-            </div>
-            {matched.length > 0 ? (
-              <p>
-                Menampilkan {pagination.from}–{pagination.to} dari {matched.length}
-              </p>
-            ) : null}
-          </div>
+          <div className="people-results-layout">
+            <div className="people-results-main">
+              <div className="people-results-head">
+                <div>
+                  <p className="section-label">Hasil pencarian</p>
+                  <h2 id="people-results-heading">{matched.length} orang ditemukan</h2>
+                </div>
+                {matched.length > 0 ? (
+                  <p>
+                    Menampilkan {pagination.from}–{pagination.to} dari {matched.length}
+                  </p>
+                ) : null}
+              </div>
 
-          {people.length === 0 ? (
-            <div className="people-empty">
-              <span aria-hidden="true">⌕</span>
-              <h3>Belum ada orang yang cocok.</h3>
-              <p>Coba kata yang lebih umum atau lepaskan satu filter untuk memperluas hasil.</p>
-              <Link className="ghost-button" href="/orang">Lihat semua orang</Link>
-            </div>
-          ) : (
-            <ul className="people-grid">
-              {people.map((entry) => (
-                <PersonCard key={entry.person.id} entry={entry} />
-              ))}
-            </ul>
-          )}
-
-          {pageCount > 1 ? (
-            <nav className="people-pagination" aria-label="Halaman hasil pencarian">
-              {page > 1 ? (
-                <Link className="pagination-direction" href={directoryHref({ halaman: page - 1 })} rel="prev">
-                  ← Sebelumnya
-                </Link>
+              {people.length === 0 ? (
+                <div className="people-empty">
+                  <span aria-hidden="true">⌕</span>
+                  <h3>Belum ada orang yang cocok.</h3>
+                  <p>Coba kata yang lebih umum atau lepaskan satu filter untuk memperluas hasil.</p>
+                  <Link className="ghost-button" href="/orang">Lihat semua orang</Link>
+                </div>
               ) : (
-                <span className="pagination-direction is-disabled">← Sebelumnya</span>
+                <ul className="people-list">
+                  {people.map((entry) => (
+                    <PersonRow key={entry.person.id} entry={entry} />
+                  ))}
+                </ul>
               )}
-              <div>
-                {paginationItems(page, pageCount).map((item) =>
-                  typeof item === "number" ? (
-                    <Link
-                      key={item}
-                      className={item === page ? "is-active" : ""}
-                      aria-current={item === page ? "page" : undefined}
-                      aria-label={`Halaman ${item}`}
-                      href={directoryHref({ halaman: item })}
-                    >
-                      {item}
+
+              {pageCount > 1 ? (
+                <nav className="people-pagination" aria-label="Halaman hasil pencarian">
+                  {page > 1 ? (
+                    <Link className="pagination-direction" href={directoryHref({ halaman: page - 1 })} rel="prev">
+                      ← Sebelumnya
                     </Link>
                   ) : (
-                    <span key={item} aria-hidden="true">…</span>
-                  ),
-                )}
-              </div>
-              {page < pageCount ? (
-                <Link className="pagination-direction" href={directoryHref({ halaman: page + 1 })} rel="next">
-                  Berikutnya →
-                </Link>
-              ) : (
-                <span className="pagination-direction is-disabled">Berikutnya →</span>
-              )}
-            </nav>
-          ) : null}
+                    <span className="pagination-direction is-disabled">← Sebelumnya</span>
+                  )}
+                  <div>
+                    {paginationItems(page, pageCount).map((item) =>
+                      typeof item === "number" ? (
+                        <Link
+                          key={item}
+                          className={item === page ? "is-active" : ""}
+                          aria-current={item === page ? "page" : undefined}
+                          aria-label={`Halaman ${item}`}
+                          href={directoryHref({ halaman: item })}
+                        >
+                          {item}
+                        </Link>
+                      ) : (
+                        <span key={item} aria-hidden="true">…</span>
+                      ),
+                    )}
+                  </div>
+                  {page < pageCount ? (
+                    <Link className="pagination-direction" href={directoryHref({ halaman: page + 1 })} rel="next">
+                      Berikutnya →
+                    </Link>
+                  ) : (
+                    <span className="pagination-direction is-disabled">Berikutnya →</span>
+                  )}
+                </nav>
+              ) : null}
+            </div>
+
+            <ContributorRail people={topContributors} />
+          </div>
         </section>
       </main>
 
@@ -309,73 +324,111 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
   );
 }
 
-function PersonCard({ entry }: { entry: PersonAtWork }) {
+function PersonRow({ entry }: { entry: PersonAtWork }) {
   const { person, building, helping } = entry;
   const profession = primaryProfession(entry);
   const evidence = [
     ...building.map((project) => ({ project, label: "Membangun" })),
     ...helping.map((project) => ({ project, label: "Membantu" })),
-  ].slice(0, 3);
+  ].slice(0, 2);
   const headline = person.headline.trim() !== profession.trim() ? person.headline : "";
 
   return (
     <li>
-      <article className="people-card">
-        <header className="people-card-head">
-          <Link className="people-identity" href={`/u/${person.username}`}>
-            <span className="people-avatar" aria-hidden="true">{initials(person.name)}</span>
-            <span>
-              <strong>{person.name}</strong>
-              <small>@{person.username}</small>
-            </span>
-          </Link>
-          <Link className="people-profile-link" href={`/u/${person.username}`} aria-label={`Lihat profil ${person.name}`}>
-            ↗
-          </Link>
-        </header>
+      <article className="people-row">
+        <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`Profil ${person.name}`}>
+          <span className="people-avatar" aria-hidden="true">{initials(person.name)}</span>
+        </Link>
 
-        <div className="people-card-intro">
+        <div className="people-row-body">
+          <header className="people-row-heading">
+            <Link href={`/u/${person.username}`}>{person.name}</Link>
+            <span>·</span>
+            <small>@{person.username}</small>
+          </header>
           <p className={profession ? "people-profession" : "people-profession is-empty"}>
             {profession || "Profesi belum diisi"}
           </p>
           {headline ? <p className="people-headline">{headline}</p> : null}
+
           <ul className="people-meta">
             {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
             {person.fields.slice(0, 2).map((field) => <li key={field}>{field}</li>)}
+            {building.length > 0 ? <li>{building.length} project dibangun</li> : null}
+            {helping.length > 0 ? <li>{helping.length} kontribusi</li> : null}
           </ul>
-        </div>
 
-        {person.skills.length > 0 ? (
-          <ul className="people-skills" aria-label={`Skill ${person.name}`}>
-            {person.skills.slice(0, 5).map((skill) => (
-              <li key={skill}><Link href={`/orang?skill=${encodeURIComponent(skill)}`}>{skill}</Link></li>
-            ))}
-            {person.skills.length > 5 ? <li className="people-more">+{person.skills.length - 5}</li> : null}
-          </ul>
-        ) : null}
-
-        <div className="people-proof">
-          <p>Bukti kerja</p>
-          {evidence.length > 0 ? (
-            <ul>
-              {evidence.map(({ project, label }) => (
-                <li key={`${label}-${project.id}`}>
-                  <span>{label}</span>
-                  <Link href={`/projects/${project.slug}`}>{project.title}</Link>
-                </li>
+          {person.skills.length > 0 ? (
+            <ul className="people-skills" aria-label={`Skill ${person.name}`}>
+              {person.skills.slice(0, 4).map((skill) => (
+                <li key={skill}><Link href={`/orang?skill=${encodeURIComponent(skill)}`}>{skill}</Link></li>
               ))}
+              {person.skills.length > 4 ? <li className="people-more">+{person.skills.length - 4}</li> : null}
             </ul>
-          ) : (
-            <p className="people-no-proof">Belum menunjukkan project publik.</p>
-          )}
+          ) : null}
+
+          <div className="people-proof">
+            <strong>Bukti kerja</strong>
+            {evidence.length > 0 ? (
+              <ul>
+                {evidence.map(({ project, label }) => (
+                  <li key={`${label}-${project.id}`}>
+                    <span>{label}</span>
+                    <Link href={`/projects/${project.slug}`}>{project.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="people-no-proof">Belum menunjukkan project publik.</p>
+            )}
+          </div>
         </div>
 
-        <div className="people-card-footer">
-          <span>{building.length} project · {helping.length} kontribusi</span>
-          <Link href={`/u/${person.username}`}>Lihat profil <span aria-hidden="true">→</span></Link>
+        <div className="people-row-action">
+          <Link href={`/u/${person.username}`}>
+            Lihat profil <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </article>
     </li>
+  );
+}
+
+function ContributorRail({ people }: { people: PersonAtWork[] }) {
+  return (
+    <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
+      <div className="people-contributor-card">
+        <p className="section-label">Kontributor</p>
+        <h2 id="contributors-heading">Paling banyak membantu</h2>
+        <p className="people-contributor-note">
+          Diurutkan dari jumlah project berbeda yang pernah dibantu.
+        </p>
+
+        {people.length > 0 ? (
+          <ol>
+            {people.map((entry, index) => (
+              <li key={entry.person.id}>
+                <span className="people-contributor-rank">{String(index + 1).padStart(2, "0")}</span>
+                <Link className="people-contributor-person" href={`/u/${entry.person.username}`}>
+                  <span className="people-mini-avatar" aria-hidden="true">{initials(entry.person.name)}</span>
+                  <span>
+                    <strong>{entry.person.name}</strong>
+                    <small>{primaryProfession(entry) || `@${entry.person.username}`}</small>
+                  </span>
+                </Link>
+                <strong className="people-contributor-count">{entry.helping.length}</strong>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="people-contributor-empty">Belum ada kontribusi lintas project yang tercatat.</p>
+        )}
+
+        <Link className="people-contributor-all" href="/orang?kerja=helping">
+          Lihat semua kontributor <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+    </aside>
   );
 }
 

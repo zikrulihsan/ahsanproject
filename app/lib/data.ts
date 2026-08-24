@@ -519,18 +519,27 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
   if (supabase) {
     const { data, error } = await supabase
       .from("seats")
-      .select("project_id, user_id, role, role_title")
+      // Keep the directory on the original seat shape. `role_title` arrived
+      // in migration 0012 and is presentation detail, not something /orang
+      // should require merely to render a contributor.
+      .select("project_id, user_id, role")
       .eq("status", "filled");
-    if (error) throw new Error(error.message);
 
-    for (const seat of data ?? []) {
-      const project = seat.user_id ? byId.get(seat.project_id) : undefined;
-      if (!project || !seat.user_id) continue;
-      if (project.owner.id === seat.user_id) continue;
-      helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
-      const personRoles = roles.get(seat.user_id) ?? new Set<string>();
-      personRoles.add(roleLabel(seat.role, seat.role_title));
-      roles.set(seat.user_id, personRoles);
+    if (error) {
+      // Contributions enrich each result; they are not the directory's source of
+      // truth. A rollout with an older seats schema must not turn every public
+      // profile into a 500 page.
+      console.warn(`[ahsan] Kontribusi di direktori orang dilewati: ${error.message}`);
+    } else {
+      for (const seat of data ?? []) {
+        const project = seat.user_id ? byId.get(seat.project_id) : undefined;
+        if (!project || !seat.user_id) continue;
+        if (project.owner.id === seat.user_id) continue;
+        helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
+        const personRoles = roles.get(seat.user_id) ?? new Set<string>();
+        personRoles.add(roleLabel(seat.role));
+        roles.set(seat.user_id, personRoles);
+      }
     }
   } else {
     for (const project of seedProjects) {
