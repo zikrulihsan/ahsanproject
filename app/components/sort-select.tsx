@@ -28,17 +28,18 @@ export function SortSelect({
   hidden?: Record<string, string>;
 }) {
   const form = useRef<HTMLFormElement>(null);
+  const controlId = `board-${name}`;
 
   return (
     <form className="sort-field" method="get" action="/" ref={form}>
       {Object.entries(hidden).map(([key, entry]) =>
         entry ? <input key={key} type="hidden" name={key} value={entry} /> : null,
       )}
-      <label className="sr-only" htmlFor="board-sort">
+      <label className="sr-only" htmlFor={controlId}>
         {label}
       </label>
       <select
-        id="board-sort"
+        id={controlId}
         name={name}
         defaultValue={value}
         onChange={() => form.current?.requestSubmit()}

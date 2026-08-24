@@ -13,6 +13,7 @@ import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 import { arrangeForYou, type Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
+import { normaliseRole, roleAliases } from "./roles";
 
 export type Person = {
   id: string;
@@ -184,6 +185,7 @@ function warnMissingTable(table: string): void {
 const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: string }> = {
   untukmu: { column: "last_activity_at" },
   terbaru: { column: "created_at" },
+  aktif: { column: "last_activity_at" },
   "butuh-bantuan": { needsHelp: true, column: "last_activity_at" },
   dibangun: { stage: "building", column: "last_activity_at" },
   berjalan: { stage: "live", column: "last_activity_at" },
@@ -204,7 +206,10 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   if (stage) request = request.eq("stage", stage);
   if (shape.needsHelp) request = request.gt("open_seat_count", 0);
   if (query.tag) request = request.contains("tags", [query.tag]);
-  if (query.role) request = request.contains("open_roles", [query.role]);
+  if (query.role) {
+    const role = normaliseRole(query.role);
+    if (role) request = request.overlaps("open_roles", roleAliases(role));
+  }
   if (query.q) {
     // The whole brief, not just its opening: somebody searching "flutter"
     // should find the project that only says so under solution. `now_text` is
@@ -1090,7 +1095,12 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
     if (stage && project.stage !== stage) return false;
     if (shape.needsHelp && project.openSeatCount === 0) return false;
     if (query.tag && !project.tags.includes(query.tag)) return false;
-    if (query.role && !project.openRoles.includes(query.role)) return false;
+    if (query.role) {
+      const wantedRole = normaliseRole(query.role);
+      if (wantedRole && !project.openRoles.some((role) => normaliseRole(role) === wantedRole)) {
+        return false;
+      }
+    }
     if (needle) {
       const haystack = [
         project.title,

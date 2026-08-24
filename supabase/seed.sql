@@ -39,7 +39,7 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'design', 'Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.',
+    select new_project, 'ui-ux-designer', 'Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.',
            '± 3 jam per minggu, santai', 'member'
     where new_project is not null;
     insert into public.updates (project_id, author_id, title, body, created_at)
@@ -66,7 +66,7 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'content', 'Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.',
+    select new_project, 'content-writer', 'Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.',
            '± 2 jam per minggu', 'member'
     where new_project is not null;
     insert into public.updates (project_id, author_id, title, body, created_at)
@@ -110,7 +110,7 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'pm', 'Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.',
+    select new_project, 'product-manager', 'Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.',
            '', 'member'
     where new_project is not null;
 
@@ -131,7 +131,7 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'research', 'Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.',
+    select new_project, 'researcher', 'Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.',
            '', 'member'
     where new_project is not null;
     insert into public.updates (project_id, author_id, title, body, created_at)
@@ -158,7 +158,7 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'content', 'Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.',
+    select new_project, 'content-writer', 'Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.',
            '', 'member'
     where new_project is not null;
     insert into public.updates (project_id, author_id, title, body, created_at)
@@ -182,15 +182,15 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'research', 'Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.',
+    select new_project, 'researcher', 'Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.',
            '', 'member'
     where new_project is not null;
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'design', 'Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.',
+    select new_project, 'ui-ux-designer', 'Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.',
            '', 'member'
     where new_project is not null;
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'engineering', 'Prototipe antrean yang tetap jalan saat koneksi putus.',
+    select new_project, 'software-engineer', 'Prototipe antrean yang tetap jalan saat koneksi putus.',
            '', 'member'
     where new_project is not null;
     insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)
@@ -223,11 +223,11 @@ begin
   returning id into new_project;
 
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'pm', 'Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.',
+    select new_project, 'product-manager', 'Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.',
            '± 2 jam per minggu', 'member'
     where new_project is not null;
     insert into public.seats (project_id, role, brief, commitment, access)
-    select new_project, 'design', 'Menyusun tampilan papan mingguan yang kebaca sekali lihat.',
+    select new_project, 'ui-ux-designer', 'Menyusun tampilan papan mingguan yang kebaca sekali lihat.',
            'Fleksibel, borongan juga boleh', 'member'
     where new_project is not null;
     insert into public.tasks (project_id, title, detail, status, assignee_id, created_by)

@@ -10,7 +10,7 @@
  * anything living in `data.ts` pulls in the Supabase client and, through it,
  * `next/headers`.
  */
-export const LANES = ["untukmu", "terbaru", "butuh-bantuan", "dibangun", "berjalan"] as const;
+export const LANES = ["untukmu", "terbaru", "aktif", "butuh-bantuan", "dibangun", "berjalan"] as const;
 
 export type Lane = (typeof LANES)[number];
 
@@ -45,4 +45,3 @@ export function arrangeForYou<T extends { openRoles: string[]; openSeatCount: nu
     .sort((a, b) => a.band - b.band || a.index - b.index)
     .map((entry) => entry.project);
 }
-

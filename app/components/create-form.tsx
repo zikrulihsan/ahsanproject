@@ -3,9 +3,9 @@
 import { useActionState } from "react";
 import { createProject, type CreateState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
-import { ROLES, roleMeta } from "../lib/roles";
 import { STAGES, stageMeta } from "../lib/stages";
 import { Field } from "./field";
+import { RoleSelect } from "./role-select";
 
 const EMPTY: CreateState = { errors: {}, values: {} };
 
@@ -177,14 +177,11 @@ export function CreateForm() {
           teman mengerjakan.
         </p>
 
-        <label htmlFor="seatRole">Bantu sebagai</label>
-        <select id="seatRole" name="seatRole" defaultValue={values.seatRole ?? "pm"}>
-          {ROLES.map((role) => (
-            <option key={role} value={role}>
-              {roleMeta[role].label} — {roleMeta[role].blurb}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="seatRole">Role yang dibuka</label>
+        <RoleSelect id="seatRole" name="seatRole" defaultValue={values.seatRole} />
+        <p className="hint role-catalogue-hint">
+          Pilih dari katalog agar role yang sama bisa ditemukan dan dibandingkan di semua project.
+        </p>
 
         <label htmlFor="seatBrief">Yang perlu dibantu</label>
         <textarea

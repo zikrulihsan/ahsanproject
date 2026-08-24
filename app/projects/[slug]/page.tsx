@@ -39,7 +39,8 @@ import {
   listProjectActivity,
   type ProjectDetail,
 } from "../../lib/data";
-import { ROLES, roleLabel, roleMeta } from "../../lib/roles";
+import { roleLabel } from "../../lib/roles";
+import { RoleSelect } from "../../components/role-select";
 import { STAGES, meetsStage, requirementsFor, stageMeta, type StageInput } from "../../lib/stages";
 import { accessOf, canManage } from "../../lib/access";
 import { UPDATE_LIMITS } from "../../lib/updates";
@@ -387,14 +388,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
                     <summary>Cari bantuan baru</summary>
                     <form action={openSeat}>
                       <input type="hidden" name="slug" value={project.slug} />
-                      <label htmlFor="new-seat-role">Bantu sebagai</label>
-                      <select id="new-seat-role" name="role" defaultValue="pm">
-                        {ROLES.map((role) => (
-                          <option key={role} value={role}>
-                            {roleMeta[role].label}
-                          </option>
-                        ))}
-                      </select>
+                      <label htmlFor="new-seat-role">Role yang dibuka</label>
+                      <RoleSelect id="new-seat-role" />
+                      <p className="hint role-catalogue-hint">
+                        Role memakai katalog bersama, bukan nama yang diketik bebas.
+                      </p>
                       <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
                       <textarea id="new-seat-brief" name="brief" rows={3} required />
                       <label htmlFor="new-seat-commitment">Kira-kira berapa waktunya</label>

@@ -20,44 +20,15 @@ export function Brand({ footer = false }: { footer?: boolean }) {
   return (
     <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label="Ahsan Project, ke beranda">
       <Logo className="brand-mark" />
-      <span>
-        Ahsan <span className="brand-alt">Project</span>
-      </span>
+      <span><strong>ahsan</strong><span className="brand-alt">project</span></span>
     </Link>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
-}
-
-/**
- * Search that lives in the header rather than only on the board.
- *
- * A plain GET form, not a command palette: it works before any JavaScript
- * arrives, and what it produces is a URL somebody can share.
- */
-function HeaderSearch() {
-  return (
-    <form className="header-search" method="get" action="/" role="search">
-      <label>
-        <SearchIcon />
-        <span className="sr-only">Cari project, topik, atau sesuatu yang ingin kamu bantu</span>
-        <input type="search" name="q" placeholder="Cari project, topik, atau sesuatu yang ingin kamu bantu…" autoComplete="off" />
-      </label>
-    </form>
   );
 }
 
 const LINKS: { href: string; label: string; key: Section }[] = [
   { href: "/", label: "Jelajah", key: "jelajah" },
-  { href: "/orang", label: "Orang", key: "orang" },
-  { href: "/about", label: "Tentang", key: "tentang" },
+  { href: "/?lane=butuh-bantuan", label: "Cari kolaborasi", key: "" },
+  { href: "/orang", label: "People", key: "orang" },
 ];
 
 function MainNav({ active }: { active: Section }) {
@@ -87,8 +58,11 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
       </a>
       <div className="topbar-inner">
         <Brand />
-        <HeaderSearch />
         <MainNav active={active} />
+        <div className="header-actions header-shell-actions">
+          <Link className="nav-login" href="/signin">Masuk</Link>
+          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Tampilkan project</Link>
+        </div>
       </div>
     </header>
   );
@@ -118,7 +92,6 @@ export async function SiteHeader({
 
       <div className="topbar-inner">
         <Brand />
-        <HeaderSearch />
         <MainNav active={active} />
 
         <div className="header-actions">
@@ -144,13 +117,16 @@ export async function SiteHeader({
                 </button>
               </form>
               <Link className="primary-action" href="/new">
-                Tunjukkan project <Arrow />
+                <span aria-hidden="true">+</span> Tampilkan project
               </Link>
             </>
           ) : (
-            <Link className="primary-action" href={signInPath(returnTo)}>
-              Masuk <Arrow />
-            </Link>
+            <>
+              <Link className="nav-login" href={signInPath(returnTo)}>Masuk</Link>
+              <Link className="primary-action" href="/new">
+                <span aria-hidden="true">+</span> Tampilkan project
+              </Link>
+            </>
           )}
 
           {/* A details menu, so the small-screen nav opens with no JavaScript. */}
@@ -171,13 +147,16 @@ export async function SiteHeader({
                     Kotak masuk{waiting > 0 ? ` (${waiting})` : ""}
                   </Link>
                   <Link href={`/u/${viewer.username}`}>{viewer.name}</Link>
-                  <Link href="/new">Tunjukkan project</Link>
+                  <Link href="/new">Tampilkan project</Link>
                   <form action={signOut}>
                     <button type="submit">Keluar</button>
                   </form>
                 </>
               ) : (
-                <Link href={signInPath(returnTo)}>Masuk</Link>
+                <>
+                  <Link href={signInPath(returnTo)}>Masuk</Link>
+                  <Link href="/new">Tampilkan project</Link>
+                </>
               )}
             </nav>
           </details>

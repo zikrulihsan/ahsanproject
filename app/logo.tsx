@@ -1,9 +1,4 @@
-/**
- * Ahsan Project mark: the mosque dome from the brand logo.
- *
- * Stroked with currentColor so the header and footer can recolour it with a
- * plain `color` rule. Keep the path in sync with public/favicon.svg.
- */
+/** Compact wordmark used in the navigation. */
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
@@ -14,13 +9,17 @@ export function Logo({ className }: { className?: string }) {
       aria-hidden="true"
       focusable="false"
     >
-      <path
-        d="M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <text
+        x="20"
+        y="27"
+        fill="currentColor"
+        fontFamily="Arial, sans-serif"
+        fontSize="22"
+        fontWeight="800"
+        textAnchor="middle"
+      >
+        a.
+      </text>
     </svg>
   );
 }

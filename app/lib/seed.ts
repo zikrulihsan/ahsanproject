@@ -123,7 +123,7 @@ export const seedEvents: SeedEvent[] = [
     actorId: "seed-zikrul",
     projectSlug: "warung-antre",
     kind: "seat_opened",
-    payload: { slug: "warung-antre", title: "Warung Antre", role: "research" },
+    payload: { slug: "warung-antre", title: "Warung Antre", role: "researcher" },
     createdAt: "2025-06-14 09:30:00",
   },
   {
@@ -159,7 +159,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-08-11 09:00:00",
     seats: [
       {
-        role: "design",
+        role: "ui-ux-designer",
         brief: "Menata ulang tampilan penghitungnya supaya nyaman dipakai satu tangan, termasuk mode gelap.",
         commitment: "± 3 jam per minggu, santai",
         status: "open",
@@ -204,7 +204,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-07-28 09:00:00",
     seats: [
       {
-        role: "content",
+        role: "content-writer",
         brief: "Menulis satu dek baru untuk obrolan rekan kerja, sekitar 40 pertanyaan.",
         commitment: "± 2 jam per minggu",
         status: "open",
@@ -274,7 +274,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-04-30 09:00:00",
     seats: [
       {
-        role: "pm",
+        role: "product-manager",
         brief: "Menentukan fitur berikutnya dari keluhan pengguna yang sudah masuk.",
         commitment: "",
         status: "open",
@@ -308,7 +308,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-08-18 09:00:00",
     seats: [
       {
-        role: "research",
+        role: "researcher",
         brief: "Menguji materinya ke satu kelas dan merapikan bagian yang belum kena.",
         commitment: "",
         status: "open",
@@ -353,7 +353,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-08-05 09:00:00",
     seats: [
       {
-        role: "content",
+        role: "content-writer",
         brief: "Mengurasi dan menyunting tulisan kiriman komunitas tiap bulan.",
         commitment: "",
         status: "open",
@@ -393,7 +393,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "",
     seats: [
       {
-        role: "research",
+        role: "researcher",
         brief: "Ngobrol dengan lima pemilik warung untuk memastikan masalahnya memang terasa.",
         commitment: "",
         status: "open",
@@ -402,7 +402,7 @@ export const seedProjects: SeedProject[] = [
         pitch: "",
       },
       {
-        role: "design",
+        role: "ui-ux-designer",
         brief: "Membuat alur layar penjual yang bisa dipakai sambil tangan sibuk.",
         commitment: "",
         status: "open",
@@ -411,7 +411,7 @@ export const seedProjects: SeedProject[] = [
         pitch: "",
       },
       {
-        role: "engineering",
+        role: "software-engineer",
         brief: "Prototipe antrean yang tetap jalan saat koneksi putus.",
         commitment: "",
         status: "open",
@@ -464,7 +464,7 @@ export const seedProjects: SeedProject[] = [
     nowUpdatedAt: "2026-08-14 09:00:00",
     seats: [
       {
-        role: "pm",
+        role: "product-manager",
         brief: "Merapikan alurnya jadi sesederhana mungkin supaya tidak kalah praktis dari grup chat.",
         commitment: "± 2 jam per minggu",
         status: "open",
@@ -473,7 +473,7 @@ export const seedProjects: SeedProject[] = [
         pitch: "",
       },
       {
-        role: "design",
+        role: "ui-ux-designer",
         brief: "Menyusun tampilan papan mingguan yang kebaca sekali lihat.",
         commitment: "Fleksibel, borongan juga boleh",
         status: "open",

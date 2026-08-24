@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { roleLabel } from "../lib/roles";
+import { normaliseRole, roleLabel } from "../lib/roles";
 import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
 import { activityParts } from "../lib/activity";
@@ -247,57 +247,100 @@ export function SeatChips({
  */
 export function BoardCard({
   project,
+  rank,
   roleCounts,
 }: {
   project: ProjectSummary;
+  rank: number;
   roleCounts?: Record<string, number>;
 }) {
+  const roleEntries = project.openRoles.map((role) => ({
+    role,
+    count: roleCounts?.[role] ?? 1,
+  }));
+
   return (
-    <li>
-      <article className="project-card board-card">
-        <div className="card-topline">
-          <h3>
-            {/* Stretched over the whole card — see `.card-cover-link` in
-                globals.css — so a tap anywhere that is not one of the chips
-                below still opens the project. */}
-            <Link className="card-cover-link" href={`/projects/${project.slug}`}>
-              {project.title}
-            </Link>
-          </h3>
-          <StageBadge stage={project.stage} />
+    <li className="project-list-entry">
+      <article className="home-project-card">
+        <div className="project-score" aria-label={`${project.boostCount} dukungan`}>
+          <span aria-hidden="true">▲</span>
+          <strong>{project.boostCount}</strong>
         </div>
 
-        <p className="card-tagline">{project.tagline}</p>
+        <span className={`home-project-logo level-${project.stage}`} aria-hidden="true">
+          <small>{rank}</small>
+          {initials(project.title)}
+        </span>
 
-        <NowLine project={project} />
+        <div className="home-project-copy">
+          <div className="home-project-title-row">
+            <div>
+              <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+              <h3>
+                <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+                  {project.title}
+                </Link>
+              </h3>
+            </div>
+            <span className="bookmark-mark" aria-hidden="true">
+              <svg className="icon" viewBox="0 0 24 24"><path d="M6.5 4.5h11v15l-5.5-3-5.5 3z" /></svg>
+            </span>
+          </div>
 
-        <div className="card-roles">
+          <p className="home-project-tagline">{project.tagline}</p>
+
+          <p className="home-project-meta">
+            <span>{stageMeta[project.stage].label}</span>
+            <span>{freshness(project) || "Baru ditampilkan"}</span>
+            <span>{project.commentCount} diskusi</span>
+          </p>
+
           {project.openRoles.length > 0 ? (
-            <>
-              <p className="card-roles-label">Butuh:</p>
-              <SeatChips roles={project.openRoles} counts={roleCounts} />
-            </>
+            <div className="home-open-call">
+              <div className="home-open-label">
+                <p><PeopleIcon /> Sedang mencari</p>
+                <small>Membuka {project.openSeatCount} posisi</small>
+              </div>
+              <ul className="home-role-chips" aria-label="Posisi yang sedang dibuka">
+                {roleEntries.slice(0, 3).map(({ role, count }) => (
+                  <li key={role}>
+                    <Link href={`/?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
+                      {roleLabel(role)} · {count}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link className="home-project-link" href={`/projects/${project.slug}`}>
+                Lihat project <Arrow />
+              </Link>
+            </div>
           ) : (
-            <p className="card-roles-none">
-              Belum membuka peran
-              {freshness(project) ? ` · ${freshness(project)}` : ""}
-            </p>
+            <div className="home-open-call home-open-call-empty">
+              <p>Belum membuka posisi kontribusi</p>
+              <Link className="home-project-link" href={`/projects/${project.slug}`}>
+                Lihat project <Arrow />
+              </Link>
+            </div>
           )}
-        </div>
 
-        <div className="board-card-footer">
-          <Link className="contributors" href={`/u/${project.owner.username}`}>
+          <Link className="home-project-owner" href={`/u/${project.owner.username}`}>
             <span className="avatar" aria-hidden="true">
               {initials(project.owner.name)}
             </span>
-            <small>
-              {project.owner.name} + {project.activeMemberCount} orang
-            </small>
+            <small>Digagas oleh <strong>{project.owner.name}</strong></small>
           </Link>
-          <span className="row-freshness">{freshness(project)}</span>
         </div>
       </article>
     </li>
+  );
+}
+
+function PeopleIcon() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M16 5.5a3 3 0 0 1 0 5.8M17.5 13.5c2 .7 3 2.5 3 5" />
+    </svg>
   );
 }
 

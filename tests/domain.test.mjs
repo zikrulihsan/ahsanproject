@@ -8,6 +8,7 @@ import { arrangeForYou } from "../app/lib/feed.ts";
 import { taskStatusLabel, validateTask } from "../app/lib/tasks.ts";
 import { accessOf, canManage, isOwner } from "../app/lib/access.ts";
 import { EVENT_KINDS, activitySentence, hiddenFrom } from "../app/lib/activity.ts";
+import { ROLES, isRole, normaliseRole, roleLabel } from "../app/lib/roles.ts";
 
 const fullBrief = {
   title: "Warung Antre",
@@ -45,6 +46,20 @@ test("tags are de-duplicated, lowercased and capped", () => {
 test("slugs stay url-safe", () => {
   assert.equal(slugify("Tap Tap Dzikr!"), "tap-tap-dzikr");
   assert.equal(slugify("  — — "), "");
+});
+
+test("posisi project hanya menerima role dari katalog bersama", () => {
+  assert.ok(ROLES.length > 10, "katalog cukup spesifik untuk beberapa jenis project");
+  assert.ok(isRole("ui-ux-designer"));
+  assert.ok(isRole("frontend-developer"));
+  assert.ok(!isRole("desainer sesuka pemilik"));
+  assert.equal(roleLabel("ui-ux-designer"), "UI/UX Designer");
+});
+
+test("role lama dinormalisasi supaya tautan dan data existing tetap bekerja", () => {
+  assert.equal(normaliseRole("pm"), "product-manager");
+  assert.equal(normaliseRole("design"), "ui-ux-designer");
+  assert.equal(normaliseRole("entah"), null);
 });
 
 const stageInput = {
