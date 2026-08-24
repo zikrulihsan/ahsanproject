@@ -155,6 +155,15 @@ test("project yang punya website memakai favicon sebagai logo card", async () =>
   );
 });
 
+test("halaman detail memakai favicon yang sama sebagai logo project", async () => {
+  const page = await html("/projects/tap-tap-dzikr");
+  assert.match(page, /class="hero-glyph level-live"/);
+  assert.match(
+    page,
+    /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fdzikir-harian\.netlify\.app&amp;sz=128/,
+  );
+});
+
 test("beranda membuka dengan hero, pencarian, kategori, dan role populer", async () => {
   const page = await html("/");
   assert.match(page, /berkarya, berkolaborasi, berdampak/);

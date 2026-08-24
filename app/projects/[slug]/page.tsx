@@ -54,6 +54,7 @@ import {
 } from "../../lib/tasks";
 import { currentViewer } from "../../lib/session";
 import { ProjectScrollTop } from "../../components/project-scroll-top";
+import { ProjectLogo } from "../../components/project-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -130,9 +131,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
         <section className="project-hero">
           <div className="project-hero-copy">
             <div className="project-hero-top">
-              <span className={`hero-glyph level-${project.stage}`} aria-hidden="true">
-                {project.glyph || initials(project.title)}
-              </span>
+              <ProjectLogo
+                className={`hero-glyph level-${project.stage}`}
+                fallback={project.glyph || initials(project.title)}
+                title={project.title}
+                website={project.liveUrl}
+              />
               <StageBadge stage={project.stage} />
             </div>
             <h1>{project.title}</h1>
