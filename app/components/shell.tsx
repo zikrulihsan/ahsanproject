@@ -53,9 +53,6 @@ function MainNav({ active }: { active: Section }) {
 export function HeaderShell({ active = "" }: { active?: Section }) {
   return (
     <header className="site-header">
-      <a className="skip-link" href="#main-content">
-        Lewati ke konten
-      </a>
       <div className="topbar-inner">
         <Brand />
         <MainNav active={active} />
@@ -86,10 +83,6 @@ export async function SiteHeader({
 
   return (
     <header className="site-header">
-      <a className="skip-link" href="#main-content">
-        Lewati ke konten
-      </a>
-
       <div className="topbar-inner">
         <Brand />
         <MainNav active={active} />
