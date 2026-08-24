@@ -7,6 +7,7 @@ type ProjectLogoProps = {
   title: string;
   website: string;
   className?: string;
+  fallback?: string;
 };
 
 /**
@@ -14,7 +15,7 @@ type ProjectLogoProps = {
  * fallback for ideas that do not have a website yet (or a favicon that fails
  * to load).
  */
-export function ProjectLogo({ title, website, className = "" }: ProjectLogoProps) {
+export function ProjectLogo({ title, website, className = "", fallback }: ProjectLogoProps) {
   const src = faviconUrl(website);
   const [failedSrc, setFailedSrc] = useState("");
 
@@ -26,7 +27,7 @@ export function ProjectLogo({ title, website, className = "" }: ProjectLogoProps
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" onError={() => setFailedSrc(src)} />
       ) : (
-        <span className="home-project-initials">{initials(title)}</span>
+        <span className="home-project-initials">{fallback || initials(title)}</span>
       )}
     </span>
   );

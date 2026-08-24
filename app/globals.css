@@ -639,6 +639,8 @@ a.seat-chip:hover { border-color: var(--ink); }
 .hero-glyph.level-building { background: var(--level-building); }
 .hero-glyph.level-live { background: var(--level-live); }
 .hero-glyph.level-resting { background: var(--level-resting); }
+.home-project-logo.hero-glyph { height: 58px; width: 58px; }
+.home-project-logo.hero-glyph img { border-radius: 10px; height: 58px; object-fit: contain; width: 58px; }
 .project-hero h1 { font-size: clamp(36px, 5vw, 60px); font-weight: 650; letter-spacing: -.055em; line-height: .96; margin-bottom: 12px; }
 .project-tagline { color: var(--ink-soft); font-size: 17px; line-height: 1.6; margin-bottom: 18px; max-width: 640px; }
 .project-hero-meta { align-items: center; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-top: 22px; }
