@@ -226,8 +226,29 @@ test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () =>
 test("direktori orang menampilkan tiap profil dan tautannya", async () => {
   const page = await html("/orang");
   assert.match(page, /<title>Orang — Ahsan Project<\/title>/i);
+  assert.match(page, /Cari orang, bukan sekadar profil/);
+  assert.match(page, /Cari nama, profesi, skill, atau project/);
+  assert.match(page, /Semua profesi/);
+  assert.match(page, /Semua pengalaman/);
   assert.match(page, /Zikrul Ihsan/);
+  assert.match(page, /Product Builder/);
+  assert.match(page, /Next\.js/);
   assert.match(page, /href="\/u\/zikrulihsan"/);
+});
+
+test("direktori orang menggabungkan pencarian dan filter profil", async () => {
+  const matched = await html(
+    "/orang?q=invoice&skill=Next.js&pengalaman=6-10&bidang=Civic%20Tech&kerja=building",
+  );
+  assert.match(matched, /Zikrul Ihsan/);
+  assert.match(matched, /Pencarian/);
+  assert.match(matched, /Skill/);
+  assert.match(matched, /Pengalaman/);
+  assert.match(matched, /Bidang/);
+
+  const empty = await html("/orang?skill=Figma");
+  assert.match(empty, /Belum ada orang yang cocok/);
+  assert.doesNotMatch(empty, /class="people-card"/);
 });
 
 test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {

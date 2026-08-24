@@ -9,8 +9,12 @@ export type SeedUser = {
   id: string;
   username: string;
   name: string;
+  profession: string;
   headline: string;
   bio: string;
+  skills: string[];
+  yearsExperience: number | null;
+  fields: string[];
   website: string;
   github: string;
   /** Trail kinds kept off the public profile. Empty means everything shows. */
@@ -28,6 +32,8 @@ export type SeedEvent = {
 
 export type SeedSeat = {
   role: string;
+  /** Specific label when role is `other`. */
+  roleTitle?: string;
   brief: string;
   /** Roughly how much time it takes, in the owner's words. May be empty. */
   commitment: string;
@@ -83,8 +89,12 @@ export const seedUsers: SeedUser[] = [
     id: "seed-zikrul",
     username: "zikrulihsan",
     name: "Zikrul Ihsan",
+    profession: "Product Builder",
     headline: "Bikin barang kecil yang kepakai",
     bio: "Mengerjakan project satu per satu di waktu luang. Ahsan artinya melakukan sesuatu sebaik mungkin — itu yang saya usahakan di sini, sekecil apa pun yang sedang dikerjakan.",
+    skills: ["Product Strategy", "Next.js", "Prototyping"],
+    yearsExperience: 6,
+    fields: ["Civic Tech", "Productivity"],
     website: "https://ahsanproject-id.netlify.app",
     github: "https://github.com/zikrulihsan",
     activityHidden: [],

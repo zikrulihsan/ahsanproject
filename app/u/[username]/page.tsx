@@ -89,6 +89,7 @@ export default async function ProfilePage({
             <span /> Yang sedang dia bangun
           </p>
           <h1>{person.name}</h1>
+          {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
           {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
         </div>
       </section>
@@ -102,6 +103,14 @@ export default async function ProfilePage({
             <h2>{person.name}</h2>
             <p className="handle">@{person.username}</p>
             {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
+
+            {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
+              <ul className="profile-tags" aria-label="Keahlian dan pengalaman">
+                {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
+                {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
+                {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
+              </ul>
+            ) : null}
 
             <ul className="profile-links">
               {person.website ? (
@@ -147,10 +156,44 @@ export default async function ProfilePage({
                 <form action={updateProfile}>
                   <label htmlFor="name">Nama</label>
                   <input id="name" name="name" type="text" defaultValue={person.name} />
+                  <label htmlFor="profession">Profesi / role utama</label>
+                  <input
+                    id="profession"
+                    name="profession"
+                    type="text"
+                    maxLength={80}
+                    placeholder="Contoh: Frontend Developer"
+                    defaultValue={person.profession}
+                  />
                   <label htmlFor="headline">Satu baris tentang kamu</label>
                   <input id="headline" name="headline" type="text" defaultValue={person.headline} />
                   <label htmlFor="bio">Cerita singkat</label>
                   <textarea id="bio" name="bio" rows={4} defaultValue={person.bio} />
+                  <label htmlFor="skills">Skill</label>
+                  <input
+                    id="skills"
+                    name="skills"
+                    type="text"
+                    placeholder="Next.js, Figma, User Research"
+                    defaultValue={person.skills.join(", ")}
+                  />
+                  <label htmlFor="yearsExperience">Lama pengalaman (tahun)</label>
+                  <input
+                    id="yearsExperience"
+                    name="yearsExperience"
+                    type="number"
+                    min={0}
+                    max={60}
+                    defaultValue={person.yearsExperience ?? ""}
+                  />
+                  <label htmlFor="fields">Bidang yang dikuasai</label>
+                  <input
+                    id="fields"
+                    name="fields"
+                    type="text"
+                    placeholder="Fintech, Edukasi, Civic Tech"
+                    defaultValue={person.fields.join(", ")}
+                  />
                   <label htmlFor="website">Situs</label>
                   <input id="website" name="website" type="url" defaultValue={person.website} />
                   <label htmlFor="github">GitHub</label>
