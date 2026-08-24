@@ -133,7 +133,7 @@ test("bantuan yang mengada-ada tidak mengosongkan papan", async () => {
 
 test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async () => {
   const list = feedList(await html("/"));
-  assert.match(list, /Sedang mencari/);
+  assert.match(list, /Role yang dicari/);
   assert.match(list, /Product Manager/);
   assert.match(list, /UI\/UX Designer/);
   assert.match(list, /UI\/UX Designer<!-- --> · <!-- -->1/);
@@ -141,10 +141,16 @@ test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async 
 
 test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", async () => {
   const list = feedList(await html("/"));
-  assert.match(list, /class="project-kind" href="\/\?tag=komunitas">komunitas<\/a>/);
+  const swegrowth = feedList(await html("/?q=swegrowth"));
+  assert.match(list, /Role yang dicari/);
+  assert.match(
+    swegrowth,
+    /aria-label="Kategori project">.*href="\/\?tag=komunitas">komunitas<\/a>.*href="\/\?tag=karier">karier<\/a>.*href="\/\?tag=belajar">belajar<\/a>/s,
+  );
   assert.match(list, /class="home-project-meta"/);
   assert.match(list, /class="home-open-call"/);
   assert.match(list, /Digagas oleh/);
+  assert.match(list, /Tidak ada posisi/);
   assert.match(list, /Belum membuka posisi kontribusi/);
 });
 
