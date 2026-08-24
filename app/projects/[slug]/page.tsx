@@ -53,6 +53,7 @@ import {
   taskStatusTone,
 } from "../../lib/tasks";
 import { currentViewer } from "../../lib/session";
+import { ProjectScrollTop } from "../../components/project-scroll-top";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +113,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
   return (
     <>
+      <ProjectScrollTop />
       <SiteHeader returnTo={returnTo} />
 
       <main id="main-content" className="project-page">

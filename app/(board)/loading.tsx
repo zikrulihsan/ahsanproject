@@ -33,12 +33,23 @@ export default function Loading() {
             </div>
             {[0, 1, 2, 3].map((slot) => (
               <div className="home-project-card" key={slot}>
-                <Skeleton height={57} />
-                <Skeleton height={64} />
-                <div>
-                  <Skeleton height={20} width="42%" style={{ marginBottom: 10 }} />
-                  <Skeleton height={13} width="78%" style={{ marginBottom: 18 }} />
-                  <Skeleton height={62} />
+                <div className="home-project-copy">
+                  <div className="home-project-title-row">
+                    <div className="home-project-identity" style={{ width: "100%" }}>
+                      <Skeleton height={48} />
+                      <div>
+                        <Skeleton height={9} width="24%" style={{ marginBottom: 7 }} />
+                        <Skeleton height={20} width="45%" style={{ marginBottom: 8 }} />
+                        <Skeleton height={12} width="78%" />
+                      </div>
+                    </div>
+                    <Skeleton height={30} width={42} />
+                  </div>
+                  <Skeleton height={56} style={{ marginTop: 12 }} />
+                  <div className="home-project-footer">
+                    <Skeleton height={21} width={145} />
+                    <Skeleton height={32} width={105} />
+                  </div>
                 </div>
               </div>
             ))}

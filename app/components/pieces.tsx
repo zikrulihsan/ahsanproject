@@ -248,11 +248,9 @@ export function SeatChips({
  */
 export function BoardCard({
   project,
-  rank,
   roleCounts,
 }: {
   project: ProjectSummary;
-  rank: number;
   roleCounts?: Record<string, number>;
 }) {
   const roleEntries = project.openRoles.map((role) => ({
@@ -263,20 +261,10 @@ export function BoardCard({
   return (
     <li className="project-list-entry">
       <article className="home-project-card">
-        <div className="project-score" aria-label={`${project.boostCount} dukungan`}>
-          <span aria-hidden="true">▲</span>
-          <strong>{project.boostCount}</strong>
-        </div>
-
         <div className="home-project-copy">
           <div className="home-project-title-row">
             <div className="home-project-identity">
-              <ProjectLogo
-                title={project.title}
-                website={project.liveUrl}
-                stage={project.stage}
-                rank={rank}
-              />
+              <ProjectLogo title={project.title} website={project.liveUrl} />
               <div className="home-project-heading">
                 <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
                 <h3>
@@ -292,9 +280,10 @@ export function BoardCard({
                 </p>
               </div>
             </div>
-            <span className="bookmark-mark" aria-hidden="true">
-              <svg className="icon" viewBox="0 0 24 24"><path d="M6.5 4.5h11v15l-5.5-3-5.5 3z" /></svg>
-            </span>
+            <div className="home-project-vote" aria-label={`${project.boostCount} dukungan`}>
+              <span aria-hidden="true">▲</span>
+              <strong>{project.boostCount}</strong>
+            </div>
           </div>
 
           {project.openRoles.length > 0 ? (
@@ -312,25 +301,24 @@ export function BoardCard({
                   </li>
                 ))}
               </ul>
-              <Link className="home-project-link" href={`/projects/${project.slug}`}>
-                Lihat project <Arrow />
-              </Link>
             </div>
           ) : (
             <div className="home-open-call home-open-call-empty">
               <p>Belum membuka posisi kontribusi</p>
-              <Link className="home-project-link" href={`/projects/${project.slug}`}>
-                Lihat project <Arrow />
-              </Link>
             </div>
           )}
 
-          <Link className="home-project-owner" href={`/u/${project.owner.username}`}>
-            <span className="avatar" aria-hidden="true">
-              {initials(project.owner.name)}
-            </span>
-            <small>Digagas oleh <strong>{project.owner.name}</strong></small>
-          </Link>
+          <div className="home-project-footer">
+            <Link className="home-project-owner" href={`/u/${project.owner.username}`}>
+              <span className="avatar" aria-hidden="true">
+                {initials(project.owner.name)}
+              </span>
+              <small>Digagas oleh <strong>{project.owner.name}</strong></small>
+            </Link>
+            <Link className="home-project-link" href={`/projects/${project.slug}`}>
+              Lihat project <Arrow />
+            </Link>
+          </div>
         </div>
       </article>
     </li>

@@ -173,11 +173,10 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
                 </div>
               ) : (
                 <ul className="board-grid">
-                  {projects.map((project, index) => (
+                  {projects.map((project) => (
                     <BoardCard
                       key={project.id}
                       project={project}
-                      rank={index + 1}
                       roleCounts={seatsByRole.get(project.id)}
                     />
                   ))}
