@@ -26,7 +26,11 @@ export type Person = {
   yearsExperience: number | null;
   fields: string[];
   website: string;
+  publicEmail: string;
   github: string;
+  linkedin: string;
+  x: string;
+  resume: string;
   /** Trail kinds kept off this person's public profile. */
   activityHidden: string[];
 };
@@ -1024,7 +1028,7 @@ function toPerson(row: ProfileRow): Person {
     username: row.username,
     name: row.name,
     // Defaults keep reads working during the short window between deploying
-    // this build and applying migration 0013 to Supabase.
+    // this build and applying the profile migrations to Supabase.
     profession: row.profession ?? "",
     headline: row.headline ?? "",
     bio: row.bio ?? "",
@@ -1032,7 +1036,11 @@ function toPerson(row: ProfileRow): Person {
     yearsExperience: row.years_experience ?? null,
     fields: row.fields ?? [],
     website: row.website ?? "",
+    publicEmail: row.public_email ?? "",
     github: row.github ?? "",
+    linkedin: row.linkedin ?? "",
+    x: row.x_url ?? "",
+    resume: row.resume_url ?? "",
     activityHidden: row.activity_hidden ?? [],
   };
 }

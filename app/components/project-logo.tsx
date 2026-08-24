@@ -6,6 +6,7 @@ import { faviconUrl } from "../lib/urls";
 type ProjectLogoProps = {
   title: string;
   website: string;
+  className?: string;
 };
 
 /**
@@ -13,12 +14,12 @@ type ProjectLogoProps = {
  * fallback for ideas that do not have a website yet (or a favicon that fails
  * to load).
  */
-export function ProjectLogo({ title, website }: ProjectLogoProps) {
+export function ProjectLogo({ title, website, className = "" }: ProjectLogoProps) {
   const src = faviconUrl(website);
   const [failedSrc, setFailedSrc] = useState("");
 
   return (
-    <span className="home-project-logo" aria-hidden="true">
+    <span className={`home-project-logo ${className}`.trim()} aria-hidden="true">
       {src && failedSrc !== src ? (
         // A regular image is intentional here: the URL is generated at runtime
         // from the project's domain and is not part of Next Image's static host list.
