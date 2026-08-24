@@ -87,12 +87,6 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
   padding: 0; position: absolute; white-space: nowrap; width: 1px;
 }
 
-.skip-link {
-  background: var(--lime); border-radius: 8px; left: 16px; padding: 11px 16px;
-  position: fixed; top: -70px; z-index: 200;
-}
-.skip-link:focus { top: 10px; }
-
 /* ---------------------------------------------------------------- header */
 
 .site-header {
@@ -639,6 +633,8 @@ a.seat-chip:hover { border-color: var(--ink); }
 .hero-glyph.level-building { background: var(--level-building); }
 .hero-glyph.level-live { background: var(--level-live); }
 .hero-glyph.level-resting { background: var(--level-resting); }
+.home-project-logo.hero-glyph { height: 58px; width: 58px; }
+.home-project-logo.hero-glyph img { border-radius: 10px; height: 58px; object-fit: contain; width: 58px; }
 .project-hero h1 { font-size: clamp(36px, 5vw, 60px); font-weight: 650; letter-spacing: -.055em; line-height: .96; margin-bottom: 12px; }
 .project-tagline { color: var(--ink-soft); font-size: 17px; line-height: 1.6; margin-bottom: 18px; max-width: 640px; }
 .project-hero-meta { align-items: center; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; margin-top: 22px; }
@@ -1019,6 +1015,10 @@ form button.danger:hover { background: #96320f; }
 .profile-project-heading h3 { font-size: 20px; font-weight: 720; letter-spacing: -.04em; line-height: 1.15; margin: 0; }
 .profile-project-heading h3 a:hover { color: #2b6d58; }
 .profile-project-tagline { color: #6d7d76; font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.profile-project-category {
+  color: #87938e; font-family: var(--font-geist-mono), monospace; font-size: 8.5px;
+  letter-spacing: .06em; margin: 7px 0 0; text-transform: uppercase;
+}
 .profile-project-description { border-top: 1px solid var(--line-soft); margin-top: 13px; padding-top: 10px; }
 .profile-project-description > span {
   color: #7d8b85; display: block; font-family: var(--font-geist-mono), monospace; font-size: 8px;
@@ -1561,6 +1561,9 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .discovery-page {
   background: #fbfcfb; margin: 0 auto; max-width: 1260px; padding: 0 54px 92px; width: 100%;
 }
+/* Keep the readable content width without exposing the warmer body colour as
+   side bands on wide desktop viewports. */
+body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb; }
 .discovery-hero {
   align-items: flex-end; display: flex; gap: 36px; justify-content: space-between;
   padding: 48px 0 32px;
@@ -1656,7 +1659,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-sort-tabs a:hover { color: var(--ink); }
 .home-sort-tabs a.is-active { background: #fff; box-shadow: 0 2px 7px rgba(18, 52, 43, .1); color: var(--ink); }
 
-.home-projects .board-grid { display: flex; flex-direction: column; gap: 0; }
+.home-projects .board-grid, .home-project-loading-grid {
+  display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.home-projects .project-list-entry { border: 0; min-width: 0; }
+.home-profile-project-entry, .home-profile-project-card { height: 100%; }
 .project-list-entry { border-bottom: 1px solid #dfe5e1; }
 .home-project-card {
   border-radius: 16px; margin: 7px 0; padding: 18px 16px; position: relative;
@@ -2045,6 +2052,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 @media (max-width: 1020px) {
   .discovery-page { padding-left: 34px; padding-right: 34px; }
   .discovery-content { grid-template-columns: minmax(0, 1fr) 300px; }
+  .home-projects .board-grid, .home-project-loading-grid { grid-template-columns: minmax(0, 1fr); }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
   .collaboration-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
