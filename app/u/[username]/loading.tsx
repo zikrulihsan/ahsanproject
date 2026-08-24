@@ -1,27 +1,39 @@
 import { HeaderShell } from "../../components/shell";
+import { PageScrollTop } from "../../components/project-scroll-top";
 import { LoadingNote, Skeleton } from "../../components/skeleton";
 
 /** A profile's skeleton keeps the identity-to-project hierarchy stable while loading. */
 export default function Loading() {
   return (
     <>
+      <PageScrollTop />
       <HeaderShell />
       <section className="profile-band">
         <div className="profile-band-inner profile-hero">
-          <div>
-            <Skeleton height={11} width={160} style={{ marginBottom: 26, opacity: .35 }} />
-            <Skeleton height={60} width={340} style={{ marginBottom: 18, opacity: .35 }} />
-            <Skeleton height={19} width={420} style={{ marginBottom: 28, opacity: .35 }} />
-            <Skeleton height={34} width={260} style={{ opacity: .35 }} />
-          </div>
-          <aside className="profile-summary">
-            <div className="profile-summary-head">
-              <Skeleton height={64} width={64} style={{ borderRadius: 18, opacity: .35 }} />
-              <Skeleton height={12} width={120} style={{ opacity: .35 }} />
+          <div className="profile-hero-top">
+            <div>
+              <Skeleton height={11} width={170} style={{ marginBottom: 18, opacity: .35 }} />
+              <Skeleton height={60} width={340} style={{ marginBottom: 18, opacity: .35 }} />
+              <Skeleton height={12} width={150} style={{ marginBottom: 12, opacity: .35 }} />
+              <Skeleton height={19} width={420} style={{ marginBottom: 28, opacity: .35 }} />
+              <Skeleton height={34} width={260} style={{ opacity: .35 }} />
             </div>
-            <Skeleton height={13} style={{ marginTop: 20, marginBottom: 9, opacity: .35 }} />
-            <Skeleton height={13} width="78%" style={{ opacity: .35 }} />
-          </aside>
+            <aside className="profile-contributions">
+              <Skeleton height={10} width={110} style={{ marginBottom: 14, opacity: .35 }} />
+              <Skeleton height={58} style={{ borderRadius: 12, opacity: .35 }} />
+            </aside>
+          </div>
+          <section className="profile-summary">
+            <div>
+              <Skeleton height={10} width={92} style={{ marginBottom: 14, opacity: .35 }} />
+              <Skeleton height={13} style={{ marginBottom: 9, opacity: .35 }} />
+              <Skeleton height={13} width="78%" style={{ opacity: .35 }} />
+            </div>
+            <div>
+              <Skeleton height={26} width="76%" style={{ marginBottom: 17, opacity: .35 }} />
+              <Skeleton height={42} style={{ opacity: .35 }} />
+            </div>
+          </section>
         </div>
       </section>
       <main id="main-content" className="profile-page">
@@ -30,7 +42,7 @@ export default function Loading() {
           <Skeleton height={22} width={180} style={{ marginBottom: 20 }} />
           <div className="profile-project-grid">
             {[0, 1].map((slot) => (
-              <div className="skeleton-card" key={slot}>
+              <div className="skeleton-card profile-project-skeleton" key={slot}>
                 <Skeleton height={62} width={62} style={{ borderRadius: 12, marginBottom: 20 }} />
                 <Skeleton height={22} width="70%" style={{ marginBottom: 12 }} />
                 <Skeleton height={14} style={{ marginBottom: 8 }} />

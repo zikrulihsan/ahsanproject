@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 
 /**
- * A project detail is a new reading context, so it always starts at its top.
- * This lives on the destination page instead of the board so browser Back can
- * still restore the visitor's old position in the project list.
+ * A destination page is a new reading context, so it starts at its top before
+ * the browser paints it. Mount this in loading.tsx too when the reset should
+ * happen as soon as navigation begins rather than after server data arrives.
  */
-export function ProjectScrollTop() {
+export function PageScrollTop() {
   const pathname = usePathname();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
   return null;
+}
+
+/** Kept as the project-page API while other destination pages share the behavior. */
+export function ProjectScrollTop() {
+  return <PageScrollTop />;
 }

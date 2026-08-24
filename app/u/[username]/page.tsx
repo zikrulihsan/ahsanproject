@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
-import { ActivityList, ContributionRow, ProjectCard, initials, monthYear } from "../../components/pieces";
+import { ActivityList, ContributionBadge, ProjectCard, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
+import { PageScrollTop } from "../../components/project-scroll-top";
 import { SubmitButton } from "../../components/submit-button";
 import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
 import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
@@ -105,80 +106,91 @@ export default async function ProfilePage({
 
   return (
     <>
+      <PageScrollTop />
       <SiteHeader returnTo={`/u/${person.username}`} />
 
       <section className="profile-band">
         <div className="profile-band-inner profile-hero">
-          <div className="profile-hero-copy">
-            <p className="eyebrow light">
-              <span /> Yang sedang dia bangun
-            </p>
-            <h1>{person.name}</h1>
-            {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
-            {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
+          <div className="profile-hero-top">
+            <div className="profile-hero-copy">
+              <p className="eyebrow light">
+                <span /> Portofolio Personal
+              </p>
+              <h1>{person.name}</h1>
+              {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
+              {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
 
-            {contacts.length > 0 ? (
-              <ul className="profile-contact-list" aria-label={`Tautan ${person.name}`}>
-                {contacts.map((contact) => (
-                  <li key={`${contact.icon}-${contact.href}`}>
-                    <a
-                      href={contact.href}
-                      target={contact.external ? "_blank" : undefined}
-                      rel={contact.external ? "noreferrer" : undefined}
-                    >
-                      <LinkIcon kind={contact.icon} />
-                      <span>{contact.label}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+              {contacts.length > 0 ? (
+                <ul className="profile-contact-list" aria-label={`Tautan ${person.name}`}>
+                  {contacts.map((contact) => (
+                    <li key={`${contact.icon}-${contact.href}`}>
+                      <a
+                        href={contact.href}
+                        target={contact.external ? "_blank" : undefined}
+                        rel={contact.external ? "noreferrer" : undefined}
+                      >
+                        <LinkIcon kind={contact.icon} />
+                        <span>{contact.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+
+            <aside className="profile-contributions" aria-labelledby="contrib-heading">
+              <p id="contrib-heading" className="profile-summary-label">Berkontribusi di</p>
+              {contributing.length > 0 ? (
+                <ul className="profile-contribution-list">
+                  {contributing.map((project) => (
+                    <ContributionBadge key={project.id} project={project} role={project.role} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="profile-contribution-empty">Belum ada kontribusi lain yang tercatat.</p>
+              )}
+            </aside>
           </div>
 
-          <aside className="profile-summary" aria-label="Ringkasan profil">
-            <div className="profile-summary-head">
-              <span className="avatar avatar-lg" aria-hidden="true">
-                {initials(person.name)}
-              </span>
-              <div>
-                <p className="profile-summary-label">Profil</p>
-                <p className="handle">@{person.username}</p>
-              </div>
+          <section className="profile-summary" aria-label="Ringkasan profil">
+            <div className="profile-summary-copy">
+              <p className="profile-summary-label">Ringkasan</p>
+              {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
             </div>
-            {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
-
-            {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
-              <ul className="profile-tags" aria-label="Keahlian dan pengalaman">
-                {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
-                {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
-                {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
+            <div className="profile-summary-meta">
+              {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
+                <ul className="profile-tags" aria-label="Keahlian dan pengalaman">
+                  {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
+                  {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
+                  {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
+                </ul>
+              ) : null}
+              <ul className="profile-stats">
+                <li>
+                  <strong>{owned.length}</strong>
+                  <span>project dibangun</span>
+                </li>
+                {contributing.length > 0 ? (
+                  <li>
+                    <strong>{contributing.length}</strong>
+                    <span>ikut membantu</span>
+                  </li>
+                ) : null}
+                {stats.tasksDone > 0 ? (
+                  <li>
+                    <strong>{stats.tasksDone}</strong>
+                    <span>tugas dibereskan</span>
+                  </li>
+                ) : null}
+                {stats.since ? (
+                  <li>
+                    <strong>{monthYear(stats.since)}</strong>
+                    <span>aktif sejak</span>
+                  </li>
+                ) : null}
               </ul>
-            ) : null}
-            <ul className="profile-stats">
-              <li>
-                <strong>{owned.length}</strong>
-                <span>project dibangun</span>
-              </li>
-              {contributing.length > 0 ? (
-                <li>
-                  <strong>{contributing.length}</strong>
-                  <span>ikut membantu</span>
-                </li>
-              ) : null}
-              {stats.tasksDone > 0 ? (
-                <li>
-                  <strong>{stats.tasksDone}</strong>
-                  <span>tugas dibereskan</span>
-                </li>
-              ) : null}
-              {stats.since ? (
-                <li>
-                  <strong>{monthYear(stats.since)}</strong>
-                  <span>aktif sejak</span>
-                </li>
-              ) : null}
-            </ul>
-          </aside>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -264,18 +276,6 @@ export default async function ProfilePage({
               )}
             </section>
 
-            {contributing.length > 0 ? (
-              <section aria-labelledby="contrib-heading">
-                <h2 id="contrib-heading" className="section-title">
-                  Ikut membantu
-                </h2>
-                <ul className="contribution-list">
-                  {contributing.map((project) => (
-                    <ContributionRow key={project.id} project={project} role={project.role} />
-                  ))}
-                </ul>
-              </section>
-            ) : null}
             <section aria-labelledby="activity-heading">
               <h2 id="activity-heading" className="section-title">
                 Jejak kerja
