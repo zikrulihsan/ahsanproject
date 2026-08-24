@@ -1568,6 +1568,9 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   align-items: flex-end; display: flex; gap: 36px; justify-content: space-between;
   padding: 48px 0 32px;
 }
+.hero-highlight {
+  color: #f1684b
+}
 .discovery-hero-copy { max-width: 800px; }
 .home-eyebrow {
   color: #f1684b; font-family: var(--font-geist-mono), monospace; font-size: 11px;

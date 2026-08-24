@@ -52,10 +52,10 @@ export default async function Home() {
       <main id="main-content" className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
-            <p className="home-eyebrow">buat project · temukan kolaborator</p>
-            <h1 id="landing-title">Bagikan dan Temukan Project untuk Berkolaborasi</h1>
+            <p className="home-eyebrow">Wadah Kolaborasi Lintas Peran</p>
+            <h1 id="landing-title">Bagikan,<br/> Temukan,<br/> <span className="hero-highlight">Berkolaborasi</span></h1>
             <p className="landing-hero-lead">
-              Rumah untuk menunjukkan project, menemukan teman kolaborasi, dan membangun portfolio beneran.
+              Bagikan project terbaikmu, temukan tempat kontribusi, dan bangun portfolio dengan kolaborasi.
             </p>
 
             <div className="home-hero-actions" aria-label="Mulai menggunakan AhsanProject">
