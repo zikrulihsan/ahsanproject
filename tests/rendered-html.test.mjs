@@ -182,6 +182,15 @@ test("beranda membuka dengan dua aksi utama dan kotak berbagi di atas role popul
   assert.match(page, /Bagikan dan Temukan Project Untuk Kolaborasi/);
   assert.match(page, /Bagikan project/);
   assert.match(page, /Cari project kolaborasi/);
+  assert.match(page, /Ini beberapa contohnya/);
+  assert.match(page, /Ruang Tumbuh/);
+  assert.match(page, /Pasar Tetangga/);
+  assert.match(page, /Jalan Bareng/);
+  assert.match(
+    page,
+    /class="hero-example-card"[^>]*href="\/kolaborasi"/,
+    "kartu contoh harus membuka halaman cari kolaborasi",
+  );
   assert.doesNotMatch(page, /class="discovery-search/);
   assert.doesNotMatch(page, /Semua kategori/);
   assert.match(page, /Role yang paling dicari/);

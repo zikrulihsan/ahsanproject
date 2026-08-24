@@ -1414,6 +1414,9 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; }
+  .discovery-hero-copy > *, .contributor-pulse, .hero-examples-note, .hero-examples > ul > li {
+    animation: none !important;
+  }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
 
@@ -1605,6 +1608,106 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .contributor-pulse strong, .contributor-pulse small { display: block; white-space: nowrap; }
 .contributor-pulse strong { color: #21332d; font-size: 13px; }
 .contributor-pulse small { color: #7b8883; font-size: 11px; margin-top: 3px; }
+
+/* A deliberately fictional preview lets a first-time visitor understand the
+   board before opening the denser discovery page. Every card has one clear
+   destination: the real collaboration catalogue. */
+.hero-examples { padding: 6px 0 25px; }
+.hero-examples-note {
+  align-items: center; display: flex; gap: 5px; margin: 0 auto 12px; width: fit-content;
+}
+.hero-examples-note h2 {
+  color: #66766f; font-family: Georgia, "Times New Roman", serif; font-size: 15px;
+  font-style: italic; margin: 0; transform: rotate(-2deg);
+}
+.hero-examples-note svg {
+  fill: none; height: 34px; overflow: visible; stroke: #e16e50; stroke-linecap: round;
+  stroke-linejoin: round; stroke-width: 1.8; width: 43px;
+}
+.hero-examples > ul {
+  display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none; margin: 0; padding: 0;
+}
+.hero-example-card {
+  background: #fff; border: 1px solid #dce4df; border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(23, 58, 48, .045); display: flex; flex-direction: column;
+  height: 100%; min-height: 214px; overflow: hidden; padding: 17px 18px 15px; position: relative;
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.hero-example-card::before {
+  background: linear-gradient(110deg, rgba(221, 239, 131, .2), rgba(216, 231, 217, .05));
+  content: ""; inset: 0; opacity: 0; pointer-events: none; position: absolute;
+  transition: opacity .25s ease;
+}
+.hero-example-top {
+  align-items: center; display: flex; gap: 10px; justify-content: space-between; position: relative;
+}
+.hero-example-glyph {
+  align-items: center; border-radius: 10px; color: #244d41; display: inline-flex; font-size: 10px;
+  font-weight: 820; height: 34px; justify-content: center; letter-spacing: -.02em; width: 34px;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.hero-example-glyph.tone-sage { background: #dcebdc; }
+.hero-example-glyph.tone-coral { background: #fae0d8; color: #9b4e3d; }
+.hero-example-glyph.tone-blue { background: #d9ebef; color: #315f6a; }
+.hero-example-stage {
+  background: #f2f5f3; border-radius: 99px; color: #6f7e77; font-size: 9px;
+  font-weight: 700; padding: 6px 9px; white-space: nowrap;
+}
+.hero-example-category {
+  color: #e16a4b; font-family: var(--font-geist-mono), monospace; font-size: 9px;
+  font-weight: 780; letter-spacing: .12em; margin: 15px 0 5px; position: relative; text-transform: uppercase;
+}
+.hero-example-card h3 {
+  color: #183d34; font-size: 17px; font-weight: 730; letter-spacing: -.035em;
+  margin: 0; position: relative;
+}
+.hero-example-summary {
+  color: #76847e; font-size: 10.5px; line-height: 1.5; margin: 6px 0 14px; position: relative;
+}
+.hero-example-footer {
+  align-items: center; border-top: 1px solid #e7ece9; color: #7c8984; display: flex;
+  font-size: 9.5px; gap: 10px; justify-content: space-between; margin-top: auto; padding-top: 11px;
+  position: relative;
+}
+.hero-example-footer strong { color: #315e50; font-weight: 750; }
+.hero-example-arrow {
+  align-items: center; background: #e8f2ed; border-radius: 50%; color: #1e5444; display: inline-flex;
+  flex: none; height: 27px; justify-content: center; transition: background .25s ease, transform .25s ease; width: 27px;
+}
+
+@media (hover: hover) {
+  .hero-example-card:hover {
+    border-color: #9db5aa; box-shadow: 0 18px 38px rgba(23, 58, 48, .12); transform: translateY(-7px);
+  }
+  .hero-example-card:hover::before { opacity: 1; }
+  .hero-example-card:hover .hero-example-glyph { transform: rotate(-6deg) scale(1.08); }
+  .hero-example-card:hover .hero-example-arrow { background: var(--ink); color: #fff; transform: translateX(3px); }
+}
+.hero-example-card:focus-visible {
+  border-color: var(--coral); box-shadow: 0 15px 34px rgba(23, 58, 48, .11); outline-offset: 3px;
+  transform: translateY(-4px);
+}
+.hero-example-card:active { transform: translateY(-1px) scale(.99); }
+
+/* The opening is paced, not simultaneous: copy first, then social proof,
+   handwritten cue, and finally each example card. */
+@keyframes home-reveal {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.discovery-hero-copy > *, .contributor-pulse, .hero-examples-note, .hero-examples > ul > li {
+  animation: home-reveal .62s cubic-bezier(.2,.75,.25,1) both;
+}
+.discovery-hero-copy > :nth-child(1) { animation-delay: .04s; }
+.discovery-hero-copy > :nth-child(2) { animation-delay: .11s; }
+.discovery-hero-copy > :nth-child(3) { animation-delay: .18s; }
+.discovery-hero-copy > :nth-child(4) { animation-delay: .25s; }
+.contributor-pulse { animation-delay: .32s; }
+.hero-examples-note { animation-delay: .39s; }
+.hero-examples > ul > li:nth-child(1) { animation-delay: .47s; }
+.hero-examples > ul > li:nth-child(2) { animation-delay: .56s; }
+.hero-examples > ul > li:nth-child(3) { animation-delay: .65s; }
 
 .discovery-controls { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) 180px; }
 .discovery-search { display: flex; margin: 0; }
@@ -1850,6 +1953,16 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-hero-copy > .home-hero-lead { font-size: 14px; margin-top: 18px; }
   .home-hero-actions { flex-direction: column; }
   .home-hero-actions a { width: 100%; }
+  .hero-examples { margin: 0 -20px; overflow: hidden; padding: 7px 0 20px; }
+  .hero-examples-note { margin-bottom: 10px; }
+  .hero-examples > ul {
+    gap: 12px; grid-auto-columns: minmax(270px, 84vw); grid-auto-flow: column;
+    grid-template-columns: none; overflow-x: auto; padding: 0 20px 16px;
+    scroll-padding-left: 20px; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .hero-examples > ul::-webkit-scrollbar { display: none; }
+  .hero-examples > ul > li { scroll-snap-align: start; }
+  .hero-example-card { min-height: 205px; }
   .discovery-controls { grid-template-columns: 1fr; }
   .discovery-search kbd { display: none; }
   .home-active-filters { align-items: flex-start; flex-direction: column; }

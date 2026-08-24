@@ -13,6 +13,36 @@ import {
 import { normaliseRole, roleLabel, type Role } from "../lib/roles";
 import { currentViewer } from "../lib/session";
 
+const HERO_EXAMPLES = [
+  {
+    title: "Ruang Tumbuh",
+    category: "Edukasi",
+    summary: "Kelas belajar bareng yang dibuat ringan, dekat, dan mudah diikuti.",
+    stage: "Sedang dibangun",
+    role: "UI/UX Designer",
+    glyph: "RT",
+    tone: "sage",
+  },
+  {
+    title: "Pasar Tetangga",
+    category: "UMKM",
+    summary: "Membantu produk rumahan bertemu pembeli di lingkungan terdekat.",
+    stage: "Ide tervalidasi",
+    role: "Frontend Developer",
+    glyph: "PT",
+    tone: "coral",
+  },
+  {
+    title: "Jalan Bareng",
+    category: "Komunitas",
+    summary: "Ruang untuk menemukan kegiatan sosial dan bergerak bersama.",
+    stage: "Sudah berjalan",
+    role: "Content Strategist",
+    glyph: "JB",
+    tone: "blue",
+  },
+] as const;
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -69,6 +99,46 @@ export default async function Home() {
               <small>siap membangun bersama</small>
             </p>
           </div>
+        </section>
+
+        <section className="hero-examples" aria-labelledby="hero-examples-title">
+          <div className="hero-examples-note">
+            <h2 id="hero-examples-title">Ini beberapa contohnya</h2>
+            <svg viewBox="0 0 52 42" aria-hidden="true">
+              <path d="M8 4c1 16 12 25 32 27" />
+              <path d="m32 24 9 7-10 5" />
+            </svg>
+          </div>
+
+          <ul>
+            {HERO_EXAMPLES.map((example) => (
+              <li key={example.title}>
+                <Link
+                  className="hero-example-card"
+                  href="/kolaborasi"
+                  aria-label={`Cari project seperti ${example.title} di halaman kolaborasi`}
+                >
+                  <div className="hero-example-top">
+                    <span className={`hero-example-glyph tone-${example.tone}`} aria-hidden="true">
+                      {example.glyph}
+                    </span>
+                    <span className="hero-example-stage">{example.stage}</span>
+                  </div>
+                  <p className="hero-example-category">{example.category}</p>
+                  <h3>{example.title}</h3>
+                  <p className="hero-example-summary">{example.summary}</p>
+                  <div className="hero-example-footer">
+                    <span>
+                      Mencari <strong>{example.role}</strong>
+                    </span>
+                    <span className="hero-example-arrow">
+                      <Arrow />
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <div className="discovery-content home-discovery-content">
