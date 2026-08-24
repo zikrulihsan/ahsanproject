@@ -146,6 +146,7 @@ test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async 
 
 test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", async () => {
   const list = feedList(await html("/"));
+  assert.match(list, /class="project-kind" href="\/\?tag=komunitas">komunitas<\/a>/);
   assert.match(list, /class="home-project-meta"/);
   assert.match(list, /class="home-open-call"/);
   assert.match(list, /Digagas oleh/);
