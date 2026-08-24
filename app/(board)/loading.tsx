@@ -5,58 +5,68 @@ export default function Loading() {
   return (
     <>
       <HeaderShell active="beranda" />
-      <main id="main-content" className="discovery-page">
+      <main id="main-content" className="landing-page">
         <LoadingNote />
 
-        <section className="discovery-hero">
-          <div className="discovery-hero-copy" style={{ width: "100%" }}>
-            <Skeleton height={11} width={210} style={{ marginBottom: 18 }} />
-            <Skeleton height={58} width="72%" style={{ marginBottom: 10 }} />
-            <Skeleton height={58} width="46%" style={{ marginBottom: 24 }} />
-            <Skeleton height={15} width="66%" />
+        <section className="landing-hero">
+          <div className="landing-hero-copy" style={{ width: "100%" }}>
+            <Skeleton height={11} width={230} style={{ marginBottom: 20 }} />
+            <Skeleton height={63} width="94%" style={{ marginBottom: 11 }} />
+            <Skeleton height={63} width="78%" style={{ marginBottom: 27 }} />
+            <Skeleton height={15} width="88%" style={{ marginBottom: 10 }} />
+            <Skeleton height={15} width="72%" />
+            <div className="home-hero-actions">
+              <Skeleton height={50} width={180} />
+              <Skeleton height={50} width={225} />
+            </div>
+          </div>
+
+          <aside className="collaboration-example">
+            <Skeleton height={10} width="58%" style={{ marginBottom: 26 }} />
+            <div className="collaboration-example-project">
+              <Skeleton height={58} width={58} style={{ borderRadius: 12 }} />
+              <div>
+                <Skeleton height={9} width="35%" style={{ marginBottom: 8 }} />
+                <Skeleton height={25} width="72%" style={{ marginBottom: 8 }} />
+                <Skeleton height={11} width="92%" />
+              </div>
+            </div>
+            <Skeleton height={68} style={{ marginTop: 19, marginBottom: 18 }} />
+            <Skeleton height={45} style={{ marginBottom: 18 }} />
+            <Skeleton height={34} width="54%" />
+          </aside>
+        </section>
+
+        <section className="landing-stats">
+          <div className="landing-stats-heading">
+            <div>
+              <Skeleton height={11} width={190} style={{ marginBottom: 18 }} />
+              <Skeleton height={48} width="78%" />
+            </div>
+          </div>
+          <div className="ecosystem-card">
+            <Skeleton height={12} width="32%" style={{ marginBottom: 28 }} />
+            <Skeleton height={82} style={{ marginBottom: 18 }} />
+            <Skeleton height={130} />
           </div>
         </section>
 
-        <div className="home-hero-actions">
-          <Skeleton height={50} width={170} />
-          <Skeleton height={50} width={220} />
-        </div>
-
-        <div className="discovery-content">
-          <section>
-            <div className="home-list-head">
-              <div>
-                <Skeleton height={24} width={170} style={{ marginBottom: 8 }} />
-                <Skeleton height={11} width={210} />
+        <section className="landing-purpose">
+          <div className="landing-section-intro">
+            <Skeleton height={11} width={210} style={{ marginBottom: 18 }} />
+            <Skeleton height={50} width="72%" />
+          </div>
+          <div className="purpose-grid">
+            {[0, 1, 2].map((slot) => (
+              <div className="purpose-card" key={slot}>
+                <Skeleton height={49} width={49} style={{ marginBottom: 42 }} />
+                <Skeleton height={9} width="38%" style={{ marginBottom: 18 }} />
+                <Skeleton height={24} width="88%" style={{ marginBottom: 9 }} />
+                <Skeleton height={24} width="70%" />
               </div>
-            </div>
-            <div className="home-project-loading-grid">
-              {[0, 1, 2, 3].map((slot) => (
-                <div className="profile-project-card profile-project-skeleton home-profile-project-card" key={slot}>
-                  <div className="profile-project-head">
-                    <Skeleton height={62} width={62} style={{ borderRadius: 12 }} />
-                    <div>
-                      <Skeleton height={20} width="68%" style={{ marginBottom: 8 }} />
-                      <Skeleton height={12} width="90%" style={{ marginBottom: 7 }} />
-                      <Skeleton height={9} width="30%" />
-                    </div>
-                  </div>
-                  <Skeleton height={1} style={{ marginTop: 16, marginBottom: 12 }} />
-                  <Skeleton height={12} style={{ marginBottom: 7 }} />
-                  <Skeleton height={12} width="78%" style={{ marginBottom: 16 }} />
-                  <Skeleton height={56} style={{ marginBottom: 14 }} />
-                  <Skeleton height={28} width="72%" style={{ marginBottom: 14 }} />
-                  <Skeleton height={1} style={{ marginBottom: 12 }} />
-                  <Skeleton height={30} width="56%" />
-                </div>
-              ))}
-            </div>
-          </section>
-          <aside className="discovery-sidebar">
-            <div className="skeleton-panel"><Skeleton height={360} /></div>
-            <div className="skeleton-panel"><Skeleton height={260} /></div>
-          </aside>
-        </div>
+            ))}
+          </div>
+        </section>
       </main>
     </>
   );

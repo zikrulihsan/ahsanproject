@@ -7,9 +7,9 @@ export const siteUrl = "https://ahsanproject-id.netlify.app";
 export const aboutPaths: Record<Lang, string> = { id: "/about", en: "/en/about" };
 
 export const homeMeta = {
-  title: "Ahsan Project — Tunjukkan yang sedang kamu bangun",
+  title: "Ahsan Project — Bagikan dan Temukan Project untuk Berkolaborasi",
   description:
-    "Tempat project bertemu orang yang ingin ikut mewujudkannya. Lihat apa yang sedang dibangun orang lain, ikuti perjalanannya, atau ikut mengerjakannya.",
+    "Rumah untuk menunjukkan project, menemukan teman kolaborasi, dan membangun portfolio beneran.",
 };
 
 /** The shared picture, for pages that do not draw a card of their own. */

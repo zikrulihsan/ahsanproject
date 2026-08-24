@@ -265,7 +265,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
               <span className="show-project-plus" aria-hidden="true">+</span>
               <h2>Punya sesuatu yang sedang dibangun?</h2>
               <p>Tunjukkan project-mu dan temukan orang yang bisa membawanya lebih jauh.</p>
-              <Link href="/new">Tampilkan project</Link>
+              <Link href="/new">Tambah project</Link>
               <small>Gratis untuk komunitas</small>
             </section>
 
