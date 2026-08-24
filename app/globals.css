@@ -1685,28 +1685,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .people-page {
   background: #fbfcfb; margin: 0 auto; max-width: 1260px; padding: 0 54px 94px; width: 100%;
 }
-.people-hero {
-  align-items: end; display: grid; gap: 54px; grid-template-columns: minmax(0, 1fr) auto;
-  padding: 52px 0 34px;
+.people-directory-head { padding: 34px 1px 21px; }
+.people-directory-head h1 {
+  color: #152a24; font-size: 31px; font-weight: 690; letter-spacing: -.05em; line-height: 1.05; margin: 0;
 }
-.people-hero > div { max-width: 790px; }
-.people-hero .eyebrow { margin-bottom: 14px; }
-.people-hero h1 {
-  color: #152a24; font-size: clamp(48px, 5.4vw, 66px); font-weight: 710;
-  letter-spacing: -.072em; line-height: 1.01; margin: 0;
-}
-.people-hero .lede { color: #708079; font-size: 16px; line-height: 1.7; margin: 21px 0 0; max-width: 690px; }
-.people-overview {
-  background: #153f34; border-radius: 16px; color: #fff; display: grid; grid-template-columns: repeat(2, auto);
-  margin: 0 0 4px; min-width: 270px; overflow: hidden;
-}
-.people-overview div { padding: 20px 22px; }
-.people-overview div + div { border-left: 1px solid rgba(255, 255, 255, .14); }
-.people-overview dt {
-  color: #acc5bc; font-family: var(--font-geist-mono), monospace; font-size: 8px; font-weight: 750;
-  letter-spacing: .11em; margin-bottom: 5px; text-transform: uppercase; white-space: nowrap;
-}
-.people-overview dd { font-size: 25px; font-weight: 690; letter-spacing: -.04em; margin: 0; }
+.people-directory-head p { color: #75837d; font-size: 13px; line-height: 1.6; margin: 8px 0 0; }
 
 .people-search-panel {
   background: #fff; border: 1px solid #dbe2de; border-radius: 17px; box-shadow: 0 13px 36px rgba(19, 54, 44, .055);
@@ -1724,7 +1707,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 }
 .people-search-field input::placeholder { color: #929e99; }
 .people-search-row > button {
-  border-radius: 11px; font-size: 13px; min-width: 118px; padding: 0 21px;
+  border-radius: 11px; font-size: 13px; min-width: 136px; padding: 0 21px;
 }
 .people-filter-grid { display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 13px; }
 .people-filter-grid label { margin: 0; }
@@ -1740,10 +1723,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .people-work-filters {
   align-items: center; border-top: 1px solid #e7ece9; display: flex; flex-wrap: wrap; gap: 6px;
   margin-top: 17px; min-height: 54px; padding: 9px 0;
-}
-.people-work-filters > span {
-  color: #8a9690; font-family: var(--font-geist-mono), monospace; font-size: 8.5px; font-weight: 750;
-  letter-spacing: .09em; margin-right: 5px; text-transform: uppercase;
 }
 .people-work-filters a {
   border: 1px solid transparent; border-radius: 99px; color: #64736d; font-size: 11px; font-weight: 680;
@@ -1765,7 +1744,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .people-active-filters li span { font-size: 15px; line-height: .8; margin-left: 2px; }
 .people-active-filters > a { color: #75827d; flex: none; font-size: 10.5px; text-decoration: underline; text-underline-offset: 3px; }
 
-.people-results { padding-top: 38px; }
+.people-results { padding-top: 30px; }
 .people-results-layout {
   align-items: start; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 310px;
 }
@@ -1774,7 +1753,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   align-items: end; border-bottom: 1px solid #dfe5e1; display: flex; gap: 18px; justify-content: space-between;
   margin-bottom: 0; padding-bottom: 15px;
 }
-.people-results-head .section-label { margin-bottom: 6px; }
 .people-results-head h2 { font-size: 22px; font-weight: 560; letter-spacing: -.04em; margin: 0; }
 .people-results-head > p { color: #89958f; font-size: 10.5px; margin: 0; }
 .people-list {
@@ -1882,8 +1860,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 
 @media (max-width: 960px) {
   .people-page { padding-left: 34px; padding-right: 34px; }
-  .people-hero { align-items: start; gap: 25px; grid-template-columns: 1fr; }
-  .people-overview { justify-self: start; }
   .people-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -1897,18 +1873,15 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 
 @media (max-width: 720px) {
   .people-page { padding: 0 20px 68px; }
-  .people-hero { padding: 35px 0 28px; }
-  .people-hero h1 { font-size: clamp(42px, 12vw, 56px); }
-  .people-hero .lede { font-size: 14px; }
-  .people-overview { min-width: 0; width: 100%; }
-  .people-overview div { padding: 17px 18px; }
+  .people-directory-head { padding: 26px 1px 17px; }
+  .people-directory-head h1 { font-size: 28px; }
   .people-search-panel { padding: 16px 16px 0; }
   .people-search-row { grid-template-columns: 1fr; }
-  .people-search-row > button { height: 44px; }
+  .people-search-row > button { display: none; }
   .people-filter-grid { grid-template-columns: 1fr; }
   .people-filter-submit { border-radius: 10px; display: block; margin-top: 13px; width: 100%; }
-  .people-work-filters { align-items: flex-start; }
-  .people-work-filters > span { flex-basis: 100%; margin: 2px 0 4px; }
+  .people-work-filters { display: grid; gap: 4px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .people-work-filters a { font-size: 10px; padding: 7px 5px; text-align: center; }
   .people-active-filters { align-items: flex-start; flex-direction: column; }
   .people-results { padding-top: 31px; }
   .people-results-head { align-items: flex-start; flex-direction: column; gap: 8px; }

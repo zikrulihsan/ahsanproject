@@ -83,9 +83,6 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
     return `/orang${search ? `?${search}` : ""}`;
   };
 
-  const projectCount = new Set(
-    allPeople.flatMap((entry) => [...entry.building, ...entry.helping].map((project) => project.id)),
-  ).size;
   const topContributors = [...allPeople]
     .filter((entry) => entry.helping.length > 0)
     .sort(
@@ -102,28 +99,10 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
       <SiteHeader returnTo={returnTo} active="orang" />
 
       <main id="main-content" className="people-page">
-        <section className="people-hero" aria-labelledby="people-heading">
-          <div>
-            <p className="eyebrow">
-              <span /> Direktori talenta
-            </p>
-            <h1 id="people-heading">Cari orang, bukan sekadar profil.</h1>
-            <p className="lede">
-              Temukan orang dari profesi dan keahliannya, lalu cek project yang dia bangun atau bantu
-              sebagai bukti kerja yang nyata.
-            </p>
-          </div>
-          <dl className="people-overview" aria-label="Ringkasan direktori">
-            <div>
-              <dt>Orang</dt>
-              <dd>{allPeople.length}</dd>
-            </div>
-            <div>
-              <dt>Project terhubung</dt>
-              <dd>{projectCount}</dd>
-            </div>
-          </dl>
-        </section>
+        <header className="people-directory-head">
+          <h1>Cari orang</h1>
+          <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
+        </header>
 
         <section className="people-search-panel" aria-label="Cari dan filter orang">
           <form action="/orang" method="get">
@@ -140,7 +119,7 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
                   placeholder="Cari nama, profesi, skill, atau project…"
                 />
               </label>
-              <button type="submit">Cari orang</button>
+              <button type="submit">Tampilkan hasil</button>
             </div>
 
             <div className="people-filter-grid">
@@ -187,11 +166,10 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
                 ))}
               </FilterSelect>
             </div>
-            <button className="people-filter-submit" type="submit">Terapkan filter</button>
+            <button className="people-filter-submit" type="submit">Tampilkan hasil</button>
           </form>
 
           <div className="people-work-filters" aria-label="Filter keterlibatan">
-            <span>Lihat yang</span>
             <Link
               className={filters.involvement === "" ? "is-active" : ""}
               href={directoryHref({ kerja: null, halaman: null })}
@@ -251,10 +229,7 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
           <div className="people-results-layout">
             <div className="people-results-main">
               <div className="people-results-head">
-                <div>
-                  <p className="section-label">Hasil pencarian</p>
-                  <h2 id="people-results-heading">{matched.length} orang ditemukan</h2>
-                </div>
+                <h2 id="people-results-heading">{matched.length} orang ditemukan</h2>
                 {matched.length > 0 ? (
                   <p>
                     Menampilkan {pagination.from}–{pagination.to} dari {matched.length}
