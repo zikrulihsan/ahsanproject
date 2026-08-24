@@ -1528,14 +1528,14 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   transition: background .2s ease, box-shadow .2s ease;
 }
 .home-project-card:hover { background: #fbfdfc; box-shadow: 0 10px 30px rgba(25, 58, 49, .045); }
-.home-project-identity { align-items: start; display: grid; gap: 28px; grid-template-columns: 72px minmax(0, 1fr); min-width: 0; }
+.home-project-identity { align-items: start; display: grid; gap: 18px; grid-template-columns: 56px minmax(0, 1fr); min-width: 0; }
 .home-project-logo {
   align-items: center; align-self: start; color: #285f4e; display: flex; font-size: 17px; font-weight: 760;
-  height: 72px; justify-content: center; width: 72px;
+  height: 56px; justify-content: center; width: 56px;
 }
-.home-project-logo img { border-radius: 10px; height: 72px; object-fit: contain; width: 72px; }
+.home-project-logo img { border-radius: 9px; height: 56px; object-fit: contain; width: 56px; }
 .home-project-initials { line-height: 1; }
-.home-project-copy { --home-project-indent: 100px; min-width: 0; }
+.home-project-copy { --home-project-indent: 74px; min-width: 0; }
 .home-project-title-row { align-items: flex-start; display: flex; gap: 14px; justify-content: space-between; }
 .home-project-heading { min-width: 0; }
 .home-project-vote {
@@ -1548,7 +1548,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   color: #f1684b; font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 780;
   letter-spacing: .12em; margin: 0 0 5px; text-transform: uppercase;
 }
-.home-project-card h3 { font-size: 19px; font-weight: 730; letter-spacing: -.035em; line-height: 1.12; margin: 0; }
+.home-project-card h3 { font-size: 20px; font-weight: 730; letter-spacing: -.035em; line-height: 1.15; margin: 0; }
 .home-project-card h3 a:hover { color: #2b6d58; }
 .home-project-tagline { color: #6d7d76; font-size: 12.5px; line-height: 1.45; margin: 5px 0 6px; }
 .home-project-meta { align-items: center; color: #87938e; display: flex; flex-wrap: wrap; font-size: 9.5px; gap: 7px; margin: 0; }
@@ -1587,7 +1587,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   align-items: center; color: #8a9690; display: inline-flex; gap: 8px; position: relative; width: fit-content; z-index: 2;
 }
 .home-project-owner .avatar { height: 21px; width: 21px; }
-.home-project-owner small { font-size: 9px; }
+.home-project-owner small { font-size: 10px; }
 .home-project-owner strong { color: #697872; }
 .home-project-card .card-cover-link::after { bottom: 0; left: 0; right: 0; top: 0; }
 .home-empty { background: #fff; border: 1px solid var(--line); border-radius: 14px; margin-top: 18px; }
