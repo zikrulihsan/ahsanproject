@@ -368,6 +368,13 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.doesNotMatch(page, /avatar-lg/);
   assert.doesNotMatch(page, /@zikrulihsan/);
   assert.match(page, /class="profile-project-card"/);
+  assert.equal(
+    (page.match(/class="profile-project-card"/g) ?? []).length,
+    (page.match(/class="profile-project-roles(?: profile-project-roles-empty)?"/g) ?? []).length,
+    "setiap card selalu menampilkan bagian sedang mencari",
+  );
+  assert.match(page, /class="profile-project-roles profile-project-roles-empty"/);
+  assert.match(page, /Belum membuka posisi/);
   assert.match(page, /Deskripsi singkat/);
   assert.match(page, /Anak-anak diminta hati-hati, tapi jarang diberi contoh situasinya seperti apa\./);
   assert.match(page, />Website</);
