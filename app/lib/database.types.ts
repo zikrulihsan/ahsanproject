@@ -48,8 +48,14 @@ export type ProfileRow = {
   id: string;
   username: string;
   name: string;
+  /** Primary role used by the people directory — 0013_people_directory.sql. */
+  profession: string;
   headline: string;
   bio: string;
+  /** Searchable capability and domain facets — 0013_people_directory.sql. */
+  skills: string[];
+  years_experience: number | null;
+  fields: string[];
   website: string;
   github: string;
   /** Trail kinds this person keeps off their public profile. */
