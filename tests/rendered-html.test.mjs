@@ -178,21 +178,38 @@ test("halaman detail memakai favicon yang sama sebagai logo project", async () =
 
 test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () => {
   const page = await html("/");
-  assert.match(page, /<title>Ahsan Project — Tempat karya tumbuh bersama<\/title>/i);
-  assert.match(page, /show your work · find your people/i);
-  assert.match(page, /Tempat karya tumbuh/);
-  assert.match(page, /Tampilkan project/);
-  assert.match(page, /Cari tempat berkontribusi/);
-  assert.match(page, /AhsanProject hari ini/);
-  assert.match(page, /project punya rumah untuk tumbuh/);
-  assert.match(page, /Satu tempat, tiga cara untuk bertumbuh/);
-  assert.match(page, /Portfolio yang tumbuh sambil kamu bekerja/);
-  assert.match(page, /Talent pool yang punya konteks/);
+  assert.match(page, /<title>Ahsan Project — Bagikan dan Temukan Project untuk Berkolaborasi<\/title>/i);
+  assert.match(page, /buat project · temukan kolaborator/i);
+  assert.match(page, /Bagikan dan Temukan Project untuk Berkolaborasi/);
+  assert.match(page, /Rumah untuk menunjukkan project, menemukan teman kolaborasi, dan membangun portfolio beneran/);
+  assert.match(page, /Tambah Project/);
+  assert.match(page, /Cari Tempat Kontribusi/);
+  assert.match(page, /Contoh project kolaborasi/);
+  assert.match(page, /Sedang dikerjakan/);
+  assert.match(page, /Bantuan yang dicari/);
+  assert.match(page, /statistik ahsanproject/i);
+  assert.match(page, /Project, orang, dan posisi kolaborasi/);
+  assert.match(page, /Yang ada di AhsanProject/);
+  assert.match(page, /project sudah dibagikan/);
+  assert.match(page, /Buat project, cari kolaborator, dan tunjukkan hasil kerja/);
+  assert.match(page, /Jadikan kontribusi sebagai portfolio/);
+  assert.match(page, /Cari orang dari pekerjaan yang sudah mereka lakukan/);
   assert.match(page, /cara kerjanya/i);
-  assert.match(page, /Tumbuhkan jejak/);
+  assert.match(page, /Buka posisi/);
+  assert.match(page, /Jadi portfolio/);
   assert.doesNotMatch(page, /class="board-grid"/);
   assert.doesNotMatch(page, /Project pilihan/);
   assert.doesNotMatch(page, /Role yang paling dicari/);
+  assert.doesNotMatch(page, /Talent pool yang punya konteks/);
+  assert.doesNotMatch(page, /Biarkan jejaknya bicara/);
+
+  const hero = page.slice(page.indexOf('class="landing-hero"'), page.indexOf('class="landing-stats"'));
+  assert.match(hero, /class="collaboration-example"/);
+  assert.doesNotMatch(hero, /class="ecosystem-card"/);
+  assert.ok(
+    page.indexOf('class="landing-hero"') < page.indexOf('class="landing-stats"'),
+    "statistik harus menjadi section tersendiri setelah hero",
+  );
 });
 
 test("menu cari kolaborasi menampung pencarian, filter level, kebutuhan, dan sorting", async () => {

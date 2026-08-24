@@ -58,7 +58,7 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
         <MainNav active={active} />
         <div className="header-actions header-shell-actions">
           <Link className="nav-login" href="/signin">Masuk</Link>
-          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Tampilkan project</Link>
+          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Tambah project</Link>
         </div>
       </div>
     </header>
@@ -110,14 +110,14 @@ export async function SiteHeader({
                 </button>
               </form>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Tampilkan project
+                <span aria-hidden="true">+</span> Tambah project
               </Link>
             </>
           ) : (
             <>
               <Link className="nav-login" href={signInPath(returnTo)}>Masuk</Link>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Tampilkan project
+                <span aria-hidden="true">+</span> Tambah project
               </Link>
             </>
           )}
@@ -140,7 +140,7 @@ export async function SiteHeader({
                     Kotak masuk{waiting > 0 ? ` (${waiting})` : ""}
                   </Link>
                   <Link href={`/u/${viewer.username}`}>{viewer.name}</Link>
-                  <Link href="/new">Tampilkan project</Link>
+                  <Link href="/new">Tambah project</Link>
                   <form action={signOut}>
                     <button type="submit">Keluar</button>
                   </form>
@@ -148,7 +148,7 @@ export async function SiteHeader({
               ) : (
                 <>
                   <Link href={signInPath(returnTo)}>Masuk</Link>
-                  <Link href="/new">Tampilkan project</Link>
+                  <Link href="/new">Tambah project</Link>
                 </>
               )}
             </nav>

@@ -21,12 +21,34 @@ export default function Loading() {
             </div>
           </div>
 
-          <aside className="ecosystem-card">
-            <Skeleton height={12} width="48%" style={{ marginBottom: 30 }} />
-            <Skeleton height={66} width="70%" style={{ marginBottom: 22 }} />
-            <Skeleton height={58} style={{ marginBottom: 20 }} />
-            <Skeleton height={128} />
+          <aside className="collaboration-example">
+            <Skeleton height={10} width="58%" style={{ marginBottom: 26 }} />
+            <div className="collaboration-example-project">
+              <Skeleton height={58} width={58} style={{ borderRadius: 12 }} />
+              <div>
+                <Skeleton height={9} width="35%" style={{ marginBottom: 8 }} />
+                <Skeleton height={25} width="72%" style={{ marginBottom: 8 }} />
+                <Skeleton height={11} width="92%" />
+              </div>
+            </div>
+            <Skeleton height={68} style={{ marginTop: 19, marginBottom: 18 }} />
+            <Skeleton height={45} style={{ marginBottom: 18 }} />
+            <Skeleton height={34} width="54%" />
           </aside>
+        </section>
+
+        <section className="landing-stats">
+          <div className="landing-stats-heading">
+            <div>
+              <Skeleton height={11} width={190} style={{ marginBottom: 18 }} />
+              <Skeleton height={48} width="78%" />
+            </div>
+          </div>
+          <div className="ecosystem-card">
+            <Skeleton height={12} width="32%" style={{ marginBottom: 28 }} />
+            <Skeleton height={82} style={{ marginBottom: 18 }} />
+            <Skeleton height={130} />
+          </div>
         </section>
 
         <section className="landing-purpose">
