@@ -96,6 +96,7 @@ export default async function Home() {
                       key={project.id}
                       project={project}
                       roleCounts={seatsByRole.get(project.id)}
+                      appearance="profile"
                     />
                   ))}
                 </ul>

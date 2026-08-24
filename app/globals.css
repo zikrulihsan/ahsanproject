@@ -1019,6 +1019,10 @@ form button.danger:hover { background: #96320f; }
 .profile-project-heading h3 { font-size: 20px; font-weight: 720; letter-spacing: -.04em; line-height: 1.15; margin: 0; }
 .profile-project-heading h3 a:hover { color: #2b6d58; }
 .profile-project-tagline { color: #6d7d76; font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.profile-project-category {
+  color: #87938e; font-family: var(--font-geist-mono), monospace; font-size: 8.5px;
+  letter-spacing: .06em; margin: 7px 0 0; text-transform: uppercase;
+}
 .profile-project-description { border-top: 1px solid var(--line-soft); margin-top: 13px; padding-top: 10px; }
 .profile-project-description > span {
   color: #7d8b85; display: block; font-family: var(--font-geist-mono), monospace; font-size: 8px;
@@ -1656,7 +1660,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-sort-tabs a:hover { color: var(--ink); }
 .home-sort-tabs a.is-active { background: #fff; box-shadow: 0 2px 7px rgba(18, 52, 43, .1); color: var(--ink); }
 
-.home-projects .board-grid { display: flex; flex-direction: column; gap: 0; }
+.home-projects .board-grid, .home-project-loading-grid {
+  display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.home-projects .project-list-entry { border: 0; min-width: 0; }
+.home-profile-project-entry, .home-profile-project-card { height: 100%; }
 .project-list-entry { border-bottom: 1px solid #dfe5e1; }
 .home-project-card {
   border-radius: 16px; margin: 7px 0; padding: 18px 16px; position: relative;
@@ -1816,6 +1824,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 @media (max-width: 1020px) {
   .discovery-page { padding-left: 34px; padding-right: 34px; }
   .discovery-content { grid-template-columns: minmax(0, 1fr) 300px; }
+  .home-projects .board-grid, .home-project-loading-grid { grid-template-columns: minmax(0, 1fr); }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
   .collaboration-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
