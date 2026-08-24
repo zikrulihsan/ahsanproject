@@ -1528,12 +1528,12 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   transition: background .2s ease, box-shadow .2s ease;
 }
 .home-project-card:hover { background: #fbfdfc; box-shadow: 0 10px 30px rgba(25, 58, 49, .045); }
-.home-project-identity { align-items: start; display: grid; gap: 13px; grid-template-columns: 48px minmax(0, 1fr); min-width: 0; }
+.home-project-identity { align-items: start; display: grid; gap: 28px; grid-template-columns: 72px minmax(0, 1fr); min-width: 0; }
 .home-project-logo {
   align-items: center; align-self: start; color: #285f4e; display: flex; font-size: 17px; font-weight: 760;
-  height: 48px; justify-content: center; width: 48px;
+  height: 72px; justify-content: center; width: 72px;
 }
-.home-project-logo img { border-radius: 8px; height: 48px; object-fit: contain; width: 48px; }
+.home-project-logo img { border-radius: 10px; height: 72px; object-fit: contain; width: 72px; }
 .home-project-initials { line-height: 1; }
 .home-project-copy { min-width: 0; }
 .home-project-title-row { align-items: flex-start; display: flex; gap: 14px; justify-content: space-between; }
