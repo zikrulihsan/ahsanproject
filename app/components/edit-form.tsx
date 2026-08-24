@@ -41,6 +41,16 @@ export function EditForm({ project }: { project: EditableProject }) {
       <Field label="Nama project" name="title" error={errors.title} defaultValue={values.title} required />
 
       <Field
+        label="Website project"
+        name="liveUrl"
+        hint="Favicon website ini dipakai sebagai logo project. Kosongkan kalau projectmu belum punya website."
+        error={errors.liveUrl}
+        defaultValue={values.liveUrl}
+        type="url"
+        placeholder="https://"
+      />
+
+      <Field
         label="Satu kalimat"
         name="tagline"
         hint="Jelaskan manfaat utamanya dengan bahasa sehari-hari."
@@ -102,14 +112,8 @@ export function EditForm({ project }: { project: EditableProject }) {
           Tautan ini ikut menentukan tahap project. Kalau salah satunya dihapus dan tahapnya jadi
           tidak terpenuhi, levelnya ikut turun sendiri.
         </p>
-        <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} />
-        <Field label="Repo" name="repoUrl" error={errors.repoUrl} defaultValue={values.repoUrl} />
-        <Field
-          label="Tautan produk"
-          name="liveUrl"
-          error={errors.liveUrl}
-          defaultValue={values.liveUrl}
-        />
+        <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
+        <Field label="Repo" name="repoUrl" error={errors.repoUrl} defaultValue={values.repoUrl} type="url" />
       </fieldset>
 
       <button className="primary-button" type="submit" disabled={pending}>

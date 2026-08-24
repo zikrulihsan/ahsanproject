@@ -1524,20 +1524,22 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-projects .board-grid { display: flex; flex-direction: column; gap: 0; }
 .project-list-entry { border-bottom: 1px solid #dfe5e1; }
 .home-project-card {
-  display: grid; gap: 20px; grid-template-columns: 50px 64px minmax(0, 1fr); padding: 24px 5px 25px 0;
-  position: relative;
+  border-radius: 16px; display: grid; gap: 16px; grid-template-columns: 46px minmax(0, 1fr);
+  margin: 7px 0; padding: 18px 16px 17px 0; position: relative; transition: background .2s ease, box-shadow .2s ease;
 }
+.home-project-card:hover { background: #fbfdfc; box-shadow: 0 10px 30px rgba(25, 58, 49, .045); }
 .project-score {
   align-items: center; align-self: start; background: #fff; border: 1px solid #d8e0dc;
   border-radius: 12px; color: #273d36; display: flex; flex-direction: column; font-size: 10px;
-  gap: 3px; justify-content: center; min-height: 57px; padding: 8px 5px;
+  gap: 3px; justify-content: center; min-height: 54px; padding: 7px 5px;
 }
 .project-score > span { color: #73837c; font-size: 9px; }
 .project-score strong { font-size: 12px; }
+.home-project-identity { align-items: start; display: grid; gap: 14px; grid-template-columns: 56px minmax(0, 1fr); min-width: 0; }
 .home-project-logo {
-  align-items: center; align-self: start; background: #2f7962; border: 7px solid rgba(255, 255, 255, .16);
-  border-radius: 15px; color: #fff; display: flex; font-size: 16px; font-weight: 720; height: 64px;
-  justify-content: center; outline: 1px solid rgba(21, 66, 53, .4); position: relative; width: 64px;
+  align-items: center; align-self: start; background: #2f7962; border: 5px solid rgba(255, 255, 255, .16);
+  border-radius: 14px; color: #fff; display: flex; font-size: 15px; font-weight: 720; height: 56px;
+  justify-content: center; outline: 1px solid rgba(21, 66, 53, .35); overflow: visible; position: relative; width: 56px;
 }
 .home-project-logo.level-idea { background: #be634e; }
 .home-project-logo.level-building { background: #b17b16; }
@@ -1545,26 +1547,29 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-project-logo.level-resting { background: #6f7b77; }
 .home-project-logo small {
   align-items: center; background: #174b3c; border: 2px solid #fbfcfb; border-radius: 50%; color: #fff;
-  display: flex; font-size: 8px; height: 19px; justify-content: center; position: absolute; right: -11px;
-  top: -11px; width: 19px;
+  display: flex; font-size: 8px; height: 19px; justify-content: center; position: absolute; right: -8px;
+  top: -8px; width: 19px; z-index: 1;
 }
+.home-project-logo img { background: #fff; border-radius: 9px; height: 100%; object-fit: contain; padding: 7px; width: 100%; }
+.home-project-initials { line-height: 1; }
 .home-project-copy { min-width: 0; }
-.home-project-title-row { display: flex; gap: 14px; justify-content: space-between; }
+.home-project-title-row { align-items: flex-start; display: flex; gap: 14px; justify-content: space-between; }
+.home-project-heading { min-width: 0; }
 .project-kind {
   color: #f1684b; font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 780;
-  letter-spacing: .12em; margin: 2px 0 6px; text-transform: uppercase;
+  letter-spacing: .12em; margin: 0 0 5px; text-transform: uppercase;
 }
-.home-project-card h3 { font-size: 18px; font-weight: 730; letter-spacing: -.035em; margin: 0; }
+.home-project-card h3 { font-size: 19px; font-weight: 730; letter-spacing: -.035em; line-height: 1.12; margin: 0; }
 .home-project-card h3 a:hover { color: #2b6d58; }
-.bookmark-mark { color: #71827b; flex: none; margin: 2px 5px 0 0; }
+.bookmark-mark { color: #71827b; flex: none; margin: 1px 0 0; }
 .bookmark-mark svg { height: 18px; width: 18px; }
-.home-project-tagline { color: #6d7d76; font-size: 13px; line-height: 1.55; margin: 7px 0 9px; }
-.home-project-meta { align-items: center; color: #87938e; display: flex; flex-wrap: wrap; font-size: 10px; gap: 8px; margin: 0 0 15px; }
+.home-project-tagline { color: #6d7d76; font-size: 12.5px; line-height: 1.45; margin: 5px 0 6px; }
+.home-project-meta { align-items: center; color: #87938e; display: flex; flex-wrap: wrap; font-size: 9.5px; gap: 7px; margin: 0; }
 .home-project-meta span + span::before { content: "○"; font-size: 8px; margin-right: 8px; }
 .home-open-call {
-  align-items: center; background: #f5faf7; border: 1px solid #d6e4dc; border-radius: 11px;
-  display: grid; gap: 12px; grid-template-columns: 125px minmax(0, 1fr) auto; min-height: 62px;
-  padding: 10px 13px;
+  align-items: center; background: linear-gradient(100deg, #f2f9f5, #f8fbf9); border: 1px solid #cfe0d7;
+  border-radius: 11px; display: grid; gap: 12px; grid-template-columns: 120px minmax(0, 1fr) auto;
+  margin-top: 12px; min-height: 56px; padding: 9px 12px;
 }
 .home-open-label p {
   align-items: center; color: #315e50; display: flex; font-family: var(--font-geist-mono), monospace;
@@ -1579,14 +1584,15 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 }
 .home-role-chips a:hover { border-color: #38715e; }
 .home-project-link {
-  align-items: center; display: inline-flex; font-size: 10px; font-weight: 760; gap: 9px; position: relative;
-  white-space: nowrap; z-index: 2;
+  align-items: center; background: #e5f2ec; border-radius: 8px; color: #174c3e; display: inline-flex;
+  font-size: 10px; font-weight: 760; gap: 9px; padding: 8px 10px; position: relative; white-space: nowrap; z-index: 2;
 }
+.home-project-link:hover { background: #d9ebe3; }
 .home-project-link:hover .arrow { transform: translateX(3px); }
 .home-open-call-empty { grid-template-columns: 1fr auto; }
 .home-open-call-empty > p { color: #7f8c86; font-size: 11px; margin: 0; }
 .home-project-owner {
-  align-items: center; color: #8a9690; display: inline-flex; gap: 8px; margin-top: 11px;
+  align-items: center; color: #8a9690; display: inline-flex; gap: 8px; margin-top: 9px;
   position: relative; width: fit-content; z-index: 2;
 }
 .home-project-owner .avatar { height: 21px; width: 21px; }
@@ -1668,13 +1674,20 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .home-list-head { align-items: flex-start; flex-direction: column; }
   .home-sort-tabs { width: 100%; }
   .home-sort-tabs a { flex: 1; text-align: center; }
-  .home-project-card { gap: 13px; grid-template-columns: 45px minmax(0, 1fr); padding: 22px 0; }
-  .project-score { grid-row: 1; min-height: 52px; }
-  .home-project-logo { grid-column: 2; grid-row: 1; height: 58px; width: 58px; }
-  .home-project-copy { grid-column: 1 / -1; }
-  .home-open-call { grid-template-columns: 1fr; }
-  .home-role-chips { margin-top: 2px; }
-  .home-project-link { grid-column: 1; justify-self: start; }
+  .home-project-card { gap: 11px; grid-template-columns: 39px minmax(0, 1fr); margin: 3px 0; padding: 17px 0; }
+  .project-score { min-height: 48px; }
+  .home-project-identity { gap: 10px; grid-template-columns: 48px minmax(0, 1fr); }
+  .home-project-logo { border-width: 4px; height: 48px; width: 48px; }
+  .home-project-logo img { padding: 6px; }
+  .home-project-logo small { right: -6px; top: -6px; }
+  .bookmark-mark { display: none; }
+  .home-project-card h3 { font-size: 17px; }
+  .home-project-tagline { font-size: 11.5px; }
+  .home-project-meta { font-size: 9px; gap: 5px; }
+  .home-project-meta span + span::before { margin-right: 5px; }
+  .home-open-call { gap: 9px 10px; grid-template-columns: minmax(0, 1fr) auto; }
+  .home-role-chips { grid-column: 1 / -1; margin-top: 1px; }
+  .home-project-link { grid-column: 2; grid-row: 1; justify-self: end; }
   .home-open-call-empty { grid-template-columns: 1fr auto; }
   .home-open-call-empty .home-project-link { grid-column: 2; }
   .discovery-sidebar { display: flex; }

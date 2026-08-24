@@ -41,6 +41,21 @@ export function CreateForm() {
         </legend>
 
         <Field
+          label="Website project"
+          name="liveUrl"
+          hint={
+            stage === "live"
+              ? "Wajib untuk project yang sudah berjalan. Favicon website ini akan dipakai sebagai logo project."
+              : "Kalau diisi, favicon website ini akan dipakai sebagai logo project. Belum punya? Lewati dulu."
+          }
+          error={errors.liveUrl}
+          defaultValue={values.liveUrl}
+          type="url"
+          placeholder="https://"
+          required={stage === "live"}
+        />
+
+        <Field
           label="Nama project"
           name="title"
           hint="Sebut apa adanya. Nama bisa diubah nanti."
@@ -152,27 +167,13 @@ export function CreateForm() {
         ) : null}
 
         <details
-          className={`optional-fields ${stage === "live" ? "is-required" : ""}`}
-          open={stage === "live" || Boolean(errors.docUrl || errors.repoUrl || errors.liveUrl)}
+          className="optional-fields"
+          open={Boolean(errors.docUrl || errors.repoUrl)}
         >
           <summary>
-            Tambahkan tautan <span>opsional</span>
+            Tambahkan tautan pendukung <span>opsional</span>
           </summary>
           <div className="optional-fields-body">
-            <Field
-              label={stage === "live" ? "Tautan yang sudah bisa dibuka" : "Tautan produk"}
-              name="liveUrl"
-              hint={
-                stage === "live"
-                  ? "Wajib untuk project yang sudah berjalan."
-                  : "Isi kalau sudah ada sesuatu yang bisa dibuka orang lain."
-              }
-              error={errors.liveUrl}
-              defaultValue={values.liveUrl}
-              type="url"
-              placeholder="https://"
-              required={stage === "live"}
-            />
             <Field
               label="Dokumen atau riset"
               name="docUrl"

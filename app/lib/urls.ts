@@ -24,3 +24,23 @@ export function signInPath(next: string): string {
   const target = safeNextPath(next);
   return target === "/" ? "/signin" : `/signin?next=${encodeURIComponent(target)}`;
 }
+
+/**
+ * Returns a consistently sized favicon for a public project website.
+ *
+ * Only ordinary web URLs qualify. Besides avoiding nonsense image requests,
+ * this means a forged form submission cannot turn the card image into an
+ * unexpected protocol such as javascript: or data:.
+ */
+export function faviconUrl(value: string | null | undefined): string {
+  if (!value) return "";
+
+  try {
+    const website = new URL(value);
+    if (website.protocol !== "http:" && website.protocol !== "https:") return "";
+
+    return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(website.origin)}&sz=128`;
+  } catch {
+    return "";
+  }
+}

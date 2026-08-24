@@ -5,6 +5,7 @@ import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
 import { activityParts } from "../lib/activity";
 import { journeyDate } from "../lib/updates";
 import { Arrow } from "./shell";
+import { ProjectLogo } from "./project-logo";
 
 export function StageBadge({ stage }: { stage: Stage }) {
   const meta = stageMeta[stage] ?? stageMeta.idea;
@@ -267,33 +268,34 @@ export function BoardCard({
           <strong>{project.boostCount}</strong>
         </div>
 
-        <span className={`home-project-logo level-${project.stage}`} aria-hidden="true">
-          <small>{rank}</small>
-          {initials(project.title)}
-        </span>
-
         <div className="home-project-copy">
           <div className="home-project-title-row">
-            <div>
-              <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
-              <h3>
-                <Link className="card-cover-link" href={`/projects/${project.slug}`}>
-                  {project.title}
-                </Link>
-              </h3>
+            <div className="home-project-identity">
+              <ProjectLogo
+                title={project.title}
+                website={project.liveUrl}
+                stage={project.stage}
+                rank={rank}
+              />
+              <div className="home-project-heading">
+                <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+                <h3>
+                  <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+                    {project.title}
+                  </Link>
+                </h3>
+                <p className="home-project-tagline">{project.tagline}</p>
+                <p className="home-project-meta">
+                  <span>{stageMeta[project.stage].label}</span>
+                  <span>{freshness(project) || "Baru ditampilkan"}</span>
+                  <span>{project.commentCount} diskusi</span>
+                </p>
+              </div>
             </div>
             <span className="bookmark-mark" aria-hidden="true">
               <svg className="icon" viewBox="0 0 24 24"><path d="M6.5 4.5h11v15l-5.5-3-5.5 3z" /></svg>
             </span>
           </div>
-
-          <p className="home-project-tagline">{project.tagline}</p>
-
-          <p className="home-project-meta">
-            <span>{stageMeta[project.stage].label}</span>
-            <span>{freshness(project) || "Baru ditampilkan"}</span>
-            <span>{project.commentCount} diskusi</span>
-          </p>
 
           {project.openRoles.length > 0 ? (
             <div className="home-open-call">

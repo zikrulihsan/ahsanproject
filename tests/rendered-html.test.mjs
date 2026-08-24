@@ -147,6 +147,14 @@ test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", asyn
   assert.match(list, /Belum membuka posisi kontribusi/);
 });
 
+test("project yang punya website memakai favicon sebagai logo card", async () => {
+  const list = feedList(await html("/?q=swegrowth"));
+  assert.match(
+    list,
+    /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fswegrowth\.id&amp;sz=128/,
+  );
+});
+
 test("beranda membuka dengan hero, pencarian, kategori, dan role populer", async () => {
   const page = await html("/");
   assert.match(page, /Temukan project yang layak dibantu/);
