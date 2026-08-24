@@ -370,7 +370,7 @@ export function BoardCard({
             <ul className="home-category-chips" aria-label="Kategori project">
               {project.tags.map((tag) => (
                 <li key={tag}>
-                  <Link href={`/?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
+                  <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
                 </li>
               ))}
             </ul>

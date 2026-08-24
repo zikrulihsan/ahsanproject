@@ -92,13 +92,13 @@ const SEEDED = [
 ];
 
 test("papan menampilkan semua proyek bawaan", async () => {
-  const page = await html("/");
-  assert.match(page, /<title>Ahsan Project — Tunjukkan yang sedang kamu bangun<\/title>/i);
+  const page = await html("/kolaborasi");
+  assert.match(page, /<title>Cari Kolaborasi — Ahsan Project<\/title>/i);
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
 test("saringan tahap mempersempit papan", async () => {
-  const list = feedList(await html("/?stage=idea"));
+  const list = feedList(await html("/kolaborasi?stage=idea"));
   assert.match(list, /Warung Antre/);
   assert.doesNotMatch(list, /Tap Tap Dzikr/);
 });
@@ -120,24 +120,24 @@ test("lajur lama mendarat di tab tahap yang dimaksudnya", async () => {
 });
 
 test("lajur yang mengada-ada jatuh ke lajur bawaan, bukan papan kosong", async () => {
-  const list = feedList(await html("/?lane=entah"));
+  const list = feedList(await html("/kolaborasi?lane=entah"));
   for (const name of SEEDED) assert.match(list, new RegExp(name));
 });
 
 test("saringan bantuan menampilkan project yang mencarinya saja", async () => {
-  const list = feedList(await html("/?lane=butuh-bantuan&role=pm"));
+  const list = feedList(await html("/kolaborasi?lane=butuh-bantuan&role=pm"));
   assert.match(list, /Invoice Cepat/);
   assert.match(list, /Titip Jemput/);
   assert.doesNotMatch(list, /Wecard/);
 });
 
 test("bantuan yang mengada-ada tidak mengosongkan papan", async () => {
-  const list = feedList(await html("/?role=hacker"));
+  const list = feedList(await html("/kolaborasi?role=hacker"));
   for (const name of SEEDED) assert.match(list, new RegExp(name));
 });
 
 test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async () => {
-  const list = feedList(await html("/"));
+  const list = feedList(await html("/kolaborasi"));
   assert.match(list, /Role yang dicari/);
   assert.match(list, /Product Manager/);
   assert.match(list, /UI\/UX Designer/);
@@ -145,12 +145,12 @@ test("baris project menyebut posisi baku yang dicari, berikut jumlahnya", async 
 });
 
 test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", async () => {
-  const list = feedList(await html("/"));
-  const swegrowth = feedList(await html("/?q=swegrowth"));
+  const list = feedList(await html("/kolaborasi"));
+  const swegrowth = feedList(await html("/kolaborasi?q=swegrowth"));
   assert.match(list, /Role yang dicari/);
   assert.match(
     swegrowth,
-    /aria-label="Kategori project">.*href="\/\?tag=komunitas">komunitas<\/a>.*href="\/\?tag=karier">karier<\/a>.*href="\/\?tag=belajar">belajar<\/a>/s,
+    /aria-label="Kategori project">.*href="\/kolaborasi\?tag=komunitas">komunitas<\/a>.*href="\/kolaborasi\?tag=karier">karier<\/a>.*href="\/kolaborasi\?tag=belajar">belajar<\/a>/s,
   );
   assert.match(list, /class="home-project-meta"/);
   assert.match(list, /class="home-open-call"/);
@@ -160,28 +160,30 @@ test("baris project mengikuti urutan judul, konteks, posisi, lalu pemilik", asyn
 });
 
 test("project yang punya website memakai favicon sebagai logo card", async () => {
-  const list = feedList(await html("/?q=swegrowth"));
+  const list = feedList(await html("/kolaborasi?q=swegrowth"));
   assert.match(
     list,
     /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fswegrowth\.id&amp;sz=128/,
   );
 });
 
-test("beranda membuka dengan dua aksi utama dan kotak berbagi di atas role populer", async () => {
+test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () => {
   const page = await html("/");
-  assert.match(page, /berkarya, berkolaborasi, berdampak/);
-  assert.match(page, /Bagikan dan Temukan Project Untuk Kolaborasi/);
-  assert.match(page, /Bagikan project/);
-  assert.match(page, /Cari project kolaborasi/);
-  assert.doesNotMatch(page, /class="discovery-search/);
-  assert.doesNotMatch(page, /Semua kategori/);
-  assert.match(page, /Role yang paling dicari/);
-  assert.match(page, /Punya sesuatu yang sedang dibangun/);
-  assert.match(page, /Bukan sekadar etalase/);
-  assert.ok(
-    page.indexOf("Punya sesuatu yang sedang dibangun") < page.indexOf("Role yang paling dicari"),
-    "kotak berbagi project harus tampil sebelum ranking role",
-  );
+  assert.match(page, /<title>Ahsan Project — Tempat karya tumbuh bersama<\/title>/i);
+  assert.match(page, /show your work · find your people/i);
+  assert.match(page, /Tempat karya tumbuh/);
+  assert.match(page, /Tampilkan project/);
+  assert.match(page, /Cari tempat berkontribusi/);
+  assert.match(page, /AhsanProject hari ini/);
+  assert.match(page, /project punya rumah untuk tumbuh/);
+  assert.match(page, /Satu tempat, tiga cara untuk bertumbuh/);
+  assert.match(page, /Portfolio yang tumbuh sambil kamu bekerja/);
+  assert.match(page, /Talent pool yang punya konteks/);
+  assert.match(page, /cara kerjanya/i);
+  assert.match(page, /Tumbuhkan jejak/);
+  assert.doesNotMatch(page, /class="board-grid"/);
+  assert.doesNotMatch(page, /Project pilihan/);
+  assert.doesNotMatch(page, /Role yang paling dicari/);
 });
 
 test("menu cari kolaborasi menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
@@ -214,7 +216,7 @@ test("ranking role memakai posisi yang benar-benar dicari dan menerima URL lama"
 });
 
 test("kategori mengubah pilihan dropdown dan lingkup pencarian", async () => {
-  const page = await html("/?tag=umkm");
+  const page = await html("/kolaborasi?tag=umkm");
   assert.match(page, /<option value="umkm" selected="">umkm \(2\)<\/option>/);
   assert.match(page, /Kategori:.*umkm/s);
   const list = feedList(page);
@@ -224,7 +226,7 @@ test("kategori mengubah pilihan dropdown dan lingkup pencarian", async () => {
 });
 
 test("semua saringan aktif bisa dilepas sendiri atau sekaligus", async () => {
-  const page = await html("/?tag=umkm&stage=idea&role=research&q=antre");
+  const page = await html("/kolaborasi?tag=umkm&stage=idea&role=research&q=antre");
   assert.match(page, /Kategori:.*umkm/s);
   assert.match(page, /Level:.*Ide/s);
   assert.match(page, /Role:.*Researcher/s);
@@ -233,13 +235,13 @@ test("semua saringan aktif bisa dilepas sendiri atau sekaligus", async () => {
 });
 
 test("urutan papan bisa diganti tanpa kehilangan saringannya", async () => {
-  const page = await html("/?stage=live&lane=terbaru");
+  const page = await html("/kolaborasi?stage=live&lane=terbaru");
   assert.match(page, /<option value="terbaru" selected="">Project terbaru<\/option>/);
   assert.match(page, /name="stage" value="live"/);
 });
 
 test("pencarian membaca brief, bukan cuma judul", async () => {
-  const list = feedList(await html("/?q=antrean"));
+  const list = feedList(await html("/kolaborasi?q=antrean"));
   assert.match(list, /Warung Antre/);
   assert.doesNotMatch(list, /Swegrowth/);
 });
@@ -247,16 +249,16 @@ test("pencarian membaca brief, bukan cuma judul", async () => {
 test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () => {
   // "memindai" cuma ada di kolom solusi Warung Antre, "kedai kopi" cuma di
   // audiensnya — dua kolom yang dulu tidak ikut dibaca.
-  const bySolution = feedList(await html("/?q=memindai"));
+  const bySolution = feedList(await html("/kolaborasi?q=memindai"));
   assert.match(bySolution, /Warung Antre/);
   assert.doesNotMatch(bySolution, /Swegrowth/);
 
-  const byAudience = feedList(await html("/?q=kedai%20kopi"));
+  const byAudience = feedList(await html("/kolaborasi?q=kedai%20kopi"));
   assert.match(byAudience, /Warung Antre/);
   assert.doesNotMatch(byAudience, /Swegrowth/);
 
   // "keselamatan" hanya ada di kalimat "sekarang" Main Aman.
-  const byNow = feedList(await html("/?q=keselamatan%20pertama"));
+  const byNow = feedList(await html("/kolaborasi?q=keselamatan%20pertama"));
   assert.match(byNow, /Main Aman/);
   assert.doesNotMatch(byNow, /Swegrowth/);
 });
