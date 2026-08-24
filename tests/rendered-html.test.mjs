@@ -339,6 +339,7 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.doesNotMatch(page, /@zikrulihsan/);
   assert.match(page, /class="profile-project-card"/);
   assert.match(page, /Deskripsi singkat/);
+  assert.match(page, /Anak-anak diminta hati-hati, tapi jarang diberi contoh situasinya seperti apa\./);
   assert.match(page, />Website</);
   assert.match(page, />GitHub</);
   assert.match(page, />Detail/);
