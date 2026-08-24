@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
-import { ActivityList, ContributionBadge, ProjectCard, monthYear } from "../../components/pieces";
+import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { SubmitButton } from "../../components/submit-button";
@@ -69,6 +69,9 @@ export default async function ProfilePage({
   ]);
   const hasOlder = activity.length > limit;
   const trail = activity.slice(0, limit);
+  const profileProjects = Array.from(
+    new Map([...owned, ...contributing].map((project) => [project.id, project])).values(),
+  );
   const website = safeWebUrl(person.website);
   const github = safeWebUrl(person.github);
   const linkedin = safeWebUrl(person.linkedin);
@@ -90,9 +93,6 @@ export default async function ProfilePage({
       : []),
     ...(x
       ? [{ href: x, icon: "x" as const, label: "X", external: true }]
-      : []),
-    ...(resume
-      ? [{ href: resume, icon: "resume" as const, label: "Résumé", external: true }]
       : []),
   ];
 
@@ -136,18 +136,25 @@ export default async function ProfilePage({
                   ))}
                 </ul>
               ) : null}
+              {resume ? (
+                <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
+                  <LinkIcon kind="resume" />
+                  <span>Lihat résumé</span>
+                  <span className="arrow" aria-hidden="true">→</span>
+                </a>
+              ) : null}
             </div>
 
-            <aside className="profile-contributions" aria-labelledby="contrib-heading">
-              <p id="contrib-heading" className="profile-summary-label">Berkontribusi di</p>
-              {contributing.length > 0 ? (
-                <ul className="profile-contribution-list">
-                  {contributing.map((project) => (
-                    <ContributionBadge key={project.id} project={project} role={project.role} />
+            <aside className="profile-contributions" aria-labelledby="projects-heading">
+              <p id="projects-heading" className="profile-summary-label">Projects:</p>
+              {profileProjects.length > 0 ? (
+                <ul className="profile-project-icon-list">
+                  {profileProjects.map((project) => (
+                    <ProjectIconLink key={project.id} project={project} />
                   ))}
                 </ul>
               ) : (
-                <p className="profile-contribution-empty">Belum ada kontribusi lain yang tercatat.</p>
+                <p className="profile-contribution-empty">Belum ada project yang tercatat.</p>
               )}
             </aside>
           </div>

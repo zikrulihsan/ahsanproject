@@ -960,6 +960,13 @@ form button.danger:hover { background: #96320f; }
 .profile-contact-list a:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .7); color: #fff; }
 .profile-contact-list a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .link-icon { flex: none; height: 16px; width: 16px; }
+.profile-resume-link {
+  align-items: center; background: var(--lime); border: 1px solid var(--lime); border-radius: 10px; color: var(--ink-2);
+  display: inline-flex; font-size: 11px; font-weight: 780; gap: 8px; margin-top: 12px; padding: 10px 12px;
+}
+.profile-resume-link:hover { background: #f0ffab; border-color: #f0ffab; color: var(--ink-2); }
+.profile-resume-link .link-icon { height: 15px; width: 15px; }
+.profile-resume-link .arrow { font-size: 15px; line-height: .8; margin-left: 2px; }
 
 .profile-contributions {
   align-self: end; border-left: 1px solid rgba(255, 255, 255, .16); min-width: 0; padding-left: 28px;
@@ -968,22 +975,14 @@ form button.danger:hover { background: #96320f; }
   color: var(--lime); font-family: var(--font-geist-mono), monospace; font-size: 9px;
   font-weight: 760; letter-spacing: .12em; margin: 0 0 10px; text-transform: uppercase;
 }
-.profile-contribution-list { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
-.profile-contribution-badge {
+.profile-project-icon-list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.profile-project-icon-link {
   align-items: center; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 12px; display: grid; gap: 11px; grid-template-columns: 40px minmax(0, 1fr) auto;
-  padding: 9px 11px; position: relative;
+  border-radius: 10px; display: flex; height: 44px; justify-content: center; width: 44px;
 }
-.profile-contribution-badge:hover { background: rgba(255, 255, 255, .12); border-color: rgba(221, 239, 131, .62); }
-.home-project-logo.contribution-logo { background: rgba(255, 255, 255, .1); border-radius: 9px; font-size: 11px; height: 40px; width: 40px; }
-.home-project-logo.contribution-logo img { border-radius: 9px; height: 40px; width: 40px; }
-.profile-contribution-copy { min-width: 0; }
-.profile-contribution-copy strong, .profile-contribution-copy small {
-  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.profile-contribution-copy strong { color: #f5f8f7; font-size: 12px; margin-bottom: 3px; }
-.profile-contribution-copy small { color: #aebeb8; font-size: 9.5px; }
-.profile-contribution-badge > .arrow { color: #aebeb8; }
+.profile-project-icon-link:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .62); transform: translateY(-1px); }
+.home-project-logo.profile-project-icon { background: rgba(255, 255, 255, .1); border-radius: 7px; font-size: 10px; height: 34px; width: 34px; }
+.home-project-logo.profile-project-icon img { border-radius: 7px; height: 34px; width: 34px; }
 .profile-contribution-empty { color: #9fb2aa; font-size: 11px; line-height: 1.55; margin: 0; }
 
 .profile-summary {
@@ -1003,10 +1002,13 @@ form button.danger:hover { background: #96320f; }
 .profile-page { max-width: 1240px; padding-top: 52px; }
 .profile-content { min-width: 0; }
 .profile-edit { margin-bottom: 36px; }
-.profile-project-grid { align-items: start; display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.profile-project-grid {
+  align-items: stretch; display: grid; gap: 16px; grid-auto-rows: minmax(390px, auto);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .profile-project-card {
   background: #fff; border: 1px solid #dce3df; border-radius: 18px; display: flex; flex-direction: column;
-  min-height: 0; padding: 20px; position: relative;
+  height: 100%; min-height: 390px; padding: 20px; position: relative;
   transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
 }
 .profile-project-card:hover { border-color: #b8c8bf; box-shadow: 0 14px 36px rgba(25, 58, 49, .07); transform: translateY(-2px); }
@@ -1020,6 +1022,15 @@ form button.danger:hover { background: #96320f; }
 .profile-project-heading h3 { font-size: 20px; font-weight: 720; letter-spacing: -.04em; line-height: 1.15; margin: 0; }
 .profile-project-heading h3 a:hover { color: #2b6d58; }
 .profile-project-tagline { color: #6d7d76; font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.profile-project-description { border-top: 1px solid var(--line-soft); margin-top: 16px; min-height: 72px; padding-top: 13px; }
+.profile-project-description > span {
+  color: #7d8b85; display: block; font-family: var(--font-geist-mono), monospace; font-size: 8px;
+  font-weight: 760; letter-spacing: .08em; margin-bottom: 6px; text-transform: uppercase;
+}
+.profile-project-description p {
+  -webkit-box-orient: vertical; -webkit-line-clamp: 3; color: #50665d; display: -webkit-box;
+  font-size: 11.5px; line-height: 1.5; margin: 0; overflow: hidden;
+}
 .profile-project-now {
   background: linear-gradient(100deg, #f0f8f4, #f8fbf9); border: 1px solid #d4e4dc;
   border-radius: 11px; margin-top: 18px; padding: 12px 14px;
@@ -1037,7 +1048,7 @@ form button.danger:hover { background: #96320f; }
 .profile-project-roles .seat-chips { margin: 0; }
 .profile-project-footer {
   align-items: center; border-top: 1px solid var(--line-soft); color: #87938e; display: flex;
-  font-size: 9.5px; gap: 14px; justify-content: space-between; margin-top: 16px; padding-top: 14px;
+  font-size: 9.5px; gap: 14px; justify-content: space-between; margin-top: auto; padding-top: 14px;
 }
 .profile-project-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .profile-project-actions a {
@@ -1048,7 +1059,7 @@ form button.danger:hover { background: #96320f; }
 .profile-project-actions .link-icon { height: 13px; width: 13px; }
 .profile-project-actions .profile-project-detail { background: #e5f2ec; border-color: #e5f2ec; color: #174c3e; gap: 8px; }
 .profile-project-actions .profile-project-detail:hover .arrow { transform: translateX(3px); }
-.profile-project-skeleton { min-height: 230px; }
+.profile-project-skeleton { min-height: 390px; }
 
 .trail-note { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
 .trail-modes { display: flex; gap: 8px; margin-bottom: 18px; }
@@ -1342,7 +1353,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .profile-hero-top, .profile-summary { grid-template-columns: minmax(0, 1fr); }
   .profile-hero-top { gap: 30px; }
   .profile-contributions { border-left: 0; border-top: 1px solid rgba(255, 255, 255, .16); padding: 22px 0 0; }
-  .profile-contribution-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-summary { gap: 24px; }
   .profile-project-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -1380,7 +1390,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .profile-contact-list a { max-width: min(280px, calc(100vw - 40px)); }
   .profile-summary { padding-top: 22px; }
   .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .profile-project-card { min-height: 0; }
+  .profile-project-card { min-height: 360px; }
   .about-section { padding: 60px 20px 52px; }
   .marquee { font-size: 26px; gap: 14px; margin-top: 52px; overflow: hidden; white-space: nowrap; }
   .marquee span:nth-of-type(2), .marquee i:nth-of-type(1) { display: none; }
@@ -1397,7 +1407,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .home-project-logo.profile-project-logo img { height: 54px; width: 54px; }
   .profile-project-footer { align-items: flex-start; flex-direction: column; }
   .profile-project-actions { justify-content: flex-start; width: 100%; }
-  .profile-contribution-list { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {

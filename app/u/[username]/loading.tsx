@@ -20,7 +20,11 @@ export default function Loading() {
             </div>
             <aside className="profile-contributions">
               <Skeleton height={10} width={110} style={{ marginBottom: 14, opacity: .35 }} />
-              <Skeleton height={58} style={{ borderRadius: 12, opacity: .35 }} />
+              <div className="profile-project-icon-list">
+                {[0, 1, 2, 3, 4].map((slot) => (
+                  <Skeleton height={42} width={42} key={slot} style={{ borderRadius: 10, opacity: .35 }} />
+                ))}
+              </div>
             </aside>
           </div>
           <section className="profile-summary">
@@ -46,7 +50,10 @@ export default function Loading() {
                 <Skeleton height={62} width={62} style={{ borderRadius: 12, marginBottom: 20 }} />
                 <Skeleton height={22} width="70%" style={{ marginBottom: 12 }} />
                 <Skeleton height={14} style={{ marginBottom: 8 }} />
-                <Skeleton height={14} width="70%" />
+                <Skeleton height={14} width="70%" style={{ marginBottom: 22 }} />
+                <Skeleton height={12} width={92} style={{ marginBottom: 8 }} />
+                <Skeleton height={13} style={{ marginBottom: 6 }} />
+                <Skeleton height={13} width="80%" />
               </div>
             ))}
           </div>
