@@ -178,6 +178,11 @@ export function ProjectCard({
         <StageBadge stage={project.stage} />
       </div>
 
+      <div className="profile-project-description">
+        <span>Deskripsi singkat</span>
+        <p>{project.problem}</p>
+      </div>
+
       {project.nowText ? (
         <div className="profile-project-now">
           <span>Sekarang</span>
@@ -216,17 +221,12 @@ export function ProjectCard({
   );
 }
 
-/** A contribution is a compact credential, not a second portfolio card. */
-export function ContributionBadge({ project, role }: { project: ProjectSummary; role: string }) {
+/** A project logo is enough evidence here; its page carries the full context. */
+export function ProjectIconLink({ project }: { project: ProjectSummary }) {
   return (
     <li>
-      <Link className="profile-contribution-badge" href={`/projects/${project.slug}`}>
-        <ProjectLogo title={project.title} website={project.liveUrl} className="contribution-logo" />
-        <span className="profile-contribution-copy">
-          <strong>{project.title}</strong>
-          <small>{roleLabel(role)}</small>
-        </span>
-        <Arrow />
+      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
+        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-icon" />
       </Link>
     </li>
   );

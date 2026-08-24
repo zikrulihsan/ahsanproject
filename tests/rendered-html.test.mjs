@@ -355,11 +355,13 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
   assert.match(page, /class="profile-contact-list"/);
-  assert.match(page, /Berkontribusi di/);
+  assert.match(page, /Projects:/);
+  assert.match(page, /class="profile-project-icon-list"/);
   assert.match(page, /Ringkasan/);
   assert.doesNotMatch(page, /avatar-lg/);
   assert.doesNotMatch(page, /@zikrulihsan/);
   assert.match(page, /class="profile-project-card"/);
+  assert.match(page, /Deskripsi singkat/);
   assert.match(page, />Website</);
   assert.match(page, />GitHub</);
   assert.match(page, />Detail/);
@@ -372,9 +374,9 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
     "karyanya dulu, jejaknya belakangan",
   );
   assert.ok(
-    page.indexOf("Zikrul Ihsan") < page.indexOf("Berkontribusi di") &&
-      page.indexOf("Berkontribusi di") < page.indexOf("Ringkasan"),
-    "di mobile urutannya highlight, kontribusi, lalu ringkasan",
+    page.indexOf("Zikrul Ihsan") < page.indexOf("Projects:") &&
+      page.indexOf("Projects:") < page.indexOf("Ringkasan"),
+    "di mobile urutannya highlight, projects, lalu ringkasan",
   );
 });
 
