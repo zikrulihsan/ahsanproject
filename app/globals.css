@@ -1535,7 +1535,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 }
 .home-project-logo img { border-radius: 10px; height: 72px; object-fit: contain; width: 72px; }
 .home-project-initials { line-height: 1; }
-.home-project-copy { min-width: 0; }
+.home-project-copy { --home-project-indent: 100px; min-width: 0; }
 .home-project-title-row { align-items: flex-start; display: flex; gap: 14px; justify-content: space-between; }
 .home-project-heading { min-width: 0; }
 .home-project-vote {
@@ -1556,7 +1556,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-open-call {
   align-items: center; background: linear-gradient(100deg, #f2f9f5, #f8fbf9); border: 1px solid #cfe0d7;
   border-radius: 11px; display: grid; gap: 12px; grid-template-columns: 120px minmax(0, 1fr);
-  margin-top: 12px; min-height: 56px; padding: 9px 12px;
+  margin: 12px 0 0 var(--home-project-indent); min-height: 56px; padding: 9px 12px;
 }
 .home-open-label p {
   align-items: center; color: #315e50; display: flex; font-family: var(--font-geist-mono), monospace;
@@ -1578,7 +1578,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .home-project-link:hover .arrow { transform: translateX(3px); }
 .home-open-call-empty { display: block; min-height: 0; }
 .home-open-call-empty > p { color: #7f8c86; font-size: 11px; margin: 0; }
-.home-project-footer { align-items: center; display: flex; gap: 16px; justify-content: space-between; margin-top: 9px; }
+.home-project-footer {
+  align-items: center; display: flex; gap: 16px; justify-content: space-between;
+  margin: 9px 0 0 var(--home-project-indent);
+}
+.home-project-loading-call { margin-left: var(--home-project-indent); }
 .home-project-owner {
   align-items: center; color: #8a9690; display: inline-flex; gap: 8px; position: relative; width: fit-content; z-index: 2;
 }
@@ -1662,6 +1666,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .home-sort-tabs { width: 100%; }
   .home-sort-tabs a { flex: 1; text-align: center; }
   .home-project-card { margin: 3px 0; padding: 17px 0; }
+  .home-project-copy { --home-project-indent: 54px; }
   .home-project-identity { gap: 10px; grid-template-columns: 44px minmax(0, 1fr); }
   .home-project-logo, .home-project-logo img { height: 44px; width: 44px; }
   .home-project-vote { min-width: 38px; padding: 7px 8px; }

@@ -45,7 +45,9 @@ export default function Loading() {
                     </div>
                     <Skeleton height={30} width={42} />
                   </div>
-                  <Skeleton height={56} style={{ marginTop: 12 }} />
+                  <div className="home-project-loading-call">
+                    <Skeleton height={56} style={{ marginTop: 12 }} />
+                  </div>
                   <div className="home-project-footer">
                     <Skeleton height={21} width={145} />
                     <Skeleton height={32} width={105} />
