@@ -192,7 +192,7 @@ export function ProjectCard({
         </div>
       ) : null}
 
-      <footer className="profile-project-footer">
+      <div className="profile-project-footer">
         <span>{freshness(project) || "Baru ditampilkan"}</span>
         <nav className="profile-project-actions" aria-label={`Tautan ${project.title}`}>
           {project.liveUrl ? (
@@ -211,22 +211,21 @@ export function ProjectCard({
             Detail <Arrow />
           </Link>
         </nav>
-      </footer>
+      </div>
     </article>
   );
 }
 
-/** A contribution is supporting evidence, not a second portfolio card. */
-export function ContributionRow({ project, role }: { project: ProjectSummary; role: string }) {
+/** A contribution is a compact credential, not a second portfolio card. */
+export function ContributionBadge({ project, role }: { project: ProjectSummary; role: string }) {
   return (
     <li>
-      <Link className="contribution-row" href={`/projects/${project.slug}`}>
+      <Link className="profile-contribution-badge" href={`/projects/${project.slug}`}>
         <ProjectLogo title={project.title} website={project.liveUrl} className="contribution-logo" />
-        <span className="contribution-copy">
+        <span className="profile-contribution-copy">
           <strong>{project.title}</strong>
           <small>{roleLabel(role)}</small>
         </span>
-        <span className="contribution-stage">{stageMeta[project.stage].label}</span>
         <Arrow />
       </Link>
     </li>

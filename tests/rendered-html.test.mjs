@@ -327,9 +327,15 @@ test("bantuan yang dicari menyebut berapa waktunya", async () => {
 test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   const page = await html("/u/zikrulihsan");
   assert.match(page, /Zikrul Ihsan/);
+  assert.doesNotMatch(page, /Yang sedang dia bangun/);
+  assert.match(page, /Portofolio Personal/);
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
   assert.match(page, /class="profile-contact-list"/);
+  assert.match(page, /Berkontribusi di/);
+  assert.match(page, /Ringkasan/);
+  assert.doesNotMatch(page, /avatar-lg/);
+  assert.doesNotMatch(page, /@zikrulihsan/);
   assert.match(page, /class="profile-project-card"/);
   assert.match(page, />Website</);
   assert.match(page, />GitHub</);
@@ -341,6 +347,11 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.ok(
     page.indexOf("Sedang dikerjakan") < page.indexOf("Jejak kerja"),
     "karyanya dulu, jejaknya belakangan",
+  );
+  assert.ok(
+    page.indexOf("Zikrul Ihsan") < page.indexOf("Berkontribusi di") &&
+      page.indexOf("Berkontribusi di") < page.indexOf("Ringkasan"),
+    "di mobile urutannya highlight, kontribusi, lalu ringkasan",
   );
 });
 
