@@ -81,62 +81,65 @@ export default async function Home() {
           </div>
 
           {featuredProject ? (
-            <aside className="collaboration-example" aria-label={`Contoh project kolaborasi: ${featuredProject.title}`}>
-              <div className="collaboration-example-head">
-                <span>Contoh project kolaborasi</span>
-                {featuredProject.openSeatCount > 0 ? (
-                  <strong><i aria-hidden="true" /> Mencari {featuredProject.openSeatCount} orang</strong>
-                ) : (
-                  <strong>Project aktif</strong>
-                )}
-              </div>
-
-              <div className="collaboration-example-project">
-                <ProjectLogo
-                  title={featuredProject.title}
-                  website={featuredProject.liveUrl}
-                  fallback={featuredProject.glyph}
-                  className="collaboration-example-logo"
-                />
-                <div>
-                  <span>{stageMeta[featuredProject.stage].label}</span>
-                  <h2>{featuredProject.title}</h2>
-                  <p>{featuredProject.tagline}</p>
+            <div>
+              <p className="">ini contohnya 👇🏻</p>
+              <aside className="collaboration-example" aria-label={`Contoh project kolaborasi: ${featuredProject.title}`}>
+                <div className="collaboration-example-head">
+                  <span>Contoh project kolaborasi</span>
+                  {featuredProject.openSeatCount > 0 ? (
+                    <strong><i aria-hidden="true" /> Mencari {featuredProject.openSeatCount} orang</strong>
+                  ) : (
+                    <strong>Project aktif</strong>
+                  )}
                 </div>
-              </div>
 
-              {featuredProject.nowText ? (
-                <div className="collaboration-example-now">
-                  <span>Sedang dikerjakan</span>
-                  <p>{featuredProject.nowText}</p>
+                <div className="collaboration-example-project">
+                  <ProjectLogo
+                    title={featuredProject.title}
+                    website={featuredProject.liveUrl}
+                    fallback={featuredProject.glyph}
+                    className="collaboration-example-logo"
+                  />
+                  <div>
+                    <span>{stageMeta[featuredProject.stage].label}</span>
+                    <h2>{featuredProject.title}</h2>
+                    <p>{featuredProject.tagline}</p>
+                  </div>
                 </div>
-              ) : null}
 
-              <div className="collaboration-example-roles">
-                <span>Bantuan yang dicari</span>
-                {featuredProject.openRoles.length > 0 ? (
-                  <ul>
-                    {featuredProject.openRoles.slice(0, 3).map((role) => (
-                      <li key={role}>
-                        <Link href={`/kolaborasi?role=${encodeURIComponent(role)}`}>{roleLabel(role)}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Belum membuka posisi kolaborasi.</p>
-                )}
-              </div>
+                {featuredProject.nowText ? (
+                  <div className="collaboration-example-now">
+                    <span>Sedang dikerjakan</span>
+                    <p>{featuredProject.nowText}</p>
+                  </div>
+                ) : null}
 
-              <div className="collaboration-example-foot">
-                <Link href={`/u/${featuredProject.owner.username}`}>
-                  <span aria-hidden="true">{initials(featuredProject.owner.name)}</span>
-                  <small>Dibuat oleh <strong>{featuredProject.owner.name}</strong></small>
-                </Link>
-                <Link href={`/projects/${featuredProject.slug}`}>
-                  Lihat project <Arrow />
-                </Link>
-              </div>
-            </aside>
+                <div className="collaboration-example-roles">
+                  <span>Bantuan yang dicari</span>
+                  {featuredProject.openRoles.length > 0 ? (
+                    <ul>
+                      {featuredProject.openRoles.slice(0, 3).map((role) => (
+                        <li key={role}>
+                          <Link href={`/kolaborasi?role=${encodeURIComponent(role)}`}>{roleLabel(role)}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>Belum membuka posisi kolaborasi.</p>
+                  )}
+                </div>
+
+                <div className="collaboration-example-foot">
+                  <Link href={`/u/${featuredProject.owner.username}`}>
+                    <span aria-hidden="true">{initials(featuredProject.owner.name)}</span>
+                    <small>Dibuat oleh <strong>{featuredProject.owner.name}</strong></small>
+                  </Link>
+                  <Link href={`/projects/${featuredProject.slug}`}>
+                    Lihat project <Arrow />
+                  </Link>
+                </div>
+              </aside>
+            </div>
           ) : (
             <aside className="collaboration-example collaboration-example-empty">
               <span>Contoh project kolaborasi</span>
