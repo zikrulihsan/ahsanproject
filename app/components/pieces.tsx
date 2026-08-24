@@ -8,6 +8,8 @@ import { Arrow } from "./shell";
 import { ProjectLogo } from "./project-logo";
 import { LinkIcon } from "./link-icons";
 
+const PROFILE_DESCRIPTION_LIMIT = 150;
+
 export function StageBadge({ stage }: { stage: Stage }) {
   const meta = stageMeta[stage] ?? stageMeta.idea;
   return (
@@ -180,7 +182,7 @@ export function ProjectCard({
 
       <div className="profile-project-description">
         <span>Deskripsi singkat</span>
-        <p>{project.problem}</p>
+        <p>{shortText(project.problem, PROFILE_DESCRIPTION_LIMIT)}</p>
       </div>
 
       {project.nowText ? (
@@ -193,7 +195,7 @@ export function ProjectCard({
       {project.openRoles.length > 0 ? (
         <div className="profile-project-roles">
           <small>Sedang mencari</small>
-          <SeatChips roles={project.openRoles} />
+          <SeatChips roles={project.openRoles} maxVisible={2} />
         </div>
       ) : null}
 
@@ -236,16 +238,22 @@ export function SeatChips({
   roles,
   linked = true,
   counts,
+  maxVisible,
 }: {
   roles: string[];
   linked?: boolean;
   /** Open seats per role. Given one, a chip says how many hands are wanted. */
   counts?: Record<string, number>;
+  /** Keep dense contexts readable while still disclosing additional roles. */
+  maxVisible?: number;
 }) {
   if (roles.length === 0) return null;
+  const shownRoles = maxVisible ? roles.slice(0, maxVisible) : roles;
+  const remaining = roles.length - shownRoles.length;
+
   return (
     <ul className="seat-chips" aria-label="Bantuan yang dicari">
-      {roles.map((role, index) => {
+      {shownRoles.map((role, index) => {
         const many = counts?.[role] ?? 0;
         const label = (
           <>
@@ -266,8 +274,21 @@ export function SeatChips({
           </li>
         );
       })}
+      {remaining > 0 ? (
+        <li>
+          <span className="seat-chip seat-chip-more" aria-label={`${remaining} role lain tersedia`}>+{remaining}</span>
+        </li>
+      ) : null}
     </ul>
   );
+}
+
+function shortText(text: string, limit: number): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= limit) return clean;
+
+  const lastSpace = clean.lastIndexOf(" ", limit - 1);
+  return `${clean.slice(0, lastSpace > 0 ? lastSpace : limit).trimEnd()}…`;
 }
 
 /**
