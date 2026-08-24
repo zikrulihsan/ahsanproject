@@ -235,7 +235,9 @@ test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () =>
 test("direktori orang menampilkan tiap profil dan tautannya", async () => {
   const page = await html("/orang");
   assert.match(page, /<title>Orang — Ahsan Project<\/title>/i);
-  assert.match(page, /Cari orang, bukan sekadar profil/);
+  assert.match(page, /<h1>Cari orang<\/h1>/);
+  assert.doesNotMatch(page, /class="people-hero"/);
+  assert.doesNotMatch(page, /Project terhubung/);
   assert.match(page, /Cari nama, profesi, skill, atau project/);
   assert.match(page, /Semua profesi/);
   assert.match(page, /Semua pengalaman/);
