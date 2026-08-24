@@ -245,10 +245,14 @@ test("direktori orang menggabungkan pencarian dan filter profil", async () => {
   assert.match(matched, /Skill/);
   assert.match(matched, /Pengalaman/);
   assert.match(matched, /Bidang/);
+  assert.match(matched, /class="people-list"/);
+  assert.match(matched, /class="people-row"/);
+  assert.match(matched, /Paling banyak membantu/);
+  assert.doesNotMatch(matched, /class="people-grid"/);
 
   const empty = await html("/orang?skill=Figma");
   assert.match(empty, /Belum ada orang yang cocok/);
-  assert.doesNotMatch(empty, /class="people-card"/);
+  assert.doesNotMatch(empty, /class="people-row"/);
 });
 
 test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
