@@ -72,8 +72,8 @@ export default async function Feed({ searchParams }: { searchParams?: SearchPara
       <main id="main-content" className="discovery-page">
         <section className="discovery-hero" aria-labelledby="discovery-title">
           <div className="discovery-hero-copy">
-            <p className="home-eyebrow">Karya · Project · Program</p>
-            <h1 id="discovery-title">Temukan project yang layak dibantu.</h1>
+            <p className="home-eyebrow">berkarya, berkolaborasi, berdampak</p>
+            <h1 id="discovery-title">Bagikan dan Temukan Project Untuk Kolaborasi</h1>
             <p>
               Lihat apa yang sedang dibangun, temukan peran yang cocok, lalu tumbuh bersama lewat
               kontribusi nyata.

@@ -157,7 +157,8 @@ test("project yang punya website memakai favicon sebagai logo card", async () =>
 
 test("beranda membuka dengan hero, pencarian, kategori, dan role populer", async () => {
   const page = await html("/");
-  assert.match(page, /Temukan project yang layak dibantu/);
+  assert.match(page, /berkarya, berkolaborasi, berdampak/);
+  assert.match(page, /Bagikan dan Temukan Project Untuk Kolaborasi/);
   assert.match(page, /Cari project, program, atau kata kunci/);
   assert.match(page, /Semua kategori/);
   assert.match(page, /Role yang paling dicari/);
