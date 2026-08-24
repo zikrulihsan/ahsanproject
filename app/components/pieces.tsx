@@ -161,21 +161,32 @@ export function RungRail({ stage }: { stage: Stage }) {
 
 export function ProjectCard({
   project,
+  categoryPosition = "top",
+  roleCounts,
+  className,
 }: {
   project: ProjectSummary;
+  categoryPosition?: "top" | "below";
+  roleCounts?: Record<string, number>;
+  className?: string;
 }) {
+  const category = project.tags[0] || stageMeta[project.stage].label;
+
   return (
-    <article className="profile-project-card">
+    <article className={`profile-project-card${className ? ` ${className}` : ""}`}>
       <div className="profile-project-head">
         <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-logo" />
         <div className="profile-project-heading">
-          <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+          {categoryPosition === "top" ? <p className="project-kind">{category}</p> : null}
           <h3>
             <Link className="card-cover-link" href={`/projects/${project.slug}`}>
               {project.title}
             </Link>
           </h3>
           <p className="profile-project-tagline">{project.tagline}</p>
+          {categoryPosition === "below" ? (
+            <p className="profile-project-category">{category}</p>
+          ) : null}
         </div>
         <StageBadge stage={project.stage} />
       </div>
@@ -195,7 +206,7 @@ export function ProjectCard({
       <div className={`profile-project-roles${project.openRoles.length === 0 ? " profile-project-roles-empty" : ""}`}>
         <small>Sedang mencari</small>
         {project.openRoles.length > 0 ? (
-          <SeatChips roles={project.openRoles} maxVisible={2} />
+          <SeatChips roles={project.openRoles} counts={roleCounts} maxVisible={2} />
         ) : (
           <span className="profile-project-roles-none">Belum membuka posisi</span>
         )}
@@ -304,10 +315,25 @@ function shortText(text: string, limit: number): string {
 export function BoardCard({
   project,
   roleCounts,
+  appearance = "board",
 }: {
   project: ProjectSummary;
   roleCounts?: Record<string, number>;
+  appearance?: "board" | "profile";
 }) {
+  if (appearance === "profile") {
+    return (
+      <li className="project-list-entry home-profile-project-entry">
+        <ProjectCard
+          project={project}
+          categoryPosition="below"
+          roleCounts={roleCounts}
+          className="home-profile-project-card"
+        />
+      </li>
+    );
+  }
+
   const roleEntries = project.openRoles.map((role) => ({
     role,
     count: roleCounts?.[role] ?? 1,

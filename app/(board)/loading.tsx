@@ -30,30 +30,27 @@ export default function Loading() {
                 <Skeleton height={11} width={210} />
               </div>
             </div>
-            {[0, 1, 2, 3].map((slot) => (
-              <div className="home-project-card" key={slot}>
-                <div className="home-project-copy">
-                  <div className="home-project-title-row">
-                    <div className="home-project-identity" style={{ width: "100%" }}>
-                      <Skeleton height={48} />
-                      <div>
-                        <Skeleton height={9} width="24%" style={{ marginBottom: 7 }} />
-                        <Skeleton height={20} width="45%" style={{ marginBottom: 8 }} />
-                        <Skeleton height={12} width="78%" />
-                      </div>
+            <div className="home-project-loading-grid">
+              {[0, 1, 2, 3].map((slot) => (
+                <div className="profile-project-card profile-project-skeleton home-profile-project-card" key={slot}>
+                  <div className="profile-project-head">
+                    <Skeleton height={62} width={62} style={{ borderRadius: 12 }} />
+                    <div>
+                      <Skeleton height={20} width="68%" style={{ marginBottom: 8 }} />
+                      <Skeleton height={12} width="90%" style={{ marginBottom: 7 }} />
+                      <Skeleton height={9} width="30%" />
                     </div>
-                    <Skeleton height={30} width={42} />
                   </div>
-                  <div className="home-project-loading-call">
-                    <Skeleton height={56} style={{ marginTop: 12 }} />
-                  </div>
-                  <div className="home-project-footer">
-                    <Skeleton height={21} width={145} />
-                    <Skeleton height={32} width={105} />
-                  </div>
+                  <Skeleton height={1} style={{ marginTop: 16, marginBottom: 12 }} />
+                  <Skeleton height={12} style={{ marginBottom: 7 }} />
+                  <Skeleton height={12} width="78%" style={{ marginBottom: 16 }} />
+                  <Skeleton height={56} style={{ marginBottom: 14 }} />
+                  <Skeleton height={28} width="72%" style={{ marginBottom: 14 }} />
+                  <Skeleton height={1} style={{ marginBottom: 12 }} />
+                  <Skeleton height={30} width="56%" />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
           <aside className="discovery-sidebar">
             <div className="skeleton-panel"><Skeleton height={360} /></div>
