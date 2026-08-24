@@ -151,7 +151,7 @@ export default async function InboxPage() {
           {mine.length === 0 ? (
             <p className="muted">
               Kamu belum ikut di mana-mana.{" "}
-              <Link href="/?lane=butuh-bantuan">Lihat yang sedang butuh tangan</Link>.
+              <Link href="/kolaborasi?needs=open">Lihat yang sedang butuh tangan</Link>.
             </p>
           ) : (
             <ul className="application-list">

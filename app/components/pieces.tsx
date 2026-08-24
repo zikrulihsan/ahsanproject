@@ -25,7 +25,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
       {tags.map((tag) =>
         linked ? (
           <li key={tag}>
-            <Link href={`/?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+            <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
           </li>
         ) : (
           <li key={tag}>#{tag}</li>
@@ -225,7 +225,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/?role=${encodeURIComponent(role)}`}>
+              <Link className="seat-chip" href={`/kolaborasi?role=${encodeURIComponent(role)}`}>
                 {label}
               </Link>
             ) : (
@@ -295,7 +295,7 @@ export function BoardCard({
               <ul className="home-role-chips" aria-label="Posisi yang sedang dibuka">
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
-                    <Link href={`/?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
+                    <Link href={`/kolaborasi?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
                       {roleLabel(role)} · {count}
                     </Link>
                   </li>

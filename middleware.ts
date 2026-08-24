@@ -9,6 +9,18 @@ import { createServerClient } from "@supabase/ssr";
  * people would get signed out mid-visit.
  */
 export async function middleware(request: NextRequest) {
+  // The discovery board moved off the landing page. Redirect its old query
+  // URLs before a Server Component starts streaming, so bookmarks and shared
+  // links land on the real collaboration page with an actual HTTP redirect.
+  if (request.nextUrl.pathname === "/") {
+    const boardKeys = ["stage", "lane", "tag", "role", "q", "cari", "needs"];
+    if (boardKeys.some((key) => request.nextUrl.searchParams.has(key))) {
+      const destination = request.nextUrl.clone();
+      destination.pathname = "/kolaborasi";
+      return NextResponse.redirect(destination);
+    }
+  }
+
   let response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
