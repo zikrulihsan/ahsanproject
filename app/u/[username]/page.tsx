@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { setActivityVisibility, updateProfile } from "../../actions";
-import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
-import { ActivityList, ProjectCard, initials, monthYear } from "../../components/pieces";
+import { SiteFooter, SiteHeader } from "../../components/shell";
+import { ActivityList, ContributionRow, ProjectCard, initials, monthYear } from "../../components/pieces";
+import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { SubmitButton } from "../../components/submit-button";
 import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
 import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
@@ -67,6 +68,32 @@ export default async function ProfilePage({
   ]);
   const hasOlder = activity.length > limit;
   const trail = activity.slice(0, limit);
+  const website = safeWebUrl(person.website);
+  const github = safeWebUrl(person.github);
+  const linkedin = safeWebUrl(person.linkedin);
+  const x = safeWebUrl(person.x);
+  const resume = safeWebUrl(person.resume);
+  const publicEmail = safePublicEmail(person.publicEmail);
+  const contacts: Array<{ href: string; icon: LinkIconKind; label: string; external: boolean }> = [
+    ...(website
+      ? [{ href: website, icon: "website" as const, label: domainOf(website) || "Website", external: true }]
+      : []),
+    ...(publicEmail
+      ? [{ href: `mailto:${publicEmail}`, icon: "email" as const, label: publicEmail, external: false }]
+      : []),
+    ...(github
+      ? [{ href: github, icon: "github" as const, label: "GitHub", external: true }]
+      : []),
+    ...(linkedin
+      ? [{ href: linkedin, icon: "linkedin" as const, label: "LinkedIn", external: true }]
+      : []),
+    ...(x
+      ? [{ href: x, icon: "x" as const, label: "X", external: true }]
+      : []),
+    ...(resume
+      ? [{ href: resume, icon: "resume" as const, label: "Résumé", external: true }]
+      : []),
+  ];
 
   const trailPath = (next: { jejak?: string; batas?: number }) => {
     const params = new URLSearchParams();
@@ -80,67 +107,74 @@ export default async function ProfilePage({
     <>
       <SiteHeader returnTo={`/u/${person.username}`} />
 
-      {/* Portfolio by evidence: the band makes the claim, the
-          card under it is the evidence — identity on the left, what this
-          person actually did on the right. */}
       <section className="profile-band">
-        <div className="profile-band-inner">
-          <p className="eyebrow light">
-            <span /> Yang sedang dia bangun
-          </p>
-          <h1>{person.name}</h1>
-          {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
-        </div>
-      </section>
+        <div className="profile-band-inner profile-hero">
+          <div className="profile-hero-copy">
+            <p className="eyebrow light">
+              <span /> Yang sedang dia bangun
+            </p>
+            <h1>{person.name}</h1>
+            {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
 
-      <main id="main-content" className="profile-page">
-        <article className="profile-card">
-          <div className="profile-sidebar">
-            <span className="avatar avatar-lg" aria-hidden="true">
-              {initials(person.name)}
-            </span>
-            <h2>{person.name}</h2>
-            <p className="handle">@{person.username}</p>
+            {contacts.length > 0 ? (
+              <ul className="profile-contact-list" aria-label={`Tautan ${person.name}`}>
+                {contacts.map((contact) => (
+                  <li key={`${contact.icon}-${contact.href}`}>
+                    <a
+                      href={contact.href}
+                      target={contact.external ? "_blank" : undefined}
+                      rel={contact.external ? "noreferrer" : undefined}
+                    >
+                      <LinkIcon kind={contact.icon} />
+                      <span>{contact.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+
+          <aside className="profile-summary" aria-label="Ringkasan profil">
+            <div className="profile-summary-head">
+              <span className="avatar avatar-lg" aria-hidden="true">
+                {initials(person.name)}
+              </span>
+              <div>
+                <p className="profile-summary-label">Profil</p>
+                <p className="handle">@{person.username}</p>
+              </div>
+            </div>
             {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
-
-            <ul className="profile-links">
-              {person.website ? (
-                <li>
-                  <a href={person.website} target="_blank" rel="noreferrer">
-                    {domainOf(person.website) || person.website} <Arrow diagonal />
-                  </a>
-                </li>
-              ) : null}
-              {person.github ? (
-                <li>
-                  <a href={person.github} target="_blank" rel="noreferrer">
-                    GitHub <Arrow diagonal />
-                  </a>
-                </li>
-              ) : null}
-            </ul>
-
-            {/* Enough to place somebody, not enough to rank them. What they
-                have actually built is right below, in their own words. */}
             <ul className="profile-stats">
               <li>
-                <strong>{owned.length}</strong> project
+                <strong>{owned.length}</strong>
+                <span>project dibangun</span>
               </li>
               {contributing.length > 0 ? (
                 <li>
-                  <strong>{contributing.length}</strong> ikut membantu
+                  <strong>{contributing.length}</strong>
+                  <span>ikut membantu</span>
                 </li>
               ) : null}
               {stats.tasksDone > 0 ? (
                 <li>
-                  <strong>{stats.tasksDone}</strong> tugas dibereskan
+                  <strong>{stats.tasksDone}</strong>
+                  <span>tugas dibereskan</span>
                 </li>
               ) : null}
-              {stats.since ? <li>aktif sejak {monthYear(stats.since)}</li> : null}
+              {stats.since ? (
+                <li>
+                  <strong>{monthYear(stats.since)}</strong>
+                  <span>aktif sejak</span>
+                </li>
+              ) : null}
             </ul>
-          </div>
+          </aside>
+        </div>
+      </section>
 
-          <div className="profile-content">
+      <main id="main-content" className="profile-page">
+        <div className="profile-content">
             {isSelf ? (
               <details className="owner-tool profile-edit">
                 <summary>Ubah profil</summary>
@@ -153,8 +187,17 @@ export default async function ProfilePage({
                   <textarea id="bio" name="bio" rows={4} defaultValue={person.bio} />
                   <label htmlFor="website">Situs</label>
                   <input id="website" name="website" type="url" defaultValue={person.website} />
+                  <label htmlFor="publicEmail">Email publik</label>
+                  <input id="publicEmail" name="publicEmail" type="email" defaultValue={person.publicEmail} />
                   <label htmlFor="github">GitHub</label>
                   <input id="github" name="github" type="url" defaultValue={person.github} />
+                  <label htmlFor="linkedin">LinkedIn</label>
+                  <input id="linkedin" name="linkedin" type="url" defaultValue={person.linkedin} />
+                  <label htmlFor="x">X / Twitter</label>
+                  <input id="x" name="x" type="url" defaultValue={person.x} />
+                  <label htmlFor="resume">Tautan résumé</label>
+                  <input id="resume" name="resume" type="url" defaultValue={person.resume} />
+                  <p className="hint">Kontak dan tautan ini bersifat publik, dan hanya tampil jika diisi.</p>
                   <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
                 </form>
               </details>
@@ -170,7 +213,7 @@ export default async function ProfilePage({
                   {isSelf ? <Link href="/new">Tunjukkan yang pertama</Link> : null}
                 </p>
               ) : (
-                <div className="project-grid">
+                <div className="profile-project-grid">
                   {owned.map((project) => (
                     <ProjectCard key={project.id} project={project} />
                   ))}
@@ -183,11 +226,11 @@ export default async function ProfilePage({
                 <h2 id="contrib-heading" className="section-title">
                   Ikut membantu
                 </h2>
-                <div className="project-grid">
+                <ul className="contribution-list">
                   {contributing.map((project) => (
-                    <ProjectCard key={project.id} project={project} contributionRole={project.role} />
+                    <ContributionRow key={project.id} project={project} role={project.role} />
                   ))}
-                </div>
+                </ul>
               </section>
             ) : null}
             <section aria-labelledby="activity-heading">
@@ -261,11 +304,24 @@ export default async function ProfilePage({
               ) : null}
             </section>
 
-          </div>
-        </article>
+        </div>
       </main>
 
       <SiteFooter />
     </>
   );
+}
+
+function safeWebUrl(value: string): string {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? value : "";
+  } catch {
+    return "";
+  }
+}
+
+function safePublicEmail(value: string): string {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : "";
 }

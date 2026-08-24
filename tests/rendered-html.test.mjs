@@ -301,6 +301,15 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.match(page, /Zikrul Ihsan/);
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
+  assert.match(page, /class="profile-contact-list"/);
+  assert.match(page, /class="profile-project-card"/);
+  assert.match(page, />Website</);
+  assert.match(page, />GitHub</);
+  assert.match(page, />Detail/);
+  assert.match(
+    page,
+    /www\.google\.com\/s2\/favicons\?domain_url=https%3A%2F%2Fswegrowth\.id&amp;sz=128/,
+  );
   assert.ok(
     page.indexOf("Sedang dikerjakan") < page.indexOf("Jejak kerja"),
     "karyanya dulu, jejaknya belakangan",

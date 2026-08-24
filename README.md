@@ -49,6 +49,8 @@ and everything that writes will say so rather than failing quietly.
    - `0011_predefined_roles.sql` — the shared, filterable role catalogue
    - `0012_custom_role_titles.sql` — a specific title when a needed role is not
      in that catalogue
+   - `0013_profile_links.sql` — optional public email, LinkedIn, X, and résumé
+     links on portfolio profiles
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.

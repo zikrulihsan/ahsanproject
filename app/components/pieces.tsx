@@ -6,6 +6,7 @@ import { activityParts } from "../lib/activity";
 import { journeyDate } from "../lib/updates";
 import { Arrow } from "./shell";
 import { ProjectLogo } from "./project-logo";
+import { LinkIcon } from "./link-icons";
 
 export function StageBadge({ stage }: { stage: Stage }) {
   const meta = stageMeta[stage] ?? stageMeta.idea;
@@ -158,45 +159,77 @@ export function RungRail({ stage }: { stage: Stage }) {
 
 export function ProjectCard({
   project,
-  contributionRole,
 }: {
   project: ProjectSummary;
-  /** Set on a portfolio's "ikut membantu" card: the role held there. */
-  contributionRole?: string;
 }) {
   return (
-    <article className="project-card">
-      <div className="card-topline">
-        <span className={`project-glyph level-${project.stage}`} aria-hidden="true">
-          {project.glyph || initials(project.title)}
-        </span>
+    <article className="profile-project-card">
+      <div className="profile-project-head">
+        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-logo" />
+        <div className="profile-project-heading">
+          <p className="project-kind">{project.tags[0] || stageMeta[project.stage].label}</p>
+          <h3>
+            <Link className="card-cover-link" href={`/projects/${project.slug}`}>
+              {project.title}
+            </Link>
+          </h3>
+          <p className="profile-project-tagline">{project.tagline}</p>
+        </div>
         <StageBadge stage={project.stage} />
       </div>
 
-      <h3>
-        {/* Covers the whole card (see `.card-cover-link` in globals.css) so a
-            tap anywhere that isn't one of the more specific links below still
-            opens the project — the usual "clickable card" pattern. */}
-        <Link className="card-cover-link" href={`/projects/${project.slug}`}>
-          {project.title}
-        </Link>
-      </h3>
-      {contributionRole ? (
-        <p className="card-role">Sebagai {roleLabel(contributionRole)}</p>
+      {project.nowText ? (
+        <div className="profile-project-now">
+          <span>Sekarang</span>
+          <p>{project.nowText}</p>
+        </div>
       ) : null}
-      <p className="card-tagline">{project.tagline}</p>
 
-      {project.nowText ? <p className="card-now">Sekarang: {project.nowText}</p> : null}
+      {project.openRoles.length > 0 ? (
+        <div className="profile-project-roles">
+          <small>Sedang mencari</small>
+          <SeatChips roles={project.openRoles} />
+        </div>
+      ) : null}
 
-      <SeatChips roles={project.openRoles} />
-
-      <div className="card-footer">
-        <span>{freshness(project)}</span>
-        <Link className="round-arrow" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
-          <Arrow diagonal />
-        </Link>
-      </div>
+      <footer className="profile-project-footer">
+        <span>{freshness(project) || "Baru ditampilkan"}</span>
+        <nav className="profile-project-actions" aria-label={`Tautan ${project.title}`}>
+          {project.liveUrl ? (
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={`Buka website ${project.title}`}>
+              <LinkIcon kind="website" />
+              <span>Website</span>
+            </a>
+          ) : null}
+          {project.repoUrl ? (
+            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={`Buka GitHub ${project.title}`}>
+              <LinkIcon kind="github" />
+              <span>GitHub</span>
+            </a>
+          ) : null}
+          <Link className="profile-project-detail" href={`/projects/${project.slug}`}>
+            Detail <Arrow />
+          </Link>
+        </nav>
+      </footer>
     </article>
+  );
+}
+
+/** A contribution is supporting evidence, not a second portfolio card. */
+export function ContributionRow({ project, role }: { project: ProjectSummary; role: string }) {
+  return (
+    <li>
+      <Link className="contribution-row" href={`/projects/${project.slug}`}>
+        <ProjectLogo title={project.title} website={project.liveUrl} className="contribution-logo" />
+        <span className="contribution-copy">
+          <strong>{project.title}</strong>
+          <small>{roleLabel(role)}</small>
+        </span>
+        <span className="contribution-stage">{stageMeta[project.stage].label}</span>
+        <Arrow />
+      </Link>
+    </li>
   );
 }
 

@@ -55,7 +55,11 @@ function toViewer(profile: ProfileRow, email: string): Viewer {
     headline: profile.headline,
     bio: profile.bio,
     website: profile.website,
+    publicEmail: profile.public_email ?? "",
     github: profile.github,
+    linkedin: profile.linkedin ?? "",
+    x: profile.x_url ?? "",
+    resume: profile.resume_url ?? "",
     activityHidden: profile.activity_hidden ?? [],
     email,
   };

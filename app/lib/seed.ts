@@ -12,7 +12,11 @@ export type SeedUser = {
   headline: string;
   bio: string;
   website: string;
+  publicEmail: string;
   github: string;
+  linkedin: string;
+  x: string;
+  resume: string;
   /** Trail kinds kept off the public profile. Empty means everything shows. */
   activityHidden: string[];
 };
@@ -86,7 +90,11 @@ export const seedUsers: SeedUser[] = [
     headline: "Bikin barang kecil yang kepakai",
     bio: "Mengerjakan project satu per satu di waktu luang. Ahsan artinya melakukan sesuatu sebaik mungkin — itu yang saya usahakan di sini, sekecil apa pun yang sedang dikerjakan.",
     website: "https://ahsanproject-id.netlify.app",
+    publicEmail: "",
     github: "https://github.com/zikrulihsan",
+    linkedin: "",
+    x: "",
+    resume: "",
     activityHidden: [],
   },
 ];

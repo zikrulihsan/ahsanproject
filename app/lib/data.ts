@@ -22,7 +22,11 @@ export type Person = {
   headline: string;
   bio: string;
   website: string;
+  publicEmail: string;
   github: string;
+  linkedin: string;
+  x: string;
+  resume: string;
   /** Trail kinds kept off this person's public profile. */
   activityHidden: string[];
 };
@@ -1001,7 +1005,11 @@ function toPerson(row: ProfileRow): Person {
     headline: row.headline,
     bio: row.bio,
     website: row.website,
+    publicEmail: row.public_email ?? "",
     github: row.github,
+    linkedin: row.linkedin ?? "",
+    x: row.x_url ?? "",
+    resume: row.resume_url ?? "",
     activityHidden: row.activity_hidden ?? [],
   };
 }

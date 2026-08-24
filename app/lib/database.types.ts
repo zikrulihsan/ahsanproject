@@ -51,7 +51,11 @@ export type ProfileRow = {
   headline: string;
   bio: string;
   website: string;
+  public_email: string;
   github: string;
+  linkedin: string;
+  x_url: string;
+  resume_url: string;
   /** Trail kinds this person keeps off their public profile. */
   activity_hidden: string[];
   created_at: string;
