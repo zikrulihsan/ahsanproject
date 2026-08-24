@@ -157,7 +157,8 @@ test("project yang punya website memakai favicon sebagai logo card", async () =>
 
 test("beranda membuka dengan hero, pencarian, kategori, dan role populer", async () => {
   const page = await html("/");
-  assert.match(page, /Temukan project yang layak dibantu/);
+  assert.match(page, /berkarya, berkolaborasi, berdampak/);
+  assert.match(page, /Bagikan dan Temukan Project Untuk Kolaborasi/);
   assert.match(page, /Cari project, program, atau kata kunci/);
   assert.match(page, /Semua kategori/);
   assert.match(page, /Role yang paling dicari/);
@@ -234,8 +235,35 @@ test("pencarian membaca seluruh brief, termasuk solusi dan audiens", async () =>
 test("direktori orang menampilkan tiap profil dan tautannya", async () => {
   const page = await html("/orang");
   assert.match(page, /<title>Orang — Ahsan Project<\/title>/i);
+  assert.match(page, /<h1>Cari orang<\/h1>/);
+  assert.doesNotMatch(page, /class="people-hero"/);
+  assert.doesNotMatch(page, /Project terhubung/);
+  assert.match(page, /Cari nama, profesi, skill, atau project/);
+  assert.match(page, /Semua profesi/);
+  assert.match(page, /Semua pengalaman/);
   assert.match(page, /Zikrul Ihsan/);
+  assert.match(page, /Product Builder/);
+  assert.match(page, /Next\.js/);
   assert.match(page, /href="\/u\/zikrulihsan"/);
+});
+
+test("direktori orang menggabungkan pencarian dan filter profil", async () => {
+  const matched = await html(
+    "/orang?q=invoice&skill=Next.js&pengalaman=6-10&bidang=Civic%20Tech&kerja=building",
+  );
+  assert.match(matched, /Zikrul Ihsan/);
+  assert.match(matched, /Pencarian/);
+  assert.match(matched, /Skill/);
+  assert.match(matched, /Pengalaman/);
+  assert.match(matched, /Bidang/);
+  assert.match(matched, /class="people-list"/);
+  assert.match(matched, /class="people-row"/);
+  assert.match(matched, /Paling banyak membantu/);
+  assert.doesNotMatch(matched, /class="people-grid"/);
+
+  const empty = await html("/orang?skill=Figma");
+  assert.match(empty, /Belum ada orang yang cocok/);
+  assert.doesNotMatch(empty, /class="people-row"/);
 });
 
 test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {

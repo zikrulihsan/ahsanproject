@@ -10,6 +10,7 @@ import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
 import { currentViewer } from "./lib/session";
+import { normalisePeopleTerms } from "./lib/people";
 
 export type CreateState = {
   errors: FieldErrors & {
@@ -689,13 +690,24 @@ export async function updateProfile(formData: FormData): Promise<void> {
   const viewer = await currentViewer();
   if (!viewer) return;
 
+  const rawExperience = text(formData, "yearsExperience");
+  const parsedExperience = rawExperience === "" ? null : Number(rawExperience);
+  const yearsExperience =
+    parsedExperience !== null && Number.isInteger(parsedExperience)
+      ? Math.max(0, Math.min(parsedExperience, 60))
+      : null;
+
   const supabase = await requireSupabase();
   const { error } = await supabase
     .from("profiles")
     .update({
       name: text(formData, "name").slice(0, 80) || viewer.name,
+      profession: text(formData, "profession").slice(0, 80),
       headline: text(formData, "headline").slice(0, 140),
       bio: text(formData, "bio").slice(0, 800),
+      skills: normalisePeopleTerms(text(formData, "skills"), 20),
+      years_experience: yearsExperience,
+      fields: normalisePeopleTerms(text(formData, "fields"), 10),
       website: profileUrl(formData, "website"),
       public_email: profileEmail(formData, "publicEmail"),
       github: profileUrl(formData, "github"),
@@ -707,6 +719,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   revalidatePath(`/u/${viewer.username}`);
+  revalidatePath("/orang");
   redirect(`/u/${viewer.username}`);
 }
 

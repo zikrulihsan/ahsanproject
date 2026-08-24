@@ -13,14 +13,18 @@ import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 import { arrangeForYou, type Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
-import { normaliseRole, roleAliases } from "./roles";
+import { normaliseRole, roleAliases, roleLabel } from "./roles";
 
 export type Person = {
   id: string;
   username: string;
   name: string;
+  profession: string;
   headline: string;
   bio: string;
+  skills: string[];
+  yearsExperience: number | null;
+  fields: string[];
   website: string;
   publicEmail: string;
   github: string;
@@ -504,6 +508,8 @@ export type PersonAtWork = {
   person: Person;
   building: ProjectSummary[];
   helping: ProjectSummary[];
+  /** Roles held on filled seats, kept as readable labels for search/fallback. */
+  roles: string[];
 };
 
 export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
@@ -511,26 +517,44 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
 
   const byId = new Map(projects.map((project) => [project.id, project]));
   const helping = new Map<string, ProjectSummary[]>();
+  const roles = new Map<string, Set<string>>();
 
   const supabase = await getSupabase();
   if (supabase) {
     const { data, error } = await supabase
       .from("seats")
-      .select("project_id, user_id")
+      // Keep the directory on the original seat shape. `role_title` arrived
+      // in migration 0012 and is presentation detail, not something /orang
+      // should require merely to render a contributor.
+      .select("project_id, user_id, role")
       .eq("status", "filled");
-    if (error) throw new Error(error.message);
 
-    for (const seat of data ?? []) {
-      const project = seat.user_id ? byId.get(seat.project_id) : undefined;
-      if (!project || !seat.user_id) continue;
-      helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
+    if (error) {
+      // Contributions enrich each result; they are not the directory's source of
+      // truth. A rollout with an older seats schema must not turn every public
+      // profile into a 500 page.
+      console.warn(`[ahsan] Kontribusi di direktori orang dilewati: ${error.message}`);
+    } else {
+      for (const seat of data ?? []) {
+        const project = seat.user_id ? byId.get(seat.project_id) : undefined;
+        if (!project || !seat.user_id) continue;
+        if (project.owner.id === seat.user_id) continue;
+        helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
+        const personRoles = roles.get(seat.user_id) ?? new Set<string>();
+        personRoles.add(roleLabel(seat.role));
+        roles.set(seat.user_id, personRoles);
+      }
     }
   } else {
     for (const project of seedProjects) {
       for (const seat of project.seats) {
         const summary = seat.status === "filled" && seat.userId ? byId.get(project.id) : undefined;
         if (!summary || !seat.userId) continue;
+        if (summary.owner.id === seat.userId) continue;
         helping.set(seat.userId, [...(helping.get(seat.userId) ?? []), summary]);
+        const personRoles = roles.get(seat.userId) ?? new Set<string>();
+        personRoles.add(roleLabel(seat.role, seat.roleTitle ?? ""));
+        roles.set(seat.userId, personRoles);
       }
     }
   }
@@ -539,6 +563,7 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
     person,
     building: projects.filter((project) => project.owner.id === person.id),
     helping: helping.get(person.id) ?? [],
+    roles: [...(roles.get(person.id) ?? [])],
   }));
 }
 
@@ -1002,11 +1027,17 @@ function toPerson(row: ProfileRow): Person {
     id: row.id,
     username: row.username,
     name: row.name,
-    headline: row.headline,
-    bio: row.bio,
-    website: row.website,
+    // Defaults keep reads working during the short window between deploying
+    // this build and applying the profile migrations to Supabase.
+    profession: row.profession ?? "",
+    headline: row.headline ?? "",
+    bio: row.bio ?? "",
+    skills: row.skills ?? [],
+    yearsExperience: row.years_experience ?? null,
+    fields: row.fields ?? [],
+    website: row.website ?? "",
     publicEmail: row.public_email ?? "",
-    github: row.github,
+    github: row.github ?? "",
     linkedin: row.linkedin ?? "",
     x: row.x_url ?? "",
     resume: row.resume_url ?? "",
