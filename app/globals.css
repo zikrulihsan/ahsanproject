@@ -1553,9 +1553,20 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   color: #152a24; font-size: clamp(48px, 5vw, 58px); font-weight: 720;
   letter-spacing: -.072em; line-height: 1.02; margin: 0; max-width: 800px;
 }
-.discovery-hero-copy > p:last-child {
+.discovery-hero-copy > .home-hero-lead {
   color: #708079; font-size: 16px; line-height: 1.7; margin: 22px 0 0; max-width: 650px;
 }
+.home-hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 28px; }
+.home-hero-actions a {
+  align-items: center; border-radius: 11px; display: inline-flex; font-size: 13px; font-weight: 750;
+  gap: 10px; justify-content: center; min-height: 50px; padding: 13px 18px;
+}
+.home-hero-primary { background: var(--ink); box-shadow: 0 10px 24px rgba(16, 47, 40, .14); color: #fff; }
+.home-hero-primary:hover { background: #245e4e; }
+.home-hero-primary > span { font-size: 20px; font-weight: 400; line-height: 1; }
+.home-hero-secondary { background: #fff; border: 1px solid #d4ddd8; color: var(--ink); }
+.home-hero-secondary:hover { border-color: #8ca89d; }
+.home-hero-secondary:hover .arrow { transform: translateX(3px); }
 .contributor-pulse { align-items: center; display: flex; flex: none; gap: 14px; margin-bottom: 6px; }
 .pulse-avatars { display: flex; padding-left: 10px; }
 .pulse-avatars span {
@@ -1614,6 +1625,8 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 }
 .home-list-head h2 { font-size: 21px; font-weight: 520; letter-spacing: -.035em; margin: 0 0 7px; }
 .home-list-head p { color: #84908b; font-size: 12px; margin: 0; }
+.home-see-all { align-items: center; color: #315f51; display: inline-flex; font-size: 11px; font-weight: 750; gap: 9px; }
+.home-see-all:hover .arrow { transform: translateX(3px); }
 .home-sort-tabs { background: #f0f3f0; border-radius: 10px; display: flex; gap: 3px; padding: 4px; }
 .home-sort-tabs a {
   border-radius: 7px; color: #73817b; font-size: 11px; font-weight: 700; padding: 9px 12px;
@@ -1735,11 +1748,51 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .quality-note strong { color: #58655f; }
 .role-catalogue-hint { margin-top: -10px; }
 
+/* The landing page makes the choice simple; the dedicated collaboration page
+   owns the denser search, filtering, and sorting controls. */
+.home-discovery-content { margin-top: 20px; }
+.collaboration-page { padding-bottom: 96px; }
+.collaboration-hero {
+  align-items: flex-end; display: flex; gap: 32px; justify-content: space-between; padding: 42px 0 26px;
+}
+.collaboration-hero h1 {
+  color: #152a24; font-size: clamp(38px, 4vw, 48px); font-weight: 710; letter-spacing: -.06em;
+  line-height: 1.04; margin: 0;
+}
+.collaboration-hero > div:first-child > p:last-child {
+  color: #708079; font-size: 14px; line-height: 1.65; margin: 15px 0 0; max-width: 650px;
+}
+.collaboration-panel {
+  background: #fff; border: 1px solid #dbe2de; border-radius: 17px;
+  box-shadow: 0 13px 36px rgba(19, 54, 44, .055); padding: 18px;
+}
+.collaboration-toolbar { align-items: end; display: grid; gap: 13px; grid-template-columns: minmax(0, 1fr) 220px; }
+.collaboration-search { display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) auto; }
+.collaboration-search > button {
+  background: var(--ink); border: 0; border-radius: 11px; color: #fff; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 750; min-width: 84px; padding: 0 18px;
+}
+.collaboration-search > button:hover { background: #245e4e; }
+.collaboration-filter-grid { display: grid; gap: 13px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 17px; }
+.collaboration-control { min-width: 0; }
+.collaboration-control > span {
+  color: #687871; display: block; font-size: 10px; font-weight: 720; margin: 0 0 7px 2px;
+}
+.collaboration-control .sort-field, .collaboration-control .sort-field select { height: 44px; width: 100%; }
+.collaboration-control .sort-field select {
+  background-color: #f8faf8; border-color: #d5ded9; font-size: 12px; margin: 0; min-width: 0; padding-right: 35px;
+}
+.collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 55px; }
+.collaboration-sort-control > span { margin-bottom: 7px; }
+.collaboration-content { margin-top: 34px; }
+.collaboration-list-head { min-height: 61px; }
+
 @media (max-width: 1020px) {
   .discovery-page { padding-left: 34px; padding-right: 34px; }
   .discovery-content { grid-template-columns: minmax(0, 1fr) 300px; }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
+  .collaboration-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
@@ -1752,13 +1805,17 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .discovery-content { grid-template-columns: 1fr; }
   .discovery-sidebar { display: grid; grid-template-columns: 1fr 1fr; position: static; }
   .quality-note { grid-column: 1 / -1; }
+  .collaboration-hero { align-items: flex-start; flex-direction: column; }
+  .collaboration-toolbar { grid-template-columns: minmax(0, 1fr) 200px; }
 }
 
 @media (max-width: 640px) {
   .discovery-page { padding: 0 20px 65px; }
   .discovery-hero { gap: 24px; padding: 32px 0 26px; }
   .discovery-hero h1 { font-size: clamp(42px, 12vw, 54px); }
-  .discovery-hero-copy > p:last-child { font-size: 14px; margin-top: 18px; }
+  .discovery-hero-copy > .home-hero-lead { font-size: 14px; margin-top: 18px; }
+  .home-hero-actions { flex-direction: column; }
+  .home-hero-actions a { width: 100%; }
   .discovery-controls { grid-template-columns: 1fr; }
   .discovery-search kbd { display: none; }
   .home-active-filters { align-items: flex-start; flex-direction: column; }
@@ -1779,6 +1836,13 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .home-role-chips { grid-column: 1 / -1; margin-top: 1px; }
   .home-project-footer { gap: 10px; }
   .discovery-sidebar { display: flex; }
+  .collaboration-hero { gap: 22px; padding: 31px 0 24px; }
+  .collaboration-hero h1 { font-size: clamp(36px, 11vw, 46px); }
+  .collaboration-panel { padding: 14px; }
+  .collaboration-toolbar, .collaboration-filter-grid { grid-template-columns: 1fr; }
+  .collaboration-search { grid-template-columns: minmax(0, 1fr) auto; }
+  .collaboration-sort-control { margin-top: 3px; }
+  .collaboration-content { margin-top: 29px; }
 }
 
 /* ======================================================== people directory */

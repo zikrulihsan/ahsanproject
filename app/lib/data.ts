@@ -145,6 +145,8 @@ export type FeedQuery = {
   lane?: Lane;
   stage?: string;
   tag?: string;
+  /** Only projects that are actively asking for at least one collaborator. */
+  needsHelp?: boolean;
   /** One of ROLES — the feed only passes values isRole() has accepted. */
   role?: string;
   q?: string;
@@ -214,7 +216,7 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   // the lanes that already fix one.
   const stage = shape.stage ?? query.stage;
   if (stage) request = request.eq("stage", stage);
-  if (shape.needsHelp) request = request.gt("open_seat_count", 0);
+  if (shape.needsHelp || query.needsHelp) request = request.gt("open_seat_count", 0);
   if (query.tag) request = request.contains("tags", [query.tag]);
   if (query.role) {
     const role = normaliseRole(query.role);
@@ -1137,7 +1139,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
 
   const matching = seedSummaries().filter((project) => {
     if (stage && project.stage !== stage) return false;
-    if (shape.needsHelp && project.openSeatCount === 0) return false;
+    if ((shape.needsHelp || query.needsHelp) && project.openSeatCount === 0) return false;
     if (query.tag && !project.tags.includes(query.tag)) return false;
     if (query.role) {
       const wantedRole = normaliseRole(query.role);

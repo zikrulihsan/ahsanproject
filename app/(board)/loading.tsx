@@ -4,7 +4,7 @@ import { LoadingNote, Skeleton } from "../components/skeleton";
 export default function Loading() {
   return (
     <>
-      <HeaderShell active="jelajah" />
+      <HeaderShell active="beranda" />
       <main id="main-content" className="discovery-page">
         <LoadingNote />
 
@@ -17,9 +17,9 @@ export default function Loading() {
           </div>
         </section>
 
-        <div className="discovery-controls">
-          <Skeleton height={55} />
-          <Skeleton height={55} />
+        <div className="home-hero-actions">
+          <Skeleton height={50} width={170} />
+          <Skeleton height={50} width={220} />
         </div>
 
         <div className="discovery-content">
@@ -29,7 +29,6 @@ export default function Loading() {
                 <Skeleton height={24} width={170} style={{ marginBottom: 8 }} />
                 <Skeleton height={11} width={210} />
               </div>
-              <Skeleton height={42} width={220} />
             </div>
             {[0, 1, 2, 3].map((slot) => (
               <div className="home-project-card" key={slot}>
