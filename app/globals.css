@@ -87,12 +87,6 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
   padding: 0; position: absolute; white-space: nowrap; width: 1px;
 }
 
-.skip-link {
-  background: var(--lime); border-radius: 8px; left: 16px; padding: 11px 16px;
-  position: fixed; top: -70px; z-index: 200;
-}
-.skip-link:focus { top: 10px; }
-
 /* ---------------------------------------------------------------- header */
 
 .site-header {
@@ -1561,6 +1555,9 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .discovery-page {
   background: #fbfcfb; margin: 0 auto; max-width: 1260px; padding: 0 54px 92px; width: 100%;
 }
+/* Keep the readable content width without exposing the warmer body colour as
+   side bands on wide desktop viewports. */
+body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb; }
 .discovery-hero {
   align-items: flex-end; display: flex; gap: 36px; justify-content: space-between;
   padding: 48px 0 32px;
