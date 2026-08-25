@@ -54,6 +54,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
   const role = normaliseRole(one(params.role)) ?? "";
   const tag = one(params.tag);
   const q = one(params.q);
+  const searchBy = one(params.searchBy) === "role" ? "role" : "project";
   const needs = one(params.needs) === "open" || askedLane === "butuh-bantuan" ? "open" : "";
 
   const viewer = await currentViewer();
@@ -63,7 +64,8 @@ export default async function CollaborationPage({ searchParams }: { searchParams
     stage,
     tag,
     role,
-    q,
+    q: searchBy === "project" ? q : "",
+    roleQuery: searchBy === "role" ? q : "",
     needsHelp: needs === "open",
     familiarRoles: familiar,
   };
@@ -74,7 +76,8 @@ export default async function CollaborationPage({ searchParams }: { searchParams
       lane: sort,
       stage,
       role,
-      q,
+      q: searchBy === "project" ? q : "",
+      roleQuery: searchBy === "role" ? q : "",
       needsHelp: needs === "open",
       familiarRoles: familiar,
     }),
@@ -85,7 +88,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
   const rankedRoles = rankRoles(helpBoard).slice(0, 5);
   const filtered = Boolean(stage || tag || role || q || needs);
   const activeControlCount = [stage, tag, role, needs, sort === "untukmu" ? "" : sort].filter(Boolean).length;
-  const currentPath = linkTo({ lane: sort, stage, tag, role, q, needs });
+  const currentPath = linkTo({ lane: sort, stage, tag, role, q, searchBy, needs });
 
   return (
     <>
@@ -112,24 +115,34 @@ export default async function CollaborationPage({ searchParams }: { searchParams
           </div>
         </section>
 
-        <section className="collaboration-panel" aria-label="Cari, filter, dan urutkan project">
+        <section className="collaboration-panel" aria-label="Cari project atau role, lalu filter dan urutkan hasil">
           <form className="discovery-search collaboration-search" method="get" action="/kolaborasi" role="search">
             {stage ? <input type="hidden" name="stage" value={stage} /> : null}
             {tag ? <input type="hidden" name="tag" value={tag} /> : null}
             {role ? <input type="hidden" name="role" value={role} /> : null}
             {needs ? <input type="hidden" name="needs" value={needs} /> : null}
             {sort === "untukmu" ? null : <input type="hidden" name="lane" value={sort} />}
-            <label>
+            <div className="collaboration-search-field">
+              <select
+                name="searchBy"
+                defaultValue={searchBy}
+                aria-label="Cari berdasarkan"
+                title="Cari berdasarkan"
+              >
+                <option value="project">Project</option>
+                <option value="role">Role</option>
+              </select>
+              <span className="collaboration-search-divider" aria-hidden="true" />
               <SearchIcon />
-              <span className="sr-only">Cari project, program, atau kata kunci</span>
               <input
                 type="search"
                 name="q"
                 defaultValue={q}
-                placeholder="Cari project…"
+                placeholder="Ketik nama project atau role…"
+                aria-label="Ketik nama project atau role"
                 autoComplete="off"
               />
-            </label>
+            </div>
             <button type="submit">Cari</button>
           </form>
 
@@ -151,7 +164,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                   value={sort}
                   label="Urutkan project"
                   options={SORTS}
-                  hidden={{ stage, tag, role, q, needs }}
+                  hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs }}
                 />
               </div>
 
@@ -169,7 +182,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                       label: `${topic.tag} (${topic.count})`,
                     })),
                   ]}
-                  hidden={{ stage, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ stage, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
 
@@ -184,7 +197,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                     { value: "", label: "Semua level" },
                     ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
                   ]}
-                  hidden={{ tag, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
 
@@ -199,7 +212,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                     { value: "", label: "Semua role" },
                     ...ROLES.map((entry) => ({ value: entry, label: roleLabel(entry) })),
                   ]}
-                  hidden={{ stage, tag, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ stage, tag, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
 
@@ -214,7 +227,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                     { value: "", label: "Semua project" },
                     { value: "open", label: "Mencari kolaborator" },
                   ]}
-                  hidden={{ stage, tag, role, q, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
             </div>
@@ -226,15 +239,15 @@ export default async function CollaborationPage({ searchParams }: { searchParams
             <ul>
               {role ? (
                 <li>
-                  <Link href={linkTo({ lane: sort, stage, tag, q, needs })}>
+                  <Link href={linkTo({ lane: sort, stage, tag, q, searchBy, needs })}>
                     Role: <strong>{roleLabel(role)}</strong> <span>×</span>
                   </Link>
                 </li>
               ) : null}
-              {tag ? <li><Link href={linkTo({ lane: sort, stage, role, q, needs })}>Kategori: <strong>{tag}</strong> <span>×</span></Link></li> : null}
-              {stage ? <li><Link href={linkTo({ lane: sort, tag, role, q, needs })}>Level: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
-              {needs ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q })}>Kebutuhan: <strong>Mencari kolaborator</strong> <span>×</span></Link></li> : null}
-              {q ? <li><Link href={linkTo({ lane: sort, stage, tag, role, needs })}>Pencarian: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
+              {tag ? <li><Link href={linkTo({ lane: sort, stage, role, q, searchBy, needs })}>Kategori: <strong>{tag}</strong> <span>×</span></Link></li> : null}
+              {stage ? <li><Link href={linkTo({ lane: sort, tag, role, q, searchBy, needs })}>Level: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
+              {needs ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy })}>Kebutuhan: <strong>Mencari kolaborator</strong> <span>×</span></Link></li> : null}
+              {q ? <li><Link href={linkTo({ lane: sort, stage, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role dicari" : "Pencarian"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
             </ul>
             <Link className="clear-filters" href={linkTo({ lane: sort })}>Hapus semua</Link>
           </div>
@@ -291,7 +304,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
                 <ol>
                   {rankedRoles.map((entry, index) => (
                     <li key={entry.role}>
-                      <Link href={linkTo({ lane: sort, stage, tag, role: entry.role, q, needs: "open" })}>
+                      <Link href={linkTo({ lane: sort, stage, tag, role: entry.role, q, searchBy, needs: "open" })}>
                         <span className="role-number">{String(index + 1).padStart(2, "0")}</span>
                         <span>
                           <strong>{roleLabel(entry.role)}</strong>
@@ -358,11 +371,14 @@ function linkTo(query: {
   tag?: string;
   role?: string;
   q?: string;
+  searchBy?: string;
   needs?: string;
 }): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value && !(key === "lane" && value === "untukmu")) params.set(key, value);
+    const isDefault = (key === "lane" && value === "untukmu") ||
+      (key === "searchBy" && value === "project");
+    if (value && !isDefault) params.set(key, value);
   }
   const search = params.toString();
   return search ? `/kolaborasi?${search}` : "/kolaborasi";

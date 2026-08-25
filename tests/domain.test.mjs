@@ -8,7 +8,14 @@ import { arrangeForYou } from "../app/lib/feed.ts";
 import { taskStatusLabel, validateTask } from "../app/lib/tasks.ts";
 import { accessOf, canManage, isOwner } from "../app/lib/access.ts";
 import { EVENT_KINDS, activitySentence, hiddenFrom } from "../app/lib/activity.ts";
-import { ROLES, isRole, normaliseRole, roleLabel } from "../app/lib/roles.ts";
+import {
+  ROLES,
+  isRole,
+  normaliseRole,
+  roleLabel,
+  roleMatchesQuery,
+  rolesMatchingQuery,
+} from "../app/lib/roles.ts";
 
 const fullBrief = {
   title: "Warung Antre",
@@ -63,6 +70,13 @@ test("role lama dinormalisasi supaya tautan dan data existing tetap bekerja", ()
   assert.equal(normaliseRole("pm"), "product-manager");
   assert.equal(normaliseRole("design"), "ui-ux-designer");
   assert.equal(normaliseRole("entah"), null);
+});
+
+test("pencarian role menerima label, key, dan judul role khusus", () => {
+  assert.ok(rolesMatchingQuery("frontend").includes("frontend-developer"));
+  assert.ok(rolesMatchingQuery("UI UX").includes("ui-ux-designer"));
+  assert.ok(roleMatchesQuery("other", "Videografer acara", "video"));
+  assert.ok(!roleMatchesQuery("content-writer", "", "backend"));
 });
 
 const stageInput = {
