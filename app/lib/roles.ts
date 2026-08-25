@@ -174,3 +174,28 @@ export function roleLabel(value: string, customTitle = ""): string {
   if (role) return roleMeta[role].label;
   return "Peran";
 }
+
+/**
+ * Match what somebody types in Explore against the readable role catalogue.
+ * Punctuation is deliberately treated like a space, so searches such as
+ * "ui ux", "UI/UX", and the stored key "ui-ux-designer" agree.
+ */
+export function roleMatchesQuery(value: string, customTitle: string, query: string): boolean {
+  const needle = searchableRoleText(query);
+  if (!needle) return true;
+  return searchableRoleText(`${value} ${roleLabel(value, customTitle)}`).includes(needle);
+}
+
+/** Canonical catalogue roles whose key or visible label contains the query. */
+export function rolesMatchingQuery(query: string): Role[] {
+  return ROLES.filter((role) => roleMatchesQuery(role, "", query));
+}
+
+function searchableRoleText(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("id")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}

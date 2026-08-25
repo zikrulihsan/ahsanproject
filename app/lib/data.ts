@@ -13,7 +13,13 @@ import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 import { arrangeForYou, type Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
-import { normaliseRole, roleAliases, roleLabel } from "./roles";
+import {
+  normaliseRole,
+  roleAliases,
+  roleLabel,
+  roleMatchesQuery,
+  rolesMatchingQuery,
+} from "./roles";
 
 export type Person = {
   id: string;
@@ -149,6 +155,8 @@ export type FeedQuery = {
   needsHelp?: boolean;
   /** One of ROLES — the feed only passes values isRole() has accepted. */
   role?: string;
+  /** Free-text match against roles on seats that are still open. */
+  roleQuery?: string;
   q?: string;
   /** Roles this visitor has held before, used to arrange the "untukmu" lane. */
   familiarRoles?: readonly string[];
@@ -211,6 +219,38 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
   if (!supabase) return seedFeed(query);
 
   let request = supabase.from("project_overview").select("*");
+
+  if (query.roleQuery) {
+    const catalogueRoles = rolesMatchingQuery(query.roleQuery).flatMap(roleAliases);
+    const catalogueRequest = catalogueRoles.length > 0
+      ? supabase
+          .from("seats")
+          .select("project_id")
+          .eq("status", "open")
+          .in("role", catalogueRoles)
+      : Promise.resolve({ data: [], error: null });
+    const customTitleRequest = supabase
+      .from("seats")
+      .select("project_id")
+      .eq("status", "open")
+      .ilike("role_title", `%${escapeLike(query.roleQuery)}%`);
+    const [catalogueResult, customTitleResult] = await Promise.all([
+      catalogueRequest,
+      customTitleRequest,
+    ]);
+
+    if (catalogueResult.error) throw new Error(catalogueResult.error.message);
+    if (customTitleResult.error) throw new Error(customTitleResult.error.message);
+
+    const matchingProjectIds = [
+      ...new Set([
+        ...(catalogueResult.data ?? []).map((seat) => seat.project_id),
+        ...(customTitleResult.data ?? []).map((seat) => seat.project_id),
+      ]),
+    ];
+    if (matchingProjectIds.length === 0) return [];
+    request = request.in("id", matchingProjectIds);
+  }
 
   // The lane's own stage wins over the filter chips, which are not offered in
   // the lanes that already fix one.
@@ -1135,6 +1175,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
   const lane = query.lane ?? "untukmu";
   const shape = LANE_QUERY[lane];
   const needle = query.q?.toLowerCase() ?? "";
+  const roleNeedle = query.roleQuery ?? "";
   const stage = shape.stage ?? query.stage;
 
   const matching = seedSummaries().filter((project) => {
@@ -1146,6 +1187,15 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
       if (wantedRole && !project.openRoles.some((role) => normaliseRole(role) === wantedRole)) {
         return false;
       }
+    }
+    if (roleNeedle) {
+      const source = seedProjects.find((entry) => entry.id === project.id);
+      const hasMatchingOpenRole = source?.seats.some(
+        (seat) =>
+          seat.status === "open" &&
+          roleMatchesQuery(seat.role, seat.roleTitle ?? "", roleNeedle),
+      );
+      if (!hasMatchingOpenRole) return false;
     }
     if (needle) {
       const haystack = [
