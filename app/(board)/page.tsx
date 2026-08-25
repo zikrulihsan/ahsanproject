@@ -159,7 +159,7 @@ export default async function Home() {
           <div className="landing-stats-heading">
             <div>
               <p className="home-eyebrow">statistik ahsanproject</p>
-              <h2 id="landing-stats-title">Project, orang, dan posisi kolaborasi.</h2>
+              <h2 id="landing-stats-title">Project, orang, dan kolaborasi dalam angka</h2>
             </div>
             <p>Data ini diperbarui dari project dan profil yang ada di AhsanProject.</p>
           </div>
@@ -226,7 +226,7 @@ export default async function Home() {
         <section className="landing-purpose" aria-labelledby="purpose-title">
           <div className="landing-section-intro">
             <p className="home-eyebrow">yang bisa kamu lakukan</p>
-            <h2 id="purpose-title">Buat project, cari kolaborator, dan tunjukkan hasil kerja.</h2>
+            <h2 id="purpose-title">Satu Platform, Tiga Tujuan</h2>
             <p>
               Project dan orang saling terhubung. Kamu bisa melihat siapa membuat project dan siapa
               yang ikut mengerjakannya.
@@ -236,8 +236,8 @@ export default async function Home() {
           <div className="purpose-grid">
             <article className="purpose-card purpose-project">
               <LandingIcon kind="project" />
-              <p className="purpose-number">01 · BAGIKAN PROJECT</p>
-              <h3>Tambah project yang sedang kamu kerjakan.</h3>
+              <p className="purpose-number">Project Showcase</p>
+              <h3>Tunjukkan Projectmu</h3>
               <p>
                 Tulis tujuan project, progres saat ini, dan bantuan yang sedang dibutuhkan.
               </p>
@@ -246,8 +246,8 @@ export default async function Home() {
 
             <article className="purpose-card purpose-portfolio">
               <LandingIcon kind="portfolio" />
-              <p className="purpose-number">02 · BUAT PORTFOLIO</p>
-              <h3>Jadikan kontribusi sebagai portfolio.</h3>
+              <p className="purpose-number">Open Contribution</p>
+              <h3>Temukan tempat kontribusi</h3>
               <p>
                 Project, peran, dan tugas yang kamu kerjakan muncul di profil sebagai bukti kerja.
               </p>
@@ -256,8 +256,8 @@ export default async function Home() {
 
             <article className="purpose-card purpose-talent">
               <LandingIcon kind="people" />
-              <p className="purpose-number">03 · CARI ORANG</p>
-              <h3>Cari orang untuk diajak kerja bareng.</h3>
+              <p className="purpose-number">Open Collaboration</p>
+              <h3>Buka Peluang Kolaborasi</h3>
               <p>
                 Cari berdasarkan profesi, skill, pengalaman, serta project yang dibuat dan dibantu.
               </p>
@@ -268,10 +268,10 @@ export default async function Home() {
 
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
-            <p className="home-eyebrow">cari kolaborator</p>
-            <h2 id="talent-story-title">Cari orang dari pekerjaan yang sudah mereka lakukan.</h2>
+            <p className="home-eyebrow">Tidak hanya showcase project</p>
+            <h2 id="talent-story-title">Jadi Talent Pool Biar Terlihat Sama <span className="hero-highlight">Recruiter</span></h2>
             <p>
-              Buka profil seseorang untuk melihat project yang dibuat, kontribusi yang dikerjakan,
+              Setelah kontribusi, orang lain melihat project yang dibuat, kontribusi yang dikerjakan,
               dan skill yang dipakai.
             </p>
             <ul>
