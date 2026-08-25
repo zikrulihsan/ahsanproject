@@ -122,17 +122,28 @@ export default async function CollaborationPage({ searchParams }: { searchParams
             {role ? <input type="hidden" name="role" value={role} /> : null}
             {needs ? <input type="hidden" name="needs" value={needs} /> : null}
             {sort === "untukmu" ? null : <input type="hidden" name="lane" value={sort} />}
+            <div className="collaboration-search-mode" role="radiogroup" aria-labelledby="search-mode-label">
+              <span id="search-mode-label">Cari berdasarkan</span>
+              <label>
+                <input
+                  type="radio"
+                  name="searchBy"
+                  value="project"
+                  defaultChecked={searchBy === "project"}
+                />
+                <span>Project</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="searchBy"
+                  value="role"
+                  defaultChecked={searchBy === "role"}
+                />
+                <span>Role terbuka</span>
+              </label>
+            </div>
             <div className="collaboration-search-field">
-              <select
-                name="searchBy"
-                defaultValue={searchBy}
-                aria-label="Cari berdasarkan"
-                title="Cari berdasarkan"
-              >
-                <option value="project">Project</option>
-                <option value="role">Role</option>
-              </select>
-              <span className="collaboration-search-divider" aria-hidden="true" />
               <SearchIcon />
               <input
                 type="search"
