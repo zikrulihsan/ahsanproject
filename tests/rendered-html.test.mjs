@@ -176,6 +176,31 @@ test("halaman detail memakai favicon yang sama sebagai logo project", async () =
   );
 });
 
+test("section detail project dipisahkan ke tab masing-masing", async () => {
+  const about = await html("/projects/tap-tap-dzikr");
+  assert.match(about, /aria-label="Bagian detail project"/);
+  assert.match(
+    about,
+    /class="is-active" aria-current="page" href="\/projects\/tap-tap-dzikr">Tentang/,
+  );
+  assert.match(about, /id="brief-heading"/);
+  assert.doesNotMatch(about, /id="journey-heading"/);
+  assert.doesNotMatch(about, /id="team-heading"/);
+
+  const journey = await html("/projects/tap-tap-dzikr?tab=perjalanan");
+  assert.match(
+    journey,
+    /class="is-active" aria-current="page" href="[^"]*tab=perjalanan">Perjalanan/,
+  );
+  assert.match(journey, /id="journey-heading"/);
+  assert.doesNotMatch(journey, /id="brief-heading"/);
+  assert.doesNotMatch(journey, /id="discussion-heading"/);
+
+  const discussion = await html("/projects/tap-tap-dzikr?tab=diskusi");
+  assert.match(discussion, /id="discussion-heading"/);
+  assert.doesNotMatch(discussion, /id="team-heading"/);
+});
+
 test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () => {
   const page = await html("/");
   assert.match(page, /<title>Ahsan Project — Bagikan dan Temukan Project untuk Berkolaborasi<\/title>/i);
@@ -346,31 +371,31 @@ test("sitemap memuat proyek dan orang, bukan cuma beranda", async () => {
 });
 
 test("halaman project memuat cerita, tahap, dan ajakan membantu", async () => {
-  const page = await html("/projects/warung-antre");
-  assert.match(page, /<title>Warung Antre — Ahsan Project<\/title>/i);
-  assert.match(page, /Tentang project ini/);
-  assert.match(page, /Masalah yang ingin dibereskan/);
-  assert.match(page, /Sejauh ini/);
-  assert.match(page, /Mau ikut bantu\?/);
-  assert.match(page, /Researcher/);
-  assert.match(page, /Masuk untuk ikut/);
+  const about = await html("/projects/warung-antre");
+  assert.match(about, /<title>Warung Antre — Ahsan Project<\/title>/i);
+  assert.match(about, /Tentang project ini/);
+  assert.match(about, /Masalah yang ingin dibereskan/);
+  assert.match(about, /Sejauh ini/);
+
+  const collaboration = await html("/projects/warung-antre?tab=kolaborasi");
+  assert.match(collaboration, /Mau ikut bantu\?/);
+  assert.match(collaboration, /Researcher/);
+  assert.match(collaboration, /Masuk untuk ikut/);
 });
 
-test("halaman project bercerita sebelum meminta bantuan", async () => {
-  const page = await html("/projects/main-aman");
-  // Understand, then contribute: the brief has to come before the invitation.
-  assert.ok(
-    page.indexOf("Tentang project ini") < page.indexOf("Mau ikut bantu?"),
-    "ceritanya dulu, ajakannya belakangan",
-  );
-  assert.ok(
-    page.indexOf("Sedang dikerjakan") < page.indexOf("Mau ikut bantu?"),
-    "yang sedang dikerjakan sebelum ajakan",
-  );
+test("cerita dan ajakan project tidak menumpuk di tab yang sama", async () => {
+  const about = await html("/projects/main-aman");
+  assert.match(about, /Tentang project ini/);
+  assert.match(about, /Sedang dikerjakan/);
+  assert.doesNotMatch(about, /Mau ikut bantu\?/);
+
+  const collaboration = await html("/projects/main-aman?tab=kolaborasi");
+  assert.match(collaboration, /Mau ikut bantu\?/);
+  assert.doesNotMatch(collaboration, /Tentang project ini/);
 });
 
 test("perjalanan project ditampilkan dari yang terbaru sampai hari pertamanya", async () => {
-  const page = await html("/projects/main-aman");
+  const page = await html("/projects/main-aman?tab=perjalanan");
   assert.match(page, /Perjalanan project/);
   assert.match(page, /Draft materi pertama selesai/);
   assert.match(page, /Mulai riset/);
@@ -387,7 +412,7 @@ test("tamu ditawari mengikuti project, bukan cuma mendukungnya", async () => {
 });
 
 test("bantuan yang dicari menyebut berapa waktunya", async () => {
-  const page = await html("/projects/tap-tap-dzikr");
+  const page = await html("/projects/tap-tap-dzikr?tab=kolaborasi");
   assert.match(page, /3 jam per minggu/);
 });
 
@@ -542,7 +567,7 @@ test("tamu tidak melihat tautan ubah proyek", async () => {
 });
 
 test("halaman proyek menampilkan tugas yang lagi jalan", async () => {
-  const page = await html("/projects/warung-antre");
+  const page = await html("/projects/warung-antre?tab=tugas");
   // React splits a text node from the expression beside it with a comment
   // marker, so match the counted part rather than the whole heading.
   assert.match(page, /1 dari 3 beres/, "judul membawa kemajuannya");
@@ -554,7 +579,7 @@ test("halaman proyek menampilkan tugas yang lagi jalan", async () => {
 });
 
 test("tamu tidak melihat kontrol pengelola", async () => {
-  const page = await html("/projects/warung-antre");
+  const page = await html("/projects/warung-antre?tab=tugas");
   assert.doesNotMatch(page, /Tambah tugas/);
   assert.doesNotMatch(page, /Atur akses/);
   assert.doesNotMatch(page, /Buka peran baru/);
@@ -563,7 +588,7 @@ test("tamu tidak melihat kontrol pengelola", async () => {
 });
 
 test("daftar tugas tetap ada di halaman project", async () => {
-  const page = await html("/projects/warung-antre");
+  const page = await html("/projects/warung-antre?tab=tugas");
   assert.match(page, /Tulis brief-nya/);
   assert.match(page, /Belum jalan/);
 });
