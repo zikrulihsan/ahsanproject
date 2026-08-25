@@ -1,5 +1,8 @@
 # Ahsan Project
 
+[![CI](https://github.com/zikrulihsan/ahsanproject/actions/workflows/ci.yml/badge.svg)](https://github.com/zikrulihsan/ahsanproject/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Where a project meets the people who want to help build it.
 
 Show what you are making — an idea, a half-built thing, or something people
@@ -9,6 +12,12 @@ join in. Each person's profile is the work with their name on it: what they are
 building, and what they helped build.
 
 Next.js on Netlify, with Supabase for both the database and sign-in.
+
+[Try the live site](https://ahsanproject.id) · [Report a bug](https://github.com/zikrulihsan/ahsanproject/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/zikrulihsan/ahsanproject/issues/new?template=feature_request.yml)
+
+> [!NOTE]
+> Ahsan Project is under active development. The database schema and user-facing
+> behavior may change while the project is still young.
 
 ## Prerequisites
 
@@ -184,6 +193,20 @@ is the base for canonical and Open Graph URLs.
 - `npm run build` — production build
 - `npm run lint` — ESLint
 - `npm run db:seed` — regenerate `supabase/seed.sql` from `app/lib/seed.ts`
+
+## Contributing
+
+Bug reports, ideas, documentation improvements, and code contributions are
+welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow the
+[Code of Conduct](CODE_OF_CONDUCT.md), and use [GitHub's private reporting
+flow](SECURITY.md) for security vulnerabilities.
+
+Maintainers can find the recommended GitHub access, branch protection, Actions,
+and security settings in [docs/maintainer-guide.md](docs/maintainer-guide.md).
+
+## License
+
+Released under the [MIT License](LICENSE).
 
 ## Learn more
 
