@@ -933,7 +933,7 @@ form button.danger:hover { background: #96320f; }
    them in a second, oversized profile card. */
 .profile-band { background: var(--ink-2); color: #fff; padding: 58px var(--gutter) 54px; }
 .profile-band-inner { margin: 0 auto; max-width: 1240px; }
-.profile-hero { display: grid; gap: 28px; }
+.profile-hero { display: grid; gap: 28px; position: relative; }
 .profile-hero-top {
   align-items: end; display: grid; gap: clamp(42px, 7vw, 96px);
   grid-template-columns: minmax(0, 1.35fr) minmax(310px, .65fr);
@@ -957,24 +957,24 @@ form button.danger:hover { background: #96320f; }
 .profile-contact-list a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .link-icon { flex: none; height: 16px; width: 16px; }
 .profile-hero-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
-.profile-share-button, .profile-resume-link {
-  align-items: center; border-radius: 10px; display: inline-flex; font-size: 11px; font-weight: 780;
-  gap: 8px; min-height: 37px; padding: 9px 12px;
-}
+.profile-share-control { position: absolute; right: 0; top: 0; z-index: 1; }
 .profile-share-button {
-  background: var(--lime); border: 1px solid var(--lime); color: var(--ink-2);
+  align-items: center; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 10px; color: #e7efec; display: inline-flex; height: 38px; justify-content: center; padding: 0;
+  width: 38px;
 }
-.profile-share-button:hover { background: #f0ffab; border-color: #f0ffab; }
+.profile-share-button:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .7); color: #fff; }
 .profile-share-button svg {
-  fill: none; flex: none; height: 15px; stroke: currentColor; stroke-linecap: round;
-  stroke-linejoin: round; stroke-width: 1.8; width: 15px;
+  fill: none; flex: none; height: 17px; stroke: currentColor; stroke-linecap: round;
+  stroke-linejoin: round; stroke-width: 1.8; width: 17px;
 }
 .profile-resume-link {
-  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .2); color: #e7efec;
+  align-items: center; background: var(--lime); border: 1px solid var(--lime); border-radius: 10px;
+  color: var(--ink-2); display: inline-flex; font-size: 11px; font-weight: 780; gap: 8px; min-height: 37px;
+  padding: 9px 12px;
 }
-.profile-resume-link:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .7); color: #fff; }
+.profile-resume-link:hover { background: #f0ffab; border-color: #f0ffab; color: var(--ink-2); }
 .profile-resume-link .link-icon { height: 15px; width: 15px; }
-.profile-resume-link .arrow { font-size: 15px; line-height: .8; margin-left: 2px; }
 
 .profile-contributions {
   align-self: end; border-left: 1px solid rgba(255, 255, 255, .16); min-width: 0; padding-left: 28px;

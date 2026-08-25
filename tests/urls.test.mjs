@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { faviconUrl, safeNextPath, signInPath } from "../app/lib/urls.ts";
+import { faviconUrl, projectLogoUrl, safeNextPath, signInPath } from "../app/lib/urls.ts";
 
 test("a redirect target stays inside this site", () => {
   assert.equal(safeNextPath("/projects/warung-antre"), "/projects/warung-antre");
@@ -37,5 +37,12 @@ test("a project website becomes a sized favicon request", () => {
 test("missing, malformed, and non-web links keep the initials fallback", () => {
   for (const value of ["", "swegrowth.id", "javascript:alert(1)", "data:image/png,x", null]) {
     assert.equal(faviconUrl(value), "");
+  }
+});
+
+test("a project logo accepts only ordinary web image URLs", () => {
+  assert.equal(projectLogoUrl("https://flipcard.id/favicon.ico"), "https://flipcard.id/favicon.ico");
+  for (const value of ["", "flipcard.id/logo.png", "data:image/png,x", "javascript:alert(1)"]) {
+    assert.equal(projectLogoUrl(value), "");
   }
 });

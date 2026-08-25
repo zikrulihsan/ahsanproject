@@ -44,3 +44,15 @@ export function faviconUrl(value: string | null | undefined): string {
     return "";
   }
 }
+
+/** Only ordinary public web URLs may be loaded as project artwork. */
+export function projectLogoUrl(value: string | null | undefined): string {
+  if (!value) return "";
+
+  try {
+    const logo = new URL(value);
+    return logo.protocol === "http:" || logo.protocol === "https:" ? logo.toString() : "";
+  } catch {
+    return "";
+  }
+}

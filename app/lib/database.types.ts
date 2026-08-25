@@ -16,6 +16,8 @@ export type ProjectRow = {
   doc_url: string;
   live_url: string;
   repo_url: string;
+  /** Optional project-owned icon or logo — 0015_project_logo_url.sql. */
+  logo_url: string;
   tags: string[];
   glyph: string;
   /** One line: what the project is working on right now — 0010_showcase.sql. */

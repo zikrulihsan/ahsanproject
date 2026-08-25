@@ -112,6 +112,7 @@ export default async function ProfilePage({
 
       <section className="profile-band">
         <div className="profile-band-inner profile-hero">
+          <ShareProfileButton name={person.name} path={`/u/${person.username}`} />
           <div className="profile-hero-top">
             <div className="profile-hero-copy">
               <p className="eyebrow light">
@@ -137,16 +138,14 @@ export default async function ProfilePage({
                   ))}
                 </ul>
               ) : null}
-              <div className="profile-hero-actions">
-                <ShareProfileButton name={person.name} path={`/u/${person.username}`} />
-                {resume ? (
+              {resume ? (
+                <div className="profile-hero-actions">
                   <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
                     <LinkIcon kind="resume" />
-                    <span>Lihat résumé</span>
-                    <span className="arrow" aria-hidden="true">→</span>
+                    <span>Resume</span>
                   </a>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </div>
 
             <aside className="profile-contributions" aria-labelledby="projects-heading">

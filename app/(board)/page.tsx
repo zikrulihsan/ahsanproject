@@ -97,6 +97,7 @@ export default async function Home() {
                   <ProjectLogo
                     title={featuredProject.title}
                     website={featuredProject.liveUrl}
+                    logoUrl={featuredProject.logoUrl}
                     fallback={featuredProject.glyph}
                     className="collaboration-example-logo"
                   />

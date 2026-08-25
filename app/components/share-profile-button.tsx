@@ -59,9 +59,14 @@ export function ShareProfileButton({
 
   return (
     <div className="profile-share-control">
-      <button className="profile-share-button" type="button" onClick={share}>
+      <button
+        aria-label={label}
+        className="profile-share-button"
+        title="Bagikan profil"
+        type="button"
+        onClick={share}
+      >
         {status === "copied" ? <CheckIcon /> : <ShareIcon />}
-        <span>{label}</span>
       </button>
       <span className="sr-only" role="status" aria-live="polite">
         {status === "copied"

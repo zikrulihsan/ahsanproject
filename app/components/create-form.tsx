@@ -45,14 +45,25 @@ export function CreateForm() {
           name="liveUrl"
           hint={
             stage === "live"
-              ? "Wajib untuk project yang sudah berjalan. Favicon website ini akan dipakai sebagai logo project."
-              : "Kalau diisi, favicon website ini akan dipakai sebagai logo project. Belum punya? Lewati dulu."
+              ? "Wajib untuk project yang sudah berjalan. Favicon website dipakai jika URL logo tidak diisi."
+              : "Kalau diisi, favicon website dipakai jika URL logo tidak diisi. Belum punya? Lewati dulu."
           }
           error={errors.liveUrl}
           defaultValue={values.liveUrl}
           type="url"
           placeholder="https://"
           required={stage === "live"}
+        />
+
+        <Field
+          label="URL icon atau logo"
+          name="logoUrl"
+          hint="Opsional. Gunakan tautan langsung ke PNG, SVG, WebP, atau ICO."
+          error={errors.logoUrl}
+          defaultValue={values.logoUrl}
+          maxLength={MAXIMUM.logoUrl}
+          type="url"
+          placeholder="https://contoh.id/logo.png"
         />
 
         <Field
