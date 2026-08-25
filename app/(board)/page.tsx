@@ -127,7 +127,7 @@ export default async function Home() {
                     <ul>
                       {featuredProject.openRoles.slice(0, 3).map((role) => (
                         <li key={role}>
-                          <Link href={`/kolaborasi?role=${encodeURIComponent(role)}`}>{roleLabel(role)}</Link>
+                          <Link href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>{roleLabel(role)}</Link>
                         </li>
                       ))}
                     </ul>

@@ -349,6 +349,56 @@ export async function openSeatsByRole(
   return counts;
 }
 
+export type OpenRoleSuggestion = {
+  value: string;
+  label: string;
+  count: number;
+};
+
+/**
+ * Readable role names that are actually open right now. The Explore
+ * autocomplete uses this instead of suggesting the whole catalogue, so every
+ * recommendation can lead to at least one project.
+ */
+export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
+  const add = (
+    counts: Map<string, OpenRoleSuggestion>,
+    role: string,
+    customTitle = "",
+  ) => {
+    const label = roleLabel(role, customTitle);
+    const key = label.toLocaleLowerCase("id");
+    const current = counts.get(key);
+    counts.set(key, {
+      value: label,
+      label,
+      count: (current?.count ?? 0) + 1,
+    });
+  };
+
+  const counts = new Map<string, OpenRoleSuggestion>();
+  const supabase = await getSupabase();
+  if (!supabase) {
+    for (const project of seedProjects) {
+      for (const seat of project.seats) {
+        if (seat.status === "open") add(counts, seat.role, seat.roleTitle ?? "");
+      }
+    }
+  } else {
+    const { data, error } = await supabase
+      .from("seats")
+      .select("role, role_title")
+      .eq("status", "open")
+      .limit(2000);
+    if (error) throw new Error(error.message);
+    for (const seat of data ?? []) add(counts, seat.role, seat.role_title ?? "");
+  }
+
+  return [...counts.values()].sort(
+    (a, b) => b.count - a.count || a.label.localeCompare(b.label, "id"),
+  );
+}
+
 /** The roles somebody has held or applied for — what "untukmu" leans on. */
 export async function familiarRoles(userId: string): Promise<string[]> {
   const supabase = await getSupabase();
