@@ -1,7 +1,17 @@
 {
   "name": "ahsan-project",
   "version": "0.1.0",
+  "description": "Where a project meets the people who want to help build it.",
   "private": true,
+  "license": "MIT",
+  "homepage": "https://ahsanproject.id",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zikrulihsan/ahsanproject.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zikrulihsan/ahsanproject/issues"
+  },
   "engines": {
     "node": ">=22.13.0"
   },
@@ -17,17 +27,17 @@
   "dependencies": {
     "@supabase/ssr": "0.7.0",
     "@supabase/supabase-js": "2.51.0",
-    "next": "16.2.6",
+    "next": "16.3.2",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
-    "@tailwindcss/postcss": "4.2.1",
+    "eslint-config-next": "16.3.2",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3"
   },

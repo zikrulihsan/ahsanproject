@@ -43,7 +43,7 @@ export async function getSupabase(): Promise<Supabase | null> {
             cookieStore.set(name, value, options);
           }
         } catch {
-          // Server Components may not set cookies. The middleware refreshes the
+          // Server Components may not set cookies. The proxy refreshes the
           // session on every request, so nothing is lost by ignoring this.
         }
       },

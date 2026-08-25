@@ -8,7 +8,7 @@ import { createServerClient } from "@supabase/ssr";
  * without this the refreshed token would be thrown away on every render and
  * people would get signed out mid-visit.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // The discovery board moved off the landing page. Redirect its old query
   // URLs before a Server Component starts streaming, so bookmarks and shared
   // links land on the real collaboration page with an actual HTTP redirect.
