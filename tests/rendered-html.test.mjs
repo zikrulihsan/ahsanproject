@@ -199,6 +199,10 @@ test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () =>
   assert.match(page, /Buka Peluang Kolaborasi/);
   assert.match(page, /href="\/new">Buka kebutuhan kolaborasi/);
   assert.match(page, /Cari orang dari pekerjaan yang sudah mereka lakukan/);
+  assert.match(page, /Profilmu adalah portfolio yang terus tumbuh/);
+  assert.match(page, /project yang kamu buat, peran yang kamu ambil, dan kontribusi yang kamu/);
+  assert.match(page, /href="https:\/\/ahsanproject\.id\/u\/zikrul-ihsan">Lihat contoh portfolio/);
+  assert.match(page, /aria-label="Lihat portfolio Zikrul Ihsan"/);
   assert.match(page, /cara kerjanya/i);
   assert.match(page, /Buka posisi/);
   assert.match(page, /Jadi portfolio/);

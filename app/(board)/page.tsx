@@ -314,6 +314,64 @@ export default async function Home() {
           </div>
         </section>
 
+        <section className="portfolio-story" aria-labelledby="portfolio-story-title">
+          <div className="portfolio-story-copy">
+            <p className="home-eyebrow">portfolio aktif</p>
+            <h2 id="portfolio-story-title">Profilmu adalah portfolio yang terus tumbuh.</h2>
+            <p>
+              Setiap project yang kamu buat, peran yang kamu ambil, dan kontribusi yang kamu
+              selesaikan otomatis membentuk rekam jejak kerja di satu halaman.
+            </p>
+            <ul>
+              <li><span>01</span> Tampilkan project yang sedang dan pernah kamu bangun</li>
+              <li><span>02</span> Buktikan skill dan peran lewat pekerjaan nyata</li>
+              <li><span>03</span> Bagikan satu tautan sebagai portfolio personalmu</li>
+            </ul>
+            <a className="portfolio-story-link" href="https://ahsanproject.id/u/zikrul-ihsan">
+              Lihat contoh portfolio <Arrow />
+            </a>
+          </div>
+
+          <a
+            className="portfolio-preview"
+            href="https://ahsanproject.id/u/zikrul-ihsan"
+            aria-label="Lihat portfolio Zikrul Ihsan"
+          >
+            <div className="portfolio-preview-label">
+              <span>PORTOFOLIO PERSONAL</span>
+              <i><b /> Portfolio aktif</i>
+            </div>
+            <div className="portfolio-preview-person">
+              <span className="portfolio-preview-avatar" aria-hidden="true">ZI</span>
+              <div>
+                <h3>Zikrul Ihsan</h3>
+                <p>Software Engineer · Community Builder</p>
+              </div>
+            </div>
+            <p className="portfolio-preview-bio">
+              Membangun produk digital, komunitas, dan project yang bisa dipakai banyak orang.
+            </p>
+            <ul className="portfolio-preview-skills" aria-label="Skill Zikrul Ihsan">
+              <li>5 th pengalaman</li>
+              <li>Python</li>
+              <li>AI Engineering</li>
+            </ul>
+            <div className="portfolio-preview-proof">
+              <div>
+                <strong>6</strong>
+                <span>project dibangun</span>
+              </div>
+              <div>
+                <span>Beberapa project</span>
+                <p>Swegrowth · Main Aman · CariKontak</p>
+              </div>
+            </div>
+            <span className="portfolio-preview-url">
+              ahsanproject.id/u/zikrul-ihsan <Arrow diagonal />
+            </span>
+          </a>
+        </section>
+
         <section className="how-it-works" aria-labelledby="how-title">
           <div className="how-heading">
             <div>
