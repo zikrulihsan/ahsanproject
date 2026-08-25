@@ -59,6 +59,21 @@ import { ProjectLogo } from "../../components/project-logo";
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<{ tab?: string | string[] }>;
+
+const PROJECT_TABS = [
+  { id: "tentang", label: "Tentang" },
+  { id: "kolaborasi", label: "Kolaborasi" },
+  { id: "perjalanan", label: "Perjalanan" },
+  { id: "tugas", label: "Tugas" },
+  { id: "diskusi", label: "Diskusi" },
+] as const;
+
+type ProjectTab = (typeof PROJECT_TABS)[number]["id"];
+
+function isProjectTab(value: string): value is ProjectTab {
+  return PROJECT_TABS.some((tab) => tab.id === value);
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
@@ -80,8 +95,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function ProjectPage({ params }: { params: Params }) {
-  const { slug } = await params;
+export default async function ProjectPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  const requestedTab = Array.isArray(query.tab) ? query.tab[0] : query.tab;
+  const activeTab: ProjectTab = requestedTab && isProjectTab(requestedTab) ? requestedTab : "tentang";
   // The project and the visitor are independent questions — ask them together.
   const [project, viewer] = await Promise.all([getProject(slug), currentViewer()]);
   if (!project) notFound();
@@ -96,7 +119,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
     viewer ? isFollowing(project.id, viewer.id) : Promise.resolve(false),
     listProjectActivity(project.id),
   ]);
-  const returnTo = `/projects/${project.slug}`;
+  const returnTo =
+    activeTab === "tentang"
+      ? `/projects/${project.slug}`
+      : `/projects/${project.slug}?tab=${activeTab}`;
 
   const stageInput = toStageInput(project);
 
@@ -220,28 +246,51 @@ export default async function ProjectPage({ params }: { params: Params }) {
           </div>
         </section>
 
+        <nav className="project-tabs" aria-label="Bagian detail project">
+          {PROJECT_TABS.map((tab) => {
+            const href =
+              tab.id === "tentang"
+                ? `/projects/${project.slug}`
+                : `/projects/${project.slug}?tab=${tab.id}`;
+
+            return (
+              <Link
+                key={tab.id}
+                href={href}
+                className={activeTab === tab.id ? "is-active" : undefined}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <div className="project-body">
           <div className="project-main">
-            <section className="brief" aria-labelledby="brief-heading">
-              <h2 id="brief-heading">Tentang project ini</h2>
-              <article>
-                <h3>Masalah yang ingin dibereskan</h3>
-                <p>{project.problem}</p>
-              </article>
-              <article>
-                <h3>Yang sedang dibuat</h3>
-                <p>{project.solution}</p>
-              </article>
-              <article>
-                <h3>Untuk siapa</h3>
-                <p>{project.audience}</p>
-              </article>
-            </section>
+            {activeTab === "tentang" ? (
+              <section className="brief" aria-labelledby="brief-heading">
+                <h2 id="brief-heading">Tentang project ini</h2>
+                <article>
+                  <h3>Masalah yang ingin dibereskan</h3>
+                  <p>{project.problem}</p>
+                </article>
+                <article>
+                  <h3>Yang sedang dibuat</h3>
+                  <p>{project.solution}</p>
+                </article>
+                <article>
+                  <h3>Untuk siapa</h3>
+                  <p>{project.audience}</p>
+                </article>
+              </section>
+            ) : null}
 
             {/* Right under the story, because "what are they doing about it"
                 is the next question anybody has — and the answer is what makes
                 the project look alive rather than parked. */}
-            <section className="now-card" aria-labelledby="now-heading">
+            {activeTab === "tentang" ? (
+              <section className="now-card" aria-labelledby="now-heading">
               <h2 id="now-heading">Sedang dikerjakan</h2>
 
               {project.nowText ? (
@@ -280,11 +329,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   </form>
                 </details>
               ) : null}
-            </section>
+              </section>
+            ) : null}
 
             {/* The invitation comes after somebody has had a chance to
                 understand the project, never before it. */}
-            {(open.length > 0 || isManager) && (
+            {activeTab === "kolaborasi" && (open.length > 0 || isManager) && (
               <section className="help" aria-labelledby="help-heading">
                 <h2 id="help-heading">Mau ikut bantu?</h2>
 
@@ -409,7 +459,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
               </section>
             )}
 
-            <section className="journey-section" aria-labelledby="journey-heading">
+            {activeTab === "perjalanan" ? (
+              <section className="journey-section" aria-labelledby="journey-heading">
               <h2 id="journey-heading">Perjalanan project</h2>
               <p className="muted">Ditulis orang yang mengerjakannya, dari yang terbaru.</p>
 
@@ -457,9 +508,11 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   </form>
                 </details>
               ) : null}
-            </section>
+              </section>
+            ) : null}
 
-            <section className="team" aria-labelledby="team-heading">
+            {activeTab === "kolaborasi" ? (
+              <section className="team" aria-labelledby="team-heading">
               <h2 id="team-heading">Orang di balik project</h2>
 
               <ul className="member-list">
@@ -519,11 +572,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   ))}
                 </details>
               ) : null}
-            </section>
+              </section>
+            ) : null}
 
             {/* The task list is for the people already on it, so it sits below
                 everything a visitor came for. */}
-            {(project.tasks.length > 0 || isManager) && (
+            {activeTab === "tugas" && (
               <section className="tasks" aria-labelledby="tasks-heading">
                 <h2 id="tasks-heading">
                   Tugas
@@ -651,7 +705,8 @@ export default async function ProjectPage({ params }: { params: Params }) {
               </section>
             )}
 
-            <section className="discussion" aria-labelledby="discussion-heading">
+            {activeTab === "diskusi" ? (
+              <section className="discussion" aria-labelledby="discussion-heading">
               <h2 id="discussion-heading">Diskusi ({project.comments.length})</h2>
 
               {viewer ? (
@@ -691,9 +746,10 @@ export default async function ProjectPage({ params }: { params: Params }) {
                   ))}
                 </ul>
               )}
-            </section>
+              </section>
+            ) : null}
 
-            {history.length > 0 ? (
+            {activeTab === "perjalanan" && history.length > 0 ? (
               <section className="history" aria-labelledby="history-heading">
                 <h2 id="history-heading">Tercatat sistem</h2>
                 <p className="muted">
