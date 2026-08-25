@@ -2224,10 +2224,11 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: var(--ink); border-color: var(--ink); color: #fff;
 }
 .collaboration-search-mode input:focus-visible + span { outline: 2px solid var(--coral); outline-offset: 2px; }
+.explore-query-wrap { min-width: 0; position: relative; }
 .collaboration-search-field {
   align-items: center; background: #fff; border: 1px solid #d8e0dc; border-radius: 11px;
   box-shadow: 0 8px 20px rgba(24, 61, 52, .035); display: flex; gap: 12px; height: 55px;
-  min-width: 0; padding: 0 16px;
+  min-width: 0; padding: 0 16px; width: 100%;
 }
 .collaboration-search-field:focus-within {
   border-color: var(--ink); box-shadow: 0 0 0 3px rgba(24, 61, 52, .07);
@@ -2237,6 +2238,26 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   outline: 0; padding: 0; width: 100%;
 }
 .collaboration-search-field input::placeholder { color: #96a29d; }
+.explore-role-suggestions {
+  background: #fff; border: 1px solid #d7e0db; border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(18, 52, 43, .14); left: 0; overflow: hidden;
+  padding: 6px; position: absolute; right: 0; top: calc(100% + 7px); z-index: 30;
+}
+.explore-role-suggestions > button,
+.searchable-filter-options > button {
+  align-items: center; background: transparent; border: 0; border-radius: 8px; color: #28483e;
+  display: flex; justify-content: space-between; padding: 10px 11px; text-align: left; width: 100%;
+}
+.explore-role-suggestions > button:hover,
+.explore-role-suggestions > button.is-active,
+.searchable-filter-options > button:hover,
+.searchable-filter-options > button.is-active { background: #eef4f0; }
+.explore-role-suggestions > button span,
+.searchable-filter-options > button span { font-size: 12px; font-weight: 680; }
+.explore-role-suggestions > button small,
+.searchable-filter-options > button small { color: #788780; font-size: 10px; }
+.explore-role-suggestions > p,
+.searchable-filter-options > p { color: #77867f; font-size: 11px; margin: 0; padding: 12px; }
 .collaboration-search > button {
   background: var(--ink); border: 0; border-radius: 11px; color: #fff; cursor: pointer;
   font: inherit; font-size: 13px; font-weight: 750; min-width: 84px; padding: 0 18px;
@@ -2258,7 +2279,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 .collaboration-filter-panel[open] .collaboration-filter-summary i { margin-top: 3px; transform: rotate(225deg); }
 .collaboration-filter-controls {
-  display: grid; gap: 13px; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 14px;
+  display: grid; gap: 13px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 14px;
 }
 .collaboration-control { min-width: 0; }
 .collaboration-control > span {
@@ -2267,6 +2288,28 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .collaboration-control .sort-field, .collaboration-control .sort-field select { height: 44px; width: 100%; }
 .collaboration-control .sort-field select {
   background-color: #f8faf8; border-color: #d5ded9; font-size: 12px; margin: 0; min-width: 0; padding-right: 35px;
+}
+.searchable-filter {
+  align-items: center; background: #f8faf8; border: 1px solid #d5ded9; border-radius: 9px;
+  display: flex; height: 44px; min-width: 0; padding: 0 10px; position: relative;
+}
+.searchable-filter:focus-within { background: #fff; border-color: var(--ink); }
+.searchable-filter > svg { color: #72827b; flex: none; height: 16px; width: 16px; }
+.searchable-filter > input[type="search"] {
+  background: transparent; border: 0; font-size: 12px; margin: 0; min-width: 0; outline: 0;
+  padding: 0 8px; width: 100%;
+}
+.searchable-filter > input::placeholder { color: #8c9994; }
+.searchable-filter > input[type="search"]::-webkit-search-cancel-button { appearance: none; }
+.searchable-filter-clear {
+  align-items: center; background: #edf2ef; border: 0; border-radius: 50%; color: #61726a;
+  display: flex; flex: none; font-size: 15px; height: 22px; justify-content: center;
+  line-height: 1; padding: 0 0 2px; width: 22px;
+}
+.searchable-filter-options {
+  background: #fff; border: 1px solid #d7e0db; border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(18, 52, 43, .14); left: 0; min-width: 220px;
+  overflow: hidden; padding: 5px; position: absolute; right: 0; top: calc(100% + 6px); z-index: 25;
 }
 .collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 44px; }
 .collaboration-content { margin-top: 34px; }
@@ -2297,7 +2340,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-sidebar { display: grid; grid-template-columns: 1fr 1fr; position: static; }
   .quality-note { grid-column: 1 / -1; }
   .collaboration-hero { align-items: flex-start; flex-direction: column; }
-  .collaboration-filter-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .collaboration-filter-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-hero { grid-template-columns: 1fr; min-height: 0; padding-bottom: 82px; padding-top: 62px; }
   .landing-hero-copy { max-width: 720px; }
   .collaboration-example { max-width: 620px; width: 100%; }
@@ -2360,13 +2403,15 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .collaboration-search-field { box-shadow: none; gap: 10px; height: 48px; padding: 0 13px; }
   .collaboration-search-field svg { height: 17px; width: 17px; }
   .collaboration-search-field input[type="search"] { font-size: 12px; }
+  .explore-role-suggestions { left: -1px; right: -1px; }
   .collaboration-search > button { min-width: 66px; padding: 0 14px; }
   .collaboration-filter-controls {
     display: grid; gap: 12px 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px;
   }
   .collaboration-control > span { margin-bottom: 5px; }
   .collaboration-control .sort-field, .collaboration-control .sort-field select,
-  .collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 42px; }
+  .collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select,
+  .searchable-filter { height: 42px; }
   .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
   .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }

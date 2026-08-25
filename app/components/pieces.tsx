@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { normaliseRole, roleLabel } from "../lib/roles";
+import { roleLabel } from "../lib/roles";
 import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
 import { activityParts } from "../lib/activity";
@@ -278,7 +278,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/kolaborasi?role=${encodeURIComponent(role)}`}>
+              <Link className="seat-chip" href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
                 {label}
               </Link>
             ) : (
@@ -375,7 +375,7 @@ export function BoardCard({
               <ul className="home-role-chips" aria-label="Posisi yang sedang dibuka">
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
-                    <Link href={`/kolaborasi?role=${encodeURIComponent(normaliseRole(role) ?? role)}`}>
+                    <Link href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
                       {roleLabel(role)} · {count}
                     </Link>
                   </li>
