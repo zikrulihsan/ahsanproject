@@ -179,7 +179,7 @@ test("halaman detail memakai favicon yang sama sebagai logo project", async () =
 test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () => {
   const page = await html("/");
   assert.match(page, /<title>Ahsan Project — Bagikan dan Temukan Project untuk Berkolaborasi<\/title>/i);
-  assert.match(page, /buat project · temukan kolaborator/i);
+  assert.match(page, /Wadah Kolaborasi Lintas Peran/i);
   assert.match(page, /Bagikan dan Temukan Project untuk Berkolaborasi/);
   assert.match(page, /Rumah untuk menunjukkan project, menemukan teman kolaborasi, dan membangun portfolio beneran/);
   assert.match(page, /Tambah Project/);
@@ -191,8 +191,13 @@ test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () =>
   assert.match(page, /Project, orang, dan posisi kolaborasi/);
   assert.match(page, /Yang ada di AhsanProject/);
   assert.match(page, /project sudah dibagikan/);
-  assert.match(page, /Buat project, cari kolaborator, dan tunjukkan hasil kerja/);
-  assert.match(page, /Jadikan kontribusi sebagai portfolio/);
+  assert.match(page, /Satu Platform, Tiga Tujuan/);
+  assert.match(page, /Tunjukkan Projectmu/);
+  assert.match(page, /href="\/new">Tambah project/);
+  assert.match(page, /Temukan Tempat Kontribusi/);
+  assert.match(page, /href="\/kolaborasi">Lihat peluang kontribusi/);
+  assert.match(page, /Buka Peluang Kolaborasi/);
+  assert.match(page, /href="\/new">Buka kebutuhan kolaborasi/);
   assert.match(page, /Cari orang dari pekerjaan yang sudah mereka lakukan/);
   assert.match(page, /cara kerjanya/i);
   assert.match(page, /Buka posisi/);
