@@ -11,11 +11,16 @@ import { safeNextPath } from "../../lib/urls";
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+  const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = safeNextPath(searchParams.get("next"));
 
-  if (!tokenHash || !type) {
+  // Supabase's default email template first verifies the `pkce_…` token on
+  // its own server, then redirects here with an authorization code. A custom
+  // SSR template can instead send token_hash + type straight here. Support
+  // both so changing an email template cannot strand an otherwise valid link.
+  if (!code && (!tokenHash || !type)) {
     return NextResponse.redirect(new URL("/signin?error=tautan-tidak-lengkap", request.url));
   }
 
@@ -24,7 +29,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/signin", request.url));
   }
 
-  const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+  const { error } = code
+    ? await supabase.auth.exchangeCodeForSession(code)
+    : await supabase.auth.verifyOtp({ type: type!, token_hash: tokenHash! });
   if (error) {
     return NextResponse.redirect(new URL("/signin?error=tautan-kedaluwarsa", request.url));
   }

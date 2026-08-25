@@ -62,8 +62,10 @@ and everything that writes will say so rather than failing quietly.
    account.
 
 Email confirmation is on by default in Supabase. The link it sends lands on
-`/auth/confirm`, which exchanges the token for a session. If you turn
-confirmation off, sign-up signs people straight in instead.
+`/auth/confirm`, which exchanges the PKCE authorization code for a session.
+The callback also accepts `token_hash` and `type` from a custom SSR email
+template. If you turn confirmation off, sign-up signs people straight in
+instead.
 
 ## How the site is put together
 
