@@ -62,6 +62,10 @@ async function html(path) {
   return response.text();
 }
 
+function siteHeaders(page) {
+  return [...page.matchAll(/<header class="site-header".*?<\/header>/gs)].map(([header]) => header);
+}
+
 /**
  * Just the card grid.
  *
@@ -90,6 +94,19 @@ const SEEDED = [
   "Warung Antre",
   "Titip Jemput",
 ];
+
+test("header guest dan loading memakai Home serta menu mobile terstruktur", async () => {
+  const headers = siteHeaders(await html("/"));
+  assert.ok(headers.length > 0, "setidaknya satu header harus dirender");
+
+  for (const header of headers) {
+    assert.match(header, />Home<\/a>/);
+    assert.doesNotMatch(header, />Beranda<\/a>/);
+    assert.match(header, /class="mobile-nav-primary"/);
+    assert.match(header, /class="mobile-project-action"[^>]*href="\/new"/);
+    assert.match(header, />Masuk<\/span>/);
+  }
+});
 
 test("papan menampilkan semua proyek bawaan", async () => {
   const page = await html("/kolaborasi");
