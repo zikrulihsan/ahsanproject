@@ -661,18 +661,24 @@ a.seat-chip:hover { border-color: var(--ink); }
 .project-links a:hover { border-color: var(--ink); }
 
 .project-tabs {
-  background: #fff; border: 1px solid var(--line); border-radius: 14px; display: flex; gap: 4px;
-  margin-top: 22px; overflow-x: auto; padding: 5px; scrollbar-width: none;
+  border-bottom: 1px solid var(--line-2); display: flex; gap: clamp(24px, 3vw, 44px);
+  margin-top: 18px; overflow-x: auto; padding: 0 28px; scrollbar-width: none;
 }
 .project-tabs::-webkit-scrollbar { display: none; }
 .project-tabs button {
-  appearance: none; background: transparent; border: 0; border-radius: 10px; color: var(--muted);
-  cursor: pointer; flex: 0 0 auto; font-family: inherit; font-size: 13px; font-weight: 650;
-  padding: 10px 16px; transition: background-color .12s ease, color .12s ease; white-space: nowrap;
+  appearance: none; background: transparent; border: 0; color: var(--muted); cursor: pointer;
+  flex: 0 0 auto; font-family: inherit; font-size: 13.5px; font-weight: 620; padding: 16px 0 14px;
+  position: relative; transition: color .12s ease; white-space: nowrap;
 }
-.project-tabs button:hover { background: var(--paper); color: var(--ink); }
-.project-tabs button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
-.project-tabs button.is-active { background: var(--ink); color: var(--paper); }
+.project-tabs button::after {
+  background: var(--ink); border-radius: 99px 99px 0 0; bottom: -1px; content: ""; height: 3px;
+  left: 0; opacity: 0; position: absolute; transform: scaleX(.35); transition: opacity .12s ease, transform .12s ease;
+  width: 100%;
+}
+.project-tabs button:hover { color: var(--ink-soft); }
+.project-tabs button:focus-visible { border-radius: 4px; outline: 2px solid var(--moss); outline-offset: 4px; }
+.project-tabs button.is-active { color: var(--ink); font-weight: 720; }
+.project-tabs button.is-active::after { opacity: 1; transform: scaleX(1); }
 
 .project-body { display: grid; gap: 24px; grid-template-columns: 1.6fr .8fr; margin-top: 16px; }
 .project-main, .project-side { min-width: 0; }
