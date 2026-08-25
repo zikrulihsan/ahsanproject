@@ -2126,14 +2126,32 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: #fff; border: 1px solid #dbe2de; border-radius: 17px;
   box-shadow: 0 13px 36px rgba(19, 54, 44, .055); padding: 18px;
 }
-.collaboration-toolbar { align-items: end; display: grid; gap: 13px; grid-template-columns: minmax(0, 1fr) 220px; }
-.collaboration-search { display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) auto; }
+.collaboration-search {
+  display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) auto;
+}
 .collaboration-search > button {
   background: var(--ink); border: 0; border-radius: 11px; color: #fff; cursor: pointer;
   font: inherit; font-size: 13px; font-weight: 750; min-width: 84px; padding: 0 18px;
 }
 .collaboration-search > button:hover { background: #245e4e; }
-.collaboration-filter-grid { display: grid; gap: 13px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 17px; }
+.collaboration-filter-panel { display: block; margin-top: 10px; }
+.collaboration-filter-summary {
+  align-items: center; background: #f4f7f5; border-radius: 11px; color: #27483e;
+  cursor: pointer; display: flex; font-size: 12px; font-weight: 720; justify-content: space-between;
+  list-style: none; min-height: 44px; padding: 10px 13px;
+}
+.collaboration-filter-summary::-webkit-details-marker { display: none; }
+.collaboration-filter-summary > span { align-items: center; display: flex; gap: 8px; }
+.collaboration-filter-summary > span:last-child { color: #718079; font-size: 10px; font-weight: 620; }
+.collaboration-filter-summary svg { height: 17px; width: 17px; }
+.collaboration-filter-summary i {
+  border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor;
+  display: block; height: 7px; margin: -3px 2px 0 3px; transform: rotate(45deg); width: 7px;
+}
+.collaboration-filter-panel[open] .collaboration-filter-summary i { margin-top: 3px; transform: rotate(225deg); }
+.collaboration-filter-controls {
+  display: grid; gap: 13px; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 14px;
+}
 .collaboration-control { min-width: 0; }
 .collaboration-control > span {
   color: #687871; display: block; font-size: 10px; font-weight: 720; margin: 0 0 7px 2px;
@@ -2142,8 +2160,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .collaboration-control .sort-field select {
   background-color: #f8faf8; border-color: #d5ded9; font-size: 12px; margin: 0; min-width: 0; padding-right: 35px;
 }
-.collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 55px; }
-.collaboration-sort-control > span { margin-bottom: 7px; }
+.collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 44px; }
 .collaboration-content { margin-top: 34px; }
 .collaboration-list-head { min-height: 61px; }
 
@@ -2153,7 +2170,6 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .home-projects .board-grid, .home-project-loading-grid { grid-template-columns: minmax(0, 1fr); }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
-  .collaboration-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-hero { gap: 45px; grid-template-columns: minmax(0, 1fr) 340px; padding-left: 34px; padding-right: 34px; }
   .landing-purpose, .how-it-works { padding-left: 34px; padding-right: 34px; }
   .landing-stats, .talent-story, .landing-final-cta { margin-left: 34px; margin-right: 34px; }
@@ -2173,7 +2189,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-sidebar { display: grid; grid-template-columns: 1fr 1fr; position: static; }
   .quality-note { grid-column: 1 / -1; }
   .collaboration-hero { align-items: flex-start; flex-direction: column; }
-  .collaboration-toolbar { grid-template-columns: minmax(0, 1fr) 200px; }
+  .collaboration-filter-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .landing-hero { grid-template-columns: 1fr; min-height: 0; padding-bottom: 82px; padding-top: 62px; }
   .landing-hero-copy { max-width: 720px; }
   .collaboration-example { max-width: 620px; width: 100%; }
@@ -2225,10 +2241,18 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-sidebar { display: flex; }
   .collaboration-hero { gap: 22px; padding: 31px 0 24px; }
   .collaboration-hero h1 { font-size: clamp(36px, 11vw, 46px); }
-  .collaboration-panel { padding: 14px; }
-  .collaboration-toolbar, .collaboration-filter-grid { grid-template-columns: 1fr; }
+  .collaboration-panel { display: block; padding: 12px; }
   .collaboration-search { grid-template-columns: minmax(0, 1fr) auto; }
-  .collaboration-sort-control { margin-top: 3px; }
+  .collaboration-search label { box-shadow: none; height: 48px; padding: 0 13px; }
+  .collaboration-search > button { min-width: 66px; padding: 0 14px; }
+  .collaboration-filter-controls {
+    display: grid; gap: 12px 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px;
+  }
+  .collaboration-control > span { margin-bottom: 5px; }
+  .collaboration-control .sort-field, .collaboration-control .sort-field select,
+  .collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 42px; }
+  .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
+  .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }
   .landing-hero { gap: 42px; padding: 46px 20px 70px; }
   .landing-hero::before { display: none; }

@@ -16,9 +16,7 @@ export default function Loading() {
         </section>
         <section className="collaboration-panel">
           <Skeleton height={55} />
-          <div className="collaboration-filter-grid">
-            {[0, 1, 2, 3].map((slot) => <Skeleton key={slot} height={74} />)}
-          </div>
+          <Skeleton height={44} style={{ marginTop: 10 }} />
         </section>
         <div className="discovery-content collaboration-content">
           <section>

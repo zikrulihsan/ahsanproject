@@ -93,7 +93,7 @@ const SEEDED = [
 
 test("papan menampilkan semua proyek bawaan", async () => {
   const page = await html("/kolaborasi");
-  assert.match(page, /<title>Cari Kolaborasi — Ahsan Project<\/title>/i);
+  assert.match(page, /<title>Explore — Ahsan Project<\/title>/i);
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
@@ -212,9 +212,9 @@ test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () =>
   );
 });
 
-test("menu cari kolaborasi menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
+test("menu explore menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
   const page = await html("/kolaborasi");
-  assert.match(page, /<h1 id="collaboration-title">Cari project kolaborasi<\/h1>/);
+  assert.match(page, /<h1 id="collaboration-title">Explore<\/h1>/);
   assert.match(page, /Cari project, program, atau kata kunci/);
   assert.match(page, /Semua kategori/);
   assert.match(page, /Level project/);
