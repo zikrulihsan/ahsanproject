@@ -220,7 +220,7 @@ export default async function Home() {
         <section className="landing-purpose" aria-labelledby="purpose-title">
           <div className="landing-section-intro">
             <p className="home-eyebrow">yang bisa kamu lakukan</p>
-            <h2 id="purpose-title">Buat project, cari kolaborator, dan tunjukkan hasil kerja.</h2>
+            <h2 id="purpose-title">Satu Platform, Tiga Tujuan</h2>
             <p>
               Project dan orang saling terhubung. Kamu bisa melihat siapa membuat project dan siapa
               yang ikut mengerjakannya.
@@ -229,33 +229,36 @@ export default async function Home() {
 
           <div className="purpose-grid">
             <article className="purpose-card purpose-project">
-              <LandingIcon kind="project" />
-              <p className="purpose-number">01 · BAGIKAN PROJECT</p>
-              <h3>Tambah project yang sedang kamu kerjakan.</h3>
+              <LandingIcon kind="showcase" />
+              <p className="purpose-number">PROJECT SHOWCASE</p>
+              <h3>Tunjukkan Projectmu</h3>
               <p>
-                Tulis tujuan project, progres saat ini, dan bantuan yang sedang dibutuhkan.
+                Bagikan project yang sedang kamu bangun, ceritakan progresnya, dan tunjukkan hasil
+                kerjamu.
               </p>
-              <Link href="/kolaborasi">Lihat semua project <Arrow /></Link>
+              <Link href="/new">Tambah project <Arrow /></Link>
             </article>
 
             <article className="purpose-card purpose-portfolio">
-              <LandingIcon kind="portfolio" />
-              <p className="purpose-number">02 · BUAT PORTFOLIO</p>
-              <h3>Jadikan kontribusi sebagai portfolio.</h3>
+              <LandingIcon kind="contribution" />
+              <p className="purpose-number">OPEN CONTRIBUTION</p>
+              <h3>Temukan Tempat Kontribusi</h3>
               <p>
-                Project, peran, dan tugas yang kamu kerjakan muncul di profil sebagai bukti kerja.
+                Jelajahi project yang terbuka, temukan peran yang sesuai, lalu ajukan diri untuk
+                ikut berkontribusi.
               </p>
-              <Link href="/orang">Lihat contoh profil <Arrow /></Link>
+              <Link href="/kolaborasi">Lihat peluang kontribusi <Arrow /></Link>
             </article>
 
             <article className="purpose-card purpose-talent">
-              <LandingIcon kind="people" />
-              <p className="purpose-number">03 · CARI ORANG</p>
-              <h3>Cari orang untuk diajak kerja bareng.</h3>
+              <LandingIcon kind="invite" />
+              <p className="purpose-number">OPEN COLLABORATION</p>
+              <h3>Buka Peluang Kolaborasi</h3>
               <p>
-                Cari berdasarkan profesi, skill, pengalaman, serta project yang dibuat dan dibantu.
+                Jelaskan bantuan yang dibutuhkan di projectmu, buka peran yang tersedia, dan ajak
+                orang untuk ikut berkontribusi.
               </p>
-              <Link href="/orang">Cari orang <Arrow /></Link>
+              <Link href="/new">Buka kebutuhan kolaborasi <Arrow /></Link>
             </article>
           </div>
         </section>
@@ -309,6 +312,64 @@ export default async function Home() {
               </div>
             )}
           </div>
+        </section>
+
+        <section className="portfolio-story" aria-labelledby="portfolio-story-title">
+          <div className="portfolio-story-copy">
+            <p className="home-eyebrow">portfolio aktif</p>
+            <h2 id="portfolio-story-title">Profilmu adalah portfolio yang terus tumbuh.</h2>
+            <p>
+              Setiap project yang kamu buat, peran yang kamu ambil, dan kontribusi yang kamu
+              selesaikan otomatis membentuk rekam jejak kerja di satu halaman.
+            </p>
+            <ul>
+              <li><span>01</span> Tampilkan project yang sedang dan pernah kamu bangun</li>
+              <li><span>02</span> Buktikan skill dan peran lewat pekerjaan nyata</li>
+              <li><span>03</span> Bagikan satu tautan sebagai portfolio personalmu</li>
+            </ul>
+            <a className="portfolio-story-link" href="https://ahsanproject.id/u/zikrul-ihsan">
+              Lihat contoh portfolio <Arrow />
+            </a>
+          </div>
+
+          <a
+            className="portfolio-preview"
+            href="https://ahsanproject.id/u/zikrul-ihsan"
+            aria-label="Lihat portfolio Zikrul Ihsan"
+          >
+            <div className="portfolio-preview-label">
+              <span>PORTOFOLIO PERSONAL</span>
+              <i><b /> Portfolio aktif</i>
+            </div>
+            <div className="portfolio-preview-person">
+              <span className="portfolio-preview-avatar" aria-hidden="true">ZI</span>
+              <div>
+                <h3>Zikrul Ihsan</h3>
+                <p>Software Engineer · Community Builder</p>
+              </div>
+            </div>
+            <p className="portfolio-preview-bio">
+              Membangun produk digital, komunitas, dan project yang bisa dipakai banyak orang.
+            </p>
+            <ul className="portfolio-preview-skills" aria-label="Skill Zikrul Ihsan">
+              <li>5 th pengalaman</li>
+              <li>Python</li>
+              <li>AI Engineering</li>
+            </ul>
+            <div className="portfolio-preview-proof">
+              <div>
+                <strong>6</strong>
+                <span>project dibangun</span>
+              </div>
+              <div>
+                <span>Beberapa project</span>
+                <p>Swegrowth · Main Aman · CariKontak</p>
+              </div>
+            </div>
+            <span className="portfolio-preview-url">
+              ahsanproject.id/u/zikrul-ihsan <Arrow diagonal />
+            </span>
+          </a>
         </section>
 
         <section className="how-it-works" aria-labelledby="how-title">
@@ -377,28 +438,29 @@ function rankTopics(projects: Awaited<ReturnType<typeof listProjects>>): { tag: 
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "id"));
 }
 
-function LandingIcon({ kind }: { kind: "project" | "portfolio" | "people" }) {
-  if (kind === "project") {
+function LandingIcon({ kind }: { kind: "showcase" | "contribution" | "invite" }) {
+  if (kind === "showcase") {
     return (
       <svg className="landing-purpose-icon" viewBox="0 0 40 40" aria-hidden="true">
-        <path d="M8 11.5h9l2.5 3H32v17H8z" />
-        <path d="M13 23h14M20 18v10" />
+        <rect x="7.5" y="9" width="25" height="22" rx="2.5" />
+        <path d="M7.5 15h25M12 12h.01M16 12h.01" />
+        <circle cx="15" cy="21" r="2.5" />
+        <path d="m11 28 6-5 4 3.5 3-3 5 4.5" />
       </svg>
     );
   }
-  if (kind === "portfolio") {
+  if (kind === "contribution") {
     return (
       <svg className="landing-purpose-icon" viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="9" y="7" width="22" height="26" rx="2" />
-        <path d="M15 14h10M15 20h10M15 26h6" />
+        <circle cx="17" cy="17" r="8.5" />
+        <path d="m23.5 23.5 8 8M17 12.5v9M12.5 17h9" />
       </svg>
     );
   }
   return (
     <svg className="landing-purpose-icon" viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="16" cy="16" r="5" />
-      <circle cx="27" cy="18" r="3.5" />
-      <path d="M7.5 31c.7-5.4 3.5-8 8.5-8s7.8 2.6 8.5 8M24 24.5c4.8-.5 7.5 1.7 8 6.5" />
+      <circle cx="14.5" cy="15" r="4.5" />
+      <path d="M6.5 30c.8-5.5 3.4-8 8-8s7.2 2.5 8 8M28 12.5v11M22.5 18h11" />
     </svg>
   );
 }
