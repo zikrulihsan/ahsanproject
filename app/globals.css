@@ -1414,6 +1414,9 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; }
+  .landing-hero-copy > *, .collaboration-example-note, .collaboration-example {
+    animation: none !important;
+  }
   *, *::before, *::after { transition-duration: .01ms !important; }
 }
 
@@ -1608,6 +1611,23 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .contributor-pulse strong, .contributor-pulse small { display: block; white-space: nowrap; }
 .contributor-pulse strong { color: #21332d; font-size: 13px; }
 .contributor-pulse small { color: #7b8883; font-size: 11px; margin-top: 3px; }
+
+/* Pace the landing hero so its message, proof, handwritten cue, and example
+   card arrive in a readable order instead of competing for attention. */
+@keyframes home-reveal {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.landing-hero-copy > *, .collaboration-example-note, .collaboration-example {
+  animation: home-reveal .62s cubic-bezier(.2,.75,.25,1) both;
+}
+.landing-hero-copy > :nth-child(1) { animation-delay: .04s; }
+.landing-hero-copy > :nth-child(2) { animation-delay: .11s; }
+.landing-hero-copy > :nth-child(3) { animation-delay: .18s; }
+.landing-hero-copy > :nth-child(4) { animation-delay: .25s; }
+.landing-hero-copy > :nth-child(5) { animation-delay: .32s; }
+.collaboration-example-note { animation-delay: .4s; }
+.collaboration-example { animation-delay: .5s; }
 
 .discovery-controls { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) 180px; }
 .discovery-search { display: flex; margin: 0; }
@@ -1824,9 +1844,22 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .landing-community-proof p { color: #75857e; font-size: 12px; line-height: 1.5; margin: 0; }
 .landing-community-proof strong { color: #254b40; }
 
+.collaboration-example-wrap { min-width: 0; }
+.collaboration-example-note {
+  align-items: center; display: flex; gap: 4px; margin: 0 auto 10px; width: fit-content;
+}
+.collaboration-example-note > span {
+  color: #66766f; font-family: Georgia, "Times New Roman", serif; font-size: 15px;
+  font-style: italic; transform: rotate(-2deg);
+}
+.collaboration-example-note svg {
+  fill: none; height: 32px; overflow: visible; stroke: #e16e50; stroke-linecap: round;
+  stroke-linejoin: round; stroke-width: 1.8; width: 41px;
+}
 .collaboration-example {
   background: #fff; border: 1px solid #d8e2dd; border-radius: 24px;
   box-shadow: 0 28px 65px rgba(19, 55, 45, .14); min-width: 0; padding: 24px;
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.2,.8,.2,1);
 }
 .collaboration-example-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
 .collaboration-example-head > span {
@@ -1844,6 +1877,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 .home-project-logo.collaboration-example-logo,
 .home-project-logo.collaboration-example-logo img { border-radius: 12px; height: 58px; width: 58px; }
+.home-project-logo.collaboration-example-logo { transition: transform .28s cubic-bezier(.2,.8,.2,1); }
 .collaboration-example-project > div > span {
   color: #c1664e; display: block; font-family: var(--font-geist-mono), monospace; font-size: 8px;
   font-weight: 760; letter-spacing: .08em; margin-bottom: 5px; text-transform: uppercase;
@@ -1887,6 +1921,16 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .collaboration-example-empty > span { color: var(--coral); font-size: 10px; font-weight: 760; text-transform: uppercase; }
 .collaboration-example-empty h2 { font-size: 28px; letter-spacing: -.05em; margin: 18px 0 24px; }
 .collaboration-example-empty > a { font-size: 11px; font-weight: 750; }
+
+@media (hover: hover) {
+  .collaboration-example:hover {
+    border-color: #9db5aa; box-shadow: 0 34px 76px rgba(19, 55, 45, .19); transform: translateY(-7px);
+  }
+  .collaboration-example:hover .collaboration-example-logo { transform: rotate(-5deg) scale(1.06); }
+}
+.collaboration-example:focus-within {
+  border-color: #9db5aa; box-shadow: 0 31px 70px rgba(19, 55, 45, .17); transform: translateY(-4px);
+}
 
 .landing-stats {
   background: #edf3ef; border: 1px solid #dce6e0; border-radius: 30px; margin: 24px auto 0;

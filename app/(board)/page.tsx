@@ -81,8 +81,14 @@ export default async function Home() {
           </div>
 
           {featuredProject ? (
-            <div>
-              <p className="">ini contohnya 👇🏻</p>
+            <div className="collaboration-example-wrap">
+              <div className="collaboration-example-note">
+                <span>Ini contohnya</span>
+                <svg viewBox="0 0 52 42" aria-hidden="true">
+                  <path d="M8 4c1 16 12 25 32 27" />
+                  <path d="m32 24 9 7-10 5" />
+                </svg>
+              </div>
               <aside className="collaboration-example" aria-label={`Contoh project kolaborasi: ${featuredProject.title}`}>
                 <div className="collaboration-example-head">
                   <span>Contoh project kolaborasi</span>
@@ -153,7 +159,7 @@ export default async function Home() {
           <div className="landing-stats-heading">
             <div>
               <p className="home-eyebrow">statistik ahsanproject</p>
-              <h2 id="landing-stats-title">Project, orang, dan posisi kolaborasi.</h2>
+              <h2 id="landing-stats-title">Project, orang, dan kolaborasi dalam angka</h2>
             </div>
             <p>Data ini diperbarui dari project dan profil yang ada di AhsanProject.</p>
           </div>
@@ -265,10 +271,10 @@ export default async function Home() {
 
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
-            <p className="home-eyebrow">cari kolaborator</p>
-            <h2 id="talent-story-title">Cari orang dari pekerjaan yang sudah mereka lakukan.</h2>
+            <p className="home-eyebrow">Tidak hanya showcase project</p>
+            <h2 id="talent-story-title">Jadi Talent Pool Biar Terlihat Sama <span className="hero-highlight">Recruiter</span></h2>
             <p>
-              Buka profil seseorang untuk melihat project yang dibuat, kontribusi yang dikerjakan,
+              Setelah kontribusi, orang lain melihat project yang dibuat, kontribusi yang dikerjakan,
               dan skill yang dipakai.
             </p>
             <ul>
