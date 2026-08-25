@@ -27,6 +27,7 @@ const fullBrief = {
   docUrl: "",
   repoUrl: "",
   liveUrl: "",
+  logoUrl: "",
 };
 
 test("a complete brief passes", () => {
@@ -43,6 +44,8 @@ test("an empty project cannot be created", () => {
 test("links must be real http links", () => {
   assert.ok(validateBrief({ ...fullBrief, docUrl: "bukan-tautan" }).docUrl);
   assert.deepEqual(validateBrief({ ...fullBrief, docUrl: "https://ahsan.example/doc" }).docUrl, undefined);
+  assert.ok(validateBrief({ ...fullBrief, logoUrl: "data:image/png,x" }).logoUrl);
+  assert.ok(validateBrief({ ...fullBrief, logoUrl: `https://example.com/${"x".repeat(500)}` }).logoUrl);
 });
 
 test("tags are de-duplicated, lowercased and capped", () => {

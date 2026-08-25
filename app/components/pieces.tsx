@@ -175,7 +175,12 @@ export function ProjectCard({
   return (
     <article className={`profile-project-card${className ? ` ${className}` : ""}`}>
       <div className="profile-project-head">
-        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-logo" />
+        <ProjectLogo
+          title={project.title}
+          website={project.liveUrl}
+          logoUrl={project.logoUrl}
+          className="profile-project-logo"
+        />
         <div className="profile-project-heading">
           {categoryPosition === "top" ? <p className="project-kind">{category}</p> : null}
           <h3>
@@ -241,7 +246,12 @@ export function ProjectIconLink({ project }: { project: ProjectSummary }) {
   return (
     <li>
       <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
-        <ProjectLogo title={project.title} website={project.liveUrl} className="profile-project-icon" />
+        <ProjectLogo
+          title={project.title}
+          website={project.liveUrl}
+          logoUrl={project.logoUrl}
+          className="profile-project-icon"
+        />
       </Link>
     </li>
   );
@@ -345,7 +355,7 @@ export function BoardCard({
         <div className="home-project-copy">
           <div className="home-project-title-row">
             <div className="home-project-identity">
-              <ProjectLogo title={project.title} website={project.liveUrl} />
+              <ProjectLogo title={project.title} website={project.liveUrl} logoUrl={project.logoUrl} />
               <div className="home-project-heading">
                 <h3>
                   <Link className="card-cover-link" href={`/projects/${project.slug}`}>

@@ -75,6 +75,7 @@ export type SeedProject = {
   audience: string;
   docUrl: string;
   liveUrl: string;
+  logoUrl: string;
   repoUrl: string;
   tags: string[];
   glyph: string;
@@ -169,6 +170,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Siapa pun yang ingin memindahkan kebiasaan tap tap-nya ke hal yang lebih menenangkan.",
     docUrl: "",
     liveUrl: "https://dzikir-harian.netlify.app/",
+    logoUrl: "",
     repoUrl: "",
     tags: ["ibadah", "kebiasaan", "mobile"],
     glyph: "○○○",
@@ -214,6 +216,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Teman, keluarga, atau pasangan yang ingin ngobrol lebih dalam tanpa harus tahu cara memulainya.",
     docUrl: "",
     liveUrl: "https://wecard-app.netlify.app/",
+    logoUrl: "https://flipcard.id/favicon.ico",
     repoUrl: "",
     tags: ["obrolan", "relasi", "kartu"],
     glyph: "▱",
@@ -254,6 +257,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Warga yang ingin punya daftar nomor penting daerahnya di satu tempat.",
     docUrl: "",
     liveUrl: "https://carikontak.com/",
+    logoUrl: "",
     repoUrl: "",
     tags: ["warga", "direktori", "lokal"],
     glyph: "⌖",
@@ -284,6 +288,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Freelancer dan pemilik usaha kecil yang menagih beberapa kali sebulan.",
     docUrl: "",
     liveUrl: "https://umkmproject-invoice.netlify.app/",
+    logoUrl: "",
     repoUrl: "",
     tags: ["umkm", "keuangan", "tools"],
     glyph: "≡",
@@ -318,6 +323,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Anak usia sekolah dasar bersama orang tua atau gurunya.",
     docUrl: "",
     liveUrl: "https://mainaman.netlify.app/",
+    logoUrl: "",
     repoUrl: "",
     tags: ["anak", "edukasi", "keamanan"],
     glyph: "✦",
@@ -363,6 +369,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Software engineer Indonesia, terutama yang sedang di tahun-tahun awal.",
     docUrl: "",
     liveUrl: "https://swegrowth.id/",
+    logoUrl: "",
     repoUrl: "",
     tags: ["komunitas", "karier", "belajar"],
     glyph: "↗",
@@ -403,6 +410,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Warung, kedai kopi, dan gerai kecil yang ramai pada jam tertentu.",
     docUrl: "",
     liveUrl: "",
+    logoUrl: "",
     repoUrl: "",
     tags: ["umkm", "operasional", "ide"],
     glyph: "◔",
@@ -474,6 +482,7 @@ export const seedProjects: SeedProject[] = [
     audience: "Orang tua di satu kompleks atau perumahan dengan sekolah tujuan yang sama.",
     docUrl: "",
     liveUrl: "",
+    logoUrl: "",
     repoUrl: "",
     tags: ["keluarga", "komunitas", "ide"],
     glyph: "⌁",

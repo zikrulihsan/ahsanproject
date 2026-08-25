@@ -29,6 +29,7 @@ test("the overview view exposes every count a card needs", { skip }, async () =>
     for (const column of [
       "owner_username",
       "owner_name",
+      "logo_url",
       "seat_count",
       "open_seat_count",
       "open_roles",

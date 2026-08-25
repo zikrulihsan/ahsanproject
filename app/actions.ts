@@ -45,6 +45,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
+    logoUrl: text(formData, "logoUrl"),
     seatRole: text(formData, "seatRole"),
     seatRoleTitle: text(formData, "seatRoleTitle").slice(0, MAXIMUM.roleTitle),
     seatBrief: text(formData, "seatBrief"),
@@ -119,6 +120,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
+        logo_url: values.logoUrl,
         tags,
         glyph: pick(GLYPHS, values.tagline),
       })
@@ -164,6 +166,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
+    logoUrl: text(formData, "logoUrl"),
   };
 
   const viewer = await currentViewer();
@@ -209,6 +212,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
+        logo_url: values.logoUrl,
         tags,
         stage,
       })

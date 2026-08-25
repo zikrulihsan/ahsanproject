@@ -67,6 +67,8 @@ export type ProjectSummary = {
   docUrl: string;
   liveUrl: string;
   repoUrl: string;
+  /** Project-provided visual identity; favicon remains the fallback. */
+  logoUrl: string;
   createdAt: string;
   /** What the project is working on right now. Empty until somebody says. */
   nowText: string;
@@ -1042,6 +1044,7 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     docUrl: row.doc_url,
     liveUrl: row.live_url,
     repoUrl: row.repo_url,
+    logoUrl: row.logo_url ?? "",
     createdAt: row.created_at,
     nowText: row.now_text ?? "",
     nowUpdatedAt: row.now_updated_at ?? null,
@@ -1137,6 +1140,7 @@ function seedSummaries(): ProjectSummary[] {
       docUrl: project.docUrl,
       liveUrl: project.liveUrl,
       repoUrl: project.repoUrl,
+      logoUrl: project.logoUrl,
       createdAt: project.createdAt,
       owner: {
         id: project.ownerId,

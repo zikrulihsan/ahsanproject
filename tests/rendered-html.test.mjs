@@ -167,6 +167,12 @@ test("project yang punya website memakai favicon sebagai logo card", async () =>
   );
 });
 
+test("URL logo project dipakai sebelum favicon website", async () => {
+  const list = feedList(await html("/kolaborasi?q=wecard"));
+  assert.match(list, /src="https:\/\/flipcard\.id\/favicon\.ico"/);
+  assert.doesNotMatch(list, /domain_url=https%3A%2F%2Fwecard-app\.netlify\.app/);
+});
+
 test("halaman detail memakai favicon yang sama sebagai logo project", async () => {
   const page = await html("/projects/tap-tap-dzikr");
   assert.match(page, /class="home-project-logo hero-glyph level-live"/);
@@ -427,7 +433,7 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
   assert.match(page, /class="profile-contact-list"/);
-  assert.match(page, /Bagikan profil/);
+  assert.match(page, /aria-label="Bagikan profil"/);
   assert.match(page, /Projects:/);
   assert.match(page, /class="profile-project-icon-list"/);
   assert.match(page, /Ringkasan/);

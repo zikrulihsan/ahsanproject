@@ -30,6 +30,8 @@ export const MAXIMUM = {
   commitment: 80,
   /** seats.role_title — only used when the shared catalogue does not fit. */
   roleTitle: 80,
+  /** projects.logo_url — direct public image URL, not embedded data. */
+  logoUrl: 500,
 } as const;
 
 /** The raw form values, before tags are split into a list. */
@@ -43,6 +45,7 @@ export type BriefInput = {
   docUrl: string;
   repoUrl: string;
   liveUrl: string;
+  logoUrl: string;
 };
 
 export type FieldErrors = Partial<Record<keyof BriefInput, string>>;
@@ -75,10 +78,12 @@ export function validateBrief(input: BriefInput): FieldErrors {
     errors.tags = "Maksimal enam tag.";
   }
 
-  for (const field of ["docUrl", "repoUrl", "liveUrl"] as const) {
+  for (const field of ["docUrl", "repoUrl", "liveUrl", "logoUrl"] as const) {
     const value = input[field].trim();
     if (value && !isHttpUrl(value)) {
       errors[field] = "Tautan harus diawali http:// atau https://.";
+    } else if (field === "logoUrl" && value.length > MAXIMUM.logoUrl) {
+      errors[field] = `URL logo terlalu panjang — maksimal ${MAXIMUM.logoUrl} karakter.`;
     }
   }
 

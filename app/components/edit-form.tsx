@@ -18,6 +18,7 @@ export type EditableProject = {
   docUrl: string;
   repoUrl: string;
   liveUrl: string;
+  logoUrl: string;
 };
 
 export function EditForm({ project }: { project: EditableProject }) {
@@ -43,11 +44,22 @@ export function EditForm({ project }: { project: EditableProject }) {
       <Field
         label="Website project"
         name="liveUrl"
-        hint="Favicon website ini dipakai sebagai logo project. Kosongkan kalau projectmu belum punya website."
+        hint="Favicon website dipakai jika URL logo tidak diisi. Kosongkan kalau projectmu belum punya website."
         error={errors.liveUrl}
         defaultValue={values.liveUrl}
         type="url"
         placeholder="https://"
+      />
+
+      <Field
+        label="URL icon atau logo"
+        name="logoUrl"
+        hint="Opsional. Tautkan langsung ke PNG, SVG, WebP, atau ICO."
+        error={errors.logoUrl}
+        defaultValue={values.logoUrl}
+        maxLength={MAXIMUM.logoUrl}
+        type="url"
+        placeholder="https://contoh.id/logo.png"
       />
 
       <Field

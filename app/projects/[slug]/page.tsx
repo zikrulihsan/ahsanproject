@@ -162,6 +162,7 @@ export default async function ProjectPage({
                 fallback={project.glyph || initials(project.title)}
                 title={project.title}
                 website={project.liveUrl}
+                logoUrl={project.logoUrl}
               />
               <StageBadge stage={project.stage} />
             </div>
