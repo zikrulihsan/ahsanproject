@@ -2108,6 +2108,78 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .talent-preview-empty p { margin-bottom: 10px; }
 .talent-preview-empty a { color: var(--ink); font-weight: 750; }
 
+.portfolio-story {
+  align-items: center; background: #fcf4e7; border: 1px solid #eadfcf; border-radius: 28px; display: grid;
+  gap: clamp(48px, 7vw, 88px); grid-template-columns: minmax(0, .9fr) minmax(390px, 1.1fr);
+  margin: 88px auto 0; max-width: 1152px; overflow: hidden; padding: 70px 67px; position: relative;
+}
+.portfolio-story::before {
+  border: 1px solid rgba(193, 103, 78, .12); border-radius: 50%; content: ""; height: 260px;
+  left: -150px; position: absolute; top: -170px; width: 260px;
+}
+.portfolio-story-copy { position: relative; z-index: 1; }
+.portfolio-story-copy h2 {
+  color: #17392f; font-size: clamp(38px, 4.2vw, 54px); font-weight: 630; letter-spacing: -.065em;
+  line-height: 1.03; margin: 0; text-wrap: balance;
+}
+.portfolio-story-copy > p:nth-of-type(2) {
+  color: #687970; font-size: 13px; line-height: 1.75; margin: 21px 0 27px;
+}
+.portfolio-story-copy > ul { display: grid; gap: 12px; list-style: none; margin: 0 0 31px; padding: 0; }
+.portfolio-story-copy > ul li { align-items: center; color: #51685e; display: flex; font-size: 11px; gap: 11px; }
+.portfolio-story-copy > ul span {
+  align-items: center; background: #f5dfd5; border-radius: 50%; color: #a65742; display: inline-flex; flex: none;
+  font-family: var(--font-geist-mono), monospace; font-size: 7px; font-weight: 800; height: 23px;
+  justify-content: center; width: 23px;
+}
+.portfolio-story-link {
+  align-items: center; background: #173f34; border-radius: 10px; color: #fff; display: inline-flex;
+  font-size: 11px; font-weight: 780; gap: 11px; padding: 13px 15px;
+}
+.portfolio-story-link:hover .arrow { transform: translateX(3px); }
+.portfolio-preview {
+  background: #fff; border: 1px solid #e5ded2; border-radius: 20px; box-shadow: 0 25px 55px rgba(57, 39, 24, .12);
+  color: var(--ink); display: block; padding: 23px; transform: rotate(-1deg); transition: transform .2s ease, box-shadow .2s ease;
+}
+.portfolio-preview:hover { box-shadow: 0 28px 62px rgba(57, 39, 24, .17); transform: rotate(0) translateY(-3px); }
+.portfolio-preview-label { align-items: center; display: flex; justify-content: space-between; margin-bottom: 25px; }
+.portfolio-preview-label > span {
+  color: #b1614c; font-family: var(--font-geist-mono), monospace; font-size: 8px; font-weight: 800;
+  letter-spacing: .12em;
+}
+.portfolio-preview-label i {
+  align-items: center; background: #edf5f0; border-radius: 99px; color: #537166; display: inline-flex;
+  font-size: 8px; font-style: normal; font-weight: 700; gap: 6px; padding: 6px 8px;
+}
+.portfolio-preview-label i b { background: #57a57d; border-radius: 50%; height: 6px; width: 6px; }
+.portfolio-preview-person { align-items: center; display: flex; gap: 13px; }
+.portfolio-preview-avatar {
+  align-items: center; background: #dceae3; border-radius: 50%; color: #245548; display: flex; flex: none;
+  font-size: 11px; font-weight: 800; height: 48px; justify-content: center; width: 48px;
+}
+.portfolio-preview-person h3 { font-size: 20px; font-weight: 680; letter-spacing: -.04em; margin: 0 0 4px; }
+.portfolio-preview-person p { color: #71817a; font-size: 9px; margin: 0; }
+.portfolio-preview-bio { color: #617169; font-size: 11px; line-height: 1.65; margin: 18px 0 15px; }
+.portfolio-preview-skills { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.portfolio-preview-skills li {
+  background: #f3f6f4; border: 1px solid #e1e8e4; border-radius: 99px; color: #587067; font-size: 8px;
+  padding: 6px 8px;
+}
+.portfolio-preview-proof {
+  border-bottom: 1px solid #e7ebe8; border-top: 1px solid #e7ebe8; display: grid; gap: 23px;
+  grid-template-columns: auto 1fr; margin-top: 19px; padding: 17px 0;
+}
+.portfolio-preview-proof > div:first-child { border-right: 1px solid #e7ebe8; padding-right: 23px; }
+.portfolio-preview-proof strong { display: block; font-size: 27px; letter-spacing: -.05em; line-height: 1; }
+.portfolio-preview-proof span { color: #8a9691; display: block; font-size: 8px; margin-top: 5px; }
+.portfolio-preview-proof > div:last-child > span { margin-top: 0; }
+.portfolio-preview-proof p { font-size: 9px; font-weight: 650; line-height: 1.5; margin: 5px 0 0; }
+.portfolio-preview-url {
+  align-items: center; color: #4e685e; display: flex; font-size: 8.5px; font-weight: 700;
+  justify-content: space-between; padding-top: 15px;
+}
+.portfolio-preview:hover .portfolio-preview-url .arrow { transform: translate(2px, -2px); }
+
 .how-it-works { padding-top: 112px; }
 .how-heading { align-items: end; display: grid; gap: 60px; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .7fr); }
 .how-heading > p {
@@ -2170,14 +2242,32 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: #fff; border: 1px solid #dbe2de; border-radius: 17px;
   box-shadow: 0 13px 36px rgba(19, 54, 44, .055); padding: 18px;
 }
-.collaboration-toolbar { align-items: end; display: grid; gap: 13px; grid-template-columns: minmax(0, 1fr) 220px; }
-.collaboration-search { display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) auto; }
+.collaboration-search {
+  display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) auto;
+}
 .collaboration-search > button {
   background: var(--ink); border: 0; border-radius: 11px; color: #fff; cursor: pointer;
   font: inherit; font-size: 13px; font-weight: 750; min-width: 84px; padding: 0 18px;
 }
 .collaboration-search > button:hover { background: #245e4e; }
-.collaboration-filter-grid { display: grid; gap: 13px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 17px; }
+.collaboration-filter-panel { display: block; margin-top: 10px; }
+.collaboration-filter-summary {
+  align-items: center; background: #f4f7f5; border-radius: 11px; color: #27483e;
+  cursor: pointer; display: flex; font-size: 12px; font-weight: 720; justify-content: space-between;
+  list-style: none; min-height: 44px; padding: 10px 13px;
+}
+.collaboration-filter-summary::-webkit-details-marker { display: none; }
+.collaboration-filter-summary > span { align-items: center; display: flex; gap: 8px; }
+.collaboration-filter-summary > span:last-child { color: #718079; font-size: 10px; font-weight: 620; }
+.collaboration-filter-summary svg { height: 17px; width: 17px; }
+.collaboration-filter-summary i {
+  border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor;
+  display: block; height: 7px; margin: -3px 2px 0 3px; transform: rotate(45deg); width: 7px;
+}
+.collaboration-filter-panel[open] .collaboration-filter-summary i { margin-top: 3px; transform: rotate(225deg); }
+.collaboration-filter-controls {
+  display: grid; gap: 13px; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 14px;
+}
 .collaboration-control { min-width: 0; }
 .collaboration-control > span {
   color: #687871; display: block; font-size: 10px; font-weight: 720; margin: 0 0 7px 2px;
@@ -2186,8 +2276,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .collaboration-control .sort-field select {
   background-color: #f8faf8; border-color: #d5ded9; font-size: 12px; margin: 0; min-width: 0; padding-right: 35px;
 }
-.collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 55px; }
-.collaboration-sort-control > span { margin-bottom: 7px; }
+.collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 44px; }
 .collaboration-content { margin-top: 34px; }
 .collaboration-list-head { min-height: 61px; }
 
@@ -2197,10 +2286,9 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .home-projects .board-grid, .home-project-loading-grid { grid-template-columns: minmax(0, 1fr); }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
-  .collaboration-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-hero { gap: 45px; grid-template-columns: minmax(0, 1fr) 340px; padding-left: 34px; padding-right: 34px; }
   .landing-purpose, .how-it-works { padding-left: 34px; padding-right: 34px; }
-  .landing-stats, .talent-story, .landing-final-cta { margin-left: 34px; margin-right: 34px; }
+  .landing-stats, .talent-story, .portfolio-story, .landing-final-cta { margin-left: 34px; margin-right: 34px; }
   .landing-stats { padding-left: 44px; padding-right: 44px; }
   .talent-story { gap: 44px; padding-left: 46px; padding-right: 46px; }
   .talent-skills i:nth-child(2) { display: none; }
@@ -2217,7 +2305,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-sidebar { display: grid; grid-template-columns: 1fr 1fr; position: static; }
   .quality-note { grid-column: 1 / -1; }
   .collaboration-hero { align-items: flex-start; flex-direction: column; }
-  .collaboration-toolbar { grid-template-columns: minmax(0, 1fr) 200px; }
+  .collaboration-filter-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .landing-hero { grid-template-columns: 1fr; min-height: 0; padding-bottom: 82px; padding-top: 62px; }
   .landing-hero-copy { max-width: 720px; }
   .collaboration-example { max-width: 620px; width: 100%; }
@@ -2234,6 +2322,9 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .talent-story-copy { max-width: 600px; }
   .talent-preview { max-width: 620px; transform: none; width: 100%; }
   .talent-skills i:nth-child(2) { display: inline; }
+  .portfolio-story { grid-template-columns: 1fr; }
+  .portfolio-story-copy { max-width: 620px; }
+  .portfolio-preview { max-width: 620px; transform: none; width: 100%; }
   .how-heading { align-items: start; gap: 24px; grid-template-columns: 1fr; }
   .how-heading > p { max-width: 620px; }
   .how-steps { gap: 45px 22px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2269,10 +2360,18 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .discovery-sidebar { display: flex; }
   .collaboration-hero { gap: 22px; padding: 31px 0 24px; }
   .collaboration-hero h1 { font-size: clamp(36px, 11vw, 46px); }
-  .collaboration-panel { padding: 14px; }
-  .collaboration-toolbar, .collaboration-filter-grid { grid-template-columns: 1fr; }
+  .collaboration-panel { display: block; padding: 12px; }
   .collaboration-search { grid-template-columns: minmax(0, 1fr) auto; }
-  .collaboration-sort-control { margin-top: 3px; }
+  .collaboration-search label { box-shadow: none; height: 48px; padding: 0 13px; }
+  .collaboration-search > button { min-width: 66px; padding: 0 14px; }
+  .collaboration-filter-controls {
+    display: grid; gap: 12px 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px;
+  }
+  .collaboration-control > span { margin-bottom: 5px; }
+  .collaboration-control .sort-field, .collaboration-control .sort-field select,
+  .collaboration-sort-control .sort-field, .collaboration-sort-control .sort-field select { height: 42px; }
+  .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
+  .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }
   .landing-hero { gap: 42px; padding: 46px 20px 70px; }
   .landing-hero::before { display: none; }
@@ -2301,12 +2400,16 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .ecosystem-stage { grid-template-columns: 90px minmax(40px, 1fr) 16px; }
   .landing-purpose, .how-it-works { padding: 76px 20px 82px; }
   .landing-section-intro { margin-bottom: 32px; }
-  .landing-section-intro h2, .how-heading h2, .talent-story h2, .landing-final-cta h2 { font-size: 39px; }
+  .landing-section-intro h2, .how-heading h2, .talent-story h2, .portfolio-story h2, .landing-final-cta h2 { font-size: 39px; }
   .purpose-grid { grid-template-columns: 1fr; }
   .purpose-talent { grid-column: auto; }
   .purpose-card { min-height: 350px; padding: 24px; }
   .landing-purpose-icon { margin-bottom: 34px; }
   .talent-story { border-radius: 22px; margin: 0 20px; padding: 47px 24px; }
+  .portfolio-story { border-radius: 22px; margin: 64px 20px 0; padding: 47px 24px; }
+  .portfolio-preview { padding: 20px; }
+  .portfolio-preview-proof { gap: 16px; }
+  .portfolio-preview-proof > div:first-child { padding-right: 16px; }
   .talent-preview li > a { grid-template-columns: 37px minmax(0, 1fr) 12px; }
   .talent-skills { display: none; }
   .how-steps { gap: 38px; grid-template-columns: 1fr; margin-top: 48px; }

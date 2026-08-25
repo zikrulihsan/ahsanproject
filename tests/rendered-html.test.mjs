@@ -93,7 +93,7 @@ const SEEDED = [
 
 test("papan menampilkan semua proyek bawaan", async () => {
   const page = await html("/kolaborasi");
-  assert.match(page, /<title>Cari Kolaborasi — Ahsan Project<\/title>/i);
+  assert.match(page, /<title>Explore — Ahsan Project<\/title>/i);
   for (const name of SEEDED) assert.match(page, new RegExp(name));
 });
 
@@ -190,12 +190,22 @@ test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () =>
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Bantuan yang dicari/);
   assert.match(page, /statistik ahsanproject/i);
-  assert.match(page, /Project, orang, dan posisi kolaborasi/);
+  assert.match(page, /Project, orang, dan kolaborasi dalam angka/);
   assert.match(page, /Yang ada di AhsanProject/);
   assert.match(page, /project sudah dibagikan/);
-  assert.match(page, /Buat project, cari kolaborator, dan tunjukkan hasil kerja/);
-  assert.match(page, /Jadikan kontribusi sebagai portfolio/);
-  assert.match(page, /Cari orang dari pekerjaan yang sudah mereka lakukan/);
+  assert.match(page, /Satu Platform, Tiga Tujuan/);
+  assert.match(page, /Tunjukkan Projectmu/);
+  assert.match(page, /href="\/new">Tambah project/);
+  assert.match(page, /Temukan Tempat Kontribusi/);
+  assert.match(page, /href="\/kolaborasi">Lihat peluang kontribusi/);
+  assert.match(page, /Buka Peluang Kolaborasi/);
+  assert.match(page, /href="\/new">Buka kebutuhan kolaborasi/);
+  assert.match(page, /Tidak hanya showcase project/i);
+  assert.match(page, /Jadi Talent Pool Biar Terlihat Sama.*Recruiter/s);
+  assert.match(page, /Profilmu adalah portfolio yang terus tumbuh/);
+  assert.match(page, /project yang kamu buat, peran yang kamu ambil, dan kontribusi yang kamu/);
+  assert.match(page, /href="https:\/\/ahsanproject\.id\/u\/zikrul-ihsan">Lihat contoh portfolio/);
+  assert.match(page, /aria-label="Lihat portfolio Zikrul Ihsan"/);
   assert.match(page, /cara kerjanya/i);
   assert.match(page, /Buka posisi/);
   assert.match(page, /Jadi portfolio/);
@@ -214,9 +224,9 @@ test("beranda menjelaskan ekosistem tanpa mengulang daftar project", async () =>
   );
 });
 
-test("menu cari kolaborasi menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
+test("menu explore menampung pencarian, filter level, kebutuhan, dan sorting", async () => {
   const page = await html("/kolaborasi");
-  assert.match(page, /<h1 id="collaboration-title">Cari project kolaborasi<\/h1>/);
+  assert.match(page, /<h1 id="collaboration-title">Explore<\/h1>/);
   assert.match(page, /Cari project, program, atau kata kunci/);
   assert.match(page, /Semua kategori/);
   assert.match(page, /Level project/);
