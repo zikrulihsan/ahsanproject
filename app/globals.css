@@ -662,13 +662,14 @@ a.seat-chip:hover { border-color: var(--ink); }
 
 .project-tabs {
   border-bottom: 1px solid var(--line-2); display: flex; gap: clamp(24px, 3vw, 44px);
-  margin-top: 18px; overflow-x: auto; padding: 0 28px; scrollbar-width: none;
+  margin-top: 18px; overflow-x: auto; overflow-y: hidden; padding: 0 28px; scrollbar-width: none;
 }
 .project-tabs::-webkit-scrollbar { display: none; }
 .project-tabs button {
   appearance: none; background: transparent; border: 0; color: var(--muted); cursor: pointer;
   flex: 0 0 auto; font-family: inherit; font-size: 13.5px; font-weight: 620; padding: 16px 0 14px;
-  position: relative; transition: color .12s ease; white-space: nowrap;
+  position: relative; transition: color .12s ease; user-select: none; -webkit-user-drag: none;
+  white-space: nowrap;
 }
 .project-tabs button::after {
   background: var(--ink); border-radius: 99px 99px 0 0; bottom: -1px; content: ""; height: 3px;

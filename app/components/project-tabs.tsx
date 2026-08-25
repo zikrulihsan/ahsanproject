@@ -69,6 +69,7 @@ export function ProjectTabSwitcher({
             id={`project-tab-${tab.id}`}
             type="button"
             role="tab"
+            draggable={false}
             aria-selected={activeTab === tab.id}
             className={activeTab === tab.id ? "is-active" : undefined}
             tabIndex={activeTab === tab.id ? 0 : -1}
