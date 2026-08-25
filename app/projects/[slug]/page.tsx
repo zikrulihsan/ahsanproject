@@ -55,25 +55,13 @@ import {
 import { currentViewer } from "../../lib/session";
 import { ProjectScrollTop } from "../../components/project-scroll-top";
 import { ProjectLogo } from "../../components/project-logo";
+import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
+import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ tab?: string | string[] }>;
-
-const PROJECT_TABS = [
-  { id: "tentang", label: "Tentang" },
-  { id: "kolaborasi", label: "Kolaborasi" },
-  { id: "perjalanan", label: "Perjalanan" },
-  { id: "tugas", label: "Tugas" },
-  { id: "diskusi", label: "Diskusi" },
-] as const;
-
-type ProjectTab = (typeof PROJECT_TABS)[number]["id"];
-
-function isProjectTab(value: string): value is ProjectTab {
-  return PROJECT_TABS.some((tab) => tab.id === value);
-}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
@@ -246,29 +234,9 @@ export default async function ProjectPage({
           </div>
         </section>
 
-        <nav className="project-tabs" aria-label="Bagian detail project">
-          {PROJECT_TABS.map((tab) => {
-            const href =
-              tab.id === "tentang"
-                ? `/projects/${project.slug}`
-                : `/projects/${project.slug}?tab=${tab.id}`;
-
-            return (
-              <Link
-                key={tab.id}
-                href={href}
-                className={activeTab === tab.id ? "is-active" : undefined}
-                aria-current={activeTab === tab.id ? "page" : undefined}
-              >
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="project-body">
+        <ProjectTabSwitcher initialTab={activeTab}>
           <div className="project-main">
-            {activeTab === "tentang" ? (
+            <ProjectTabContent tab="tentang">
               <section className="brief" aria-labelledby="brief-heading">
                 <h2 id="brief-heading">Tentang project ini</h2>
                 <article>
@@ -284,12 +252,12 @@ export default async function ProjectPage({
                   <p>{project.audience}</p>
                 </article>
               </section>
-            ) : null}
+            </ProjectTabContent>
 
             {/* Right under the story, because "what are they doing about it"
                 is the next question anybody has — and the answer is what makes
                 the project look alive rather than parked. */}
-            {activeTab === "tentang" ? (
+            <ProjectTabContent tab="tentang">
               <section className="now-card" aria-labelledby="now-heading">
               <h2 id="now-heading">Sedang dikerjakan</h2>
 
@@ -330,12 +298,12 @@ export default async function ProjectPage({
                 </details>
               ) : null}
               </section>
-            ) : null}
+            </ProjectTabContent>
 
-            {/* The invitation comes after somebody has had a chance to
-                understand the project, never before it. */}
-            {activeTab === "kolaborasi" && (open.length > 0 || isManager) && (
-              <section className="help" aria-labelledby="help-heading">
+            {/* Contribution details live together in their own tab. */}
+            <ProjectTabContent tab="kolaborasi">
+              {(open.length > 0 || isManager) && (
+                <section className="help" aria-labelledby="help-heading">
                 <h2 id="help-heading">Mau ikut bantu?</h2>
 
                 {open.length > 0 ? (
@@ -456,10 +424,11 @@ export default async function ProjectPage({
                     </form>
                   </details>
                 ) : null}
-              </section>
-            )}
+                </section>
+              )}
+            </ProjectTabContent>
 
-            {activeTab === "perjalanan" ? (
+            <ProjectTabContent tab="perjalanan">
               <section className="journey-section" aria-labelledby="journey-heading">
               <h2 id="journey-heading">Perjalanan project</h2>
               <p className="muted">Ditulis orang yang mengerjakannya, dari yang terbaru.</p>
@@ -509,9 +478,9 @@ export default async function ProjectPage({
                 </details>
               ) : null}
               </section>
-            ) : null}
+            </ProjectTabContent>
 
-            {activeTab === "kolaborasi" ? (
+            <ProjectTabContent tab="kolaborasi">
               <section className="team" aria-labelledby="team-heading">
               <h2 id="team-heading">Orang di balik project</h2>
 
@@ -573,11 +542,10 @@ export default async function ProjectPage({
                 </details>
               ) : null}
               </section>
-            ) : null}
+            </ProjectTabContent>
 
-            {/* The task list is for the people already on it, so it sits below
-                everything a visitor came for. */}
-            {activeTab === "tugas" && (
+            {/* The task list is for the people already working on it. */}
+            <ProjectTabContent tab="tugas">
               <section className="tasks" aria-labelledby="tasks-heading">
                 <h2 id="tasks-heading">
                   Tugas
@@ -703,9 +671,9 @@ export default async function ProjectPage({
                   </details>
                 ) : null}
               </section>
-            )}
+            </ProjectTabContent>
 
-            {activeTab === "diskusi" ? (
+            <ProjectTabContent tab="diskusi">
               <section className="discussion" aria-labelledby="discussion-heading">
               <h2 id="discussion-heading">Diskusi ({project.comments.length})</h2>
 
@@ -747,17 +715,19 @@ export default async function ProjectPage({
                 </ul>
               )}
               </section>
-            ) : null}
+            </ProjectTabContent>
 
-            {activeTab === "perjalanan" && history.length > 0 ? (
-              <section className="history" aria-labelledby="history-heading">
-                <h2 id="history-heading">Tercatat sistem</h2>
-                <p className="muted">
-                  Ditulis sendiri saat kejadian — bukan diketik. Melengkapi perjalanan di atas.
-                </p>
-                <ActivityList events={history} showActor />
-              </section>
-            ) : null}
+            <ProjectTabContent tab="perjalanan">
+              {history.length > 0 ? (
+                <section className="history" aria-labelledby="history-heading">
+                  <h2 id="history-heading">Tercatat sistem</h2>
+                  <p className="muted">
+                    Ditulis sendiri saat kejadian — bukan diketik. Melengkapi perjalanan di atas.
+                  </p>
+                  <ActivityList events={history} showActor />
+                </section>
+              ) : null}
+            </ProjectTabContent>
           </div>
 
           <aside className="project-side">
@@ -809,7 +779,7 @@ export default async function ProjectPage({
               ) : null}
             </section>
           </aside>
-        </div>
+        </ProjectTabSwitcher>
       </main>
 
       <SiteFooter />

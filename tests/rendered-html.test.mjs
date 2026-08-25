@@ -80,6 +80,14 @@ function feedList(page) {
   return start < 0 || end < 0 ? "" : page.slice(start, end);
 }
 
+// Client components carry the other tab contents in the React data stream so
+// switching stays instant. This isolates what is actually visible in the
+// server-rendered document from that serialized, not-yet-rendered data.
+function visibleMarkup(page) {
+  const end = page.indexOf("</footer>");
+  return end < 0 ? page : page.slice(0, end + "</footer>".length);
+}
+
 const SEEDED = [
   "Tap Tap Dzikr",
   "Wecard",
@@ -177,26 +185,26 @@ test("halaman detail memakai favicon yang sama sebagai logo project", async () =
 });
 
 test("section detail project dipisahkan ke tab masing-masing", async () => {
-  const about = await html("/projects/tap-tap-dzikr");
+  const about = visibleMarkup(await html("/projects/tap-tap-dzikr"));
   assert.match(about, /aria-label="Bagian detail project"/);
   assert.match(
     about,
-    /class="is-active" aria-current="page" href="\/projects\/tap-tap-dzikr">Tentang/,
+    /<button[^>]*id="project-tab-tentang"[^>]*aria-selected="true"[^>]*>Tentang/,
   );
   assert.match(about, /id="brief-heading"/);
   assert.doesNotMatch(about, /id="journey-heading"/);
   assert.doesNotMatch(about, /id="team-heading"/);
 
-  const journey = await html("/projects/tap-tap-dzikr?tab=perjalanan");
+  const journey = visibleMarkup(await html("/projects/tap-tap-dzikr?tab=perjalanan"));
   assert.match(
     journey,
-    /class="is-active" aria-current="page" href="[^"]*tab=perjalanan">Perjalanan/,
+    /<button[^>]*id="project-tab-perjalanan"[^>]*aria-selected="true"[^>]*>Perjalanan/,
   );
   assert.match(journey, /id="journey-heading"/);
   assert.doesNotMatch(journey, /id="brief-heading"/);
   assert.doesNotMatch(journey, /id="discussion-heading"/);
 
-  const discussion = await html("/projects/tap-tap-dzikr?tab=diskusi");
+  const discussion = visibleMarkup(await html("/projects/tap-tap-dzikr?tab=diskusi"));
   assert.match(discussion, /id="discussion-heading"/);
   assert.doesNotMatch(discussion, /id="team-heading"/);
 });
@@ -384,12 +392,12 @@ test("halaman project memuat cerita, tahap, dan ajakan membantu", async () => {
 });
 
 test("cerita dan ajakan project tidak menumpuk di tab yang sama", async () => {
-  const about = await html("/projects/main-aman");
+  const about = visibleMarkup(await html("/projects/main-aman"));
   assert.match(about, /Tentang project ini/);
   assert.match(about, /Sedang dikerjakan/);
   assert.doesNotMatch(about, /Mau ikut bantu\?/);
 
-  const collaboration = await html("/projects/main-aman?tab=kolaborasi");
+  const collaboration = visibleMarkup(await html("/projects/main-aman?tab=kolaborasi"));
   assert.match(collaboration, /Mau ikut bantu\?/);
   assert.doesNotMatch(collaboration, /Tentang project ini/);
 });
