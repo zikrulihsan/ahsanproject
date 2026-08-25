@@ -399,6 +399,7 @@ test("halaman orang memimpin dengan yang sedang dia kerjakan", async () => {
   assert.match(page, /Sedang dikerjakan/);
   assert.match(page, /Tap Tap Dzikr/);
   assert.match(page, /class="profile-contact-list"/);
+  assert.match(page, /Bagikan profil/);
   assert.match(page, /Projects:/);
   assert.match(page, /class="profile-project-icon-list"/);
   assert.match(page, /Ringkasan/);

@@ -6,6 +6,7 @@ import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
+import { ShareProfileButton } from "../../components/share-profile-button";
 import { SubmitButton } from "../../components/submit-button";
 import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
 import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
@@ -136,13 +137,16 @@ export default async function ProfilePage({
                   ))}
                 </ul>
               ) : null}
-              {resume ? (
-                <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
-                  <LinkIcon kind="resume" />
-                  <span>Lihat résumé</span>
-                  <span className="arrow" aria-hidden="true">→</span>
-                </a>
-              ) : null}
+              <div className="profile-hero-actions">
+                <ShareProfileButton name={person.name} path={`/u/${person.username}`} />
+                {resume ? (
+                  <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
+                    <LinkIcon kind="resume" />
+                    <span>Lihat résumé</span>
+                    <span className="arrow" aria-hidden="true">→</span>
+                  </a>
+                ) : null}
+              </div>
             </div>
 
             <aside className="profile-contributions" aria-labelledby="projects-heading">

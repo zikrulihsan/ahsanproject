@@ -956,11 +956,23 @@ form button.danger:hover { background: #96320f; }
 .profile-contact-list a:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .7); color: #fff; }
 .profile-contact-list a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .link-icon { flex: none; height: 16px; width: 16px; }
-.profile-resume-link {
-  align-items: center; background: var(--lime); border: 1px solid var(--lime); border-radius: 10px; color: var(--ink-2);
-  display: inline-flex; font-size: 11px; font-weight: 780; gap: 8px; margin-top: 12px; padding: 10px 12px;
+.profile-hero-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+.profile-share-button, .profile-resume-link {
+  align-items: center; border-radius: 10px; display: inline-flex; font-size: 11px; font-weight: 780;
+  gap: 8px; min-height: 37px; padding: 9px 12px;
 }
-.profile-resume-link:hover { background: #f0ffab; border-color: #f0ffab; color: var(--ink-2); }
+.profile-share-button {
+  background: var(--lime); border: 1px solid var(--lime); color: var(--ink-2);
+}
+.profile-share-button:hover { background: #f0ffab; border-color: #f0ffab; }
+.profile-share-button svg {
+  fill: none; flex: none; height: 15px; stroke: currentColor; stroke-linecap: round;
+  stroke-linejoin: round; stroke-width: 1.8; width: 15px;
+}
+.profile-resume-link {
+  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .2); color: #e7efec;
+}
+.profile-resume-link:hover { background: rgba(255, 255, 255, .13); border-color: rgba(221, 239, 131, .7); color: #fff; }
 .profile-resume-link .link-icon { height: 15px; width: 15px; }
 .profile-resume-link .arrow { font-size: 15px; line-height: .8; margin-left: 2px; }
 
