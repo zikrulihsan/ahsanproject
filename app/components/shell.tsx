@@ -27,7 +27,7 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 
 const LINKS: { href: string; label: string; key: Section }[] = [
   { href: "/", label: "Beranda", key: "beranda" },
-  { href: "/kolaborasi", label: "Cari kolaborasi", key: "kolaborasi" },
+  { href: "/kolaborasi", label: "Explore", key: "kolaborasi" },
   { href: "/orang", label: "People", key: "orang" },
 ];
 
@@ -185,7 +185,7 @@ export function SiteFooter() {
       <p>Tunjukkan yang sedang kamu bangun. Temukan yang mau ikut membantu.</p>
       <nav aria-label="Navigasi footer">
         <Link href="/">Beranda</Link>
-        <Link href="/kolaborasi">Cari kolaborasi</Link>
+        <Link href="/kolaborasi">Explore</Link>
         <Link href="/orang">Orang</Link>
         <Link href="/about">Tentang</Link>
         <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">

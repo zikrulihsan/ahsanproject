@@ -20,8 +20,8 @@ import { currentViewer } from "../lib/session";
 
 export const dynamic = "force-dynamic";
 
-const title = "Cari Kolaborasi — Ahsan Project";
-const description = "Cari project, saring berdasarkan kategori, level, dan role, lalu temukan tempat terbaik untuk ikut berkontribusi.";
+const title = "Explore — Ahsan Project";
+const description = "Explore project berdasarkan kategori, level, dan role, lalu temukan tempat terbaik untuk ikut berkontribusi.";
 
 export const metadata: Metadata = {
   title,
@@ -84,6 +84,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
   const seatsByRole = await openSeatsByRole(projects.map((project) => project.id));
   const rankedRoles = rankRoles(helpBoard).slice(0, 5);
   const filtered = Boolean(stage || tag || role || q || needs);
+  const activeControlCount = [stage, tag, role, needs, sort === "untukmu" ? "" : sort].filter(Boolean).length;
   const currentPath = linkTo({ lane: sort, stage, tag, role, q, needs });
 
   return (
@@ -94,7 +95,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
         <section className="collaboration-hero" aria-labelledby="collaboration-title">
           <div>
             <p className="home-eyebrow">temukan tempat untuk ikut bertumbuh</p>
-            <h1 id="collaboration-title">Cari project kolaborasi</h1>
+            <h1 id="collaboration-title">Explore</h1>
             <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok.</p>
           </div>
           <div className="contributor-pulse" aria-label={`${people.length} kontributor`}>
@@ -112,104 +113,112 @@ export default async function CollaborationPage({ searchParams }: { searchParams
         </section>
 
         <section className="collaboration-panel" aria-label="Cari, filter, dan urutkan project">
-          <div className="collaboration-toolbar">
-            <form className="discovery-search collaboration-search" method="get" action="/kolaborasi" role="search">
-              {stage ? <input type="hidden" name="stage" value={stage} /> : null}
-              {tag ? <input type="hidden" name="tag" value={tag} /> : null}
-              {role ? <input type="hidden" name="role" value={role} /> : null}
-              {needs ? <input type="hidden" name="needs" value={needs} /> : null}
-              {sort === "untukmu" ? null : <input type="hidden" name="lane" value={sort} />}
-              <label>
-                <SearchIcon />
-                <span className="sr-only">Cari project, program, atau kata kunci</span>
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={q}
-                  placeholder="Cari project, program, atau kata kunci…"
-                  autoComplete="off"
+          <form className="discovery-search collaboration-search" method="get" action="/kolaborasi" role="search">
+            {stage ? <input type="hidden" name="stage" value={stage} /> : null}
+            {tag ? <input type="hidden" name="tag" value={tag} /> : null}
+            {role ? <input type="hidden" name="role" value={role} /> : null}
+            {needs ? <input type="hidden" name="needs" value={needs} /> : null}
+            {sort === "untukmu" ? null : <input type="hidden" name="lane" value={sort} />}
+            <label>
+              <SearchIcon />
+              <span className="sr-only">Cari project, program, atau kata kunci</span>
+              <input
+                type="search"
+                name="q"
+                defaultValue={q}
+                placeholder="Cari project…"
+                autoComplete="off"
+              />
+            </label>
+            <button type="submit">Cari</button>
+          </form>
+
+          <details className="collaboration-filter-panel">
+            <summary className="collaboration-filter-summary">
+              <span><FilterIcon /> Filter &amp; urutkan</span>
+              <span>
+                {activeControlCount > 0 ? `${activeControlCount} aktif` : "Opsional"}
+                <i aria-hidden="true" />
+              </span>
+            </summary>
+
+            <div className="collaboration-filter-controls">
+              <div className="collaboration-control collaboration-sort-control">
+                <span>Urutkan</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="lane"
+                  value={sort}
+                  label="Urutkan project"
+                  options={SORTS}
+                  hidden={{ stage, tag, role, q, needs }}
                 />
-              </label>
-              <button type="submit">Cari</button>
-            </form>
+              </div>
 
-            <div className="collaboration-control collaboration-sort-control">
-              <span>Urutkan</span>
-              <SortSelect
-                action="/kolaborasi"
-                name="lane"
-                value={sort}
-                label="Urutkan project"
-                options={SORTS}
-                hidden={{ stage, tag, role, q, needs }}
-              />
-            </div>
-          </div>
+              <div className="collaboration-control">
+                <span>Kategori</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="tag"
+                  value={tag}
+                  label="Filter kategori"
+                  options={[
+                    { value: "", label: "Semua kategori" },
+                    ...withSelectedTopic(topics, tag).map((topic) => ({
+                      value: topic.tag,
+                      label: `${topic.tag} (${topic.count})`,
+                    })),
+                  ]}
+                  hidden={{ stage, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                />
+              </div>
 
-          <div className="collaboration-filter-grid">
-            <div className="collaboration-control">
-              <span>Kategori</span>
-              <SortSelect
-                action="/kolaborasi"
-                name="tag"
-                value={tag}
-                label="Filter kategori"
-                options={[
-                  { value: "", label: "Semua kategori" },
-                  ...withSelectedTopic(topics, tag).map((topic) => ({
-                    value: topic.tag,
-                    label: `${topic.tag} (${topic.count})`,
-                  })),
-                ]}
-                hidden={{ stage, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
-              />
-            </div>
+              <div className="collaboration-control">
+                <span>Level project</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="stage"
+                  value={stage}
+                  label="Filter level project"
+                  options={[
+                    { value: "", label: "Semua level" },
+                    ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
+                  ]}
+                  hidden={{ tag, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                />
+              </div>
 
-            <div className="collaboration-control">
-              <span>Level project</span>
-              <SortSelect
-                action="/kolaborasi"
-                name="stage"
-                value={stage}
-                label="Filter level project"
-                options={[
-                  { value: "", label: "Semua level" },
-                  ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
-                ]}
-                hidden={{ tag, role, q, needs, lane: sort === "untukmu" ? "" : sort }}
-              />
-            </div>
+              <div className="collaboration-control">
+                <span>Role yang dicari</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="role"
+                  value={role}
+                  label="Filter role yang dicari"
+                  options={[
+                    { value: "", label: "Semua role" },
+                    ...ROLES.map((entry) => ({ value: entry, label: roleLabel(entry) })),
+                  ]}
+                  hidden={{ stage, tag, q, needs, lane: sort === "untukmu" ? "" : sort }}
+                />
+              </div>
 
-            <div className="collaboration-control">
-              <span>Role yang dicari</span>
-              <SortSelect
-                action="/kolaborasi"
-                name="role"
-                value={role}
-                label="Filter role yang dicari"
-                options={[
-                  { value: "", label: "Semua role" },
-                  ...ROLES.map((entry) => ({ value: entry, label: roleLabel(entry) })),
-                ]}
-                hidden={{ stage, tag, q, needs, lane: sort === "untukmu" ? "" : sort }}
-              />
+              <div className="collaboration-control">
+                <span>Kebutuhan</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="needs"
+                  value={needs}
+                  label="Filter kebutuhan kolaborator"
+                  options={[
+                    { value: "", label: "Semua project" },
+                    { value: "open", label: "Mencari kolaborator" },
+                  ]}
+                  hidden={{ stage, tag, role, q, lane: sort === "untukmu" ? "" : sort }}
+                />
+              </div>
             </div>
-
-            <div className="collaboration-control">
-              <span>Kebutuhan</span>
-              <SortSelect
-                action="/kolaborasi"
-                name="needs"
-                value={needs}
-                label="Filter kebutuhan kolaborator"
-                options={[
-                  { value: "", label: "Semua project" },
-                  { value: "open", label: "Mencari kolaborator" },
-                ]}
-                hidden={{ stage, tag, role, q, lane: sort === "untukmu" ? "" : sort }}
-              />
-            </div>
-          </div>
+          </details>
         </section>
 
         {filtered ? (
@@ -331,6 +340,14 @@ function SearchIcon() {
     <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6.5" />
       <path d="m16 16 4 4" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16M7 12h10M10 17h4" />
     </svg>
   );
 }
