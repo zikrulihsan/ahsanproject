@@ -665,12 +665,14 @@ a.seat-chip:hover { border-color: var(--ink); }
   margin-top: 22px; overflow-x: auto; padding: 5px; scrollbar-width: none;
 }
 .project-tabs::-webkit-scrollbar { display: none; }
-.project-tabs a {
-  border-radius: 10px; color: var(--muted); flex: 0 0 auto; font-size: 13px; font-weight: 650;
-  padding: 10px 16px; white-space: nowrap;
+.project-tabs button {
+  appearance: none; background: transparent; border: 0; border-radius: 10px; color: var(--muted);
+  cursor: pointer; flex: 0 0 auto; font-family: inherit; font-size: 13px; font-weight: 650;
+  padding: 10px 16px; transition: background-color .12s ease, color .12s ease; white-space: nowrap;
 }
-.project-tabs a:hover { background: var(--paper); color: var(--ink); }
-.project-tabs a.is-active { background: var(--ink); color: var(--paper); }
+.project-tabs button:hover { background: var(--paper); color: var(--ink); }
+.project-tabs button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.project-tabs button.is-active { background: var(--ink); color: var(--paper); }
 
 .project-body { display: grid; gap: 24px; grid-template-columns: 1.6fr .8fr; margin-top: 16px; }
 .project-main, .project-side { min-width: 0; }
