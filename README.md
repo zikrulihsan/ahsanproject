@@ -76,6 +76,26 @@ The callback also accepts `token_hash` and `type` from a custom SSR email
 template. If you turn confirmation off, sign-up signs people straight in
 instead.
 
+### Google login
+
+1. In Google Auth Platform, configure Branding and Audience, then make sure Data
+   Access includes `openid`, `userinfo.email`, and `userinfo.profile`.
+2. Create an OAuth 2.0 **Web application** client. Add each app origin under
+   Authorized JavaScript origins (for example `http://localhost:3000` and the
+   production origin), then add Supabase's callback as an authorized redirect URI:
+   `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. In Supabase, open Authentication → Providers → Google, enable it, then paste
+   the Google client ID and client secret.
+4. Under Authentication → URL Configuration, add both app callbacks to the
+   redirect allow list for every origin you use (production and local):
+   - `<origin>/auth/callback`
+   - `<origin>/auth/confirm`
+
+No Google client secret belongs in this Next.js app. Supabase stores it and the
+app only uses the existing public URL and anon key. Supabase's current setup
+screens and exact callback value are documented in its
+[Google login guide](https://supabase.com/docs/guides/auth/social-login/auth-google).
+
 ## How the site is put together
 
 | Route | What it is |
@@ -84,7 +104,7 @@ instead.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
-| `/signin`, `/signup` | Email and password, through Supabase Auth |
+| `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
 ### Where the rules live
@@ -182,7 +202,7 @@ in Site settings → Environment variables:
   at the right place
 
 Then add that same origin to Supabase under Authentication → URL Configuration,
-including `<origin>/auth/confirm` as a redirect URL.
+including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
 
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.

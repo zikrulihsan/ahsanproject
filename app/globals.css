@@ -899,6 +899,18 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .auth-page { max-width: 520px; }
 .auth-form .hint { margin: -12px 0 18px; }
 .auth-form button { justify-content: center; width: 100%; }
+.auth-form .google-auth-button {
+  align-items: center; background: #fff; border: 1px solid var(--line-2); color: var(--ink);
+  display: flex; gap: 10px; min-height: 46px;
+}
+.auth-form .google-auth-button:hover { background: var(--paper); border-color: var(--ink); }
+.google-auth-button svg { flex: none; }
+.auth-divider {
+  align-items: center; color: var(--muted); display: flex; font-size: 12px; gap: 12px;
+  margin: 22px 0;
+}
+.auth-divider::before, .auth-divider::after { background: var(--line); content: ""; flex: 1; height: 1px; }
+.auth-divider span { white-space: nowrap; }
 .auth-switch { color: var(--muted); font-size: 14px; margin-top: 24px; text-align: center; }
 .auth-switch a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 650; }
 .form-notice {

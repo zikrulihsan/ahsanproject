@@ -21,6 +21,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const LINK_PROBLEMS: Record<string, string> = {
   "tautan-kedaluwarsa": "Tautan konfirmasinya sudah kedaluwarsa atau sudah dipakai. Coba masuk, atau daftar ulang kalau belum jadi.",
   "tautan-tidak-lengkap": "Tautan konfirmasinya tidak lengkap. Buka lagi tautan dari emailnya secara utuh.",
+  "google-gagal": "Masuk dengan Google belum berhasil. Coba lagi, atau masuk dengan email.",
 };
 
 export default async function SignInPage({ searchParams }: { searchParams?: SearchParams }) {
