@@ -76,6 +76,23 @@ The callback also accepts `token_hash` and `type` from a custom SSR email
 template. If you turn confirmation off, sign-up signs people straight in
 instead.
 
+### Google login
+
+1. In Google Auth Platform, configure Branding and Audience. Under Data Access,
+   keep the `openid`, `userinfo.email`, and `userinfo.profile` scopes.
+2. Create an OAuth 2.0 **Web application** client. Add every app origin under
+   Authorized JavaScript origins, then add Supabase's callback as an authorized
+   redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. In Supabase, open Authentication → Providers → Google, enable it, then paste
+   the Google client ID and client secret.
+4. Under Authentication → URL Configuration, add `<origin>/auth/callback` to
+   the redirect allow list for local and production origins.
+
+No Google client secret belongs in this Next.js app. Supabase stores it; the app
+only uses the existing public URL and anon key. For a branded domain on Google's
+account screen, configure a Supabase custom domain such as `auth.example.com`
+and update Google's authorized redirect URI to match it.
+
 ## How the site is put together
 
 | Route | What it is |
@@ -84,7 +101,7 @@ instead.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
-| `/signin`, `/signup` | Email and password, through Supabase Auth |
+| `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
 ### Where the rules live

@@ -579,6 +579,19 @@ test("tujuan setelah masuk tidak bisa diarahkan ke luar situs", async () => {
   }
 });
 
+test("callback Google yang gagal kembali ke login tanpa membawa redirect luar", async () => {
+  const response = await fetch(
+    `${BASE}/auth/callback?next=${encodeURIComponent("https://contoh-jahat.example/curi")}`,
+    { redirect: "manual" },
+  );
+  assert.ok([307, 308].includes(response.status), `dapat ${response.status}`);
+
+  const location = new URL(response.headers.get("location") ?? "", BASE);
+  assert.equal(location.pathname, "/signin");
+  assert.equal(location.searchParams.get("error"), "google-gagal");
+  assert.equal(location.searchParams.get("next"), null);
+});
+
 test("kotak masuk minta masuk dulu, bukan menampilkan punya orang", async () => {
   const response = await fetch(`${BASE}/inbox`, { redirect: "manual" });
   assert.ok([307, 308].includes(response.status), `dapat ${response.status}`);
