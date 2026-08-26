@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import {
   requestPasswordReset,
@@ -16,21 +17,45 @@ export function SignInForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(signIn, EMPTY);
 
   return (
-    <form className="auth-form" action={formAction}>
+    <form className="auth-form signin-form" action={formAction}>
       <Message state={state} />
       <input type="hidden" name="next" value={next} />
 
       <GoogleButton />
       <AuthDivider />
 
-      <label htmlFor="email">Email</label>
-      <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state.values.email} />
+      <div className="auth-field">
+        <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="nama@email.com"
+          required
+          defaultValue={state.values.email}
+        />
+      </div>
 
-      <label htmlFor="password">Kata sandi</label>
-      <input id="password" name="password" type="password" autoComplete="current-password" required />
+      <div className="auth-field">
+        <div className="auth-label-row">
+          <label htmlFor="password">Kata sandi</label>
+          <Link href="/lupa-password">Lupa kata sandi?</Link>
+        </div>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          placeholder="Masukkan kata sandi"
+          required
+        />
+      </div>
 
-      <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Sebentar…" : "Masuk"}
+      <button className="primary-button auth-submit" type="submit" disabled={pending}>
+        <span>{pending ? "Sebentar…" : "Masuk dengan email"}</span>
+        {!pending ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>
   );
@@ -137,7 +162,7 @@ function GoogleButton() {
       formNoValidate
     >
       <GoogleMark />
-      Lanjutkan dengan Google
+      <span>Lanjutkan dengan Google</span>
     </button>
   );
 }
@@ -152,7 +177,7 @@ function AuthDivider() {
 
 function GoogleMark() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19">
       <path
         fill="#4285f4"
         d="M21.6 12.23c0-.71-.06-1.4-.18-2.06H12v3.9h5.38a4.6 4.6 0 0 1-2 3.01v2.53h3.24c1.9-1.75 2.98-4.33 2.98-7.38Z"

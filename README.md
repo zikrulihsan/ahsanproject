@@ -95,6 +95,9 @@ No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup
 screens and exact callback value are documented in its
 [Google login guide](https://supabase.com/docs/guides/auth/social-login/auth-google).
+For a branded domain on Google's account screen, configure a Supabase custom
+domain such as `auth.example.com` and update Google's authorized redirect URI to
+match it.
 
 ## How the site is put together
 

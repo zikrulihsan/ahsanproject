@@ -68,7 +68,7 @@ export async function signIn(_state: AuthState, formData: FormData): Promise<Aut
   redirect(next);
 }
 
-/** Starts Google's OAuth flow and returns through /auth/callback. */
+/** Starts Google's OAuth flow and returns through the app's PKCE callback. */
 export async function signInWithGoogle(formData: FormData): Promise<void> {
   const next = safeNextPath(text(formData, "next"));
   const supabase = await requireSupabase();
