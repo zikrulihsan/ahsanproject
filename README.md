@@ -78,20 +78,26 @@ instead.
 
 ### Google login
 
-1. In Google Auth Platform, configure Branding and Audience. Under Data Access,
-   keep the `openid`, `userinfo.email`, and `userinfo.profile` scopes.
-2. Create an OAuth 2.0 **Web application** client. Add every app origin under
-   Authorized JavaScript origins, then add Supabase's callback as an authorized
-   redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`.
+1. In Google Auth Platform, configure Branding and Audience, then make sure Data
+   Access includes `openid`, `userinfo.email`, and `userinfo.profile`.
+2. Create an OAuth 2.0 **Web application** client. Add each app origin under
+   Authorized JavaScript origins (for example `http://localhost:3000` and the
+   production origin), then add Supabase's callback as an authorized redirect URI:
+   `https://<project-ref>.supabase.co/auth/v1/callback`.
 3. In Supabase, open Authentication → Providers → Google, enable it, then paste
    the Google client ID and client secret.
-4. Under Authentication → URL Configuration, add `<origin>/auth/callback` to
-   the redirect allow list for local and production origins.
+4. Under Authentication → URL Configuration, add both app callbacks to the
+   redirect allow list for every origin you use (production and local):
+   - `<origin>/auth/callback`
+   - `<origin>/auth/confirm`
 
-No Google client secret belongs in this Next.js app. Supabase stores it; the app
-only uses the existing public URL and anon key. For a branded domain on Google's
-account screen, configure a Supabase custom domain such as `auth.example.com`
-and update Google's authorized redirect URI to match it.
+No Google client secret belongs in this Next.js app. Supabase stores it and the
+app only uses the existing public URL and anon key. Supabase's current setup
+screens and exact callback value are documented in its
+[Google login guide](https://supabase.com/docs/guides/auth/social-login/auth-google).
+For a branded domain on Google's account screen, configure a Supabase custom
+domain such as `auth.example.com` and update Google's authorized redirect URI to
+match it.
 
 ## How the site is put together
 
@@ -199,7 +205,7 @@ in Site settings → Environment variables:
   at the right place
 
 Then add that same origin to Supabase under Authentication → URL Configuration,
-including `<origin>/auth/confirm` as a redirect URL.
+including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
 
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.
