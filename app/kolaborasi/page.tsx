@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BoardCard, initials } from "../components/pieces";
+import { BoardCard } from "../components/pieces";
+import { PersonPhoto } from "../components/person-photo";
 import { ExploreSearchForm } from "../components/explore-search-form";
 import { SearchableFilter } from "../components/searchable-filter";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
@@ -108,7 +109,7 @@ export default async function CollaborationPage({ searchParams }: { searchParams
           <div className="contributor-pulse" aria-label={`${people.length} kontributor`}>
             <div className="pulse-avatars" aria-hidden="true">
               {people.slice(0, 3).map((person) => (
-                <span key={person.id}>{initials(person.name)}</span>
+                <PersonPhoto key={person.id} name={person.name} photoUrl={person.photoUrl} />
               ))}
               <span className="pulse-plus">+</span>
             </div>

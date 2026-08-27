@@ -5,6 +5,7 @@ import { signInPath } from "../lib/urls";
 import { currentViewer, type Viewer } from "../lib/session";
 import { countIncomingApplications, countUnseenNotices } from "../lib/data";
 import { HeaderMenu } from "./header-menu";
+import { PersonPhoto } from "./person-photo";
 
 /** Which top-level section the current page belongs to. */
 export type Section = "beranda" | "kolaborasi" | "orang" | "tentang" | "";
@@ -144,7 +145,7 @@ export async function SiteHeader({
 function AccountIdentity({ viewer }: { viewer: Viewer }) {
   return (
     <div className="account-identity">
-      <span className="account-avatar" aria-hidden="true">{initialsOf(viewer.name)}</span>
+      <PersonPhoto className="account-avatar" name={viewer.name} photoUrl={viewer.photoUrl} />
       <span className="account-identity-copy">
         <strong>{viewer.name}</strong>
         <span>@{viewer.username}</span>
@@ -160,7 +161,7 @@ function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
       className="account-menu"
       summaryClassName="avatar-button"
       summaryLabel={`Buka menu akun ${viewer.name}`}
-      summary={<span aria-hidden="true">{initialsOf(viewer.name)}</span>}
+      summary={<PersonPhoto name={viewer.name} photoUrl={viewer.photoUrl} />}
     >
       <div className="account-popover">
         <AccountIdentity viewer={viewer} />
@@ -276,15 +277,6 @@ function inboxLabel(incoming: number, unseen: number): string {
   ].filter(Boolean);
 
   return parts.length > 0 ? `Kotak masuk — ${parts.join(", ")}` : "Kotak masuk";
-}
-
-function initialsOf(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 export function SiteFooter() {

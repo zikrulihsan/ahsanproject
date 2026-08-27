@@ -2884,3 +2884,20 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .people-pagination > div { grid-column: 1 / -1; grid-row: 1; justify-content: center; }
   .people-pagination .pagination-direction { grid-row: 2; }
 }
+
+/* A person's picture takes over whichever avatar spot already sizes and shapes
+   it — the header, a directory row, the profile band — and the initials in
+   that same spot stay the fallback for anyone without one. */
+.person-photo {
+  align-items: center; display: inline-flex; flex: none; justify-content: center; overflow: hidden;
+}
+.person-photo img { border-radius: inherit; display: block; height: 100%; object-fit: cover; width: 100%; }
+.avatar-button > .person-photo { border-radius: 50%; height: 100%; width: 100%; }
+.profile-photo {
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .28); border-radius: 50%;
+  color: #eaf1ee; font-size: 27px; font-weight: 800; height: 92px; margin-bottom: 20px; width: 92px;
+}
+
+@media (max-width: 700px) {
+  .profile-photo { font-size: 21px; height: 70px; margin-bottom: 16px; width: 70px; }
+}

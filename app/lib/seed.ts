@@ -15,6 +15,8 @@ export type SeedUser = {
   skills: string[];
   yearsExperience: number | null;
   fields: string[];
+  /** A picture instead of initials; the seed has none, so initials it is. */
+  photoUrl: string;
   website: string;
   publicEmail: string;
   github: string;
@@ -100,6 +102,7 @@ export const seedUsers: SeedUser[] = [
     skills: ["Product Strategy", "Next.js", "Prototyping"],
     yearsExperience: 6,
     fields: ["Civic Tech", "Productivity"],
+    photoUrl: "",
     website: "https://ahsanproject-id.netlify.app",
     publicEmail: "",
     github: "https://github.com/zikrulihsan",

@@ -59,6 +59,8 @@ export type ProfileRow = {
   years_experience: number | null;
   fields: string[];
   website: string;
+  /** Login-provider picture, or one the person typed — 0016_profile_photo.sql. */
+  photo_url: string;
   public_email: string;
   github: string;
   linkedin: string;

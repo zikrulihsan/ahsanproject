@@ -5,6 +5,7 @@ import { setActivityVisibility, updateProfile } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
+import { PersonPhoto } from "../../components/person-photo";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { SubmitButton } from "../../components/submit-button";
@@ -118,6 +119,7 @@ export default async function ProfilePage({
               <p className="eyebrow light">
                 <span /> Portofolio Personal
               </p>
+              <PersonPhoto className="profile-photo" name={person.name} photoUrl={person.photoUrl} />
               <h1>{person.name}</h1>
               {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
               {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
@@ -250,6 +252,21 @@ export default async function ProfilePage({
                     placeholder="Fintech, Edukasi, Civic Tech"
                     defaultValue={person.fields.join(", ")}
                   />
+                  <label htmlFor="photoUrl">Foto profil (URL gambar)</label>
+                  <input
+                    id="photoUrl"
+                    name="photoUrl"
+                    type="url"
+                    maxLength={500}
+                    placeholder="https://.../foto.jpg"
+                    defaultValue={person.photoUrl}
+                  />
+                  <p className="hint">
+                    Kalau kamu masuk pakai Google, fotonya terpasang otomatis dari sana — kolom ini
+                    hanya untuk menggantinya. Tautan profil LinkedIn tidak bisa dipakai: LinkedIn
+                    menutup halaman profilnya untuk pengambilan otomatis, jadi fotonya tidak bisa
+                    diambil dari alamat itu. Kosongkan kalau mau kembali ke inisial nama.
+                  </p>
                   <label htmlFor="website">Situs</label>
                   <input id="website" name="website" type="url" defaultValue={person.website} />
                   <label htmlFor="publicEmail">Email publik</label>

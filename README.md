@@ -62,6 +62,10 @@ and everything that writes will say so rather than failing quietly.
      and fields for the people directory
    - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
      links on portfolio profiles
+   - `0015_project_logo_url.sql` — a project's own icon instead of a favicon
+     lookup
+   - `0016_profile_photo.sql` — profile photos, filled in from the picture the
+     login provider sends
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -90,6 +94,18 @@ instead.
    redirect allow list for every origin you use (production and local):
    - `<origin>/auth/callback`
    - `<origin>/auth/confirm`
+
+Google sends a profile picture along with the name and email. `0016` stores it
+as the person's photo, keeps it in step when they change it at Google, and
+steps aside the moment somebody sets a photo of their own. Everybody else keeps
+their initials until they paste an image URL into their profile.
+
+A photo cannot be read from a LinkedIn profile URL, however that URL is filled
+in: LinkedIn puts its profile pages behind an authentication wall, disallows
+reading them in its robots rules, and signs its image URLs so they expire. The
+supported route is signing in with LinkedIn — Supabase's `linkedin_oidc`
+provider sends a `picture` the same way Google does, and it lands in the same
+column.
 
 No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup

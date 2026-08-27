@@ -45,13 +45,17 @@ export function faviconUrl(value: string | null | undefined): string {
   }
 }
 
-/** Only ordinary public web URLs may be loaded as project artwork. */
-export function projectLogoUrl(value: string | null | undefined): string {
+/**
+ * Only ordinary public web URLs may be loaded as a picture — project artwork
+ * or somebody's profile photo. Where the URL came from differs; what counts as
+ * safe to point an `<img>` at does not.
+ */
+export function publicImageUrl(value: string | null | undefined): string {
   if (!value) return "";
 
   try {
-    const logo = new URL(value);
-    return logo.protocol === "http:" || logo.protocol === "https:" ? logo.toString() : "";
+    const picture = new URL(value);
+    return picture.protocol === "http:" || picture.protocol === "https:" ? picture.toString() : "";
   } catch {
     return "";
   }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { faviconUrl, projectLogoUrl, safeNextPath, signInPath } from "../app/lib/urls.ts";
+import { faviconUrl, publicImageUrl, safeNextPath, signInPath } from "../app/lib/urls.ts";
 
 test("a redirect target stays inside this site", () => {
   assert.equal(safeNextPath("/projects/warung-antre"), "/projects/warung-antre");
@@ -40,9 +40,13 @@ test("missing, malformed, and non-web links keep the initials fallback", () => {
   }
 });
 
-test("a project logo accepts only ordinary web image URLs", () => {
-  assert.equal(projectLogoUrl("https://flipcard.id/favicon.ico"), "https://flipcard.id/favicon.ico");
-  for (const value of ["", "flipcard.id/logo.png", "data:image/png,x", "javascript:alert(1)"]) {
-    assert.equal(projectLogoUrl(value), "");
+test("artwork and profile photos accept only ordinary web image URLs", () => {
+  assert.equal(publicImageUrl("https://flipcard.id/favicon.ico"), "https://flipcard.id/favicon.ico");
+  assert.equal(
+    publicImageUrl("https://lh3.googleusercontent.com/a/foto=s96-c"),
+    "https://lh3.googleusercontent.com/a/foto=s96-c",
+  );
+  for (const value of ["", "flipcard.id/logo.png", "data:image/png,x", "javascript:alert(1)", null]) {
+    assert.equal(publicImageUrl(value), "");
   }
 });

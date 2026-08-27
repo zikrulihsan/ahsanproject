@@ -31,6 +31,8 @@ export type Person = {
   skills: string[];
   yearsExperience: number | null;
   fields: string[];
+  /** A picture to show instead of initials. Empty means initials. */
+  photoUrl: string;
   website: string;
   publicEmail: string;
   github: string;
@@ -1130,6 +1132,7 @@ function toPerson(row: ProfileRow): Person {
     skills: row.skills ?? [],
     yearsExperience: row.years_experience ?? null,
     fields: row.fields ?? [],
+    photoUrl: row.photo_url ?? "",
     website: row.website ?? "",
     publicEmail: row.public_email ?? "",
     github: row.github ?? "",

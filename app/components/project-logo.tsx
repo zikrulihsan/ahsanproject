@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { faviconUrl, projectLogoUrl } from "../lib/urls";
+import { faviconUrl, publicImageUrl } from "../lib/urls";
 
 type ProjectLogoProps = {
   title: string;
@@ -17,7 +17,7 @@ type ProjectLogoProps = {
  * to load).
  */
 export function ProjectLogo({ title, website, logoUrl, className = "", fallback }: ProjectLogoProps) {
-  const sources = [...new Set([projectLogoUrl(logoUrl), faviconUrl(website)].filter(Boolean))];
+  const sources = [...new Set([publicImageUrl(logoUrl), faviconUrl(website)].filter(Boolean))];
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const src = sources.find((candidate) => !failedSources.includes(candidate)) ?? "";
 

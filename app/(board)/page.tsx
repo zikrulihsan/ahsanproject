@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { homeMeta, shareCard } from "../content";
-import { initials } from "../components/pieces";
+import { PersonPhoto } from "../components/person-photo";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { listPeople, listProjects } from "../lib/data";
 import type { Stage } from "../lib/stages";
@@ -63,7 +63,7 @@ export default async function Home() {
             <div className="landing-community-proof">
               <div className="pulse-avatars" aria-hidden="true">
                 {people.slice(0, 3).map((person) => (
-                  <span key={person.id}>{initials(person.name)}</span>
+                  <PersonPhoto key={person.id} name={person.name} photoUrl={person.photoUrl} />
                 ))}
                 <span className="pulse-plus">+</span>
               </div>
@@ -217,7 +217,7 @@ export default async function Home() {
                 {people.slice(0, 4).map((person) => (
                   <li key={person.id}>
                     <Link href={`/u/${person.username}`}>
-                      <span className="talent-avatar" aria-hidden="true">{initials(person.name)}</span>
+                      <PersonPhoto className="talent-avatar" name={person.name} photoUrl={person.photoUrl} />
                       <span className="talent-person-copy">
                         <strong>{person.name}</strong>
                         <small>{person.profession || person.headline || "Kolaborator"}</small>

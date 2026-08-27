@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
-import { initials } from "../components/pieces";
+import { PersonPhoto } from "../components/person-photo";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
 import {
   EXPERIENCE_BANDS,
@@ -312,7 +312,7 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
     <li>
       <article className="people-row">
         <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`Profil ${person.name}`}>
-          <span className="people-avatar" aria-hidden="true">{initials(person.name)}</span>
+          <PersonPhoto className="people-avatar" name={person.name} photoUrl={person.photoUrl} />
         </Link>
 
         <div className="people-row-body">
@@ -385,7 +385,11 @@ function ContributorRail({ people }: { people: PersonAtWork[] }) {
               <li key={entry.person.id}>
                 <span className="people-contributor-rank">{String(index + 1).padStart(2, "0")}</span>
                 <Link className="people-contributor-person" href={`/u/${entry.person.username}`}>
-                  <span className="people-mini-avatar" aria-hidden="true">{initials(entry.person.name)}</span>
+                  <PersonPhoto
+                    className="people-mini-avatar"
+                    name={entry.person.name}
+                    photoUrl={entry.person.photoUrl}
+                  />
                   <span>
                     <strong>{entry.person.name}</strong>
                     <small>{primaryProfession(entry) || `@${entry.person.username}`}</small>

@@ -58,6 +58,7 @@ function toViewer(profile: ProfileRow, email: string): Viewer {
     skills: profile.skills ?? [],
     yearsExperience: profile.years_experience ?? null,
     fields: profile.fields ?? [],
+    photoUrl: profile.photo_url ?? "",
     website: profile.website ?? "",
     publicEmail: profile.public_email ?? "",
     github: profile.github ?? "",

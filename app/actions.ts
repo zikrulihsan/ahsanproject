@@ -712,6 +712,7 @@ export async function updateProfile(formData: FormData): Promise<void> {
       skills: normalisePeopleTerms(text(formData, "skills"), 20),
       years_experience: yearsExperience,
       fields: normalisePeopleTerms(text(formData, "fields"), 10),
+      photo_url: profileUrl(formData, "photoUrl", 500),
       website: profileUrl(formData, "website"),
       public_email: profileEmail(formData, "publicEmail"),
       github: profileUrl(formData, "github"),
@@ -736,8 +737,8 @@ function text(formData: FormData, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function profileUrl(formData: FormData, key: string): string {
-  const value = text(formData, key).slice(0, 300);
+function profileUrl(formData: FormData, key: string, limit = 300): string {
+  const value = text(formData, key).slice(0, limit);
   if (!value) return "";
   try {
     const url = new URL(value);
