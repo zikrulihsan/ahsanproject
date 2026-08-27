@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "ahsanproject",
+  "compatibility_date": "2026-08-27",
+  // `nodejs_compat` gives the Next.js server the Node APIs it expects.
+  // `global_fetch_strictly_public` makes the Worker's own `fetch` behave like a
+  // browser's, so a request to the site's own origin goes back through the CDN
+  // instead of short-circuiting inside the isolate.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

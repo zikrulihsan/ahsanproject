@@ -10,13 +10,11 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Frame-Options = "DENY"
-
+# Security headers are not declared here: Next.js emits them itself (see
+# `headers()` in `next.config.ts`), so Netlify and the Cloudflare Worker stay in
+# step without two copies to keep in sync. Static asset caching does need a rule
+# per host, because each CDN serves that output itself — Cloudflare's lives in
+# `public/_headers`.
 [[headers]]
   for = "/_next/static/*"
   [headers.values]

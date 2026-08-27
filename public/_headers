@@ -1,0 +1,6 @@
+# Read by Cloudflare Workers Assets, which serves everything under
+# `.open-next/assets` without going through the Worker — so `headers()` in
+# `next.config.ts` never sees these requests. Without this the hashed build
+# output revalidates on every visit.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

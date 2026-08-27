@@ -11,7 +11,8 @@ goes, and name the help you are looking for. Anyone else can follow along or
 join in. Each person's profile is the work with their name on it: what they are
 building, and what they helped build.
 
-Next.js on Netlify, with Supabase for both the database and sign-in.
+Next.js on Netlify or Cloudflare Workers, with Supabase for both the
+database and sign-in.
 
 [Try the live site](https://ahsanproject.id) · [Report a bug](https://github.com/zikrulihsan/ahsanproject/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/zikrulihsan/ahsanproject/issues/new?template=feature_request.yml)
 
@@ -196,13 +197,37 @@ only — never run it against a hosted project.
 
 ## Deployment
 
-Netlify, using `@netlify/plugin-nextjs` (declared in `netlify.toml`). Set these
-in Site settings → Environment variables:
+The site renders every route per request, so it needs a server — there is no
+static export target. Two hosts are configured, and both run the same build:
+
+**Netlify** — `@netlify/plugin-nextjs`, declared in `netlify.toml`. Nothing to
+run by hand; it builds on push.
+
+**Cloudflare Workers** — `@opennextjs/cloudflare`, configured in
+`open-next.config.ts` and `wrangler.jsonc`:
+
+```bash
+npm run cf:preview   # build the Worker and serve it locally on workerd
+npm run cf:deploy    # build and deploy to Cloudflare
+```
+
+Or point Workers Builds at the repository with `npm run cf:build` as the build
+command and `.open-next` as the output directory, which deploys on push.
+
+Cloudflare serves everything under `/_next/static` from its own asset store
+rather than through the Worker, so the long-lived cache header for the hashed
+build output lives in `public/_headers`.
+
+Either way, set these environment variables on the host:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_SITE_URL` — the deployed origin, so confirmation emails point back
   at the right place
+
+All three are read at build time and baked into the bundle, so on Cloudflare
+they belong in the build configuration, not in Worker secrets — a secret added
+after the build is invisible to the pages that need these.
 
 Then add that same origin to Supabase under Authentication → URL Configuration,
 including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
@@ -210,12 +235,26 @@ including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.
 
+Two things worth knowing before making Cloudflare the primary host:
+
+- The Worker gzips to roughly 3.2 MiB, over the 3 MiB limit of the Workers Free
+  plan, so deploying needs the paid plan. Most of the excess is the 1.4 MiB
+  `resvg.wasm` that `next/og` pulls in for the share cards in
+  `app/projects/[slug]/opengraph-image.tsx`.
+- `proxy.ts` runs on the Node.js runtime (Next.js 16 allows no other), and
+  OpenNext marks running Node.js middleware on workerd as experimental and
+  unmaintained. It works — the session refresh and the `/` redirect were
+  verified against a local Worker — but it is the piece most likely to break on
+  a future Next.js or adapter upgrade.
+
 ## Useful commands
 
 - `npm run dev` — local development
 - `npm run build` — production build
 - `npm run lint` — ESLint
 - `npm run db:seed` — regenerate `supabase/seed.sql` from `app/lib/seed.ts`
+- `npm run cf:preview` — build the Cloudflare Worker and preview it locally
+- `npm run cf:deploy` — build and deploy the Cloudflare Worker
 
 ## Contributing
 
