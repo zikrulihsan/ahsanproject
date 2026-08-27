@@ -28,8 +28,8 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 
 const LINKS: { href: string; label: string; key: Section }[] = [
   { href: "/", label: "Home", key: "beranda" },
-  { href: "/kolaborasi", label: "Explore", key: "kolaborasi" },
-  { href: "/orang", label: "People", key: "orang" },
+  { href: "/kolaborasi", label: "Feature", key: "kolaborasi" },
+  { href: "/orang", label: "Talent Pool", key: "orang" },
 ];
 
 type HeaderIconName = "home" | "explore" | "people" | "profile" | "inbox" | "add" | "signout" | "signin";

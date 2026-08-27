@@ -9,7 +9,7 @@ export default function Loading() {
         <LoadingNote />
 
         <section className="landing-hero">
-          <div className="landing-hero-copy" style={{ width: "100%" }}>
+          <div className="landing-hero-copy">
             <Skeleton height={11} width={230} style={{ marginBottom: 20 }} />
             <Skeleton height={63} width="94%" style={{ marginBottom: 11 }} />
             <Skeleton height={63} width="78%" style={{ marginBottom: 27 }} />
@@ -20,21 +20,6 @@ export default function Loading() {
               <Skeleton height={50} width={225} />
             </div>
           </div>
-
-          <aside className="collaboration-example">
-            <Skeleton height={10} width="58%" style={{ marginBottom: 26 }} />
-            <div className="collaboration-example-project">
-              <Skeleton height={58} width={58} style={{ borderRadius: 12 }} />
-              <div>
-                <Skeleton height={9} width="35%" style={{ marginBottom: 8 }} />
-                <Skeleton height={25} width="72%" style={{ marginBottom: 8 }} />
-                <Skeleton height={11} width="92%" />
-              </div>
-            </div>
-            <Skeleton height={68} style={{ marginTop: 19, marginBottom: 18 }} />
-            <Skeleton height={45} style={{ marginBottom: 18 }} />
-            <Skeleton height={34} width="54%" />
-          </aside>
         </section>
 
         <section className="landing-stats">

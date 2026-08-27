@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { homeMeta, shareCard } from "../content";
 import { initials } from "../components/pieces";
-import { ProjectLogo } from "../components/project-logo";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { listPeople, listProjects } from "../lib/data";
-import { roleLabel } from "../lib/roles";
-import { stageMeta, type Stage } from "../lib/stages";
+import type { Stage } from "../lib/stages";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +38,6 @@ export default async function Home() {
   }));
   const largestStage = Math.max(...stageSummaries.map((entry) => entry.count), 1);
   const popularTopics = rankTopics(projects).slice(0, 5);
-  const featuredProject =
-    projects.find((project) => project.openSeatCount > 0 && project.nowText) ??
-    projects.find((project) => project.openSeatCount > 0) ??
-    projects[0];
 
   return (
     <>
@@ -52,8 +46,7 @@ export default async function Home() {
       <main id="main-content" className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
-            <p className="home-eyebrow">Wadah Kolaborasi Lintas Peran</p>
-            <h1 id="landing-title">Bagikan,<br/> Temukan,<br/> <span className="hero-highlight">Berkolaborasi</span></h1>
+            <h1 id="landing-title">Show Your Project,<br/> Build Portfolio,<br/> <span className="hero-highlight">Find Collaborators</span></h1>
             <p className="landing-hero-lead">
               Bagikan project terbaikmu, temukan tempat kontribusi, dan bangun portfolio dengan kolaborasi.
             </p>
@@ -79,81 +72,6 @@ export default async function Home() {
               </p>
             </div>
           </div>
-
-          {featuredProject ? (
-            <div className="collaboration-example-wrap">
-              <div className="collaboration-example-note">
-                <span>Ini contohnya</span>
-                <svg viewBox="0 0 52 42" aria-hidden="true">
-                  <path d="M8 4c1 16 12 25 32 27" />
-                  <path d="m32 24 9 7-10 5" />
-                </svg>
-              </div>
-              <aside className="collaboration-example" aria-label={`Contoh project kolaborasi: ${featuredProject.title}`}>
-                <div className="collaboration-example-head">
-                  <span>Contoh project kolaborasi</span>
-                  {featuredProject.openSeatCount > 0 ? (
-                    <strong><i aria-hidden="true" /> Mencari {featuredProject.openSeatCount} orang</strong>
-                  ) : (
-                    <strong>Project aktif</strong>
-                  )}
-                </div>
-
-                <div className="collaboration-example-project">
-                  <ProjectLogo
-                    title={featuredProject.title}
-                    website={featuredProject.liveUrl}
-                    logoUrl={featuredProject.logoUrl}
-                    fallback={featuredProject.glyph}
-                    className="collaboration-example-logo"
-                  />
-                  <div>
-                    <span>{stageMeta[featuredProject.stage].label}</span>
-                    <h2>{featuredProject.title}</h2>
-                    <p>{featuredProject.tagline}</p>
-                  </div>
-                </div>
-
-                {featuredProject.nowText ? (
-                  <div className="collaboration-example-now">
-                    <span>Sedang dikerjakan</span>
-                    <p>{featuredProject.nowText}</p>
-                  </div>
-                ) : null}
-
-                <div className="collaboration-example-roles">
-                  <span>Bantuan yang dicari</span>
-                  {featuredProject.openRoles.length > 0 ? (
-                    <ul>
-                      {featuredProject.openRoles.slice(0, 3).map((role) => (
-                        <li key={role}>
-                          <Link href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>{roleLabel(role)}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>Belum membuka posisi kolaborasi.</p>
-                  )}
-                </div>
-
-                <div className="collaboration-example-foot">
-                  <Link href={`/u/${featuredProject.owner.username}`}>
-                    <span aria-hidden="true">{initials(featuredProject.owner.name)}</span>
-                    <small>Dibuat oleh <strong>{featuredProject.owner.name}</strong></small>
-                  </Link>
-                  <Link href={`/projects/${featuredProject.slug}`}>
-                    Lihat project <Arrow />
-                  </Link>
-                </div>
-              </aside>
-            </div>
-          ) : (
-            <aside className="collaboration-example collaboration-example-empty">
-              <span>Contoh project kolaborasi</span>
-              <h2>Project pertamamu bisa tampil di sini.</h2>
-              <Link href="/new">Tambah Project <Arrow /></Link>
-            </aside>
-          )}
         </section>
 
         <section className="landing-stats" aria-labelledby="landing-stats-title">
