@@ -87,9 +87,20 @@ instead.
 3. In Supabase, open Authentication → Providers → Google, enable it, then paste
    the Google client ID and client secret.
 4. Under Authentication → URL Configuration, add both app callbacks to the
-   redirect allow list for every origin you use (production and local):
+   **Redirect URLs** allow list, for **every** origin people reach the site on —
+   the custom domain, the deploy URL behind it, and local:
    - `<origin>/auth/callback`
    - `<origin>/auth/confirm`
+
+> [!IMPORTANT]
+> An empty or incomplete Redirect URLs list is the quietest way to break
+> sign-in. Supabase does not report a rejected `redirect_to`; it silently
+> falls back to the **Site URL**, so the authorization code arrives on a page
+> that has no idea what to do with it and the person simply stays signed out.
+> Only `/auth/callback` and `/auth/confirm` belong on that list. Nothing else
+> in this app trades a code for a session — `/mulai` is where a *successful*
+> sign-in lands, and putting it on the allow list would break the very flow it
+> is meant to finish.
 
 No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup
@@ -107,7 +118,7 @@ match it.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
-| `/mulai` | Where signing in lands: the steps still owed, and the projects you own. Forwards to the board once nothing is owed |
+| `/mulai` | Where a completed sign-in lands — not a callback, never on the redirect allow list. The steps still owed, and the projects you own; forwards to the board once nothing is owed |
 | `/akun/profil` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
@@ -208,11 +219,20 @@ in Site settings → Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_SITE_URL` — the deployed origin, so confirmation emails point back
-  at the right place
+- `NEXT_PUBLIC_SITE_URL` — a fallback origin for links that leave the app and
+  come back, used only when there is no request to read the origin from
 
-Then add that same origin to Supabase under Authentication → URL Configuration,
-including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
+`siteOrigin()` in `app/lib/origin.ts` prefers the origin of the request being
+served, and that is deliberate. Signing in writes the PKCE code verifier as a
+cookie on the origin it started from, and the callback has to find that cookie
+again; a single origin pinned into every link means anybody arriving by a
+second name for the site gets sent to the first one, where the verifier is not,
+and the sign-in dies at the exchange. So register **every** origin people use
+under Authentication → URL Configuration, each with `/auth/callback` and
+`/auth/confirm`, not just the canonical one.
+
+That the forwarded host comes from outside is not a hole: Supabase refuses a
+`redirect_to` that is not on the allow list, so the list is the guard.
 
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.
