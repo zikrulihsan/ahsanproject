@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { resilientSupabaseFetch } from "./resilient-fetch";
 
@@ -68,4 +68,30 @@ export async function requireSupabase(): Promise<Supabase> {
   const supabase = await getSupabase();
   if (!supabase) throw new SupabaseUnavailableError();
   return supabase;
+}
+
+/**
+ * A Supabase client with no session attached.
+ *
+ * `use cache` scopes may not touch `cookies()`, so the session-carrying client
+ * above cannot be used inside one. This client reads as `anon`, which is
+ * exactly the right identity for cached data: everything the cached reads in
+ * `data.ts` touch is granted to `anon` with `using (true)` in
+ * `supabase/migrations/0003_policies.sql`, so the rows come back identical to
+ * what a signed-in visitor would see. The one table where that is not true is
+ * `events` — see `listPersonActivity` for how a person's own hidden entries
+ * stay visible to them.
+ *
+ * Built once per server instance rather than per call: it holds no per-visitor
+ * state, so there is nothing to rebuild.
+ */
+let publicClient: Supabase | null = null;
+
+export function getPublicSupabase(): Supabase | null {
+  if (!supabaseConfigured()) return null;
+  publicClient ??= createClient<Database>(url, anonKey, {
+    global: { fetch: resilientSupabaseFetch },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  return publicClient;
 }

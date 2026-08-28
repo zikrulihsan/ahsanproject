@@ -10,8 +10,6 @@ import { readPublicly } from "../lib/public-read";
 import { roleLabel } from "../lib/roles";
 import { stageMeta } from "../lib/stages";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: homeMeta.title,
   description: homeMeta.description,

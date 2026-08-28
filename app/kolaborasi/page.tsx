@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { BoardCard, initials } from "../components/pieces";
 import { ExploreSearchForm } from "../components/explore-search-form";
 import { SearchableFilter } from "../components/searchable-filter";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { SortSelect } from "../components/sort-select";
+import { LoadingNote, Skeleton } from "../components/skeleton";
 import { shareCard } from "../content";
 import {
+  arrangeForYou,
   familiarRoles,
   isLane,
   listPeople,
@@ -21,9 +24,7 @@ import {
 import { readPublicly } from "../lib/public-read";
 import { normaliseRole, roleLabel, type Role } from "../lib/roles";
 import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
-import { currentViewer } from "../lib/session";
-
-export const dynamic = "force-dynamic";
+import { viewerId } from "../lib/session";
 
 const title = "Explore — Ahsan Project";
 const description = "Explore project berdasarkan kategori, level, dan role, lalu temukan tempat terbaik untuk ikut berkontribusi.";
@@ -50,27 +51,124 @@ function one(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 }
 
-export default async function CollaborationPage({ searchParams }: { searchParams?: SearchParams }) {
-  const params = (await searchParams) ?? {};
+/** What the URL is asking the board for. */
+type BoardQuery = {
+  sort: Lane;
+  stage: Stage | "";
+  role: Role | "";
+  tag: string;
+  q: string;
+  searchBy: "project" | "role";
+  needs: "open" | "";
+};
+
+function readBoardQuery(params: Record<string, string | string[] | undefined>): BoardQuery {
   const askedLane = one(params.lane);
   const legacyStage = LEGACY_LANE_STAGE[askedLane];
-  const sort: Lane = isLane(askedLane) && SORT_VALUES.has(askedLane) ? askedLane : "untukmu";
-  const stage = legacyStage ?? (isStage(one(params.stage)) ? (one(params.stage) as Stage) : "");
-  const role = normaliseRole(one(params.role)) ?? "";
-  const tag = one(params.tag);
-  const q = one(params.q);
-  const searchBy = one(params.searchBy) === "role" ? "role" : "project";
-  const needs = one(params.needs) === "open" || askedLane === "butuh-bantuan" ? "open" : "";
 
-  const viewer = await currentViewer();
-  const familiarResult = viewer && sort === "untukmu"
-    ? await readPublicly<string[]>(
-        "role familiar untuk rekomendasi",
-        () => familiarRoles(viewer.id),
-        [],
-      )
-    : { value: [] as string[], unavailable: false };
-  const familiar = familiarResult.value;
+  return {
+    sort: isLane(askedLane) && SORT_VALUES.has(askedLane) ? askedLane : "untukmu",
+    stage: legacyStage ?? (isStage(one(params.stage)) ? (one(params.stage) as Stage) : ""),
+    role: normaliseRole(one(params.role)) ?? "",
+    tag: one(params.tag),
+    q: one(params.q),
+    searchBy: one(params.searchBy) === "role" ? "role" : "project",
+    needs: one(params.needs) === "open" || askedLane === "butuh-bantuan" ? "open" : "",
+  };
+}
+
+function pathFor(query: BoardQuery): string {
+  return linkTo(query);
+}
+
+/**
+ * Explore's frame, which is the same question however it is being asked.
+ *
+ * The heading, the invitation to add a project and the footer read nothing, so
+ * they prerender once and arrive with the document. Everything below depends on
+ * the filters in the URL and, for the "untukmu" ordering, on who is asking —
+ * neither of which exists until somebody asks, so they stream in behind a
+ * skeleton rather than holding the page back.
+ */
+export default function CollaborationPage({ searchParams }: { searchParams?: SearchParams }) {
+  const params = searchParams ?? Promise.resolve({});
+
+  return (
+    <>
+      <SiteHeader returnTo={params.then((value) => pathFor(readBoardQuery(value)))} active="kolaborasi" />
+
+      <main id="main-content" className="discovery-page collaboration-page">
+        <section className="collaboration-hero" aria-labelledby="collaboration-title">
+          <div>
+            <p className="home-eyebrow">temukan tempat untuk ikut bertumbuh</p>
+            <h1 id="collaboration-title">Explore</h1>
+            <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok.</p>
+          </div>
+          <ContributorPulse />
+        </section>
+
+        <Suspense fallback={<BoardSkeleton />}>
+          <Board params={params} />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </>
+  );
+}
+
+/**
+ * How many people are here. A cached public read with nothing per-visitor in
+ * it, so it is prerendered into the shell alongside the heading.
+ */
+async function ContributorPulse() {
+  const { value: people } = await readPublicly("orang di Explore", () => listPeople(400), []);
+
+  return (
+    <div className="contributor-pulse" aria-label={`${people.length} kontributor`}>
+      <div className="pulse-avatars" aria-hidden="true">
+        {people.slice(0, 3).map((person) => (
+          <span key={person.id}>{initials(person.name)}</span>
+        ))}
+        <span className="pulse-plus">+</span>
+      </div>
+      <p>
+        <strong>{people.length} kontributor</strong>
+        <small>siap membangun bersama</small>
+      </p>
+    </div>
+  );
+}
+
+function BoardSkeleton() {
+  return (
+    <>
+      <LoadingNote />
+      <section className="collaboration-panel">
+        <Skeleton height={55} />
+        <Skeleton height={44} style={{ marginTop: 10 }} />
+      </section>
+      <div className="discovery-content collaboration-content">
+        <section>
+          <div className="home-list-head">
+            <Skeleton height={24} width={220} />
+          </div>
+          {[0, 1, 2, 3].map((slot) => (
+            <Skeleton key={slot} height={190} style={{ marginTop: 12 }} />
+          ))}
+        </section>
+        <aside className="discovery-sidebar">
+          <Skeleton height={260} />
+          <Skeleton height={360} />
+        </aside>
+      </div>
+    </>
+  );
+}
+
+async function Board({ params: paramsPromise }: { params: SearchParams }) {
+  const { sort, stage, role, tag, q, searchBy, needs } = readBoardQuery(await paramsPromise);
+
   const query: FeedQuery = {
     lane: sort,
     stage,
@@ -79,8 +177,23 @@ export default async function CollaborationPage({ searchParams }: { searchParams
     q: searchBy === "project" ? q : "",
     roleQuery: searchBy === "role" ? q : "",
     needsHelp: needs === "open",
-    familiarRoles: familiar,
   };
+
+  // Who is asking does not change which projects come back — only the order of
+  // the "untukmu" lane. So this is started rather than awaited: the board reads
+  // below go out at the same time, and the two settle together. Awaiting it
+  // here instead put the whole board behind an auth round trip and then a
+  // second query, for a sort that could just as well happen at the end.
+  const familiarPromise = sort === "untukmu"
+    ? readPublicly<string[]>(
+        "role familiar untuk rekomendasi",
+        async () => {
+          const id = await viewerId();
+          return id ? familiarRoles(id) : [];
+        },
+        [],
+      )
+    : Promise.resolve({ value: [] as string[], unavailable: false });
 
   const projectsPromise = readPublicly<ProjectSummary[]>(
     "project Explore",
@@ -94,22 +207,31 @@ export default async function CollaborationPage({ searchParams }: { searchParams
         [],
       )
     : projectsPromise;
-  const [projectsResult, topicProjectsResult, helpBoardResult, peopleResult, roleSuggestionsResult] =
-    await Promise.all([
-      projectsPromise,
-      topicProjectsPromise,
-      readPublicly<ProjectSummary[]>(
-        "project yang membutuhkan bantuan",
-        () => listProjects({ lane: "butuh-bantuan" }),
-        [],
-      ),
-      readPublicly("orang di Explore", () => listPeople(400), []),
-      readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
-    ]);
-  const projects = projectsResult.value;
+  const [
+    projectsResult,
+    topicProjectsResult,
+    helpBoardResult,
+    roleSuggestionsResult,
+    familiarResult,
+  ] = await Promise.all([
+    projectsPromise,
+    topicProjectsPromise,
+    readPublicly<ProjectSummary[]>(
+      "project yang membutuhkan bantuan",
+      () => listProjects({ lane: "butuh-bantuan" }),
+      [],
+    ),
+    readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
+    familiarPromise,
+  ]);
+
+  // The one place the visitor changes what they see: rows everybody shares,
+  // put in an order that leans on the roles this person has held before.
+  const projects = sort === "untukmu"
+    ? arrangeForYou(projectsResult.value, familiarResult.value)
+    : projectsResult.value;
   const topics = tagCountsFromProjects(topicProjectsResult.value);
   const helpBoard = helpBoardResult.value;
-  const people = peopleResult.value;
   const roleSuggestions = roleSuggestionsResult.value;
   const seatsResult = await readPublicly<Map<number, Record<string, number>>>(
     "jumlah role terbuka",
@@ -122,7 +244,6 @@ export default async function CollaborationPage({ searchParams }: { searchParams
     projectsResult,
     topicProjectsResult,
     helpBoardResult,
-    peopleResult,
     roleSuggestionsResult,
     seatsResult,
   ].some((result) => result.unavailable);
@@ -133,29 +254,6 @@ export default async function CollaborationPage({ searchParams }: { searchParams
 
   return (
     <>
-      <SiteHeader returnTo={currentPath} active="kolaborasi" />
-
-      <main id="main-content" className="discovery-page collaboration-page">
-        <section className="collaboration-hero" aria-labelledby="collaboration-title">
-          <div>
-            <p className="home-eyebrow">temukan tempat untuk ikut bertumbuh</p>
-            <h1 id="collaboration-title">Explore</h1>
-            <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok.</p>
-          </div>
-          <div className="contributor-pulse" aria-label={`${people.length} kontributor`}>
-            <div className="pulse-avatars" aria-hidden="true">
-              {people.slice(0, 3).map((person) => (
-                <span key={person.id}>{initials(person.name)}</span>
-              ))}
-              <span className="pulse-plus">+</span>
-            </div>
-            <p>
-              <strong>{people.length} kontributor</strong>
-              <small>siap membangun bersama</small>
-            </p>
-          </div>
-        </section>
-
         {dataUnavailable ? (
           <p className="public-data-notice" role="status">
             Sebagian data belum berhasil dimuat. <Link href={currentPath}>Coba lagi</Link>.
@@ -338,9 +436,6 @@ export default async function CollaborationPage({ searchParams }: { searchParams
             </section>
           </aside>
         </div>
-      </main>
-
-      <SiteFooter />
     </>
   );
 }

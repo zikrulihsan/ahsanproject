@@ -1,8 +1,47 @@
 import type { NextConfig } from "next";
 
-// Every route reads request identity or the database, so there is no static
-// export target any more — the site is served by the Cloudflare Worker in
-// `worker/index.ts`.
-const nextConfig: NextConfig = {};
+/**
+ * Cache Components is what makes this site cheap to serve.
+ *
+ * Every route used to carry `dynamic = "force-dynamic"`, so each page view
+ * re-read Supabase from scratch — including the two story pages, which have no
+ * database reads at all. With `cacheComponents` on, each route prerenders a
+ * static shell, the public reads in `app/lib/data.ts` are cached and shared
+ * across visitors, and only the parts that genuinely depend on who is looking
+ * (the header, the inbox, an application state) stream in at request time.
+ *
+ * The profiles below name the shapes of data this site has, so a call site
+ * reads as an intent rather than a number. All three are also invalidated on
+ * demand: every write in `app/actions.ts` calls `updateTag`, so an edit shows
+ * up immediately and the durations are only the ceiling for changes that
+ * happen outside the app.
+ */
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  cacheLife: {
+    // The board, the people directory, a project page. Someone posting a
+    // project wants to see it appear; the tag invalidation covers that, and
+    // this is the backstop for rows that changed in the database directly.
+    board: {
+      stale: 60,
+      revalidate: 300,
+      expire: 3600,
+    },
+    // Facets rebuilt from the same rows the board already reads: topic counts,
+    // open-role suggestions. A new topic appearing a few minutes late costs
+    // nothing, and these are the most expensive reads to repeat.
+    facets: {
+      stale: 300,
+      revalidate: 900,
+      expire: 86400,
+    },
+    // A person's public trail. Append-only in practice, and never urgent.
+    trail: {
+      stale: 300,
+      revalidate: 1800,
+      expire: 86400,
+    },
+  },
+};
 
 export default nextConfig;

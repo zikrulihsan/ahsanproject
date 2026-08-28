@@ -1,5 +1,7 @@
 import { cache } from "react";
-import { getSupabase, type Supabase } from "./supabase";
+import { cacheLife, cacheTag } from "next/cache";
+import { getPublicSupabase, getSupabase, type Supabase } from "./supabase";
+import { tags } from "./cache-tags";
 import type {
   CommentRow,
   EventRow,
@@ -11,7 +13,7 @@ import type {
 } from "./database.types";
 import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
-import { arrangeForYou, type Lane } from "./feed";
+import type { Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
 import {
   normaliseRole,
@@ -161,7 +163,7 @@ export type FeedQuery = {
   roleQuery?: string;
   q?: string;
   /** Roles this visitor has held before, used to arrange the "untukmu" lane. */
-  familiarRoles?: readonly string[];
+
 };
 
 export { LANES, isLane, arrangeForYou, type Lane } from "./feed";
@@ -213,6 +215,7 @@ const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: st
   berjalan: { stage: "live", column: "last_activity_at" },
 };
 
+/** The filters that decide what the database is asked for. */
 function projectQueryKey(query: FeedQuery): string {
   return JSON.stringify({
     lane: query.lane ?? "untukmu",
@@ -222,24 +225,44 @@ function projectQueryKey(query: FeedQuery): string {
     role: query.role ?? "",
     roleQuery: query.roleQuery ?? "",
     q: query.q ?? "",
-    familiarRoles: [...new Set(query.familiarRoles ?? [])].sort(),
-  } satisfies FeedQuery);
+  });
 }
 
-const listProjectsCached = cache(async (key: string): Promise<ProjectSummary[]> => {
-  return listProjectsUncached(JSON.parse(key) as FeedQuery);
-});
+/**
+ * One board read, shared by everyone asking the same question.
+ *
+ * The key arrives as a string so the cache entry is keyed on the filters
+ * themselves rather than on an object whose property order could vary. Tagged
+ * with `seats` as well as `projects` because `project_overview` carries the
+ * open seat count and the open roles: opening or closing a seat changes what
+ * the board says without touching the projects table.
+ */
+async function readProjects(key: string): Promise<ProjectSummary[]> {
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.projects, tags.seats);
 
-/** One database read for each distinct filter set within a server render. */
-export function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
-  return listProjectsCached(projectQueryKey(query));
+  return queryProjects(JSON.parse(key) as FeedQuery);
 }
 
-async function listProjectsUncached(query: FeedQuery): Promise<ProjectSummary[]> {
+/**
+ * The board for one set of filters.
+ *
+ * In the order the database gave, deliberately. Arranging the "untukmu" lane
+ * for a particular visitor is `arrangeForYou`, and it belongs to the caller
+ * that knows who is looking — see `app/kolaborasi/page.tsx`. Keeping it out of
+ * here is what lets this read start before the session is known, instead of
+ * queueing behind an auth round trip for a sort it could do afterwards.
+ */
+export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
+  return readProjects(projectQueryKey(query));
+}
+
+async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
   const lane = query.lane ?? "untukmu";
   const shape = LANE_QUERY[lane];
 
-  const supabase = await getSupabase();
+  const supabase = getPublicSupabase();
   if (!supabase) return seedFeed(query);
 
   let request = supabase.from("project_overview").select("*");
@@ -303,8 +326,7 @@ async function listProjectsUncached(query: FeedQuery): Promise<ProjectSummary[]>
     .limit(120);
   if (error) throw new Error(error.message);
 
-  const projects = (data ?? []).map(toSummary);
-  return lane === "untukmu" ? arrangeForYou(projects, query.familiarRoles) : projects;
+  return (data ?? []).map(toSummary);
 }
 
 /**
@@ -345,16 +367,28 @@ export function tagCountsFromProjects(
 export async function openSeatsByRole(
   projectIds: number[],
 ): Promise<Map<number, Record<string, number>>> {
-  const counts = new Map<number, Record<string, number>>();
-  if (projectIds.length === 0) return counts;
+  if (projectIds.length === 0) return new Map();
 
+  // Sorted so two boards holding the same projects in a different order share
+  // one cache entry rather than two.
+  return readOpenSeatsByRole([...new Set(projectIds)].sort((a, b) => a - b));
+}
+
+async function readOpenSeatsByRole(
+  projectIds: number[],
+): Promise<Map<number, Record<string, number>>> {
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.seats);
+
+  const counts = new Map<number, Record<string, number>>();
   const add = (projectId: number, role: string) => {
     const perRole = counts.get(projectId) ?? {};
     perRole[role] = (perRole[role] ?? 0) + 1;
     counts.set(projectId, perRole);
   };
 
-  const supabase = await getSupabase();
+  const supabase = getPublicSupabase();
   if (!supabase) {
     for (const project of seedProjects) {
       if (!projectIds.includes(project.id)) continue;
@@ -388,6 +422,10 @@ export type OpenRoleSuggestion = {
  * recommendation can lead to at least one project.
  */
 export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
+  "use cache";
+  cacheLife("facets");
+  cacheTag(tags.seats);
+
   const add = (
     counts: Map<string, OpenRoleSuggestion>,
     role: string,
@@ -404,7 +442,7 @@ export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
   };
 
   const counts = new Map<string, OpenRoleSuggestion>();
-  const supabase = await getSupabase();
+  const supabase = getPublicSupabase();
   if (!supabase) {
     for (const project of seedProjects) {
       for (const seat of project.seats) {
@@ -426,9 +464,21 @@ export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
   );
 }
 
-/** The roles somebody has held or applied for — what "untukmu" leans on. */
+/**
+ * The roles somebody has held or applied for — what "untukmu" leans on.
+ *
+ * Cached even though it is about one person: `seats` is public, so this is not
+ * private information, and the board waits on it before it can settle its
+ * order. Filed under the site-wide `seats` tag rather than a per-person one —
+ * that clears every visitor's entry whenever any seat anywhere moves, which is
+ * far rarer than the page views this saves, and the miss costs one small query.
+ */
 export async function familiarRoles(userId: string): Promise<string[]> {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.seats);
+
+  const supabase = getPublicSupabase();
   if (!supabase) return [];
 
   const { data, error } = await supabase.from("seats").select("role").eq("user_id", userId);
@@ -438,11 +488,28 @@ export async function familiarRoles(userId: string): Promise<string[]> {
 }
 
 /**
- * Cached per request: generateMetadata and the page both ask for the same
- * project, and without this each render fetched the whole thing twice.
+ * One project, whole: the brief, its seats, discussion, tasks and build log.
+ *
+ * The most expensive read on the site — five round trips — and the one most
+ * worth caching, because a project page is what gets shared and linked to.
+ * Cached across visitors and tagged per slug, so the owner editing their own
+ * project invalidates that project and nothing else.
+ *
+ * Still wrapped in `cache()` as well: `generateMetadata` and the page body both
+ * ask for it, and that keeps them to one lookup within a single render.
  */
 export const getProject = cache(async (slug: string): Promise<ProjectDetail | null> => {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("board");
+  cacheTag(
+    tags.project(slug),
+    tags.comments(slug),
+    tags.updates(slug),
+    tags.tasks(slug),
+    tags.seats,
+  );
+
+  const supabase = getPublicSupabase();
   if (!supabase) return seedDetail(slug);
 
   const { data: project, error } = await supabase
@@ -528,9 +595,19 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
   };
 });
 
-/** Cached per request, for the same generateMetadata-plus-page reason. */
+/**
+ * One public profile.
+ *
+ * Cached per username and tagged with it, so somebody editing their profile
+ * refreshes their own page without disturbing anyone else's. The `cache()`
+ * wrapper still earns its place for the generateMetadata-plus-page pair.
+ */
 export const getPerson = cache(async (username: string): Promise<Person | null> => {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.person(username));
+
+  const supabase = getPublicSupabase();
   if (!supabase) {
     const seed = seedUsers.find((user) => user.username === username);
     return seed ? { ...seed } : null;
@@ -549,25 +626,39 @@ export const getPerson = cache(async (username: string): Promise<Person | null> 
 /** A project somebody helps on, together with the role they hold there. */
 export type Contribution = ProjectSummary & { role: string };
 
-/** Projects this person owns, plus the ones they hold a filled seat on. */
+/**
+ * Projects this person owns, plus the ones they hold a filled seat on.
+ *
+ * Keyed on the id rather than the whole `Person` so the entry survives an
+ * unrelated edit to their bio, and tagged with both the projects and the seats
+ * it is assembled from.
+ */
 export async function getPortfolio(person: Person) {
-  const supabase = await getSupabase();
+  return readPortfolio(person.id);
+}
+
+async function readPortfolio(personId: string) {
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.projects, tags.seats);
+
+  const supabase = getPublicSupabase();
 
   if (!supabase) {
-    const owned = seedFeed({}).filter((project) => project.owner.id === person.id);
-    return { owned, contributing: seedContributions(person.id) };
+    const owned = seedFeed({}).filter((project) => project.owner.id === personId);
+    return { owned, contributing: seedContributions(personId) };
   }
 
   const [ownedResult, seatResult] = await Promise.all([
     supabase
       .from("project_overview")
       .select("*")
-      .eq("owner_id", person.id)
+      .eq("owner_id", personId)
       .order("created_at", { ascending: false }),
     supabase
       .from("seats")
       .select("project_id, role")
-      .eq("user_id", person.id)
+      .eq("user_id", personId)
       .eq("status", "filled"),
   ]);
   if (ownedResult.error) throw new Error(ownedResult.error.message);
@@ -585,7 +676,7 @@ export async function getPortfolio(person: Person) {
     .from("project_overview")
     .select("*")
     .in("id", [...roleByProject.keys()])
-    .neq("owner_id", person.id)
+    .neq("owner_id", personId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
 
@@ -604,7 +695,11 @@ export async function getPortfolio(person: Person) {
  * be found.
  */
 const listPeopleCached = cache(async (limit: number): Promise<Person[]> => {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.people);
+
+  const supabase = getPublicSupabase();
   if (!supabase) return seedUsers.map((user) => ({ ...user }));
 
   const { data, error } = await supabase
@@ -639,13 +734,17 @@ export type PersonAtWork = {
 };
 
 export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.people, tags.projects, tags.seats);
+
   const [people, projects] = await Promise.all([listPeople(limit), listProjects({ lane: "terbaru" })]);
 
   const byId = new Map(projects.map((project) => [project.id, project]));
   const helping = new Map<string, ProjectSummary[]>();
   const roles = new Map<string, Set<string>>();
 
-  const supabase = await getSupabase();
+  const supabase = getPublicSupabase();
   if (supabase) {
     const { data, error } = await supabase
       .from("seats")
@@ -694,7 +793,11 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
 }
 
 export async function listTags(): Promise<{ tag: string; count: number }[]> {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("facets");
+  cacheTag(tags.projects);
+
+  const supabase = getPublicSupabase();
 
   const allTags = supabase
     ? await (async () => {
@@ -883,18 +986,76 @@ export async function countUnseenNotices(userId: string): Promise<number> {
 }
 
 /**
+ * Whoever is looking, as far as a trail is concerned.
+ *
+ * Structural rather than the `Viewer` type so `data.ts` stays free of an
+ * import from `session.ts`, which imports from here.
+ */
+export type TrailViewer = Pick<Person, "id" | "activityHidden">;
+
+/**
+ * Whether this visitor would see more of a trail than the public does.
+ *
+ * `events` is the one public table whose SELECT policy depends on who is
+ * asking: it shows a person their own hidden entries. So for them the cached
+ * public copy would be wrong, and their read has to go to the database as
+ * themselves. For a guest, and for the great majority of signed-in people, who
+ * have hidden nothing, the public copy is exactly what the policy would return
+ * — and that is the copy worth caching and sharing.
+ *
+ * `actorId` narrows the question to one person's trail. Left out — as on a
+ * project's trail, where any of several people may be the actor — the answer
+ * is simply whether this visitor hides anything at all.
+ */
+function seesOwnHiddenTrail(viewer: TrailViewer | null | undefined, actorId?: string): boolean {
+  if (!viewer || viewer.activityHidden.length === 0) return false;
+  return actorId === undefined || viewer.id === actorId;
+}
+
+/**
  * Somebody's trail, newest first.
  *
  * `kinds` narrows to a set of event kinds — the profile's "sorotan" reading
  * mode. Visibility is not decided here on purpose: the SELECT policy on
  * `events` already hides what this person chose to hide, and shows them their
  * own hidden entries. Re-filtering that in the query would only get it wrong.
+ *
+ * Pass `viewer` so this can tell those two cases apart: without it every read
+ * is treated as public, which is right for a guest and wrong for the one
+ * person whose hidden entries are at stake.
  */
 export async function listPersonActivity(
   personId: string,
-  { limit = 40, kinds }: { limit?: number; kinds?: readonly string[] } = {},
+  {
+    limit = 40,
+    kinds,
+    viewer,
+  }: { limit?: number; kinds?: readonly string[]; viewer?: TrailViewer | null } = {},
 ): Promise<ActivityEvent[]> {
-  const supabase = await getSupabase();
+  if (seesOwnHiddenTrail(viewer, personId)) {
+    return queryPersonActivity(await getSupabase(), personId, limit, kinds);
+  }
+  return readPersonActivity(personId, limit, kinds);
+}
+
+async function readPersonActivity(
+  personId: string,
+  limit: number,
+  kinds: readonly string[] | undefined,
+): Promise<ActivityEvent[]> {
+  "use cache";
+  cacheLife("trail");
+  cacheTag(tags.trail(personId));
+
+  return queryPersonActivity(getPublicSupabase(), personId, limit, kinds);
+}
+
+async function queryPersonActivity(
+  supabase: Supabase | null,
+  personId: string,
+  limit: number,
+  kinds: readonly string[] | undefined,
+): Promise<ActivityEvent[]> {
   if (!supabase) {
     const events = seedActivity(personId);
     return (kinds ? events.filter((event) => kinds.includes(event.kind)) : events).slice(0, limit);
@@ -928,8 +1089,28 @@ export type PersonStats = {
  * The cap saturates the counts on an absurdly long trail rather than paging;
  * by the time that is a lie worth fixing, counting belongs in the database.
  */
-export async function getPersonStats(personId: string): Promise<PersonStats> {
-  const supabase = await getSupabase();
+export async function getPersonStats(
+  personId: string,
+  viewer?: TrailViewer | null,
+): Promise<PersonStats> {
+  if (seesOwnHiddenTrail(viewer, personId)) {
+    return queryPersonStats(await getSupabase(), personId);
+  }
+  return readPersonStats(personId);
+}
+
+async function readPersonStats(personId: string): Promise<PersonStats> {
+  "use cache";
+  cacheLife("trail");
+  cacheTag(tags.trail(personId));
+
+  return queryPersonStats(getPublicSupabase(), personId);
+}
+
+async function queryPersonStats(
+  supabase: Supabase | null,
+  personId: string,
+): Promise<PersonStats> {
   if (!supabase) {
     return statsFrom(
       seedActivity(personId).map((event) => ({ kind: event.kind, created_at: event.createdAt })),
@@ -972,8 +1153,44 @@ function statsFrom(rows: { kind: string; created_at: string }[]): PersonStats {
  * and support as live state a few sections up, so the trail carries only what
  * nothing else on the page can say.
  */
-export async function listProjectActivity(projectId: number, limit = 20): Promise<ActivityEvent[]> {
-  const supabase = await getSupabase();
+export async function listProjectActivity(
+  projectId: number,
+  { slug, limit = 20, viewer }: { slug: string; limit?: number; viewer?: TrailViewer | null },
+): Promise<ActivityEvent[]> {
+  // No actor to compare against: anybody on this project may be one. A visitor
+  // who hides nothing sees the public trail, so only somebody who does gets a
+  // read of their own.
+  if (seesOwnHiddenTrail(viewer)) {
+    return queryProjectActivity(await getSupabase(), projectId, limit);
+  }
+  return readProjectActivity(projectId, slug, limit);
+}
+
+async function readProjectActivity(
+  projectId: number,
+  slug: string,
+  limit: number,
+): Promise<ActivityEvent[]> {
+  "use cache";
+  cacheLife("trail");
+
+  const events = await queryProjectActivity(getPublicSupabase(), projectId, limit);
+
+  // Also filed under each person who appears here. Somebody hiding a kind of
+  // entry from their own trail has to take it off the projects it happened on
+  // too, and this is what lets one `updateTag` on them reach all of those
+  // without knowing which projects they were.
+  const actors = [...new Set(events.map((event) => event.actor?.id).filter(Boolean))];
+  cacheTag(tags.projectTrail(slug), ...actors.map((id) => tags.trail(id as string)));
+
+  return events;
+}
+
+async function queryProjectActivity(
+  supabase: Supabase | null,
+  projectId: number,
+  limit: number,
+): Promise<ActivityEvent[]> {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -1305,7 +1522,9 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
       : (a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt) || b.id - a.id,
   );
 
-  return lane === "untukmu" ? arrangeForYou(ordered, query.familiarRoles) : ordered;
+  // Not arranged here, same as the database path: ordering for a visitor is
+  // the caller's job once it knows who is looking.
+  return ordered;
 }
 
 /** Seed projects where this person holds a filled seat, with the role held. */

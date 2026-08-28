@@ -58,8 +58,6 @@ import { ProjectLogo } from "../../components/project-logo";
 import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
 import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
 
-export const dynamic = "force-dynamic";
-
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ tab?: string | string[] }>;
 
@@ -105,7 +103,7 @@ export default async function ProjectPage({
   const [boosted, following, history] = await Promise.all([
     viewer ? hasBoosted(project.id, viewer.id) : Promise.resolve(false),
     viewer ? isFollowing(project.id, viewer.id) : Promise.resolve(false),
-    listProjectActivity(project.id),
+    listProjectActivity(project.id, { slug: project.slug, viewer }),
   ]);
   const returnTo =
     activeTab === "tentang"
