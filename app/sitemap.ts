@@ -2,8 +2,6 @@ import type { MetadataRoute } from "next";
 import { aboutPaths, siteUrl } from "./content";
 import { listPeople, listProjects } from "./lib/data";
 
-export const dynamic = "force-dynamic";
-
 /**
  * Every page worth finding from outside.
  *

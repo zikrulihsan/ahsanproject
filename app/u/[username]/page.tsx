@@ -13,8 +13,6 @@ import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity"
 import { domainOf } from "../../lib/brief";
 import { currentViewer } from "../../lib/session";
 
-export const dynamic = "force-dynamic";
-
 type Params = Promise<{ username: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -65,8 +63,9 @@ export default async function ProfilePage({
     listPersonActivity(person.id, {
       limit: limit + 1,
       kinds: showAll ? undefined : HIGHLIGHT_KINDS,
+      viewer,
     }),
-    getPersonStats(person.id),
+    getPersonStats(person.id, viewer),
   ]);
   const hasOlder = activity.length > limit;
   const trail = activity.slice(0, limit);

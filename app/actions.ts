@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSupabase, type Supabase } from "./lib/supabase";
 import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from "./lib/brief";
@@ -11,6 +11,7 @@ import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
 import { currentViewer } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
+import { tags } from "./lib/cache-tags";
 
 export type CreateState = {
   errors: FieldErrors & {
@@ -27,6 +28,54 @@ export type CreateState = {
 export type EditState = CreateState;
 
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
+
+/* ------------------------------------------------------------------ *
+ * Retiring what a write has just made wrong
+ * ------------------------------------------------------------------ *
+ *
+ * The public reads in `lib/data.ts` are cached and shared between visitors, so
+ * a write has to say what it invalidated or the change would sit unseen behind
+ * the cache until it expired on its own.
+ *
+ * `updateTag` rather than `revalidateTag`: the person who just saved is about
+ * to be shown the page they saved. Serving them the previous copy while a fresh
+ * one is built in the background — which is what `revalidateTag` does — would
+ * read as the edit not having worked.
+ *
+ * The `revalidatePath` calls below these stay as they were. They clear the
+ * router's cache of a rendered route, which is a different store from the
+ * tagged data these reads come from; the two are meant to be used together.
+ */
+
+/** A project's own page, and every board listing that carries its card. */
+function projectChanged(slug: string): void {
+  updateTag(tags.project(slug));
+  updateTag(tags.projects);
+}
+
+/**
+ * A seat opened, taken, decided or closed.
+ *
+ * Wider than one project on purpose: the open-seat counts, the "role yang
+ * paling dicari" ranking and the Explore autocomplete are all built from every
+ * seat on the site, so any one of them moving dates all of it.
+ */
+function seatsChanged(slug: string): void {
+  projectChanged(slug);
+  updateTag(tags.seats);
+}
+
+/**
+ * Something happened that a trail records.
+ *
+ * The person's tag covers their profile and, because project trails are filed
+ * under the people in them, the projects they already appear on. The project's
+ * own tag covers the case this does not: the first time they appear there.
+ */
+function trailChanged(personId: string | undefined, slug?: string): void {
+  if (personId) updateTag(tags.trail(personId));
+  if (slug) updateTag(tags.projectTrail(slug));
+}
 
 /* ------------------------------------------------------------------ *
  * Projects
@@ -142,6 +191,8 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     return { errors: { form: messageOf(error) }, values };
   }
 
+  seatsChanged(slug);
+  trailChanged(viewer.id, slug);
   revalidatePath("/");
   redirect(`/projects/${slug}`);
 }
@@ -222,6 +273,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     return { errors: { form: messageOf(error) }, values };
   }
 
+  projectChanged(slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
   redirect(`/projects/${slug}`);
@@ -245,6 +297,7 @@ export async function deleteProject(formData: FormData): Promise<void> {
   const { error } = await supabase.from("projects").delete().eq("slug", slug);
   if (error) throw new Error(error.message);
 
+  seatsChanged(slug);
   revalidatePath("/");
   redirect(`/u/${viewer.username}`);
 }
@@ -283,6 +336,8 @@ export async function setStage(formData: FormData): Promise<void> {
     .eq("id", project.id);
   if (updateError) throw new Error(updateError.message);
 
+  projectChanged(slug);
+  trailChanged((await currentViewer())?.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -318,6 +373,7 @@ export async function openSeat(formData: FormData): Promise<void> {
     });
   if (error) throw new Error(error.message);
 
+  seatsChanged(slug);
   revalidatePath(`/projects/${slug}`);
 }
 
@@ -331,6 +387,8 @@ export async function applyForSeat(formData: FormData): Promise<void> {
   const { error } = await supabase.rpc("apply_for_seat", { seat_id: seatId, pitch });
   if (error) throw new Error(error.message);
 
+  seatsChanged(slug);
+  trailChanged((await currentViewer())?.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -348,6 +406,8 @@ export async function decideSeat(formData: FormData): Promise<void> {
   });
   if (error) throw new Error(error.message);
 
+  seatsChanged(slug);
+  updateTag(tags.projectTrail(slug));
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -386,6 +446,8 @@ export async function setNow(formData: FormData): Promise<void> {
   const { error } = await supabase.rpc("set_now", { project: project.id, line: now });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  trailChanged((await currentViewer())?.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -419,6 +481,9 @@ export async function postUpdate(formData: FormData): Promise<void> {
     .insert({ project_id: project.id, author_id: viewer.id, title, body });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.updates(slug));
+  trailChanged(viewer.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -432,6 +497,8 @@ export async function deleteUpdate(formData: FormData): Promise<void> {
   const { error } = await supabase.from("updates").delete().eq("id", updateId);
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.updates(slug));
   revalidatePath(`/projects/${slug}`);
 }
 
@@ -471,6 +538,8 @@ export async function toggleFollow(formData: FormData): Promise<void> {
     : await supabase.from("follows").insert({ project_id: project.id, user_id: viewer.id });
   if (error) throw new Error(error.message);
 
+  // Nothing tagged to retire: who follows what is read per visitor and never
+  // cached, so there is no shared copy of it to go stale.
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/inbox");
 }
@@ -508,6 +577,9 @@ export async function createTask(formData: FormData): Promise<void> {
   });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
+  trailChanged(viewer.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -532,6 +604,8 @@ export async function assignTask(formData: FormData): Promise<void> {
     .eq("id", taskId);
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
   revalidatePath(`/projects/${slug}`);
 }
 
@@ -547,6 +621,9 @@ export async function moveTask(formData: FormData): Promise<void> {
   const { error } = await supabase.rpc("move_task", { task_id: taskId, next_status: status });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
+  updateTag(tags.projectTrail(slug));
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -560,6 +637,8 @@ export async function deleteTask(formData: FormData): Promise<void> {
   const { error } = await supabase.from("tasks").delete().eq("id", taskId);
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -576,6 +655,7 @@ export async function setSeatAccess(formData: FormData): Promise<void> {
   const { error } = await supabase.from("seats").update({ access }).eq("id", seatId);
   if (error) throw new Error(error.message);
 
+  seatsChanged(slug);
   revalidatePath(`/projects/${slug}`);
 }
 
@@ -604,6 +684,9 @@ export async function addComment(formData: FormData): Promise<void> {
     .insert({ project_id: project.id, author_id: viewer.id, body });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  updateTag(tags.comments(slug));
+  trailChanged(viewer.id, slug);
   revalidatePath(`/projects/${slug}`);
 }
 
@@ -636,6 +719,8 @@ export async function toggleBoost(formData: FormData): Promise<void> {
     : await supabase.from("boosts").insert({ project_id: project.id, user_id: viewer.id });
   if (error) throw new Error(error.message);
 
+  projectChanged(slug);
+  trailChanged(viewer.id, slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -660,6 +745,7 @@ export async function markNoticesSeen(): Promise<void> {
     .eq("seen", false);
   if (error) throw new Error(error.message);
 
+  // Notices belong to one recipient, so they are never part of a shared cache.
   revalidatePath("/inbox");
   revalidatePath("/", "layout");
 }
@@ -687,6 +773,7 @@ export async function setActivityVisibility(formData: FormData): Promise<void> {
     .eq("id", viewer.id);
   if (error) throw new Error(error.message);
 
+  trailChanged(viewer.id);
   revalidatePath(`/u/${viewer.username}`);
 }
 
@@ -722,6 +809,9 @@ export async function updateProfile(formData: FormData): Promise<void> {
     .eq("id", viewer.id);
   if (error) throw new Error(error.message);
 
+  updateTag(tags.person(viewer.username));
+  updateTag(tags.people);
+  updateTag(tags.projects);
   revalidatePath(`/u/${viewer.username}`);
   revalidatePath("/orang");
   redirect(`/u/${viewer.username}`);

@@ -4,8 +4,6 @@ import { SiteFooter, SiteHeader } from "../components/shell";
 import { ForgotPasswordForm } from "../components/auth-forms";
 import { supabaseConfigured } from "../lib/supabase";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Lupa kata sandi — Ahsan Project",
   description: "Minta tautan untuk menyetel ulang kata sandi akun Ahsan Project.",
