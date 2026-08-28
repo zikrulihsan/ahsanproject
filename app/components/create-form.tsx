@@ -31,6 +31,27 @@ export function CreateForm() {
         Mulai dari yang kamu tahu sekarang. Semua isi bisa diubah lagi setelah project terbit.
       </p>
 
+      <section className="github-start" aria-labelledby="github-start-heading">
+        <p className="eyebrow">
+          <span /> Pilihan cepat
+        </p>
+        <h2 id="github-start-heading">Mulai dari repository GitHub</h2>
+        <p>
+          Tempel repository publik untuk membuat draf dari README. Setelah itu, periksa dan lengkapi
+          bagian yang belum dijawab repository. Belum punya repo? Langsung isi manual di bawah.
+        </p>
+        <Field
+          label="URL repository GitHub"
+          name="repoUrl"
+          hint="Contoh: https://github.com/organisasi/project"
+          error={errors.repoUrl}
+          defaultValue={values.repoUrl}
+          type="url"
+          placeholder="https://github.com/"
+        />
+        <GitHubImport formRef={formRef} />
+      </section>
+
       {errors.form ? (
         <p className="form-error" role="alert">
           {errors.form}
@@ -181,7 +202,7 @@ export function CreateForm() {
 
         <details
           className="optional-fields"
-          open={Boolean(errors.docUrl || errors.repoUrl)}
+          open={Boolean(errors.docUrl)}
         >
           <summary>
             Tambahkan tautan pendukung <span>opsional</span>
@@ -195,16 +216,6 @@ export function CreateForm() {
               type="url"
               placeholder="https://"
             />
-            <Field
-              label="Repository GitHub atau repo lain"
-              name="repoUrl"
-              hint="Punya repository GitHub publik? Setelah menempelkannya, isi draft dari README di bawah."
-              error={errors.repoUrl}
-              defaultValue={values.repoUrl}
-              type="url"
-              placeholder="https://"
-            />
-            <GitHubImport formRef={formRef} />
           </div>
         </details>
       </fieldset>

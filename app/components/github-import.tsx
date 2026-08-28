@@ -44,8 +44,8 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
   return (
     <div className="github-import">
       <p>
-        <strong>Mulai dari repository GitHub?</strong> Kami akan membaca README dan detail repository
-        publik untuk mengisi kolom yang masih kosong. Kamu tetap meninjau semuanya sebelum project terbit.
+        Kami akan membaca README dan detail repository publik untuk mengisi kolom yang masih kosong.
+        Tidak ada yang disimpan sampai kamu memilih menerbitkan project.
       </p>
       <button className="quiet" type="button" onClick={startImport} disabled={pending}>
         {pending ? "Membaca GitHub…" : "Isi draft dari README GitHub"}
