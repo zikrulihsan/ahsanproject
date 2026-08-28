@@ -31,6 +31,10 @@ const LINK_PROBLEMS: Record<string, string> = {
   "tautan-kedaluwarsa": "Tautan konfirmasinya sudah kedaluwarsa atau sudah dipakai. Coba masuk, atau daftar ulang kalau belum jadi.",
   "tautan-tidak-lengkap": "Tautan konfirmasinya tidak lengkap. Buka lagi tautan dari emailnya secara utuh.",
   "google-gagal": "Masuk dengan Google belum berhasil. Coba sekali lagi, atau gunakan email.",
+  "alamat-beda":
+    "Proses masuknya dimulai di satu alamat dan kembali di alamat lain, jadi sesinya tidak terbentuk. " +
+    "Buka situs ini lewat alamat utamanya lalu coba lagi. Kalau kamu pengurus situs ini: daftarkan " +
+    "/auth/callback dan /auth/confirm untuk tiap alamat di Supabase → Authentication → URL Configuration.",
 };
 
 export default async function SignInPage({ searchParams }: { searchParams?: SearchParams }) {
