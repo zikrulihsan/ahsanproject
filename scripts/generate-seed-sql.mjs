@@ -56,12 +56,12 @@ const body = seedProjects
     return `
   -- ${project.title}
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     (${quote(project.slug)}, ${quote(project.title)}, ${quote(project.tagline)}, owner,
-     ${quote(project.stage)}, ${quote(project.problem)}, ${quote(project.solution)},
+     ${quote(project.stage)}, ${quote(project.projectType)}, ${quote(project.problem)}, ${quote(project.solution)},
      ${quote(project.audience)}, ${quote(project.now)},
      ${project.nowUpdatedAt ? quote(project.nowUpdatedAt) : "null"},
      ${quote(project.docUrl)}, ${quote(project.liveUrl)}, ${quote(project.logoUrl)},

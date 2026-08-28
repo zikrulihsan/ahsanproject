@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSupabase, type Supabase } from "./lib/supabase";
 import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from "./lib/brief";
+import { isProjectType } from "./lib/project-types";
 import { isRole } from "./lib/roles";
 import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
@@ -17,6 +18,7 @@ export type CreateState = {
   errors: FieldErrors & {
     form?: string;
     now?: string;
+    projectType?: string;
     seatRole?: string;
     seatRoleTitle?: string;
     seatBrief?: string;
@@ -91,6 +93,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     tags: formTopics(formData),
     now: text(formData, "now").slice(0, MAXIMUM.now),
     stage: text(formData, "stage"),
+    projectType: text(formData, "projectType"),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
@@ -106,6 +109,12 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   if (!viewer) return { errors: { form: "Masuk dulu sebelum menunjukkan project di sini." }, values };
 
   const errors: CreateState["errors"] = validateBrief(values);
+  // Asked for, not defaulted. Guessing a type for somebody would put a claim on
+  // their project they never made — the one thing this board will not carry —
+  // and it is the answer people filter by before they read anything else.
+  if (!isProjectType(values.projectType)) {
+    errors.projectType = "Pilih jenis project supaya orang tahu bentuk kolaborasinya.";
+  }
   const requestedStage = isStage(values.stage) ? values.stage : "idea";
   if (
     requestedStage === "building" &&
@@ -159,6 +168,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         tagline: values.tagline,
         owner_id: viewer.id,
         stage,
+        project_type: values.projectType,
         problem: values.problem,
         solution: values.solution,
         audience: values.audience,
@@ -214,6 +224,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     audience: text(formData, "audience"),
     tags: formTopics(formData),
     now: text(formData, "now").slice(0, MAXIMUM.now),
+    projectType: text(formData, "projectType"),
     docUrl: text(formData, "docUrl"),
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
@@ -224,6 +235,9 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
   if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah project ini." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
+  if (!isProjectType(values.projectType)) {
+    errors.projectType = "Pilih jenis project supaya orang tahu bentuk kolaborasinya.";
+  }
   if (Object.keys(errors).length > 0) return { errors, values };
 
   try {
@@ -264,6 +278,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         repo_url: values.repoUrl,
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
+        project_type: values.projectType,
         tags,
         stage,
       })

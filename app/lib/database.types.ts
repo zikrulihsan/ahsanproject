@@ -10,6 +10,12 @@ export type ProjectRow = {
   tagline: string;
   owner_id: string;
   stage: string;
+  /**
+   * Why the project exists — pet | community | product | commercial, or empty
+   * for a project made before the question was asked. See 0016_project_types.sql
+   * and app/lib/project-types.ts.
+   */
+  project_type: string;
   problem: string;
   solution: string;
   audience: string;

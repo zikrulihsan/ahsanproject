@@ -6,6 +6,7 @@ import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { STAGES, stageMeta, type Stage } from "../lib/stages";
 import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
+import { ProjectTypePicker } from "./project-type-picker";
 import { RoleFields } from "./role-fields";
 import { TopicPicker } from "./topic-picker";
 
@@ -141,10 +142,15 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">3</span> Kondisinya sekarang
+          <span className="step-number">3</span> Jenis dan kondisinya
         </legend>
 
-        <ul className="stage-choice">
+        <ProjectTypePicker defaultValue={values.projectType} error={errors.projectType} />
+
+        <p className="type-picker-divider" id="stage-label">
+          Level project <span aria-hidden="true">*</span>
+        </p>
+        <ul className="stage-choice" role="radiogroup" aria-labelledby="stage-label">
           {STAGES.map((item) => (
             <li key={item}>
               <label htmlFor={`stage-${item}`}>

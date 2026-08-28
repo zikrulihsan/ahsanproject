@@ -70,6 +70,8 @@ export type SeedProject = {
   tagline: string;
   ownerId: string;
   stage: string;
+  /** Why it exists — see app/lib/project-types.ts. Empty means unstated. */
+  projectType: string;
   problem: string;
   solution: string;
   audience: string;
@@ -163,6 +165,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Ganti kebiasaan tap tap medsos dengan tap tap dzikir.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "pet",
     problem:
       "Jempol kita sudah terlatih untuk tap dan scroll tanpa sadar, dan medsos yang paling gampang diraih. Niat berdzikir sering kalah cepat dari kebiasaan itu, apalagi kalau harus cari tasbih dulu atau menghitung di kepala sambil mengerjakan hal lain.",
     solution:
@@ -209,6 +212,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Kartu pertanyaan untuk obrolan yang tidak berhenti di basa-basi.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "product",
     problem:
       "Ngobrol sama orang terdekat sering mentok di pertanyaan yang itu-itu saja: sudah makan, gimana kerjaan, kapan nikah. Yang ingin ditanyakan sebenarnya lebih dalam dari itu, tapi tidak ada yang mau memulai duluan karena takut kaku.",
     solution:
@@ -250,6 +254,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Nomor penting di sekitarmu, siap saat benar-benar dibutuhkan.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "product",
     problem:
       "Saat ada yang mendesak — genteng bocor, motor mogok, butuh ambulans — waktu justru habis untuk mencari nomor. Kontak tukang, bengkel, atau layanan darurat biasanya tersebar di chat lama, catatan, atau ingatan orang lain.",
     solution:
@@ -281,6 +286,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Bikin invoice untuk jasa atau produkmu tanpa proses berbelit.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "commercial",
     problem:
       "Pelaku usaha kecil sering menagih lewat chat karena aplikasi invoice yang ada terasa berat: harus daftar, isi profil perusahaan, pilih paket. Untuk satu tagihan sederhana, semua itu terlalu banyak langkah.",
     solution:
@@ -316,6 +322,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Tempat belajar anak supaya lebih siap menjaga diri.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "community",
     problem:
       "Anak-anak diminta hati-hati, tapi jarang diberi contoh situasinya seperti apa. Orang tua juga sering bingung memulai obrolan soal batas tubuh, orang asing, atau situasi yang bikin tidak nyaman.",
     solution:
@@ -362,6 +369,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Portal komunitas software engineer Indonesia.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "community",
     problem:
       "Pengalaman berharga teman-teman engineer di Indonesia berserak di utas media sosial dan grup chat yang tenggelam dalam hitungan hari. Yang baru mulai kesulitan menemukannya lagi saat benar-benar butuh.",
     solution:
@@ -403,6 +411,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Antrean digital untuk warung dan kedai kecil yang ramai di jam makan.",
     ownerId: "seed-zikrul",
     stage: "idea",
+    projectType: "commercial",
     problem:
       "Di jam makan siang, warung kecil ramai dan pesanan diingat di kepala. Pembeli menunggu tanpa tahu urutannya di mana, penjual repot menghafal, dan yang datang belakangan kadang malah dilayani duluan. Ributnya kecil tapi terjadi setiap hari.",
     solution:
@@ -475,6 +484,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Papan koordinasi antar-jemput sekolah antar orang tua satu kompleks.",
     ownerId: "seed-zikrul",
     stage: "building",
+    projectType: "community",
     problem:
       "Orang tua di satu kompleks sering menjemput ke sekolah yang sama pada jam yang sama, tapi tetap berangkat sendiri-sendiri. Koordinasinya nyangkut di grup chat: pesan tenggelam, yang butuh tumpangan sungkan minta, yang punya kursi kosong tidak tahu siapa yang butuh.",
     solution:

@@ -22,6 +22,12 @@ import {
   type ProjectSummary,
 } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
+import {
+  PROJECT_TYPES,
+  isProjectType,
+  projectTypeMeta,
+  type ProjectType,
+} from "../lib/project-types";
 import { normaliseRole, roleLabel, type Role } from "../lib/roles";
 import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
 import { viewerId } from "../lib/session";
@@ -55,6 +61,8 @@ function one(value: string | string[] | undefined): string {
 type BoardQuery = {
   sort: Lane;
   stage: Stage | "";
+  /** Which kind of project, from PROJECT_TYPES. Empty means every kind. */
+  type: ProjectType | "";
   role: Role | "";
   tag: string;
   q: string;
@@ -69,6 +77,7 @@ function readBoardQuery(params: Record<string, string | string[] | undefined>): 
   return {
     sort: isLane(askedLane) && SORT_VALUES.has(askedLane) ? askedLane : "untukmu",
     stage: legacyStage ?? (isStage(one(params.stage)) ? (one(params.stage) as Stage) : ""),
+    type: isProjectType(one(params.type)) ? (one(params.type) as ProjectType) : "",
     role: normaliseRole(one(params.role)) ?? "",
     tag: one(params.tag),
     q: one(params.q),
@@ -166,11 +175,12 @@ function BoardSkeleton() {
 }
 
 async function Board({ params: paramsPromise }: { params: SearchParams }) {
-  const { sort, stage, role, tag, q, searchBy, needs } = readBoardQuery(await paramsPromise);
+  const { sort, stage, type, role, tag, q, searchBy, needs } = readBoardQuery(await paramsPromise);
 
   const query: FeedQuery = {
     lane: sort,
     stage,
+    projectType: type,
     tag,
     role,
     q: searchBy === "project" ? q : "",
@@ -247,9 +257,9 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     seatsResult,
   ].some((result) => result.unavailable);
   const rankedRoles = rankRoles(helpBoard).slice(0, 5);
-  const filtered = Boolean(stage || tag || role || q || needs);
-  const activeControlCount = [stage, tag, role, needs, sort === "untukmu" ? "" : sort].filter(Boolean).length;
-  const currentPath = linkTo({ lane: sort, stage, tag, role, q, searchBy, needs });
+  const filtered = Boolean(stage || type || tag || role || q || needs);
+  const activeControlCount = [stage, type, tag, role, needs, sort === "untukmu" ? "" : sort].filter(Boolean).length;
+  const currentPath = linkTo({ lane: sort, stage, type, tag, role, q, searchBy, needs });
 
   return (
     <>
@@ -266,6 +276,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
             suggestions={roleSuggestions}
             hidden={{
               stage,
+              type,
               tag,
               role,
               needs,
@@ -291,7 +302,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   value={sort}
                   label="Urutkan project"
                   options={SORTS}
-                  hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs }}
+                  hidden={{ stage, type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs }}
                 />
               </div>
 
@@ -308,7 +319,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                     label: topic.tag,
                     meta: `${topic.count} project`,
                   }))}
-                  hidden={{ stage, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ stage, type, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
 
@@ -323,7 +334,25 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                     { value: "", label: "Semua level" },
                     ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
                   ]}
-                  hidden={{ tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
+                />
+              </div>
+
+              <div className="collaboration-control">
+                <span>Jenis project</span>
+                <SortSelect
+                  action="/kolaborasi"
+                  name="type"
+                  value={type}
+                  label="Filter jenis project"
+                  options={[
+                    { value: "", label: "Semua jenis" },
+                    ...PROJECT_TYPES.map((entry) => ({
+                      value: entry,
+                      label: projectTypeMeta[entry].label,
+                    })),
+                  ]}
+                  hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
 
@@ -338,7 +367,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                     { value: "", label: "Semua project" },
                     { value: "open", label: "Mencari kolaborator" },
                   ]}
-                  hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", lane: sort === "untukmu" ? "" : sort }}
+                  hidden={{ stage, type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", lane: sort === "untukmu" ? "" : sort }}
                 />
               </div>
             </div>
@@ -350,15 +379,16 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
             <ul>
               {role ? (
                 <li>
-                  <Link href={linkTo({ lane: sort, stage, tag, q, searchBy, needs })}>
+                  <Link href={linkTo({ lane: sort, stage, type, tag, q, searchBy, needs })}>
                     Role: <strong>{roleLabel(role)}</strong> <span>×</span>
                   </Link>
                 </li>
               ) : null}
-              {tag ? <li><Link href={linkTo({ lane: sort, stage, role, q, searchBy, needs })}>Kategori: <strong>{tag}</strong> <span>×</span></Link></li> : null}
-              {stage ? <li><Link href={linkTo({ lane: sort, tag, role, q, searchBy, needs })}>Level: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
-              {needs ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy })}>Kebutuhan: <strong>Mencari kolaborator</strong> <span>×</span></Link></li> : null}
-              {q ? <li><Link href={linkTo({ lane: sort, stage, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role dicari" : "Pencarian"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
+              {tag ? <li><Link href={linkTo({ lane: sort, stage, type, role, q, searchBy, needs })}>Kategori: <strong>{tag}</strong> <span>×</span></Link></li> : null}
+              {stage ? <li><Link href={linkTo({ lane: sort, type, tag, role, q, searchBy, needs })}>Level: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
+              {type ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy, needs })}>Jenis: <strong>{projectTypeMeta[type].label}</strong> <span>×</span></Link></li> : null}
+              {needs ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, q, searchBy })}>Kebutuhan: <strong>Mencari kolaborator</strong> <span>×</span></Link></li> : null}
+              {q ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role dicari" : "Pencarian"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
             </ul>
             <Link className="clear-filters" href={linkTo({ lane: sort })}>Hapus semua</Link>
           </div>
@@ -415,7 +445,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                 <ol>
                   {rankedRoles.map((entry, index) => (
                     <li key={entry.role}>
-                      <Link href={linkTo({ lane: sort, stage, tag, q: roleLabel(entry.role), searchBy: "role", needs: "open" })}>
+                      <Link href={linkTo({ lane: sort, stage, type, tag, q: roleLabel(entry.role), searchBy: "role", needs: "open" })}>
                         <span className="role-number">{String(index + 1).padStart(2, "0")}</span>
                         <span>
                           <strong>{roleLabel(entry.role)}</strong>
@@ -467,6 +497,7 @@ function FilterIcon() {
 function linkTo(query: {
   lane?: string;
   stage?: string;
+  type?: string;
   tag?: string;
   role?: string;
   q?: string;

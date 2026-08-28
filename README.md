@@ -62,6 +62,11 @@ and everything that writes will say so rather than failing quietly.
      and fields for the people directory
    - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
      links on portfolio profiles
+   - `0015_project_logo_url.sql` — a project's own icon or logo, instead of
+     depending on a third-party favicon cache
+   - `0016_project_types.sql` — what kind of project it is (pet project,
+     komunitas, produk berpengguna, komersial), so people browsing can pick the
+     kind of collaboration they are actually looking for
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -103,7 +108,7 @@ match it.
 
 | Route | What it is |
 | --- | --- |
-| `/` | The board — five lanes (`?lane=`), narrowed by level, topic, role, search |
+| `/` | The board — five lanes (`?lane=`), narrowed by level, kind, topic, role, search |
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
@@ -118,6 +123,12 @@ match it.
   and what each one requires. No level asks for a team: working alone is not a
   lesser project. What they ask for is evidence the work has moved — a link, or
   the line saying what is being worked on right now.
+- `app/lib/project-types.ts` — what kind of project it is: pet project,
+  komunitas, produk berpengguna, komersial. Deliberately a different question
+  from the level (how far it has got) and the topic (what it is about): this one
+  says why the project exists, and so what joining it actually means. Empty is a
+  valid answer for anything made before the question was asked; new projects
+  have to pick.
 - `app/lib/feed.ts` — the board's lanes, and how the "untuk kamu" lane is
   arranged. Pure, so the unit tests read it directly.
 - `app/lib/updates.ts` — the journey a project writes for itself.

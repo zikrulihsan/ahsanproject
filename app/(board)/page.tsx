@@ -7,6 +7,7 @@ import { ProjectLogo } from "../components/project-logo";
 import { RotatingHeadline } from "../components/rotating-headline";
 import { listPeople, listProjects, type Person, type ProjectSummary } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
+import { projectTypeLabel } from "../lib/project-types";
 import { roleLabel } from "../lib/roles";
 import { stageMeta } from "../lib/stages";
 
@@ -276,7 +277,11 @@ function ProjectIndexRow({ project }: { project: ProjectSummary }) {
     <article className="landing-index-row">
       <ProjectLogo title={project.title} website={project.liveUrl} logoUrl={project.logoUrl} />
       <div className="landing-index-main">
-        <p><span>{stageMeta[project.stage].label}</span>{project.tags[0] ? ` · ${project.tags[0]}` : ""}</p>
+        <p>
+          <span>{stageMeta[project.stage].label}</span>
+          {projectTypeLabel(project.projectType) ? ` · ${projectTypeLabel(project.projectType)}` : ""}
+          {project.tags[0] ? ` · ${project.tags[0]}` : ""}
+        </p>
         <h3><Link className="card-cover-link" href={`/projects/${project.slug}`}>{project.title}</Link></h3>
         <p>{project.tagline}</p>
       </div>

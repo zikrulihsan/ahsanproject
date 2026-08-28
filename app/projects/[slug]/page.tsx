@@ -27,6 +27,7 @@ import {
   RungRail,
   StageBadge,
   TagRow,
+  TypeBadge,
   freshness,
   initials,
   timeAgo,
@@ -39,6 +40,7 @@ import {
   listProjectActivity,
   type ProjectDetail,
 } from "../../lib/data";
+import { projectTypeContribution, projectTypeLabel } from "../../lib/project-types";
 import { roleLabel } from "../../lib/roles";
 import { CommitmentField } from "../../components/commitment-field";
 import { RoleFields } from "../../components/role-fields";
@@ -150,11 +152,24 @@ export default async function ProjectPage({
                 website={project.liveUrl}
                 logoUrl={project.logoUrl}
               />
-              <StageBadge stage={project.stage} />
+              <span className="badge-stack">
+                <StageBadge stage={project.stage} />
+                <TypeBadge type={project.projectType} />
+              </span>
             </div>
             <h1>{project.title}</h1>
             <p className="project-tagline">{project.tagline}</p>
             <TagRow tags={project.tags} />
+
+            {projectTypeContribution(project.projectType) ? (
+              /* What saying yes here actually means. The badge names the kind;
+                 this is the sentence somebody weighing an application needs,
+                 and it belongs beside the ask rather than in a tooltip. */
+              <p className="project-type-note">
+                <strong>{projectTypeLabel(project.projectType)}</strong>
+                {projectTypeContribution(project.projectType)}
+              </p>
+            ) : null}
 
             <div className="project-hero-meta">
               <Link className="card-owner" href={`/u/${project.owner.username}`}>

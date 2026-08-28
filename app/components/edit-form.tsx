@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { updateProject, type EditState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { Field } from "./field";
+import { ProjectTypePicker } from "./project-type-picker";
 import { TopicPicker } from "./topic-picker";
 
 export type EditableProject = {
@@ -14,6 +15,8 @@ export type EditableProject = {
   solution: string;
   audience: string;
   tags: string[];
+  /** One of PROJECT_TYPES, or empty on a project made before it was asked. */
+  projectType: string;
   nowText: string;
   docUrl: string;
   repoUrl: string;
@@ -117,6 +120,8 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <TopicPicker defaultValue={values.tags} error={errors.tags} />
+
+      <ProjectTypePicker defaultValue={values.projectType} error={errors.projectType} />
 
       <fieldset>
         <legend>Tautan</legend>
