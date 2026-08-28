@@ -116,7 +116,7 @@ export default async function Home() {
           </div>
 
           <div className="landing-index-filters" aria-label="Example project filters">
-            <span>✅ Searchable</span><span>✅ Inspire and get inspired by others projects</span><span>✅ Grow with partners</span><span>✅ Find contributors</span>
+            <span>✅ Searchable</span><span>✅ Inspire and get inspired</span><span>✅ Grow with contributors</span><span>✅ Find collaborators</span>
           </div>
 
           {projects.length > 0 ? (
