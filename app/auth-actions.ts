@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath, updateTag } from "next/cache";
 import { requireSupabase } from "./lib/supabase";
-import { safeNextPath } from "./lib/urls";
+import { safeNextPath, startPath } from "./lib/urls";
 import { tags } from "./lib/cache-tags";
 import { siteOrigin } from "./lib/origin";
 
@@ -58,7 +58,7 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   }
 
   revalidatePath("/", "layout");
-  redirect(next);
+  redirect(startPath(next));
 }
 
 export async function signIn(_state: AuthState, formData: FormData): Promise<AuthState> {
@@ -71,7 +71,7 @@ export async function signIn(_state: AuthState, formData: FormData): Promise<Aut
   if (error) return { error: translate(error.message), values: { email, next } };
 
   revalidatePath("/", "layout");
-  redirect(next);
+  redirect(startPath(next));
 }
 
 /** Starts Google's OAuth flow and returns through the app's PKCE callback. */

@@ -3048,6 +3048,82 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); color: #c5d2cd;
 }
 
+/* ------------------------------------------------------------------ *
+ * Langkah berikutnya (/mulai) and the profile editor's doorway
+ * ------------------------------------------------------------------ *
+ *
+ * Deliberately no meter and no percentage bar. Each line is a named thing
+ * with a link at it, and "done" is a tick rather than a fraction — a profile
+ * is not a form to fill to 100%. */
+
+.start-page { padding-bottom: 60px; }
+.start-page .lede { margin-bottom: 34px; }
+
+.next-steps { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.next-step {
+  align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  display: grid; gap: 16px; grid-template-columns: 26px minmax(0, 1fr) auto; padding: 18px 20px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.next-step:hover { border-color: var(--line-2); box-shadow: 0 12px 30px rgba(25, 58, 49, .06); }
+.next-step-mark {
+  align-items: center; border: 1.5px solid var(--line-2); border-radius: 50%; color: transparent;
+  display: flex; font-size: 13px; font-weight: 750; height: 26px; justify-content: center; width: 26px;
+}
+.next-step.is-done { background: transparent; border-style: dashed; }
+.next-step.is-done .next-step-mark { background: var(--sage); border-color: var(--sage); color: var(--ink); }
+.next-step.is-done .next-step-copy h3 { color: var(--muted); }
+.next-step-copy { min-width: 0; }
+.next-step-copy h3 { font-size: 16px; font-weight: 690; letter-spacing: -.02em; margin: 0; }
+.next-step-copy p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 5px 0 0; }
+.next-step-state { color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.next-step-cta {
+  background: var(--ink); border-radius: 11px; color: var(--paper); font-size: 13px; font-weight: 660;
+  padding: 10px 16px; white-space: nowrap;
+}
+.next-step-cta:hover { background: #245848; }
+.next-step.is-done .next-step-cta { background: transparent; border: 1px solid var(--line-2); color: var(--ink); }
+.next-step.is-done .next-step-cta:hover { border-color: var(--ink); }
+.next-step-optional .section-title { margin-bottom: 14px; }
+
+.start-project-list { display: grid; gap: 14px; list-style: none; margin: 0; padding: 0; }
+.start-project-row {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
+}
+.start-project-head { align-items: center; display: grid; gap: 14px; grid-template-columns: auto minmax(0, 1fr) auto; }
+.start-project-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-width: 0; }
+.start-project-title h3 { font-size: 18px; font-weight: 700; letter-spacing: -.03em; margin: 0; }
+.start-project-title h3 a:hover { color: #2b6d58; }
+.start-project-edit {
+  border: 1px solid var(--line-2); border-radius: 11px; font-size: 13px; font-weight: 640;
+  padding: 9px 14px; white-space: nowrap;
+}
+.start-project-edit:hover { border-color: var(--ink); }
+.start-now-form { border-top: 1px solid var(--line-soft); margin-top: 16px; padding-top: 14px; }
+.start-now-form label {
+  color: var(--muted); display: block; font-size: 12px; font-weight: 660; letter-spacing: .04em;
+  margin-bottom: 7px; text-transform: uppercase;
+}
+.start-now-row { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
+.start-now-row input { margin: 0; }
+.start-now-row button { white-space: nowrap; }
+.start-project-seats { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+.start-project-seats a { border-bottom: 1px solid var(--line-2); }
+.start-skip { margin-top: 40px; }
+.start-skip a { color: var(--muted); font-size: 14px; border-bottom: 1px solid var(--line-2); }
+
+.profile-self-tools {
+  align-items: center; display: flex; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 36px;
+}
+.profile-edit-link {
+  background: var(--ink); border-radius: 11px; color: var(--paper); font-size: 13px; font-weight: 660;
+  padding: 10px 16px;
+}
+.profile-edit-link:hover { background: #245848; }
+.profile-self-note { color: var(--muted); font-size: 13px; margin: 0; }
+.profile-self-note a { border-bottom: 1px solid var(--line-2); color: var(--ink); }
+
+
 @media (max-width: 960px) {
   .people-page { padding-left: 34px; padding-right: 34px; }
   .people-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3062,6 +3138,12 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 
 @media (max-width: 720px) {
+  .next-step { gap: 10px 12px; grid-template-columns: 26px minmax(0, 1fr); padding: 16px; }
+  .next-step-cta { grid-column: 2; justify-self: start; }
+  .start-project-head { grid-template-columns: auto minmax(0, 1fr); }
+  .start-project-edit { grid-column: 2; justify-self: start; }
+  .start-now-row { grid-template-columns: 1fr; }
+  .start-now-row button { justify-content: center; width: 100%; }
   .people-page { padding: 0 20px 68px; }
   .people-directory-head { padding: 26px 1px 17px; }
   .people-directory-head h1 { font-size: 28px; }

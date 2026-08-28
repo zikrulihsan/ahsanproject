@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabase } from "../../lib/supabase";
-import { safeNextPath } from "../../lib/urls";
+import { safeNextPath, startPath } from "../../lib/urls";
 
 /** Exchanges Google's short-lived OAuth code for the session cookies used by the app. */
 export async function GET(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   if (code && supabase) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, request.url));
+    if (!error) return NextResponse.redirect(new URL(startPath(next), request.url));
   }
 
   const destination = new URL("/signin", request.url);

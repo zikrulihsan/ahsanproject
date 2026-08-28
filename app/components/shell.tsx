@@ -35,7 +35,17 @@ const LINKS: { href: string; label: string; key: Section; icon: HeaderIconName }
   { href: "/orang", label: "People", key: "orang", icon: "people" },
 ];
 
-type HeaderIconName = "home" | "explore" | "people" | "profile" | "inbox" | "add" | "signout" | "signin";
+type HeaderIconName =
+  | "home"
+  | "explore"
+  | "people"
+  | "profile"
+  | "edit"
+  | "steps"
+  | "inbox"
+  | "add"
+  | "signout"
+  | "signin";
 
 function HeaderIcon({ name }: { name: HeaderIconName }) {
   const paths: Record<HeaderIconName, React.ReactNode> = {
@@ -44,6 +54,8 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
     people: <><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20" /><circle cx="10" cy="7" r="3.5" /><path d="M17 11a3 3 0 0 0 0-6M19 14.5a4 4 0 0 1 2 3.5v2" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     inbox: <><path d="M4 5h16v13H4z" /><path d="M4 14h4l1.5 2h5l1.5-2h4" /></>,
+    edit: <><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m14 6 4 4" /></>,
+    steps: <><path d="M4 7h5v13H4zM9.5 12h5v8h-5zM15 4h5v16h-5z" /></>,
     add: <path d="M12 5v14M5 12h14" />,
     signout: <><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></>,
     signin: <><path d="M14 5h5v14h-5M10 8l-4 4 4 4M6 12h9" /></>,
@@ -212,6 +224,14 @@ function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
             <HeaderIcon name="profile" />
             <span>Profil profesional</span>
           </Link>
+          <Link href="/akun/profil">
+            <HeaderIcon name="edit" />
+            <span>Ubah profil</span>
+          </Link>
+          <Link href="/mulai?semua=1">
+            <HeaderIcon name="steps" />
+            <span>Langkah berikutnya</span>
+          </Link>
           <Link href="/inbox">
             <HeaderIcon name="inbox" />
             <span>Kotak masuk</span>
@@ -284,6 +304,14 @@ function MobileHeaderMenu({
               <Link href={`/u/${viewer.username}`}>
                 <HeaderIcon name="profile" />
                 <span>Profil profesional</span>
+              </Link>
+              <Link href="/akun/profil">
+                <HeaderIcon name="edit" />
+                <span>Ubah profil</span>
+              </Link>
+              <Link href="/mulai?semua=1">
+                <HeaderIcon name="steps" />
+                <span>Langkah berikutnya</span>
               </Link>
               <Link href="/inbox">
                 <HeaderIcon name="inbox" />

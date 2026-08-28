@@ -26,6 +26,19 @@ export function signInPath(next: string): string {
 }
 
 /**
+ * Where somebody lands once they are signed in.
+ *
+ * A destination they actually asked for always wins: clicking "Saya tertarik"
+ * on a project and signing in has to end up back on that project. Only a
+ * plain sign-in, with nothing in mind, is sent to `/mulai` — which forwards
+ * to the board on its own once there is nothing left to do there.
+ */
+export function startPath(next: string | null | undefined): string {
+  const target = safeNextPath(next);
+  return target === "/" ? "/mulai" : target;
+}
+
+/**
  * Returns a consistently sized favicon for a public project website.
  *
  * Only ordinary web URLs qualify. Besides avoiding nonsense image requests,

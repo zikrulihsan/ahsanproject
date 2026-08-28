@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { setActivityVisibility, updateProfile } from "../../actions";
+import { setActivityVisibility } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { SubmitButton } from "../../components/submit-button";
-import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
+import {
+  getPerson,
+  getPersonStats,
+  getPortfolio,
+  listPersonActivity,
+  type Contribution,
+  type Person,
+  type ProjectSummary,
+} from "../../lib/data";
 import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
+import { nextSteps, remainingSteps } from "../../lib/next-steps";
 import { currentViewer } from "../../lib/session";
 
 type Params = Promise<{ username: string }>;
@@ -205,67 +214,7 @@ export default async function ProfilePage({
 
       <main id="main-content" className="profile-page">
         <div className="profile-content">
-            {isSelf ? (
-              <details className="owner-tool profile-edit">
-                <summary>Ubah profil</summary>
-                <form action={updateProfile}>
-                  <label htmlFor="name">Nama</label>
-                  <input id="name" name="name" type="text" defaultValue={person.name} />
-                  <label htmlFor="profession">Profesi / role utama</label>
-                  <input
-                    id="profession"
-                    name="profession"
-                    type="text"
-                    maxLength={80}
-                    placeholder="Contoh: Frontend Developer"
-                    defaultValue={person.profession}
-                  />
-                  <label htmlFor="headline">Satu baris tentang kamu</label>
-                  <input id="headline" name="headline" type="text" defaultValue={person.headline} />
-                  <label htmlFor="bio">Cerita singkat</label>
-                  <textarea id="bio" name="bio" rows={4} defaultValue={person.bio} />
-                  <label htmlFor="skills">Skill</label>
-                  <input
-                    id="skills"
-                    name="skills"
-                    type="text"
-                    placeholder="Next.js, Figma, User Research"
-                    defaultValue={person.skills.join(", ")}
-                  />
-                  <label htmlFor="yearsExperience">Lama pengalaman (tahun)</label>
-                  <input
-                    id="yearsExperience"
-                    name="yearsExperience"
-                    type="number"
-                    min={0}
-                    max={60}
-                    defaultValue={person.yearsExperience ?? ""}
-                  />
-                  <label htmlFor="fields">Bidang yang dikuasai</label>
-                  <input
-                    id="fields"
-                    name="fields"
-                    type="text"
-                    placeholder="Fintech, Edukasi, Civic Tech"
-                    defaultValue={person.fields.join(", ")}
-                  />
-                  <label htmlFor="website">Situs</label>
-                  <input id="website" name="website" type="url" defaultValue={person.website} />
-                  <label htmlFor="publicEmail">Email publik</label>
-                  <input id="publicEmail" name="publicEmail" type="email" defaultValue={person.publicEmail} />
-                  <label htmlFor="github">GitHub</label>
-                  <input id="github" name="github" type="url" defaultValue={person.github} />
-                  <label htmlFor="linkedin">LinkedIn</label>
-                  <input id="linkedin" name="linkedin" type="url" defaultValue={person.linkedin} />
-                  <label htmlFor="x">X / Twitter</label>
-                  <input id="x" name="x" type="url" defaultValue={person.x} />
-                  <label htmlFor="resume">Tautan résumé</label>
-                  <input id="resume" name="resume" type="url" defaultValue={person.resume} />
-                  <p className="hint">Kontak dan tautan ini bersifat publik, dan hanya tampil jika diisi.</p>
-                  <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
-                </form>
-              </details>
-            ) : null}
+            {isSelf ? <SelfTools person={person} owned={owned} contributing={contributing} /> : null}
 
             <section aria-labelledby="owned-heading">
               <h2 id="owned-heading" className="section-title">
@@ -361,6 +310,40 @@ export default async function ProfilePage({
 
       <SiteFooter />
     </>
+  );
+}
+
+/**
+ * What the owner of this page sees that nobody else does.
+ *
+ * The editor itself used to sit here, expanded from a `<summary>` — thirteen
+ * inputs on the page whose whole job is to be shown to other people. It lives
+ * at /akun/profil now, and this is the doorway to it, plus the one line that
+ * says what is still missing before the talent pool can match on anything.
+ */
+function SelfTools({
+  person,
+  owned,
+  contributing,
+}: {
+  person: Person;
+  owned: ProjectSummary[];
+  contributing: Contribution[];
+}) {
+  const remaining = remainingSteps(nextSteps({ person, owned, contributing }));
+
+  return (
+    <div className="profile-self-tools">
+      <Link className="profile-edit-link" href="/akun/profil">
+        Ubah profil
+      </Link>
+      {remaining.length > 0 ? (
+        <p className="profile-self-note">
+          Sisa {remaining.length} langkah supaya profilmu bisa ditemukan di talent pool.{" "}
+          <Link href="/mulai?semua=1">Lihat langkahnya</Link>
+        </p>
+      ) : null}
+    </div>
   );
 }
 
