@@ -13,7 +13,7 @@ export const homeMeta = {
 };
 
 /** The shared picture, for pages that do not draw a card of their own. */
-export const defaultShareImage = { url: "/og.png", width: 1731, height: 909 };
+export const defaultShareImage = { url: "/opengraph-image", width: 1200, height: 630 };
 
 /**
  * Share-card fields for a page with no `opengraph-image` file beside it.

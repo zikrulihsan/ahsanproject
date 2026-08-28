@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { siteUrl } from "./content";
+import { defaultShareImage, siteUrl } from "./content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +17,7 @@ export const viewport: Viewport = { themeColor: "#f8f6f0" };
 
 // Each page sets its own title, description and canonical. The share metadata
 // here is the fallback: pages with an opengraph-image file (profiles,
-// projects) get their own card image, everything else shares og.png.
+// projects) get their own card image, everything else shares the generated root card.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "Ahsan Project", template: "%s" },
@@ -25,12 +25,15 @@ export const metadata: Metadata = {
     siteName: "Ahsan Project",
     type: "website",
     locale: "id_ID",
-    images: [{ url: "/og.png", width: 1731, height: 909 }],
+    images: [defaultShareImage],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", images: [defaultShareImage.url] },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
 };
