@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { getSupabase } from "../../lib/supabase";
-import { safeNextPath } from "../../lib/urls";
+import { startPath } from "../../lib/urls";
 
 /**
  * Where the confirmation link in a sign-up email lands.
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = safeNextPath(searchParams.get("next"));
+  const next = startPath(searchParams.get("next"));
 
   // Supabase's default email template first verifies the `pkce_…` token on
   // its own server, then redirects here with an authorization code. A custom

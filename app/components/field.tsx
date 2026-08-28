@@ -13,6 +13,9 @@ export function Field({
   minLength,
   maxLength,
   type = "text",
+  list,
+  min,
+  max,
 }: {
   label: string;
   name: string;
@@ -24,7 +27,11 @@ export function Field({
   placeholder?: string;
   minLength?: number;
   maxLength?: number;
-  type?: "text" | "url";
+  type?: "text" | "url" | "email" | "number";
+  /** id of a <datalist> offering suggestions, without constraining the answer. */
+  list?: string;
+  min?: number;
+  max?: number;
 }) {
   const hintId = hint ? `${name}-hint` : undefined;
   const errorId = error ? `${name}-error` : undefined;
@@ -66,6 +73,9 @@ export function Field({
           placeholder={placeholder}
           minLength={minLength}
           maxLength={maxLength}
+          list={list}
+          min={min}
+          max={max}
         />
       )}
       {error ? (

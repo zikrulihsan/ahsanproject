@@ -87,6 +87,24 @@ export function peopleFacets(people: PersonAtWork[]): PeopleFacets {
   };
 }
 
+/**
+ * The terms other people already use, most common first.
+ *
+ * Fed to the profile editor as a `<datalist>`. Suggesting rather than
+ * constraining: somebody typing "Riset Pengguna" when the rest of the site
+ * writes "User Research" is two entries in the talent pool that should have
+ * been one, and nobody can see that from inside their own form.
+ */
+export function termSuggestions(
+  people: { skills: string[]; fields: string[] }[],
+  key: "skills" | "fields",
+  limit = 40,
+): string[] {
+  return countValues(people.flatMap((person) => person[key]))
+    .slice(0, limit)
+    .map((entry) => entry.value);
+}
+
 export function peoplePage<T>(items: T[], requestedPage: number, pageSize = PEOPLE_PAGE_SIZE) {
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const page = Math.min(Math.max(1, Math.trunc(requestedPage) || 1), pageCount);

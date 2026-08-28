@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { faviconUrl, projectLogoUrl, safeNextPath, signInPath } from "../app/lib/urls.ts";
+import { faviconUrl, projectLogoUrl, safeNextPath, signInPath, startPath } from "../app/lib/urls.ts";
 
 test("a redirect target stays inside this site", () => {
   assert.equal(safeNextPath("/projects/warung-antre"), "/projects/warung-antre");
@@ -25,6 +25,20 @@ test("the sign-in link carries a safe destination, or none at all", () => {
   assert.equal(signInPath("/new"), "/signin?next=%2Fnew");
   assert.equal(signInPath("/"), "/signin");
   assert.equal(signInPath("https://contoh-jahat.example"), "/signin");
+});
+
+test("a plain sign-in lands on the next-steps page", () => {
+  assert.equal(startPath("/"), "/mulai");
+  assert.equal(startPath(""), "/mulai");
+  assert.equal(startPath(null), "/mulai");
+  // Anything off-site collapses to "/" first, so it cannot skip past /mulai.
+  assert.equal(startPath("https://contoh-jahat.example"), "/mulai");
+});
+
+test("a destination somebody actually asked for always wins", () => {
+  assert.equal(startPath("/projects/warung-antre"), "/projects/warung-antre");
+  assert.equal(startPath("/akun/password"), "/akun/password");
+  assert.equal(startPath("/kolaborasi?cari=desain"), "/kolaborasi?cari=desain");
 });
 
 test("a project website becomes a sized favicon request", () => {

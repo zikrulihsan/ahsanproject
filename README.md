@@ -107,6 +107,8 @@ match it.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
+| `/mulai` | Where signing in lands: the steps still owed, and the projects you own. Forwards to the board once nothing is owed |
+| `/akun/profil` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
@@ -114,6 +116,11 @@ match it.
 
 - `app/lib/brief.ts` — the minimum a project must carry before it can exist,
   plus the completeness meter. This is the "no empty ideas" rule.
+- `app/lib/profile.ts` — what a profile may carry. The ceilings are the same
+  ones the `profiles` columns check, so a typo comes back as a sentence
+  rather than a constraint error.
+- `app/lib/next-steps.ts` — the steps `/mulai` lists. Named things with a
+  link at each, never a percentage: a profile is not a form to fill to 100%.
 - `app/lib/stages.ts` — the levels (`idea → building → live`, plus `resting`)
   and what each one requires. No level asks for a team: working alone is not a
   lesser project. What they ask for is evidence the work has moved — a link, or
