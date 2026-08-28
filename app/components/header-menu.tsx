@@ -69,7 +69,7 @@ export function HeaderMenu({
       }}
       onClick={(event) => {
         const target = event.target as HTMLElement;
-        if (!target.closest("summary") && target.closest("a, button")) {
+        if (!target.closest("summary") && target.closest("a, button:not([data-keep-menu-open])")) {
           requestAnimationFrame(() => {
             if (detailsRef.current) detailsRef.current.open = false;
           });

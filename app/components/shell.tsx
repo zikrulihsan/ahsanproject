@@ -8,6 +8,7 @@ import { currentViewer, type Viewer } from "../lib/session";
 import { countIncomingApplications, countUnseenNotices } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { HeaderMenu } from "./header-menu";
+import { SignOutButton } from "./sign-out-button";
 
 /** Which top-level section the current page belongs to. */
 export type Section = "beranda" | "kolaborasi" | "orang" | "tentang" | "";
@@ -243,10 +244,7 @@ function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
           </Link>
         </nav>
         <form className="account-signout" action={signOut}>
-          <button type="submit">
-            <HeaderIcon name="signout" />
-            <span>Sign out</span>
-          </button>
+          <SignOutButton />
         </form>
       </div>
     </HeaderMenu>
@@ -320,10 +318,7 @@ function MobileHeaderMenu({
               </Link>
             </nav>
             <form className="account-signout" action={signOut}>
-              <button type="submit">
-                <HeaderIcon name="signout" />
-                <span>Sign out</span>
-              </button>
+              <SignOutButton />
             </form>
           </section>
         ) : (

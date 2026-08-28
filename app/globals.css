@@ -250,6 +250,12 @@ nav form { display: flex; margin: 0; }
   background: transparent; color: #a64d38; font-size: 13px; font-weight: 650;
 }
 .account-signout button:hover { background: #fff2ed; color: #8d3827; }
+.account-signout button:disabled { cursor: wait; opacity: .78; }
+.signout-spinner {
+  animation: signout-spin .7s linear infinite; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; box-sizing: border-box; height: 17px; width: 17px;
+}
+@keyframes signout-spin { to { transform: rotate(360deg); } }
 
 .mobile-menu[open] > summary { border-color: #9db0a7; background: #f6f8f5; }
 .mobile-menu[open] > summary i:first-child { transform: translateY(2.75px) rotate(45deg); }
