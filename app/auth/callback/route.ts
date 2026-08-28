@@ -14,15 +14,29 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(new URL(startPath(next), request.url));
 
-    // The verifier is written when the sign-in starts and read here, so it is
-    // only missing when the journey changed origin along the way — a callback
-    // sent to a second name for this site, usually because that name is not on
-    // Supabase's redirect allow list. Worth its own sentence: "coba lagi" sends
-    // somebody round a loop that cannot succeed.
-    destination.searchParams.set(
-      "error",
-      /verifier|code challenge|code_verifier/i.test(error.message) ? "alamat-beda" : "google-gagal",
-    );
+    // A code is single use, and a successful exchange clears the verifier it
+    // was spent against. So the second visit to this URL — a refresh, a retry,
+    // a browser replaying the navigation — fails in a way that looks exactly
+    // like a sign-in that never worked. Ask who is here before believing that:
+    // if a session exists, the exchange already happened and there is nothing
+    // wrong to report.
+    const { data } = await supabase.auth.getUser();
+    if (data.user) return NextResponse.redirect(new URL(startPath(next), request.url));
+
+    // Past that, the exchange genuinely failed. Say what Supabase said — the
+    // message is the only way to tell these apart from the outside, and
+    // guessing from the shape of it is how the wrong sentence gets shown.
+    console.error(`[ahsan] Penukaran kode OAuth gagal: ${error.message}`, {
+      code: error.code,
+      status: error.status,
+      origin: request.nextUrl.origin,
+    });
+
+    // Only when the verifier is missing *and* nobody is signed in has the
+    // journey plausibly changed origin along the way — the cookie is written
+    // where the sign-in started and read here.
+    const missingVerifier = /code[ _]verifier/i.test(error.message);
+    destination.searchParams.set("error", missingVerifier ? "alamat-beda" : "google-gagal");
   } else {
     destination.searchParams.set("error", "google-gagal");
   }
