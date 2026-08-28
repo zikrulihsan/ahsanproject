@@ -9,6 +9,7 @@ import { SortSelect } from "../components/sort-select";
 import { LoadingNote, Skeleton } from "../components/skeleton";
 import { shareCard } from "../content";
 import {
+  arrangeForYou,
   familiarRoles,
   isLane,
   listPeople,
@@ -168,15 +169,6 @@ function BoardSkeleton() {
 async function Board({ params: paramsPromise }: { params: SearchParams }) {
   const { sort, stage, role, tag, q, searchBy, needs } = readBoardQuery(await paramsPromise);
 
-  const viewer = await currentViewer();
-  const familiarResult = viewer && sort === "untukmu"
-    ? await readPublicly<string[]>(
-        "role familiar untuk rekomendasi",
-        () => familiarRoles(viewer.id),
-        [],
-      )
-    : { value: [] as string[], unavailable: false };
-  const familiar = familiarResult.value;
   const query: FeedQuery = {
     lane: sort,
     stage,
@@ -185,8 +177,23 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     q: searchBy === "project" ? q : "",
     roleQuery: searchBy === "role" ? q : "",
     needsHelp: needs === "open",
-    familiarRoles: familiar,
   };
+
+  // Who is asking does not change which projects come back — only the order of
+  // the "untukmu" lane. So this is started rather than awaited: the board reads
+  // below go out at the same time, and the two settle together. Awaiting it
+  // here instead put the whole board behind an auth round trip and then a
+  // second query, for a sort that could just as well happen at the end.
+  const familiarPromise = sort === "untukmu"
+    ? readPublicly<string[]>(
+        "role familiar untuk rekomendasi",
+        async () => {
+          const viewer = await currentViewer();
+          return viewer ? familiarRoles(viewer.id) : [];
+        },
+        [],
+      )
+    : Promise.resolve({ value: [] as string[], unavailable: false });
 
   const projectsPromise = readPublicly<ProjectSummary[]>(
     "project Explore",
@@ -200,18 +207,29 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
         [],
       )
     : projectsPromise;
-  const [projectsResult, topicProjectsResult, helpBoardResult, roleSuggestionsResult] =
-    await Promise.all([
-      projectsPromise,
-      topicProjectsPromise,
-      readPublicly<ProjectSummary[]>(
-        "project yang membutuhkan bantuan",
-        () => listProjects({ lane: "butuh-bantuan" }),
-        [],
-      ),
-      readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
-    ]);
-  const projects = projectsResult.value;
+  const [
+    projectsResult,
+    topicProjectsResult,
+    helpBoardResult,
+    roleSuggestionsResult,
+    familiarResult,
+  ] = await Promise.all([
+    projectsPromise,
+    topicProjectsPromise,
+    readPublicly<ProjectSummary[]>(
+      "project yang membutuhkan bantuan",
+      () => listProjects({ lane: "butuh-bantuan" }),
+      [],
+    ),
+    readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
+    familiarPromise,
+  ]);
+
+  // The one place the visitor changes what they see: rows everybody shares,
+  // put in an order that leans on the roles this person has held before.
+  const projects = sort === "untukmu"
+    ? arrangeForYou(projectsResult.value, familiarResult.value)
+    : projectsResult.value;
   const topics = tagCountsFromProjects(topicProjectsResult.value);
   const helpBoard = helpBoardResult.value;
   const roleSuggestions = roleSuggestionsResult.value;

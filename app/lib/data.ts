@@ -13,7 +13,7 @@ import type {
 } from "./database.types";
 import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
-import { arrangeForYou, type Lane } from "./feed";
+import type { Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
 import {
   normaliseRole,
@@ -163,7 +163,7 @@ export type FeedQuery = {
   roleQuery?: string;
   q?: string;
   /** Roles this visitor has held before, used to arrange the "untukmu" lane. */
-  familiarRoles?: readonly string[];
+
 };
 
 export { LANES, isLane, arrangeForYou, type Lane } from "./feed";
@@ -215,14 +215,7 @@ const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: st
   berjalan: { stage: "live", column: "last_activity_at" },
 };
 
-/**
- * The filters that decide what the database is asked for.
- *
- * `familiarRoles` is deliberately absent. It does not change the query — it
- * only changes the order afterwards — and folding it in here would give every
- * visitor with a different role history their own cache entry, which is close
- * to no cache at all. It is applied in `listProjects`, outside the cached read.
- */
+/** The filters that decide what the database is asked for. */
 function projectQueryKey(query: FeedQuery): string {
   return JSON.stringify({
     lane: query.lane ?? "untukmu",
@@ -252,15 +245,17 @@ async function readProjects(key: string): Promise<ProjectSummary[]> {
   return queryProjects(JSON.parse(key) as FeedQuery);
 }
 
-/** The board for one set of filters, arranged for whoever is looking. */
+/**
+ * The board for one set of filters.
+ *
+ * In the order the database gave, deliberately. Arranging the "untukmu" lane
+ * for a particular visitor is `arrangeForYou`, and it belongs to the caller
+ * that knows who is looking — see `app/kolaborasi/page.tsx`. Keeping it out of
+ * here is what lets this read start before the session is known, instead of
+ * queueing behind an auth round trip for a sort it could do afterwards.
+ */
 export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
-  const projects = await readProjects(projectQueryKey(query));
-
-  // Outside the cache on purpose: this is a pure re-ordering of rows everyone
-  // shares, so personalising it costs a sort rather than a database read.
-  return (query.lane ?? "untukmu") === "untukmu"
-    ? arrangeForYou(projects, query.familiarRoles)
-    : projects;
+  return readProjects(projectQueryKey(query));
 }
 
 async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
@@ -469,9 +464,21 @@ export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
   );
 }
 
-/** The roles somebody has held or applied for — what "untukmu" leans on. */
+/**
+ * The roles somebody has held or applied for — what "untukmu" leans on.
+ *
+ * Cached even though it is about one person: `seats` is public, so this is not
+ * private information, and the board waits on it before it can settle its
+ * order. Filed under the site-wide `seats` tag rather than a per-person one —
+ * that clears every visitor's entry whenever any seat anywhere moves, which is
+ * far rarer than the page views this saves, and the miss costs one small query.
+ */
 export async function familiarRoles(userId: string): Promise<string[]> {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.seats);
+
+  const supabase = getPublicSupabase();
   if (!supabase) return [];
 
   const { data, error } = await supabase.from("seats").select("role").eq("user_id", userId);
@@ -1515,8 +1522,8 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
       : (a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt) || b.id - a.id,
   );
 
-  // Not arranged here: `listProjects` applies `arrangeForYou` to whatever this
-  // returns, so the seed and the database take the same path through it.
+  // Not arranged here, same as the database path: ordering for a visitor is
+  // the caller's job once it knows who is looking.
   return ordered;
 }
 
