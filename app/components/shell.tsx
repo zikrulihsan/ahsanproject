@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
@@ -90,14 +92,46 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
   );
 }
 
-export async function SiteHeader({
+/**
+ * The header, with the visitor streamed in.
+ *
+ * Who is looking is the one thing on most pages that cannot be cached or
+ * prerendered — it comes from a cookie and a round trip to the auth server.
+ * Holding the whole page open for it would make every route dynamic, which is
+ * exactly what this site used to do. Behind this boundary the rest of the page
+ * prerenders and ships immediately, and the header fills itself in.
+ *
+ * `HeaderShell` is the fallback because it is the same frame with the guest
+ * actions already drawn: nothing moves when the visitor arrives except the
+ * sign-in link becoming an account menu.
+ */
+export function SiteHeader({
   returnTo = "/",
   active = "",
 }: {
-  returnTo?: string;
+  returnTo?: string | Promise<string>;
   active?: Section;
 }) {
-  const viewer = await currentViewer();
+  return (
+    <Suspense fallback={<HeaderShell active={active} />}>
+      <VisitorHeader returnTo={returnTo} active={active} />
+    </Suspense>
+  );
+}
+
+async function VisitorHeader({
+  returnTo = "/",
+  active = "",
+}: {
+  returnTo?: string | Promise<string>;
+  active?: Section;
+}) {
+  // `returnTo` may be a promise: on the pages whose address depends on the
+  // filters in the URL, working it out means reading `searchParams`. Awaiting
+  // it here rather than in the page keeps that read inside this boundary,
+  // where the visitor is already being waited for, instead of holding up the
+  // page's prerendered shell.
+  const [viewer, destination] = await Promise.all([currentViewer(), returnTo]);
   // An application nobody sees is an application nobody answers, and a
   // decision nobody sees is the same — so both counts ride along in the header
   // rather than waiting to be found.
@@ -136,14 +170,14 @@ export async function SiteHeader({
             </>
           ) : (
             <>
-              <Link className="nav-login" href={signInPath(returnTo)}>Sign in</Link>
+              <Link className="nav-login" href={signInPath(destination)}>Sign in</Link>
               <Link className="primary-action" href="/new">
                 <span aria-hidden="true">+</span> Add a project
               </Link>
             </>
           )}
 
-          <MobileHeaderMenu active={active} returnTo={returnTo} viewer={viewer} waiting={waiting} />
+          <MobileHeaderMenu active={active} returnTo={destination} viewer={viewer} waiting={waiting} />
         </div>
       </div>
     </header>
@@ -310,7 +344,23 @@ export function SiteFooter() {
           GitHub <Arrow diagonal />
         </a>
       </nav>
-      <small>© {new Date().getFullYear()} Ahsan Project</small>
+      <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>
   );
+}
+
+/**
+ * The year in the footer, cached.
+ *
+ * `new Date()` cannot be read while prerendering — it would freeze whatever
+ * the build machine's clock said into the static shell. Caching it is the
+ * honest fix: the year is the same for everybody, and re-reading it once a day
+ * means the footer turns over within a day of New Year without any page here
+ * having to be rendered per request to say so.
+ */
+async function CopyrightYear() {
+  "use cache";
+  cacheLife("days");
+
+  return new Date().getFullYear();
 }

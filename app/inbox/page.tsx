@@ -17,7 +17,16 @@ import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
 import { SubmitButton } from "../components/submit-button";
 
-export const dynamic = "force-dynamic";
+/*
+ * Allowed to block.
+ *
+ * This page decides what to render — or whether to redirect — from who is
+ * signed in, and there is no useful shell to show before that answer arrives:
+ * a visitor who is about to be sent elsewhere should not watch this page paint
+ * first. Nothing here is cacheable and nothing here is indexed, so blocking on
+ * the session costs a request that was always going to be per-visitor.
+ */
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Kotak masuk — Ahsan Project",

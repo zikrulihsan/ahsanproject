@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { initials } from "../components/pieces";
+import { LoadingNote, Skeleton } from "../components/skeleton";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import {
@@ -15,8 +17,6 @@ import {
   type PeopleFilters,
 } from "../lib/people";
 import { shareCard } from "../content";
-
-export const dynamic = "force-dynamic";
 
 const title = "Orang — Ahsan Project";
 const description =
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type DirectoryParam = "q" | "profesi" | "skill" | "pengalaman" | "bidang" | "kerja" | "halaman";
 
-export default async function PeoplePage({ searchParams }: { searchParams?: SearchParams }) {
-  const query = (await searchParams) ?? {};
+/** The filters and page number this URL asks for. */
+function readDirectoryQuery(query: Record<string, string | string[] | undefined>) {
   const involvementValue = one(query.kerja);
   const experienceValue = one(query.pengalaman);
   const filters: PeopleFilters = {
@@ -47,7 +47,77 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
   };
 
   const rawPage = Number(one(query.halaman));
-  const requestedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
+  return { filters, requestedPage: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1 };
+}
+
+/**
+ * The directory's frame, which is the same whatever is being searched for.
+ *
+ * Nothing here reads the URL, so it prerenders once and is served from the
+ * edge. The results below it depend on `searchParams` — a different answer per
+ * visitor — so they stream in behind a skeleton instead of holding the page.
+ */
+export default function PeoplePage({ searchParams }: { searchParams?: SearchParams }) {
+  const query = searchParams ?? Promise.resolve({});
+
+  return (
+    <>
+      <SiteHeader returnTo={query.then(hrefForQuery)} active="orang" />
+
+      <main id="main-content" className="people-page">
+        <header className="people-directory-head">
+          <h1>Cari orang</h1>
+          <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
+        </header>
+
+        <Suspense fallback={<DirectorySkeleton />}>
+          <Directory query={query} />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </>
+  );
+}
+
+/** The address of the directory as this URL currently has it. */
+async function hrefForQuery(
+  query: Record<string, string | string[] | undefined>,
+): Promise<string> {
+  const { filters, requestedPage } = readDirectoryQuery(query);
+  return directoryPath(filters, requestedPage > 1 ? requestedPage : 1, {});
+}
+
+function directoryPath(
+  filters: PeopleFilters,
+  page: number,
+  patch: Partial<Record<DirectoryParam, string | number | null>>,
+): string {
+  const base: Partial<Record<DirectoryParam, string>> = {
+    q: filters.q,
+    profesi: filters.profession,
+    skill: filters.skill,
+    pengalaman: filters.experience,
+    bidang: filters.field,
+    kerja: filters.involvement,
+    halaman: page > 1 ? String(page) : "",
+  };
+
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(base)) {
+    if (value) params.set(key, value);
+  }
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === null || value === "" || value === 1) params.delete(key);
+    else params.set(key, String(value));
+  }
+
+  const search = params.toString();
+  return `/orang${search ? `?${search}` : ""}`;
+}
+
+async function Directory({ query }: { query: SearchParams }) {
+  const { filters, requestedPage } = readDirectoryQuery(await query);
   const peopleResult = await readPublicly<PersonAtWork[]>(
     "direktori orang",
     () => listPeopleAtWork(1000),
@@ -67,27 +137,8 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
     filters.involvement,
   ].filter(Boolean).length;
 
-  const baseParams: Partial<Record<DirectoryParam, string>> = {
-    q: filters.q,
-    profesi: filters.profession,
-    skill: filters.skill,
-    pengalaman: filters.experience,
-    bidang: filters.field,
-    kerja: filters.involvement,
-    halaman: page > 1 ? String(page) : "",
-  };
-  const directoryHref = (patch: Partial<Record<DirectoryParam, string | number | null>>) => {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(baseParams)) {
-      if (value) params.set(key, value);
-    }
-    for (const [key, value] of Object.entries(patch)) {
-      if (value === null || value === "" || value === 1) params.delete(key);
-      else params.set(key, String(value));
-    }
-    const search = params.toString();
-    return `/orang${search ? `?${search}` : ""}`;
-  };
+  const directoryHref = (patch: Partial<Record<DirectoryParam, string | number | null>>) =>
+    directoryPath(filters, page, patch);
 
   const topContributors = [...allPeople]
     .filter((entry) => entry.helping.length > 0)
@@ -102,14 +153,6 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
 
   return (
     <>
-      <SiteHeader returnTo={returnTo} active="orang" />
-
-      <main id="main-content" className="people-page">
-        <header className="people-directory-head">
-          <h1>Cari orang</h1>
-          <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
-        </header>
-
         {peopleResult.unavailable ? (
           <p className="public-data-notice" role="status">
             Data orang belum berhasil dimuat. <Link href={returnTo}>Coba lagi</Link>.
@@ -304,9 +347,32 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
             <ContributorRail people={topContributors} />
           </div>
         </section>
-      </main>
+    </>
+  );
+}
 
-      <SiteFooter />
+/** The frame of the results, drawn while the real ones are on their way. */
+function DirectorySkeleton() {
+  return (
+    <>
+      <LoadingNote />
+      <section className="people-search-panel">
+        <Skeleton height={52} style={{ marginBottom: 12 }} />
+        <Skeleton height={44} />
+      </section>
+      <section className="people-results">
+        <div className="people-results-layout">
+          <div className="people-results-main">
+            <Skeleton height={24} width={220} style={{ marginBottom: 16 }} />
+            {[0, 1, 2, 3, 4].map((slot) => (
+              <Skeleton key={slot} height={168} style={{ marginTop: 12 }} />
+            ))}
+          </div>
+          <aside className="people-contributor-rail">
+            <Skeleton height={320} />
+          </aside>
+        </div>
+      </section>
     </>
   );
 }

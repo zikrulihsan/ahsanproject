@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { requireSupabase } from "./lib/supabase";
 import { safeNextPath } from "./lib/urls";
+import { tags } from "./lib/cache-tags";
 import { siteOrigin } from "./lib/origin";
 
 export type AuthState = {
@@ -41,6 +42,11 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   });
 
   if (error) return { error: translate(error.message), values };
+
+  // A trigger creates the public profile alongside the auth user, so the people
+  // directory is now missing somebody. It is cached and shared, so it has to be
+  // told rather than left to notice on its own.
+  updateTag(tags.people);
 
   // With email confirmation switched on there is no session yet, and the person
   // has to open the link before they can do anything.
