@@ -53,7 +53,6 @@ export default async function Home() {
       <main id="main-content" className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
-            <p className="home-eyebrow">A public index of real work</p>
             <RotatingHeadline />
             <p className="landing-hero-lead">
               A public place to list projects for any use case—building in public, finding help,
