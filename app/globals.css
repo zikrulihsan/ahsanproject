@@ -766,6 +766,16 @@ a.seat-chip:hover { border-color: var(--ink); }
   font-size: 12px; font-weight: 650; gap: 10px; padding: 9px 15px;
 }
 .project-links a:hover { border-color: var(--ink); }
+.github-contribution {
+  background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 14px; margin-top: 20px; padding: 20px;
+}
+.github-contribution h3 { margin-bottom: 7px; }
+.github-contribution p { color: var(--ink-soft); font-size: 14px; line-height: 1.65; margin-bottom: 15px; }
+.github-contribution a {
+  align-items: center; background: var(--ink); border-radius: 99px; color: #fff; display: inline-flex;
+  font-size: 12px; font-weight: 700; gap: 9px; padding: 10px 15px;
+}
+.github-contribution a:hover { background: #245848; }
 
 .project-tabs {
   border-bottom: 1px solid var(--line-2); display: flex; gap: clamp(24px, 3vw, 44px);
@@ -1581,6 +1591,12 @@ form label.topic-option.is-selected { background: var(--ink); border-color: var(
 .optional-fields-body { background: var(--paper); border-radius: 14px; padding: 18px 18px 1px; }
 .optional-fields.is-required > summary { display: none; }
 .optional-fields.is-required .optional-fields-body { margin-top: 18px; }
+.github-import { border-top: 1px solid var(--line); margin: 2px 0 18px; padding-top: 17px; }
+.github-import > p:first-child { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin: 0 0 12px; }
+.github-import > p:first-child strong { color: var(--ink); }
+.github-import-message { border-radius: 10px; font-size: 12.5px; line-height: 1.55; margin: 12px 0 0; padding: 10px 12px; }
+.github-import-message.is-success { background: #eef5e8; color: #38522e; }
+.github-import-message.is-error { background: #fff0ea; color: #964125; }
 
 /* Asking for help is one choice first; the detailed ask appears only after it. */
 form label.help-toggle {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { updateProject, type EditState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { Field } from "./field";
 import { TopicPicker } from "./topic-picker";
+import { GitHubImport } from "./github-import";
 
 export type EditableProject = {
   slug: string;
@@ -22,6 +23,7 @@ export type EditableProject = {
 };
 
 export function EditForm({ project }: { project: EditableProject }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const initial: EditState = {
     errors: {},
     values: { ...project, tags: project.tags.join(", "), now: project.nowText },
@@ -30,7 +32,7 @@ export function EditForm({ project }: { project: EditableProject }) {
   const { errors, values } = state;
 
   return (
-    <form className="create-form" action={formAction}>
+    <form className="create-form" action={formAction} ref={formRef}>
       {errors.form ? (
         <p className="form-error" role="alert">
           {errors.form}
@@ -125,7 +127,15 @@ export function EditForm({ project }: { project: EditableProject }) {
           tidak terpenuhi, levelnya ikut turun sendiri.
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
-        <Field label="Repo" name="repoUrl" error={errors.repoUrl} defaultValue={values.repoUrl} type="url" />
+        <Field
+          label="Repository GitHub atau repo lain"
+          name="repoUrl"
+          hint="Untuk repo GitHub publik, kamu bisa mengisi kolom yang masih kosong dari README."
+          error={errors.repoUrl}
+          defaultValue={values.repoUrl}
+          type="url"
+        />
+        <GitHubImport formRef={formRef} />
       </fieldset>
 
       <button className="primary-button" type="submit" disabled={pending}>

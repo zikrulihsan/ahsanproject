@@ -57,6 +57,7 @@ import { ProjectScrollTop } from "../../components/project-scroll-top";
 import { ProjectLogo } from "../../components/project-logo";
 import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
 import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
+import { isGitHubRepositoryUrl } from "../../lib/github";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ tab?: string | string[] }>;
@@ -224,7 +225,7 @@ export default async function ProjectPage({
                 {project.repoUrl ? (
                   <li>
                     <a href={project.repoUrl} target="_blank" rel="noreferrer">
-                      Repo <Arrow diagonal />
+                      {isGitHubRepositoryUrl(project.repoUrl) ? "Lihat repository GitHub" : "Repo"} <Arrow diagonal />
                     </a>
                   </li>
                 ) : null}
@@ -250,6 +251,18 @@ export default async function ProjectPage({
                   <h3>Untuk siapa</h3>
                   <p>{project.audience}</p>
                 </article>
+                {isGitHubRepositoryUrl(project.repoUrl) ? (
+                  <article className="github-contribution">
+                    <h3>Ingin bantu lewat kode?</h3>
+                    <p>
+                      Lihat panduan kontribusi, issue yang tersedia, atau buka pull request langsung dari
+                      repository GitHub project ini.
+                    </p>
+                    <a href={project.repoUrl} target="_blank" rel="noreferrer">
+                      Contribute on GitHub <Arrow diagonal />
+                    </a>
+                  </article>
+                ) : null}
               </section>
             </ProjectTabContent>
 

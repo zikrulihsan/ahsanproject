@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { createProject, type CreateState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { STAGES, stageMeta, type Stage } from "../lib/stages";
@@ -8,6 +8,7 @@ import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
 import { RoleFields } from "./role-fields";
 import { TopicPicker } from "./topic-picker";
+import { GitHubImport } from "./github-import";
 
 const EMPTY: CreateState = { errors: {}, values: {} };
 
@@ -18,13 +19,14 @@ const EMPTY: CreateState = { errors: {}, values: {} };
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
+  const formRef = useRef<HTMLFormElement>(null);
   const { errors, values } = state;
   const initialStage = STAGES.includes(values.stage as Stage) ? (values.stage as Stage) : "idea";
   const [stage, setStage] = useState<Stage>(initialStage);
   const [wantsHelp, setWantsHelp] = useState(values.openSeat === "yes");
 
   return (
-    <form className="create-form" action={formAction}>
+    <form className="create-form" action={formAction} ref={formRef}>
       <p className="form-start-note">
         Mulai dari yang kamu tahu sekarang. Semua isi bisa diubah lagi setelah project terbit.
       </p>
@@ -194,13 +196,15 @@ export function CreateForm() {
               placeholder="https://"
             />
             <Field
-              label="Repo"
+              label="Repository GitHub atau repo lain"
               name="repoUrl"
+              hint="Punya repository GitHub publik? Setelah menempelkannya, isi draft dari README di bawah."
               error={errors.repoUrl}
               defaultValue={values.repoUrl}
               type="url"
               placeholder="https://"
             />
+            <GitHubImport formRef={formRef} />
           </div>
         </details>
       </fieldset>

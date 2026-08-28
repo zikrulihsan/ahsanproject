@@ -9,6 +9,7 @@ import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
+import { getGitHubProjectDraft, type GitHubProjectDraft } from "./lib/github";
 import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import {
@@ -34,6 +35,10 @@ export type CreateState = {
 };
 
 export type EditState = CreateState;
+
+export type GitHubImportResult =
+  | { ok: true; draft: GitHubProjectDraft }
+  | { ok: false; error: string };
 
 export type ProfileState = {
   errors: ProfileFieldErrors & { form?: string };
@@ -93,6 +98,18 @@ function trailChanged(personId: string | null | undefined, slug?: string): void 
 /* ------------------------------------------------------------------ *
  * Projects
  * ------------------------------------------------------------------ */
+
+/** Reads public GitHub copy into a browser draft; it never writes a project. */
+export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportResult> {
+  const viewer = await currentViewer();
+  if (!viewer) return { ok: false, error: "Masuk dulu sebelum mengimpor README." };
+
+  try {
+    return { ok: true, draft: await getGitHubProjectDraft(repoUrl) };
+  } catch (error) {
+    return { ok: false, error: messageOf(error) };
+  }
+}
 
 export async function createProject(_state: CreateState, formData: FormData): Promise<CreateState> {
   const values = {
