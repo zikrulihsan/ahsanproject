@@ -91,7 +91,7 @@ export default async function Home() {
           <div className="landing-section-intro">
             <p className="home-eyebrow">The reason why...</p>
             <h2 id="use-cases-title">You should put your project here.</h2>
-            <p className="landing-section-lead">Once you show your project, you will able to:</p>
+            <p className="landing-section-lead">Once you share your project, you will able to:</p>
           </div>
 
           <div className="use-case-layout">
