@@ -5,7 +5,6 @@ import { useActionState } from "react";
 import {
   requestPasswordReset,
   signIn,
-  signInWithGoogle,
   signUp,
   updatePassword,
   type AuthState,
@@ -21,7 +20,7 @@ export function SignInForm({ next }: { next: string }) {
       <Message state={state} />
       <input type="hidden" name="next" value={next} />
 
-      <GoogleButton />
+      <GoogleButton next={next} />
       <AuthDivider />
 
       <div className="auth-field">
@@ -69,7 +68,7 @@ export function SignUpForm({ next }: { next: string }) {
       <Message state={state} />
       <input type="hidden" name="next" value={next} />
 
-      <GoogleButton />
+      <GoogleButton next={next} />
       <AuthDivider />
 
       <label htmlFor="name">Nama</label>
@@ -153,17 +152,23 @@ export function NewPasswordForm() {
   );
 }
 
-function GoogleButton() {
+/**
+ * A link, not a submit button.
+ *
+ * Starting the sign-in has to hand the browser a cookie — the PKCE verifier —
+ * on the same response that sends it to Google. That is what `/auth/google`
+ * does. Going through a form action meant the verifier had to survive an action
+ * response and a client-side navigation off-site first, which is where it was
+ * being lost. A link also works with JavaScript switched off.
+ */
+function GoogleButton({ next }: { next: string }) {
+  const href = next === "/" ? "/auth/google" : `/auth/google?next=${encodeURIComponent(next)}`;
+
   return (
-    <button
-      className="google-auth-button"
-      type="submit"
-      formAction={signInWithGoogle}
-      formNoValidate
-    >
+    <a className="google-auth-button" href={href}>
       <GoogleMark />
       <span>Lanjutkan dengan Google</span>
-    </button>
+    </a>
   );
 }
 

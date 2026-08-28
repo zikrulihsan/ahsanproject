@@ -45,9 +45,17 @@ export const getSupabase = cache(async (): Promise<Supabase | null> => {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
-        } catch {
-          // Server Components may not set cookies. The proxy refreshes the
-          // session on every request, so nothing is lost by ignoring this.
+        } catch (error) {
+          // Server Components may not set cookies, and for a refreshed token
+          // that costs nothing: the proxy writes it on the next request.
+          //
+          // It is not always free, though. The PKCE code verifier is written
+          // once, when a sign-in starts, and a sign-in that loses it fails at
+          // the callback with a message about a missing verifier — which reads
+          // like a misconfigured redirect URL and is not one. Swallowing that
+          // silently is how it stayed invisible, so say it out loud.
+          const names = cookiesToSet.map((cookie) => cookie.name).join(", ");
+          console.error(`[ahsan] Cookie sesi gagal ditulis (${names}).`, error);
         }
       },
     },

@@ -102,6 +102,17 @@ instead.
 > sign-in lands, and putting it on the allow list would break the very flow it
 > is meant to finish.
 
+Sign-in starts at `/auth/google`, a route handler, and that is deliberate
+rather than incidental. `signInWithOAuth` generates the PKCE code verifier and
+writes it as a cookie, and `/auth/callback` reads it back to trade the
+authorization code for a session; a verifier that never reaches the browser
+fails the callback with a message about a missing verifier, which reads like a
+misconfigured redirect URL and is not one. The route handler sets that cookie
+on the very redirect that sends somebody to Google — one response carrying both
+the destination and the cookie that makes the return trip work. Only
+`/auth/callback` and `/auth/confirm` go on Supabase's allow list; `/auth/google`
+is an entry point on this site and Supabase never redirects to it.
+
 No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup
 screens and exact callback value are documented in its
