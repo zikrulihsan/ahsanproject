@@ -18,12 +18,10 @@ export const metadata: Metadata = {
 };
 
 const USE_CASES = [
-  "Building in public",
-  "Finding a collaborator",
-  "Showing a student or side project",
-  "Hiring help for a specific role",
-  "Turning work into a portfolio",
-  "Getting found by people who need your skill",
+  "Building in public, so people can see 🔍",
+  "Finding a collaborator, to grow together 📈",
+  "Turning work into a portfolio 📋",
+  "Connected by people who need you 🤝🏻",
 ];
 
 const WORKFLOW = [
@@ -66,10 +64,20 @@ export default async function Home() {
               </Link>
             </div>
 
-            <p className="landing-counts" aria-label="Current Ahsan Project activity">
-              <strong>{people.length}</strong> people <i /> <strong>{projects.length}</strong> projects
-              <i /> <strong>{openRoles}</strong> open roles
-            </p>
+            <div className="landing-counts" aria-label="Current Ahsan Project activity">
+              <span className="landing-count">
+                <strong>{people.length}</strong>
+                <span>people</span>
+              </span>
+              <span className="landing-count">
+                <strong>{projects.length}</strong>
+                <span>projects</span>
+              </span>
+              <span className="landing-count">
+                <strong>{openRoles}</strong>
+                <span>open roles</span>
+              </span>
+            </div>
           </div>
         </section>
 
@@ -81,9 +89,9 @@ export default async function Home() {
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
-            <p className="home-eyebrow">The reason why</p>
-            <h2 id="use-cases-title">Once you show your project:</h2>
-            <p>Once you show your project, you will get all of these benefit:</p>
+            <p className="home-eyebrow">The reason why...</p>
+            <h2 id="use-cases-title">You should put your project here.</h2>
+            <p className="landing-section-lead">Once you show your project, you will able to:</p>
           </div>
 
           <div className="use-case-layout">
@@ -92,11 +100,6 @@ export default async function Home() {
                 <li key={useCase}><span aria-hidden="true">↗</span>{useCase}</li>
               ))}
             </ul>
-            <aside className="project-brief-note">
-              <span>One shared project brief</span>
-              <p>Problem · who it&apos;s for · status · what help is open</p>
-              <small>Enough context for someone to understand the work before they contact you.</small>
-            </aside>
           </div>
 
           <Link className="landing-inline-link" href="/kolaborasi">
@@ -107,17 +110,13 @@ export default async function Home() {
         <section className="landing-project-feature" id="projects" aria-labelledby="project-feature-title">
           <div className="landing-project-feature-head">
             <div>
-              <p className="home-eyebrow">01 · Project list</p>
-              <h2 id="project-feature-title">A living list of work, not a graveyard of ideas.</h2>
+              <p className="home-eyebrow">01 · Project Showcase</p>
+              <h2 id="project-feature-title">One project shares brings multiple oportunity 🤲</h2>
             </div>
-            <p>
-              Every entry shows status, a one-line purpose, an open role, and its owner. It is
-              closer to an index of work than a social feed.
-            </p>
           </div>
 
           <div className="landing-index-filters" aria-label="Example project filters">
-            <span>Topic</span><span>Status</span><span>Looking for help</span><span>Not looking</span>
+            <span>✅ Searchable</span><span>✅ Inspire and get inspired by others projects</span><span>✅ Grow with partners</span><span>✅ Find contributors</span>
           </div>
 
           {projects.length > 0 ? (
@@ -134,14 +133,14 @@ export default async function Home() {
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
           <div className="portfolio-story-copy">
             <p className="home-eyebrow">02 · Portfolio builder</p>
-            <h2 id="portfolio-story-title">Don&apos;t write a portfolio. Let the work write it.</h2>
+            <h2 id="portfolio-story-title">Tired on maintain your web portfolio by yourself? ⚙️</h2>
             <p>
               Your profile collects projects, contributions, and the roles that actually happened.
               One link that grows every time something ships.
             </p>
             <ul>
-              <li><span>01</span> Projects you started</li>
-              <li><span>02</span> Roles you took on other projects</li>
+              <li><span>01</span> Project first personal portfolio</li>
+              <li><span>02</span> No need to deploy it by your self</li>
               <li><span>03</span> Skills proven by shipped work</li>
             </ul>
             <a className="portfolio-story-link" href="https://ahsanproject.id/u/zikrul-ihsan">
@@ -182,15 +181,15 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">Find people by the work they&apos;ve done, not the title they claim.</h2>
+            <h2 id="talent-story-title">Complete your profile, recruiters are watching 📝</h2>
             <p>
-              Search by project topic, role taken, skill used, or availability. Recruiters,
-              founders, and collaborators all see the same evidence.
+              Your profile is collected into the talent pool.
+              Recruiters, hiring manager, or founders all see the same evidence, but how?
             </p>
             <ul>
-              <li><span>✓</span> Project topic and shipped work</li>
-              <li><span>✓</span> Roles taken and skills used</li>
-              <li><span>✓</span> Current collaboration availability</li>
+              <li><span>✓</span> Hiring manager can search by project topic</li>
+              <li><span>✓</span> Recruiters found you by relevan skill set and YoE</li>
+              <li><span>✓</span> Founders attracted by the depth of your project</li>
             </ul>
             <Link className="talent-story-link" href="/orang">Browse people <Arrow /></Link>
           </div>
@@ -214,7 +213,7 @@ export default async function Home() {
           <div className="how-heading">
             <div>
               <p className="home-eyebrow">How it fits together</p>
-              <h2 id="how-title">One project powers three surfaces.</h2>
+              <h2 id="how-title">How to get started 🏁</h2>
             </div>
             <p>List the work once. The project index, portfolio, and talent pool grow from the same evidence.</p>
           </div>

@@ -100,9 +100,8 @@ export default function CollaborationPage({ searchParams }: { searchParams?: Sea
       <main id="main-content" className="discovery-page collaboration-page">
         <section className="collaboration-hero" aria-labelledby="collaboration-title">
           <div>
-            <p className="home-eyebrow">temukan tempat untuk ikut bertumbuh</p>
-            <h1 id="collaboration-title">Explore</h1>
-            <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok.</p>
+            <h1 id="collaboration-title">Explore & Contribute</h1>
+            <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok, atau dapatkan inspirasi disana.</p>
           </div>
           <ContributorPulse />
         </section>

@@ -1842,8 +1842,8 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 .discovery-hero-copy { max-width: 800px; }
 .home-eyebrow {
-  color: #f1684b; font-family: var(--font-geist-mono), monospace; font-size: 12px;
-  font-weight: 780; letter-spacing: .15em; margin: 0 0 0px; text-transform: uppercase;
+  color: #f1684b; font-family: var(--font-geist-mono), monospace; font-size: 16px;
+  font-weight: 780; letter-spacing: .15em; margin: 0 0 14px; text-transform: uppercase;
 }
 .discovery-hero h1 {
   color: #152a24; font-size: clamp(48px, 5vw, 58px); font-weight: 720;
@@ -2076,14 +2076,28 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 
 .landing-page { background: #fbfcfb; overflow: hidden; }
 .landing-hero {
-  align-items: center; display: flex; flex-direction: column; margin: 0 auto;
-  max-width: 1120px; min-height: 620px; padding: 92px 54px; position: relative;
-  text-align: center;
+  align-items: center;
+  background: #f3f6f4; border-bottom: 1px solid #e0e7e3;
+  display: flex; flex-direction: column; margin: 0 auto; max-width: none; min-height: 620px;
+  padding: 92px 54px; position: relative; text-align: center; width: 100%;
 }
 .landing-hero::before {
-  background: radial-gradient(circle, rgba(237, 113, 75, .15) 0 2px, transparent 2.5px);
-  background-size: 20px 20px; content: ""; height: 160px; left: -84px; opacity: .5;
-  position: absolute; top: 94px; width: 180px;
+  background: repeating-radial-gradient(
+    circle,
+    transparent 0 25px,
+    rgba(237, 113, 75, .16) 26px 27px
+  );
+  border-radius: 50%; content: ""; height: 180px; left: 4%; opacity: .7; pointer-events: none;
+  position: absolute; top: 286px; width: 180px;
+}
+.landing-hero::after {
+  background: repeating-radial-gradient(
+    circle,
+    transparent 0 38px,
+    rgba(37, 84, 71, .11) 39px 40px
+  );
+  border-radius: 50%; content: ""; height: 300px; opacity: .65; pointer-events: none;
+  position: absolute; right: 4%; top: 66px; width: 300px;
 }
 .landing-hero-copy { display: flex; flex-direction: column; align-items: center; max-width: 1040px; position: relative; z-index: 1; }
 .landing-hero h1 {
@@ -2122,11 +2136,18 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .landing-community-proof p { color: #75857e; font-size: 12px; line-height: 1.5; margin: 0; }
 .landing-community-proof strong { color: #254b40; }
 .landing-counts {
-  align-items: center; border-top: 1px solid #dfe5e1; color: #75857e; display: flex; font-size: 12px;
-  gap: 10px; margin: 31px 0 0; padding-top: 18px;
+  border-bottom: 1px solid #dfe6e2; border-top: 1px solid #dfe6e2; display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 31px 0 0; padding: 16px 0;
+  width: min(100%, 430px);
 }
-.landing-counts strong { color: #254b40; font-size: 13px; }
-.landing-counts i { background: #b9c4bf; border-radius: 50%; height: 3px; width: 3px; }
+.landing-count {
+  align-items: baseline; display: flex; gap: 7px; justify-content: center; min-width: 0;
+}
+.landing-count + .landing-count { border-left: 1px solid #dfe6e2; }
+.landing-count strong {
+  color: #254b40; font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1;
+}
+.landing-count > span { color: #74857d; font-size: 11px; font-weight: 500; line-height: 1.2; white-space: nowrap; }
 
 .landing-use-cases, .landing-project-feature, .how-it-works {
   margin: 0 auto; max-width: 1260px; padding: 94px 54px 104px;
@@ -2165,10 +2186,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   line-height: 1.03; margin: 0; text-wrap: balance;
 }
 .landing-project-feature-head > p { color: #60746b; font-size: 13px; line-height: 1.75; margin: 0; }
-.landing-index-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 34px 0 13px; }
+.landing-index-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 13px; }
 .landing-index-filters span {
   background: rgba(255, 255, 255, .72); border: 1px solid #d5e0da; border-radius: 99px; color: #62746c;
-  font-size: 10px; font-weight: 700; padding: 8px 11px;
+  font-size: 12px; font-weight: 400; padding: 8px 11px;
 }
 .landing-project-index { background: #fff; border: 1px solid #d8e2dd; border-radius: 19px; overflow: hidden; }
 .landing-index-row {
@@ -2289,6 +2310,20 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 .landing-section-intro > p:last-child {
   align-self: end; color: #71817a; font-size: 13px; line-height: 1.75; margin: 0 0 3px 40px;
+}
+.landing-use-cases .landing-section-intro {
+  align-items: center; display: flex; flex-direction: column; margin-left: auto; margin-right: auto;
+  max-width: 720px; text-align: center;
+}
+.landing-use-cases .landing-section-intro h2 { max-width: 680px; width: 100%; }
+.landing-use-cases .landing-section-intro > .landing-section-lead {
+  align-self: center; margin: 18px auto 0; max-width: 560px; text-align: center; width: 100%;
+}
+.landing-use-cases .use-case-layout {
+  grid-template-columns: minmax(0, 1fr); margin-left: auto; margin-right: auto; max-width: 920px;
+}
+.landing-use-cases .landing-inline-link {
+  display: flex; margin-left: auto; margin-right: auto; width: fit-content;
 }
 .purpose-grid { display: grid; gap: 15px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .purpose-card {
@@ -2762,8 +2797,13 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
   .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }
-  .landing-hero { padding: 52px 16px 48px; }
-  .landing-hero::before { display: none; }
+  .landing-hero { margin: 0 auto; padding: 52px 16px 48px; width: 100%; }
+  .landing-hero::before {
+    display: block; height: 110px; left: -38px; opacity: .5; top: 330px; width: 110px;
+  }
+  .landing-hero::after {
+    display: block; height: 150px; opacity: .45; right: -55px; top: 72px; width: 150px;
+  }
   .landing-hero h1 { font-size: clamp(34px, 10vw, 42px); letter-spacing: -.055em; line-height: 1.06; }
   .landing-hero .typing-line {
     display: grid; font-size: inherit; line-height: inherit; margin-top: 4px;
@@ -2773,7 +2813,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-hero-lead { font-size: 14px; line-height: 1.55; margin-top: 18px; max-width: 390px; padding-inline: 8px; }
   .landing-hero .home-hero-actions { gap: 10px; margin-top: 22px; width: min(100%, 300px); }
   .landing-hero .home-hero-actions a { border-radius: 13px; font-size: 14px; min-height: 54px; padding: 14px 20px; }
-  .landing-counts { flex-wrap: wrap; justify-content: center; margin-top: 24px; padding-top: 15px; }
+  .landing-counts { margin-top: 24px; padding: 14px 0; width: min(100%, 340px); }
+  .landing-count { gap: 5px; }
+  .landing-count strong { font-size: 17px; }
+  .landing-count > span { font-size: 10px; }
   .landing-use-cases { padding: 76px 20px 82px; }
   .use-case-list { grid-template-columns: 1fr; }
   .use-case-list li { font-size: 13px; min-height: 56px; }
