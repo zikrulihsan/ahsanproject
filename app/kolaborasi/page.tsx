@@ -24,7 +24,7 @@ import {
 import { readPublicly } from "../lib/public-read";
 import { normaliseRole, roleLabel, type Role } from "../lib/roles";
 import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
-import { currentViewer } from "../lib/session";
+import { viewerId } from "../lib/session";
 
 const title = "Explore — Ahsan Project";
 const description = "Explore project berdasarkan kategori, level, dan role, lalu temukan tempat terbaik untuk ikut berkontribusi.";
@@ -188,8 +188,8 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     ? readPublicly<string[]>(
         "role familiar untuk rekomendasi",
         async () => {
-          const viewer = await currentViewer();
-          return viewer ? familiarRoles(viewer.id) : [];
+          const id = await viewerId();
+          return id ? familiarRoles(id) : [];
         },
         [],
       )

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { SignInForm } from "../components/auth-forms";
-import { currentViewer } from "../lib/session";
+import { viewerId } from "../lib/session";
 import { safeNextPath } from "../lib/urls";
 import { supabaseConfigured } from "../lib/supabase";
 
@@ -37,8 +37,9 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
   const params = (await searchParams) ?? {};
   const next = safeNextPath(typeof params.next === "string" ? params.next : "/");
 
-  const viewer = await currentViewer();
-  if (viewer) redirect(next);
+  // Only whether there is a session, not who it belongs to: this page either
+  // bounces them or shows the form, and neither needs a profile.
+  if (await viewerId()) redirect(next);
 
   const linkProblem = typeof params.error === "string" ? LINK_PROBLEMS[params.error] : undefined;
 

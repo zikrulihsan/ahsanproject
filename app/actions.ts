@@ -9,7 +9,7 @@ import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
-import { currentViewer } from "./lib/session";
+import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import { tags } from "./lib/cache-tags";
 
@@ -72,7 +72,7 @@ function seatsChanged(slug: string): void {
  * under the people in them, the projects they already appear on. The project's
  * own tag covers the case this does not: the first time they appear there.
  */
-function trailChanged(personId: string | undefined, slug?: string): void {
+function trailChanged(personId: string | null | undefined, slug?: string): void {
   if (personId) updateTag(tags.trail(personId));
   if (slug) updateTag(tags.projectTrail(slug));
 }
@@ -337,7 +337,7 @@ export async function setStage(formData: FormData): Promise<void> {
   if (updateError) throw new Error(updateError.message);
 
   projectChanged(slug);
-  trailChanged((await currentViewer())?.id, slug);
+  trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -388,7 +388,7 @@ export async function applyForSeat(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   seatsChanged(slug);
-  trailChanged((await currentViewer())?.id, slug);
+  trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
@@ -447,7 +447,7 @@ export async function setNow(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   projectChanged(slug);
-  trailChanged((await currentViewer())?.id, slug);
+  trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
 }
