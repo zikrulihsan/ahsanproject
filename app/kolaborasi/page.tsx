@@ -13,10 +13,12 @@ import {
   listOpenRoleSuggestions,
   listProjects,
   openSeatsByRole,
-  tagCounts,
+  tagCountsFromProjects,
+  type FeedQuery,
   type Lane,
   type ProjectSummary,
 } from "../lib/data";
+import { readPublicly } from "../lib/public-read";
 import { normaliseRole, roleLabel, type Role } from "../lib/roles";
 import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
 import { currentViewer } from "../lib/session";
@@ -61,8 +63,15 @@ export default async function CollaborationPage({ searchParams }: { searchParams
   const needs = one(params.needs) === "open" || askedLane === "butuh-bantuan" ? "open" : "";
 
   const viewer = await currentViewer();
-  const familiar = viewer && sort === "untukmu" ? await familiarRoles(viewer.id) : [];
-  const query = {
+  const familiarResult = viewer && sort === "untukmu"
+    ? await readPublicly<string[]>(
+        "role familiar untuk rekomendasi",
+        () => familiarRoles(viewer.id),
+        [],
+      )
+    : { value: [] as string[], unavailable: false };
+  const familiar = familiarResult.value;
+  const query: FeedQuery = {
     lane: sort,
     stage,
     tag,
@@ -73,22 +82,50 @@ export default async function CollaborationPage({ searchParams }: { searchParams
     familiarRoles: familiar,
   };
 
-  const [projects, topics, helpBoard, people, roleSuggestions] = await Promise.all([
-    listProjects(query),
-    tagCounts({
-      lane: sort,
-      stage,
-      role,
-      q: searchBy === "project" ? q : "",
-      roleQuery: searchBy === "role" ? q : "",
-      needsHelp: needs === "open",
-      familiarRoles: familiar,
-    }),
-    listProjects({ lane: "butuh-bantuan" }),
-    listPeople(400),
-    listOpenRoleSuggestions(),
-  ]);
-  const seatsByRole = await openSeatsByRole(projects.map((project) => project.id));
+  const projectsPromise = readPublicly<ProjectSummary[]>(
+    "project Explore",
+    () => listProjects(query),
+    [],
+  );
+  const topicProjectsPromise = tag
+    ? readPublicly<ProjectSummary[]>(
+        "kategori Explore",
+        () => listProjects({ ...query, tag: "" }),
+        [],
+      )
+    : projectsPromise;
+  const [projectsResult, topicProjectsResult, helpBoardResult, peopleResult, roleSuggestionsResult] =
+    await Promise.all([
+      projectsPromise,
+      topicProjectsPromise,
+      readPublicly<ProjectSummary[]>(
+        "project yang membutuhkan bantuan",
+        () => listProjects({ lane: "butuh-bantuan" }),
+        [],
+      ),
+      readPublicly("orang di Explore", () => listPeople(400), []),
+      readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
+    ]);
+  const projects = projectsResult.value;
+  const topics = tagCountsFromProjects(topicProjectsResult.value);
+  const helpBoard = helpBoardResult.value;
+  const people = peopleResult.value;
+  const roleSuggestions = roleSuggestionsResult.value;
+  const seatsResult = await readPublicly<Map<number, Record<string, number>>>(
+    "jumlah role terbuka",
+    () => openSeatsByRole(projects.map((project) => project.id)),
+    new Map(),
+  );
+  const seatsByRole = seatsResult.value;
+  const dataUnavailable = [
+    familiarResult,
+    projectsResult,
+    topicProjectsResult,
+    helpBoardResult,
+    peopleResult,
+    roleSuggestionsResult,
+    seatsResult,
+  ].some((result) => result.unavailable);
   const rankedRoles = rankRoles(helpBoard).slice(0, 5);
   const filtered = Boolean(stage || tag || role || q || needs);
   const activeControlCount = [stage, tag, role, needs, sort === "untukmu" ? "" : sort].filter(Boolean).length;
@@ -118,6 +155,12 @@ export default async function CollaborationPage({ searchParams }: { searchParams
             </p>
           </div>
         </section>
+
+        {dataUnavailable ? (
+          <p className="public-data-notice" role="status">
+            Sebagian data belum berhasil dimuat. <Link href={currentPath}>Coba lagi</Link>.
+          </p>
+        ) : null}
 
         <section className="collaboration-panel" aria-label="Cari project atau role, lalu filter dan urutkan hasil">
           <ExploreSearchForm

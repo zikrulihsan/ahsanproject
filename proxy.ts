@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { resilientSupabaseFetch } from "./app/lib/resilient-fetch";
 
 /**
  * Keeps the Supabase session cookie fresh.
@@ -36,6 +37,7 @@ export async function proxy(request: NextRequest) {
   if (!hasAuthCookie) return response;
 
   const supabase = createServerClient(url, anonKey, {
+    global: { fetch: resilientSupabaseFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -50,7 +52,14 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    // A stale session must not make every public route unreachable when the
+    // auth service is briefly unavailable. The page can continue as a guest;
+    // writes still perform their own authenticated checks.
+    console.error("[ahsan] Refresh sesi dilewati karena Supabase Auth tidak merespons.", error);
+  }
 
   return response;
 }

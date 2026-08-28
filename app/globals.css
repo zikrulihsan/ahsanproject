@@ -81,6 +81,14 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
 .muted { color: var(--muted); font-size: 15px; line-height: 1.7; }
 .muted a { border-bottom: 1px solid var(--line-2); }
 
+.public-data-notice {
+  background: #fff3ed; border: 1px solid #f2c3b2; border-radius: 11px; color: #6b4639;
+  font-size: 13px; line-height: 1.55; margin: 18px auto 22px; max-width: 1180px; padding: 11px 14px;
+  width: calc(100% - 40px);
+}
+.public-data-notice a { border-bottom: 1px solid currentColor; font-weight: 720; }
+.discovery-page > .public-data-notice, .people-page > .public-data-notice { width: 100%; }
+
 /* Labels that only a screen reader needs. */
 .sr-only {
   border: 0; clip-path: inset(50%); height: 1px; margin: -1px; overflow: hidden;
@@ -2760,9 +2768,12 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-hero { padding: 64px 14px 64px; }
   .landing-hero::before { display: none; }
   .landing-hero h1 { font-size: clamp(34px, 10vw, 42px); letter-spacing: -.055em; line-height: 1.06; }
-  .landing-hero .rotating-lines { display: block; font-size: clamp(34px, 10vw, 42px); min-height: 1.15em; }
+  .landing-hero .rotating-lines {
+    display: block; font-size: clamp(42px, 12vw, 50px); line-height: 1.05; margin-top: 7px;
+    min-height: 1.15em;
+  }
   .rotating-lines > span { display: block; inset: 0; position: absolute; white-space: nowrap; }
-  .landing-hero-lead { font-size: 15px; line-height: 1.6; margin-top: 14px; padding-inline: 12px; }
+  .landing-hero-lead { font-size: 15px; line-height: 1.6; margin-top: 24px; padding-inline: 12px; }
   .landing-hero .home-hero-actions { gap: 12px; margin-top: 28px; width: min(100%, 310px); }
   .landing-hero .home-hero-actions a { border-radius: 13px; font-size: 15px; min-height: 60px; padding: 17px 22px; }
   .landing-counts { flex-wrap: wrap; justify-content: center; }

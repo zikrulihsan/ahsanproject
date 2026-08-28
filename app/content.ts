@@ -1,7 +1,7 @@
 export type Lang = "id" | "en";
 
-/** Canonical origin. Update this when the site moves to its own domain. */
-export const siteUrl = "https://ahsanproject-id.netlify.app";
+/** Canonical origin for metadata, share cards, and the sitemap. */
+export const siteUrl = "https://ahsanproject.id";
 
 /** Where the story page lives in each language. */
 export const aboutPaths: Record<Lang, string> = { id: "/about", en: "/en/about" };

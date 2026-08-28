@@ -6,6 +6,7 @@ import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { ProjectLogo } from "../components/project-logo";
 import { RotatingHeadline } from "../components/rotating-headline";
 import { listPeople, listProjects, type Person, type ProjectSummary } from "../lib/data";
+import { readPublicly } from "../lib/public-read";
 import { roleLabel } from "../lib/roles";
 import { stageMeta } from "../lib/stages";
 
@@ -36,10 +37,13 @@ const WORKFLOW = [
 ] as const;
 
 export default async function Home() {
-  const [projects, people] = await Promise.all([
-    listProjects({ lane: "terbaru" }),
-    listPeople(400),
+  const [projectsResult, peopleResult] = await Promise.all([
+    readPublicly("project beranda", () => listProjects({ lane: "terbaru" }), []),
+    readPublicly("orang di beranda", () => listPeople(400), []),
   ]);
+  const projects = projectsResult.value;
+  const people = peopleResult.value;
+  const dataUnavailable = projectsResult.unavailable || peopleResult.unavailable;
   const openRoles = projects.reduce((total, project) => total + project.openSeatCount, 0);
 
   return (
@@ -71,6 +75,12 @@ export default async function Home() {
             </p>
           </div>
         </section>
+
+        {dataUnavailable ? (
+          <p className="public-data-notice" role="status">
+            Some live data could not be loaded. <Link href="/">Refresh this page</Link>.
+          </p>
+        ) : null}
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">

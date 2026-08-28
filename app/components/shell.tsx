@@ -4,6 +4,7 @@ import { signOut } from "../auth-actions";
 import { signInPath } from "../lib/urls";
 import { currentViewer, type Viewer } from "../lib/session";
 import { countIncomingApplications, countUnseenNotices } from "../lib/data";
+import { readPublicly } from "../lib/public-read";
 import { HeaderMenu } from "./header-menu";
 
 /** Which top-level section the current page belongs to. */
@@ -100,9 +101,17 @@ export async function SiteHeader({
   // An application nobody sees is an application nobody answers, and a
   // decision nobody sees is the same — so both counts ride along in the header
   // rather than waiting to be found.
-  const [incoming, unseen] = viewer
-    ? await Promise.all([countIncomingApplications(viewer.id), countUnseenNotices(viewer.id)])
-    : [0, 0];
+  const [incomingResult, unseenResult] = viewer
+    ? await Promise.all([
+        readPublicly("lamaran masuk di header", () => countIncomingApplications(viewer.id), 0),
+        readPublicly("notifikasi di header", () => countUnseenNotices(viewer.id), 0),
+      ])
+    : [
+        { value: 0, unavailable: false },
+        { value: 0, unavailable: false },
+      ];
+  const incoming = incomingResult.value;
+  const unseen = unseenResult.value;
   const waiting = incoming + unseen;
 
   return (

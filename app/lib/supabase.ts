@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
+import { resilientSupabaseFetch } from "./resilient-fetch";
 
 export type Supabase = SupabaseClient<Database>;
 
@@ -27,12 +29,13 @@ export function supabaseConfigured(): boolean {
  * read and write. The checks in the server actions only exist to turn a refusal
  * into a sentence somebody can read.
  */
-export async function getSupabase(): Promise<Supabase | null> {
+export const getSupabase = cache(async (): Promise<Supabase | null> => {
   if (!supabaseConfigured()) return null;
 
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, anonKey, {
+    global: { fetch: resilientSupabaseFetch },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -49,7 +52,7 @@ export async function getSupabase(): Promise<Supabase | null> {
       },
     },
   });
-}
+});
 
 export class SupabaseUnavailableError extends Error {
   constructor() {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { initials } from "../components/pieces";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
+import { readPublicly } from "../lib/public-read";
 import {
   EXPERIENCE_BANDS,
   experienceBandLabel,
@@ -47,7 +48,12 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
 
   const rawPage = Number(one(query.halaman));
   const requestedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
-  const allPeople = await listPeopleAtWork(1000);
+  const peopleResult = await readPublicly<PersonAtWork[]>(
+    "direktori orang",
+    () => listPeopleAtWork(1000),
+    [],
+  );
+  const allPeople = peopleResult.value;
   const facets = peopleFacets(allPeople);
   const matched = filterAndRankPeople(allPeople, filters);
   const pagination = peoplePage(matched, requestedPage);
@@ -103,6 +109,12 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
           <h1>Cari orang</h1>
           <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
         </header>
+
+        {peopleResult.unavailable ? (
+          <p className="public-data-notice" role="status">
+            Data orang belum berhasil dimuat. <Link href={returnTo}>Coba lagi</Link>.
+          </p>
+        ) : null}
 
         <section className="people-search-panel" aria-label="Cari dan filter orang">
           <form action="/orang" method="get">

@@ -213,7 +213,29 @@ const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: st
   berjalan: { stage: "live", column: "last_activity_at" },
 };
 
-export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
+function projectQueryKey(query: FeedQuery): string {
+  return JSON.stringify({
+    lane: query.lane ?? "untukmu",
+    stage: query.stage ?? "",
+    tag: query.tag ?? "",
+    needsHelp: Boolean(query.needsHelp),
+    role: query.role ?? "",
+    roleQuery: query.roleQuery ?? "",
+    q: query.q ?? "",
+    familiarRoles: [...new Set(query.familiarRoles ?? [])].sort(),
+  } satisfies FeedQuery);
+}
+
+const listProjectsCached = cache(async (key: string): Promise<ProjectSummary[]> => {
+  return listProjectsUncached(JSON.parse(key) as FeedQuery);
+});
+
+/** One database read for each distinct filter set within a server render. */
+export function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
+  return listProjectsCached(projectQueryKey(query));
+}
+
+async function listProjectsUncached(query: FeedQuery): Promise<ProjectSummary[]> {
   const lane = query.lane ?? "untukmu";
   const shape = LANE_QUERY[lane];
 
@@ -293,7 +315,12 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
 export async function tagCounts(
   query: FeedQuery = {},
 ): Promise<{ tag: string; count: number }[]> {
-  const projects = await listProjects(query);
+  return tagCountsFromProjects(await listProjects(query));
+}
+
+export function tagCountsFromProjects(
+  projects: readonly ProjectSummary[],
+): { tag: string; count: number }[] {
   const counts = new Map<string, number>();
 
   for (const project of projects) {
@@ -576,7 +603,7 @@ export async function getPortfolio(person: Person) {
  * be reached by clicking through from a card or a comment, which is no way to
  * be found.
  */
-export async function listPeople(limit = 200): Promise<Person[]> {
+const listPeopleCached = cache(async (limit: number): Promise<Person[]> => {
   const supabase = await getSupabase();
   if (!supabase) return seedUsers.map((user) => ({ ...user }));
 
@@ -588,6 +615,11 @@ export async function listPeople(limit = 200): Promise<Person[]> {
   if (error) throw new Error(error.message);
 
   return (data ?? []).map(toPerson);
+});
+
+/** One profile-directory read for each distinct limit within a server render. */
+export function listPeople(limit = 200): Promise<Person[]> {
+  return listPeopleCached(limit);
 }
 
 /**
