@@ -75,7 +75,7 @@ export default async function Home() {
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
             <p className="home-eyebrow">The reason why</p>
-            <h2 id="use-cases-title">Why show your project here?</h2>
+            <h2 id="use-cases-title">Once you show your project:</h2>
             <p>Once you show your project, you will get all of these benefit:</p>
           </div>
 
