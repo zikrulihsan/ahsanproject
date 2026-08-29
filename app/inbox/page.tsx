@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { decideSeat, markNoticesSeen } from "../actions";
+import { decideProposal, markNoticesSeen } from "../actions";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { initials, timeAgo } from "../components/pieces";
 import {
@@ -35,14 +35,13 @@ export const metadata: Metadata = {
 };
 
 /*
- * Only two answers can reach this list. A declined application clears the seat
- * back to 'open' and drops its holder, so it stops being one of *your*
- * applications at that moment — the notice above is what carries that news
- * now, and it outlives the seat because it belongs to the person, not the row.
+ * Proposals remain as a small history instead of taking over the task or role
+ * row, so one target can collect several people's offers at once.
  */
 const STATUS_LABEL: Record<string, string> = {
   pending: "Menunggu jawaban",
-  filled: "Diterima",
+  accepted: "Diterima",
+  declined: "Tidak dilanjutkan",
 };
 
 export default async function InboxPage() {
@@ -133,18 +132,16 @@ export default async function InboxPage() {
           ) : (
             <ul className="application-list">
               {incoming.map((application) => (
-                <li key={application.seatId}>
+                <li key={application.proposalId}>
                   <ApplicationHead application={application} showApplicant />
                   {application.pitch ? <blockquote>{application.pitch}</blockquote> : null}
-                  <form action={decideSeat}>
+                  <form action={decideProposal}>
                     <input type="hidden" name="slug" value={application.project.slug} />
-                    <input type="hidden" name="seatId" value={application.seatId} />
+                    <input type="hidden" name="proposalId" value={application.proposalId} />
                     <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
                       Terima
                     </SubmitButton>
-                    <SubmitButton className="quiet" name="decision" value="tolak">
-                      Buka lagi
-                    </SubmitButton>
+                    <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
                   </form>
                 </li>
               ))}
@@ -165,7 +162,7 @@ export default async function InboxPage() {
           ) : (
             <ul className="application-list">
               {mine.map((application) => (
-                <li key={application.seatId}>
+                <li key={application.proposalId}>
                   <ApplicationHead application={application} />
                   {application.pitch ? <blockquote>{application.pitch}</blockquote> : null}
                   <p className={`application-status status-${application.status}`}>
@@ -190,7 +187,7 @@ export default async function InboxPage() {
  * sentence still reads, it just stops being a link.
  */
 function NoticeLine({ notice }: { notice: NoticeView }) {
-  const role = notice.payload.role ? roleLabel(notice.payload.role) : "";
+  const target = notice.payload.target || (notice.payload.role ? roleLabel(notice.payload.role) : "");
   const title = notice.payload.title || "project yang sudah dihapus";
   const slug = notice.payload.slug;
   const project = slug ? (
@@ -202,19 +199,27 @@ function NoticeLine({ notice }: { notice: NoticeView }) {
   if (notice.kind === "application_accepted") {
     return (
       <p>
-        Lamaranmu diterima — kamu sekarang {role ? <strong>{role}</strong> : "anggota"} di{" "}
+        Lamaranmu diterima — kamu sekarang {target ? <strong>{target}</strong> : "anggota"} di{" "}
         {project}.
       </p>
     );
   }
 
+  if (notice.kind === "proposal_accepted") {
+    return <p>Proposalmu untuk <strong>{target || "kontribusi"}</strong> diterima di {project}.</p>;
+  }
+
   if (notice.kind === "application_declined") {
     return (
       <p>
-        Peran {role ? <strong>{role}</strong> : ""} di {project} dibuka lagi, jadi lamaranmu tidak
+        Peran {target ? <strong>{target}</strong> : ""} di {project} dibuka lagi, jadi lamaranmu tidak
         dilanjutkan. Masih banyak yang butuh orang.
       </p>
     );
+  }
+
+  if (notice.kind === "proposal_declined") {
+    return <p>Proposalmu untuk <strong>{target || "kontribusi"}</strong> di {project} belum dilanjutkan.</p>;
   }
 
   return <p>Ada kabar dari {project}.</p>;
@@ -239,11 +244,11 @@ function ApplicationHead({
           {showApplicant && application.person ? (
             <>
               <Link href={`/u/${application.person.username}`}>{application.person.name}</Link>{" "}
-              mau bantu sebagai <strong>{roleLabel(application.role, application.roleTitle)}</strong>
+              mau bantu mengerjakan <strong>{application.targetLabel}</strong>
             </>
           ) : (
             <>
-              <strong>{roleLabel(application.role, application.roleTitle)}</strong> di{" "}
+              <strong>{application.targetLabel}</strong> di{" "}
               <Link href={`/projects/${application.project.slug}`}>
                 {application.project.title}
               </Link>

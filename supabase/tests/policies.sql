@@ -87,6 +87,16 @@ select checks.equal(
   (select username from public.profiles where id = '33333333-3333-4333-8333-333333333333'),
   'dina-pratiwi-2', 'username kembar dapat akhiran');
 
+-- A proposal is reserved for people already ready to appear in the talent
+-- pool: profession, a skill, and a short introduction.
+update public.profiles
+set profession = 'Product Designer', skills = array['Figma'], headline = 'Membuat produk yang mudah dipakai.'
+where id in (
+  '22222222-2222-4222-8222-222222222222',
+  '33333333-3333-4333-8333-333333333333',
+  '44444444-4444-4444-8444-444444444444'
+);
+
 -- ---------------------------------------------------------------- projects --
 
 select checks.act_as('11111111-1111-4111-8111-111111111111');
@@ -144,29 +154,32 @@ select checks.allowed($$
   from public.projects where slug = 'kelas-sore'
 $$, 'pemilik membuka peran');
 
-select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Saya sendiri.')$$,
+select checks.denied($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Saya sendiri.')$$,
                      'pemilik melamar ke proyeknya sendiri');
 
--- Dina applies, properly.
+-- Two people may propose for the same role; the role itself stays open until
+-- a manager chooses one of them.
 select checks.act_as('22222222-2222-4222-8222-222222222222');
-select checks.allowed($$select public.apply_for_seat((select id from public.seats limit 1), 'Bisa 4 jam per minggu.')$$,
-                      'melamar peran yang terbuka');
-select checks.equal((select status from public.seats limit 1), 'pending', 'peran jadi menunggu');
+select checks.allowed($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Bisa 4 jam per minggu.')$$,
+                      'mengajukan role yang terbuka');
+select checks.equal((select status from public.seats limit 1), 'open', 'role tetap terbuka untuk proposal lain');
 
-select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Sekali lagi.')$$,
-                     'melamar dua kali');
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.allowed($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Saya juga bisa bantu.')$$,
+                      'orang kedua dapat mengajukan role yang sama');
+select checks.equal((select count(*)::int from public.proposals), 2, 'dua proposal tersimpan di satu role');
 
 -- The applicant must not be able to hand themselves the seat.
-update public.seats set status = 'filled' where status = 'pending';
-select checks.equal((select status from public.seats limit 1), 'pending', 'pelamar tidak bisa meloloskan diri sendiri');
+update public.seats set status = 'filled' where status = 'open';
+select checks.equal((select status from public.seats limit 1), 'open', 'pelamar tidak bisa meloloskan diri sendiri');
 
-select checks.denied($$select public.decide_seat((select id from public.seats limit 1), true)$$,
-                     'pelamar menyetujui lamarannya sendiri');
+select checks.denied($$select public.decide_proposal((select id from public.proposals where person_id = '33333333-3333-4333-8333-333333333333'), true)$$,
+                     'pelamar menyetujui proposal sendiri');
 
 -- The owner decides.
 select checks.act_as('11111111-1111-4111-8111-111111111111');
-select checks.allowed($$select public.decide_seat((select id from public.seats limit 1), true)$$,
-                      'pemilik menerima lamaran');
+select checks.allowed($$select public.decide_proposal((select id from public.proposals where person_id = '22222222-2222-4222-8222-222222222222'), true)$$,
+                      'pemilik menerima proposal');
 select checks.equal((select status from public.seats limit 1), 'filled', 'peran terisi');
 
 -- ---------------------------------------------------------------- comments --
@@ -404,8 +417,8 @@ $$, 'pemilik membuka peran penulis');
 
 select checks.act_as('44444444-4444-4444-8444-444444444444');
 select checks.allowed($$
-  select public.apply_for_seat((select id from public.seats where role = 'content'), 'Bisa nulis tiap Jumat.')
-$$, 'orang luar melamar peran penulis');
+  select public.submit_proposal(null, (select id from public.seats where role = 'content'), 'Bisa nulis tiap Jumat.')
+$$, 'orang luar mengajukan role penulis');
 
 -- An admin flag on a seat nobody holds would hand over the keys the moment an
 -- application is accepted. Two things stop it, and this checks both: the
@@ -415,9 +428,9 @@ select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.denied($$update public.seats set access = 'admin' where role = 'content'$$,
                      'menandai admin di peran yang belum terisi');
 
-select checks.allowed($$select public.decide_seat((select id from public.seats where role = 'content'), false)$$,
-                      'pemilik menolak lamaran');
-select checks.equal((select status from public.seats where role = 'content'), 'open', 'peran terbuka lagi');
+select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content') and status = 'pending'), false)$$,
+                      'pemilik menolak proposal');
+select checks.equal((select status from public.seats where role = 'content'), 'open', 'peran tetap terbuka');
 select checks.equal((select access from public.seats where role = 'content'), 'member',
                     'peran yang dibuka lagi tetap anggota');
 select checks.equal((select user_id from public.seats where role = 'content'), null::uuid,
@@ -427,12 +440,12 @@ select checks.equal((select user_id from public.seats where role = 'content'), n
 -- buttons. The database has to agree.
 select checks.act_as('44444444-4444-4444-8444-444444444444');
 select checks.allowed($$
-  select public.apply_for_seat((select id from public.seats where role = 'content'), 'Sekali lagi, masih bisa.')
-$$, 'melamar lagi setelah perannya dibuka');
+  select public.submit_proposal(null, (select id from public.seats where role = 'content'), 'Sekali lagi, masih bisa.')
+$$, 'mengajukan lagi setelah ditolak');
 
 select checks.act_as('22222222-2222-4222-8222-222222222222');
-select checks.allowed($$select public.decide_seat((select id from public.seats where role = 'content'), true)$$,
-                      'admin menjawab lamaran');
+select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content') and status = 'pending'), true)$$,
+                      'admin menjawab proposal');
 select checks.equal((select status from public.seats where role = 'content'), 'filled',
                     'peran terisi lewat keputusan admin');
 
@@ -597,8 +610,8 @@ select checks.denied($$
           repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji'])
 $$, 'tamu menaruh ide');
 
-select checks.denied($$select public.apply_for_seat((select id from public.seats limit 1), 'Tamu melamar.')$$,
-                     'tamu melamar peran');
+select checks.denied($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Tamu mengajukan bantuan.')$$,
+                     'tamu mengajukan role');
 
 -- The overview must agree with the rows it counts.
 -- The project was just re-created, so every count starts from nothing again.

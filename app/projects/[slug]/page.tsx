@@ -3,18 +3,19 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   addComment,
-  applyForSeat,
   assignTask,
   createTask,
-  decideSeat,
+  decideProposal,
   deleteTask,
   deleteUpdate,
   moveTask,
   openSeat,
   postUpdate,
+  submitProposal,
   setNow,
   setSeatAccess,
   setStage,
+  setTaskRole,
   toggleBoost,
   toggleFollow,
 } from "../../actions";
@@ -36,9 +37,11 @@ import {
   getProject,
   hasBoosted,
   isFollowing,
+  listProjectProposals,
   listProjectActivity,
   type ProjectDetail,
 } from "../../lib/data";
+import { profileReady } from "../../lib/next-steps";
 import { roleLabel } from "../../lib/roles";
 import { CommitmentField } from "../../components/commitment-field";
 import { RoleFields } from "../../components/role-fields";
@@ -101,10 +104,16 @@ export default async function ProjectPage({
   const access = accessOf(viewer?.id, project.owner.id, project.seats);
   const isOwner = access === "owner";
   const isManager = canManage(access);
-  const [boosted, following, history] = await Promise.all([
+  const [boosted, following, history, proposals] = await Promise.all([
     viewer ? hasBoosted(project.id, viewer.id) : Promise.resolve(false),
     viewer ? isFollowing(project.id, viewer.id) : Promise.resolve(false),
     listProjectActivity(project.id, { slug: project.slug, viewer }),
+    viewer
+      ? listProjectProposals(
+          project.tasks.map((task) => task.id),
+          project.seats.map((seat) => seat.id),
+        )
+      : Promise.resolve([]),
   ]);
   const returnTo =
     activeTab === "tentang"
@@ -114,9 +123,12 @@ export default async function ProjectPage({
   const stageInput = toStageInput(project);
 
   const team = project.seats.filter((seat) => seat.status === "filled");
-  const pending = project.seats.filter((seat) => seat.status === "pending");
   const open = project.seats.filter((seat) => seat.status === "open");
   const viewerSeat = viewer ? project.seats.find((seat) => seat.person?.id === viewer.id) : undefined;
+  const canPropose = Boolean(viewer && profileReady(viewer));
+  const profileReturnTo = `/akun/profil?returnTo=${encodeURIComponent(returnTo)}`;
+  const proposalsForSeat = (seatId: number) => proposals.filter((proposal) => proposal.seatId === seatId);
+  const proposalsForTask = (taskId: number) => proposals.filter((proposal) => proposal.taskId === taskId);
 
   const doneTasks = project.tasks.filter((task) => task.status === "done").length;
   // Who a task may be handed to: the owner, plus everybody holding a seat.
@@ -330,21 +342,26 @@ export default async function ProjectPage({
                           ) : null}
                         </div>
                         {isOwner ? (
-                          // apply_for_seat refuses the owner outright, so
-                          // offering them the form was a button that could
-                          // only ever fail.
                           <p className="muted">Menunggu orang lain.</p>
                         ) : viewer ? (
                           viewerSeat ? (
                             <p className="muted">
                               {viewerSeat.status === "filled"
                                 ? `Kamu sudah di tim ini sebagai ${roleLabel(viewerSeat.role, viewerSeat.roleTitle)}.`
-                                : "Lamaranmu masih menunggu jawaban."}
+                                : "Kamu sudah mengajukan diri di project ini."}
+                            </p>
+                          ) : !canPropose ? (
+                            <p className="muted">
+                              Lengkapi profil talent pool untuk mengajukan role ini. {" "}
+                              <Link href={profileReturnTo}>Lengkapi profil</Link>
                             </p>
                           ) : (
-                            <details>
-                              <summary>Saya tertarik</summary>
-                              <form action={applyForSeat}>
+                            proposalsForSeat(seat.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
+                              <p className="muted">Proposalmu sedang menunggu jawaban.</p>
+                            ) : (
+                              <details>
+                                <summary>Ajukan diri untuk role ini</summary>
+                                <form action={submitProposal}>
                                 <input type="hidden" name="slug" value={project.slug} />
                                 <input type="hidden" name="seatId" value={seat.id} />
                                 <label htmlFor={`pitch-${seat.id}`}>
@@ -358,9 +375,10 @@ export default async function ProjectPage({
                                   required
                                   placeholder="Contoh: saya pernah bantu riset serupa, bisa luangkan 3 jam per minggu."
                                 />
-                                <SubmitButton pendingLabel="Mengirim…">Kirim</SubmitButton>
-                              </form>
-                            </details>
+                                  <SubmitButton pendingLabel="Mengirim…">Kirim proposal</SubmitButton>
+                                </form>
+                              </details>
+                            )
                           )
                         ) : (
                           <Link className="ghost-button" href={signInPath(returnTo)}>
@@ -377,46 +395,23 @@ export default async function ProjectPage({
                   </p>
                 )}
 
-                {!isManager && pending.length > 0 ? (
-                  <ul className="seat-list waiting-list">
-                    {pending.map((seat) => (
-                      <li key={seat.id}>
-                        <div>
-                          <h3>{roleLabel(seat.role, seat.roleTitle)}</h3>
-                          <p>
-                            {seat.person?.id === viewer?.id
-                              ? "Lamaranmu sudah masuk, tinggal menunggu jawaban."
-                              : `${seat.person?.name ?? "Seseorang"} sedang menunggu jawaban.`}
-                          </p>
-                        </div>
-                        <span className="waiting-flag">Menunggu konfirmasi</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                {isManager && pending.length > 0 ? (
+                {isManager && proposals.filter((proposal) => proposal.seatId && proposal.status === "pending").length > 0 ? (
                   <div className="pending-list">
-                    <h3>Menunggu keputusanmu</h3>
-                    {pending.map((seat) => (
-                      <article key={seat.id} className="pending-card">
-                        <p>
-                          <strong>{seat.person?.name ?? "Seseorang"}</strong> mau bantu sebagai{" "}
-                          {roleLabel(seat.role, seat.roleTitle)}
-                        </p>
-                        <blockquote>{seat.pitch}</blockquote>
-                        <form action={decideSeat}>
-                          <input type="hidden" name="slug" value={project.slug} />
-                          <input type="hidden" name="seatId" value={seat.id} />
-                          <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
-                            Terima
-                          </SubmitButton>
-                          <SubmitButton className="quiet" name="decision" value="tolak">
-                            Buka lagi
-                          </SubmitButton>
-                        </form>
-                      </article>
-                    ))}
+                    <h3>Proposal role yang menunggu</h3>
+                    {open.flatMap((seat) => proposalsForSeat(seat.id)
+                      .filter((proposal) => proposal.status === "pending")
+                      .map((proposal) => (
+                        <article key={proposal.id} className="pending-card">
+                          <p><strong>{proposal.person.name}</strong> mau bantu sebagai {roleLabel(seat.role, seat.roleTitle)}</p>
+                          <blockquote>{proposal.pitch}</blockquote>
+                          <form action={decideProposal}>
+                            <input type="hidden" name="slug" value={project.slug} />
+                            <input type="hidden" name="proposalId" value={proposal.id} />
+                            <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">Terima</SubmitButton>
+                            <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
+                          </form>
+                        </article>
+                      )))}
                   </div>
                 ) : null}
 
@@ -586,6 +581,9 @@ export default async function ProjectPage({
                                 <div>
                                   <h4>{task.title}</h4>
                                   {task.detail ? <p className="muted">{task.detail}</p> : null}
+                                  {task.role ? (
+                                    <p className="task-role">Terkait role: {roleLabel(task.role.role, task.role.roleTitle)}</p>
+                                  ) : null}
                                   <p className="task-holder">
                                     {task.assignee ? (
                                       <>
@@ -621,10 +619,64 @@ export default async function ProjectPage({
                                         ))}
                                       </select>
                                       <SubmitButton pendingLabel="Sebentar…">Simpan</SubmitButton>
+                                      <label className="sr-only" htmlFor={`task-role-${task.id}`}>
+                                        Role terkait {task.title}
+                                      </label>
+                                      <select id={`task-role-${task.id}`} name="seatId" defaultValue={task.role?.id ?? ""}>
+                                        <option value="">Tanpa role terkait</option>
+                                        {project.seats.map((seat) => (
+                                          <option key={seat.id} value={seat.id}>
+                                            {roleLabel(seat.role, seat.roleTitle)}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <SubmitButton className="quiet" formAction={setTaskRole}>Simpan role</SubmitButton>
                                       <SubmitButton className="quiet" formAction={deleteTask}>
                                         Hapus
                                       </SubmitButton>
                                     </form>
+                                  ) : null}
+
+                                  {!isManager && !task.assignee && task.status !== "done" ? (
+                                    !viewer ? (
+                                      <Link className="ghost-button" href={signInPath(returnTo)}>Masuk untuk mengajukan tugas</Link>
+                                    ) : !canPropose ? (
+                                      <p className="muted">
+                                        Lengkapi profil talent pool untuk mengajukan tugas ini. {" "}
+                                        <Link href={profileReturnTo}>Lengkapi profil</Link>
+                                      </p>
+                                    ) : proposalsForTask(task.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
+                                      <p className="muted">Proposalmu sedang menunggu jawaban.</p>
+                                    ) : (
+                                      <details className="task-proposal">
+                                        <summary>Ajukan diri untuk mengerjakan</summary>
+                                        <form action={submitProposal}>
+                                          <input type="hidden" name="slug" value={project.slug} />
+                                          <input type="hidden" name="taskId" value={task.id} />
+                                          <label htmlFor={`task-pitch-${task.id}`}>Kenapa kamu cocok mengerjakan ini?</label>
+                                          <textarea id={`task-pitch-${task.id}`} name="pitch" rows={3} required />
+                                          <SubmitButton pendingLabel="Mengirim…">Kirim proposal</SubmitButton>
+                                        </form>
+                                      </details>
+                                    )
+                                  ) : null}
+
+                                  {isManager && proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").length > 0 ? (
+                                    <div className="pending-list task-proposal-list">
+                                      <h4>Proposal untuk tugas ini</h4>
+                                      {proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").map((proposal) => (
+                                        <article key={proposal.id} className="pending-card">
+                                          <p><strong>{proposal.person.name}</strong> ingin mengerjakan tugas ini.</p>
+                                          <blockquote>{proposal.pitch}</blockquote>
+                                          <form action={decideProposal}>
+                                            <input type="hidden" name="slug" value={project.slug} />
+                                            <input type="hidden" name="proposalId" value={proposal.id} />
+                                            <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">Terima</SubmitButton>
+                                            <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
+                                          </form>
+                                        </article>
+                                      ))}
+                                    </div>
                                   ) : null}
                                 </div>
 
@@ -669,6 +721,15 @@ export default async function ProjectPage({
                       <input id="task-title" name="title" type="text" required maxLength={120} />
                       <label htmlFor="task-detail">Penjelasan singkat</label>
                       <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
+                      <label htmlFor="task-role">Terkait role (opsional)</label>
+                      <select id="task-role" name="seatId" defaultValue="">
+                        <option value="">Tidak terhubung ke role</option>
+                        {project.seats.map((seat) => (
+                          <option key={seat.id} value={seat.id}>
+                            {roleLabel(seat.role, seat.roleTitle)}{seat.status === "open" ? " · terbuka" : ""}
+                          </option>
+                        ))}
+                      </select>
                       <label htmlFor="task-assignee">Siapa yang pegang</label>
                       <select id="task-assignee" name="assigneeId" defaultValue="">
                         <option value="">Belum ada yang ambil</option>

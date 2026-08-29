@@ -1113,6 +1113,11 @@ form button.danger:hover { background: #96320f; }
 .task-list h4 { font-size: 16px; font-weight: 680; letter-spacing: -.01em; margin: 0 0 6px; }
 .task-list li.is-done h4 { opacity: .6; text-decoration: line-through; }
 .task-list p { font-size: 14px; line-height: 1.6; margin: 0 0 8px; }
+.task-role { color: var(--moss); font-size: 12px !important; font-weight: 650; }
+.task-proposal { margin-top: 12px; }
+.task-proposal > summary { color: var(--coral); cursor: pointer; font-size: 13px; font-weight: 650; }
+.task-proposal form { margin-top: 10px; }
+.task-proposal-list { margin-top: 14px; }
 .task-holder { align-items: center; display: flex; font-size: 12px; font-weight: 650; gap: 8px; }
 .task-holder a { border-bottom: 1px solid var(--line-2); }
 .task-holder .avatar { height: 22px; width: 22px; }

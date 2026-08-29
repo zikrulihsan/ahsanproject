@@ -100,11 +100,24 @@ export type TaskRow = {
   project_id: number;
   title: string;
   detail: string;
+  /** Optional role this task belongs to — roles and tasks may also stand alone. */
+  seat_id: number | null;
   assignee_id: string | null;
   created_by: string | null;
   status: string;
   created_at: string;
   updated_at: string;
+};
+
+export type ProposalRow = {
+  id: number;
+  task_id: number | null;
+  seat_id: number | null;
+  person_id: string;
+  pitch: string;
+  status: string;
+  created_at: string;
+  decided_at: string | null;
 };
 
 export type CommentRow = {
@@ -202,18 +215,27 @@ export type Database = {
       };
       tasks: {
         Row: TaskRow;
-        Insert: Omit<TaskRow, "id" | "created_at" | "updated_at" | "status"> &
-          Partial<Pick<TaskRow, "status">>;
+        Insert: Omit<TaskRow, "id" | "created_at" | "updated_at" | "status" | "seat_id"> &
+          Partial<Pick<TaskRow, "status" | "seat_id">>;
         Update: Partial<Pick<TaskRow, "title" | "detail" | "assignee_id" | "status">>;
+      };
+      proposals: {
+        Row: ProposalRow;
+        // Proposal writes go through submit_proposal(), never directly.
+        Insert: never;
+        Update: never;
       };
     };
     Views: {
       project_overview: { Row: ProjectOverviewRow };
     };
     Functions: {
-      apply_for_seat: { Args: { seat_id: number; pitch: string }; Returns: undefined };
       move_task: { Args: { task_id: number; next_status: string }; Returns: undefined };
-      decide_seat: { Args: { seat_id: number; accept: boolean }; Returns: undefined };
+      submit_proposal: {
+        Args: { target_task_id?: number | null; target_seat_id?: number | null; message?: string };
+        Returns: undefined;
+      };
+      decide_proposal: { Args: { proposal_id: number; accept: boolean }; Returns: undefined };
       set_now: { Args: { project: number; line: string }; Returns: undefined };
     };
     Enums: Record<never, never>;

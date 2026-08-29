@@ -412,14 +412,22 @@ export async function openSeat(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
 }
 
-export async function applyForSeat(formData: FormData): Promise<void> {
+/** Submit a proposal for either a role or a concrete unassigned task. */
+export async function submitProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
   const seatId = Number(text(formData, "seatId"));
   const pitch = text(formData, "pitch").slice(0, MAXIMUM.pitch);
-  if (!Number.isInteger(seatId) || !pitch) return;
+  const hasTask = Number.isInteger(taskId);
+  const hasSeat = Number.isInteger(seatId);
+  if (hasTask === hasSeat || !pitch) return;
 
   const supabase = await requireSupabase();
-  const { error } = await supabase.rpc("apply_for_seat", { seat_id: seatId, pitch });
+  const { error } = await supabase.rpc("submit_proposal", {
+    target_task_id: hasTask ? taskId : null,
+    target_seat_id: hasSeat ? seatId : null,
+    message: pitch,
+  });
   if (error) throw new Error(error.message);
 
   seatsChanged(slug);
@@ -428,15 +436,15 @@ export async function applyForSeat(formData: FormData): Promise<void> {
   revalidatePath("/");
 }
 
-export async function decideSeat(formData: FormData): Promise<void> {
+export async function decideProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
-  const seatId = Number(text(formData, "seatId"));
+  const proposalId = Number(text(formData, "proposalId"));
   const decision = text(formData, "decision");
-  if (!Number.isInteger(seatId) || (decision !== "terima" && decision !== "tolak")) return;
+  if (!Number.isInteger(proposalId) || (decision !== "terima" && decision !== "tolak")) return;
 
   const supabase = await requireSupabase();
-  const { error } = await supabase.rpc("decide_seat", {
-    seat_id: seatId,
+  const { error } = await supabase.rpc("decide_proposal", {
+    proposal_id: proposalId,
     accept: decision === "terima",
   });
   if (error) throw new Error(error.message);
@@ -590,6 +598,9 @@ export async function createTask(formData: FormData): Promise<void> {
   const title = text(formData, "title").slice(0, TASK_LIMITS.title.max);
   const detail = text(formData, "detail").slice(0, TASK_LIMITS.detail.max);
   const assigneeId = text(formData, "assigneeId");
+  const rawSeatId = text(formData, "seatId");
+  const seatId = rawSeatId ? Number(rawSeatId) : null;
+  if (rawSeatId && !Number.isInteger(seatId)) return;
   if (Object.keys(validateTask({ title, detail })).length > 0) return;
 
   const viewer = await currentViewer();
@@ -609,6 +620,7 @@ export async function createTask(formData: FormData): Promise<void> {
     project_id: project.id,
     title,
     detail,
+    seat_id: seatId,
     assignee_id: assigneeId || null,
     created_by: viewer.id,
   });
@@ -639,6 +651,23 @@ export async function assignTask(formData: FormData): Promise<void> {
     .from("tasks")
     .update({ assignee_id: assigneeId || null })
     .eq("id", taskId);
+  if (error) throw new Error(error.message);
+
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
+  revalidatePath(`/projects/${slug}`);
+}
+
+/** Connect or disconnect an existing task from a role on the same project. */
+export async function setTaskRole(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
+  const rawSeatId = text(formData, "seatId");
+  const seatId = rawSeatId ? Number(rawSeatId) : null;
+  if (!Number.isInteger(taskId) || (rawSeatId && !Number.isInteger(seatId))) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("tasks").update({ seat_id: seatId }).eq("id", taskId);
   if (error) throw new Error(error.message);
 
   projectChanged(slug);
@@ -831,6 +860,7 @@ export async function updateProfile(
   _state: ProfileState,
   formData: FormData,
 ): Promise<ProfileState> {
+  const returnTo = safeProjectReturnTo(text(formData, "returnTo"));
   const values: ProfileInput = {
     name: text(formData, "name"),
     profession: text(formData, "profession"),
@@ -888,7 +918,7 @@ export async function updateProfile(
   revalidatePath(`/u/${viewer.username}`);
   revalidatePath("/orang");
   revalidatePath("/mulai");
-  redirect(`/u/${viewer.username}?tersimpan=1`);
+  redirect(returnTo ?? `/u/${viewer.username}?tersimpan=1`);
 }
 
 /* ------------------------------------------------------------------ *
@@ -898,6 +928,11 @@ export async function updateProfile(
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+/** Never turn a hidden form value into an open redirect. */
+function safeProjectReturnTo(value: string): string | null {
+  return value.startsWith("/projects/") && !value.startsWith("//") ? value : null;
 }
 
 /** Last gate before a link reaches the row, however the request arrived. */

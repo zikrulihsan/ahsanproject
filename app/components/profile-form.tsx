@@ -19,10 +19,13 @@ export function ProfileForm({
   profile,
   skillSuggestions,
   fieldSuggestions,
+  returnTo,
 }: {
   profile: EditableProfile;
   skillSuggestions: string[];
   fieldSuggestions: string[];
+  /** Project detail to return to after a blocked proposal is made ready. */
+  returnTo?: string;
 }) {
   const [state, formAction, pending] = useActionState(updateProfile, {
     errors: {},
@@ -32,6 +35,7 @@ export function ProfileForm({
 
   return (
     <form className="create-form" action={formAction}>
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {errors.form ? (
         <p className="form-error" role="alert">
           {errors.form}

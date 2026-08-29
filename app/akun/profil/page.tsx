@@ -22,9 +22,18 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default async function EditProfilePage() {
+export default async function EditProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string | string[] }>;
+}) {
   const viewer = await currentViewer();
   if (!viewer) redirect(signInPath("/akun/profil"));
+  const query = await searchParams;
+  const requestedReturnTo = Array.isArray(query.returnTo) ? query.returnTo[0] : query.returnTo;
+  // This is only a convenience after a blocked proposal, never an external
+  // redirect destination supplied by a query string.
+  const returnTo = requestedReturnTo?.startsWith("/projects/") ? requestedReturnTo : undefined;
 
   // Suggestions only. If the directory cannot be read the form still works —
   // it just stops proposing the words other people already use.
@@ -49,6 +58,7 @@ export default async function EditProfilePage() {
           profile={toEditable(viewer)}
           skillSuggestions={termSuggestions(people.value, "skills")}
           fieldSuggestions={termSuggestions(people.value, "fields")}
+          returnTo={returnTo}
         />
 
         <p className="hint">

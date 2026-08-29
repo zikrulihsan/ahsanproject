@@ -7,6 +7,7 @@ import type {
   EventRow,
   ProfileRow,
   ProjectOverviewRow,
+  ProposalRow,
   SeatRow,
   TaskRow,
   UpdateRow,
@@ -106,12 +107,25 @@ export type SeatView = {
   person: Pick<Person, "id" | "username" | "name"> | null;
 };
 
+/** A person's proposal for one task or one role. The target stays separate. */
+export type ProposalView = {
+  id: number;
+  taskId: number | null;
+  seatId: number | null;
+  pitch: string;
+  status: string;
+  createdAt: string;
+  person: Pick<Person, "id" | "username" | "name">;
+};
+
 export type TaskView = {
   id: number;
   title: string;
   detail: string;
   status: string;
   createdAt: string;
+  /** The role this task supports, if the manager connected one. */
+  role: Pick<SeatView, "id" | "role" | "roleTitle"> | null;
   assignee: Pick<Person, "id" | "username" | "name"> | null;
 };
 
@@ -140,10 +154,9 @@ export type ProjectDetail = ProjectSummary & {
 
 /** A seat somebody has applied for, shown from either side of the decision. */
 export type ApplicationView = {
-  seatId: number;
-  role: string;
-  roleTitle: string;
-  brief: string;
+  proposalId: number;
+  targetKind: "task" | "role";
+  targetLabel: string;
   status: string;
   pitch: string;
   createdAt: string;
@@ -534,8 +547,13 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
     supabase
       // `tasks` points at `profiles` twice, so the embed has to name the
       // constraint. Without it PostgREST cannot tell assignee from creator.
+      // The optional seat embed is similarly named because a task can carry a
+      // role without requiring one.
       .from("tasks")
-      .select("*, assignee:profiles!tasks_assignee_id_fkey(id, username, name)")
+      .select(
+        "*, assignee:profiles!tasks_assignee_id_fkey(id, username, name), " +
+          "role:seats!tasks_seat_id_fkey(id, role, role_title)",
+      )
       .eq("project_id", project.id)
       .order("id"),
     supabase
@@ -553,7 +571,10 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
 
   type SeatWithPerson = SeatRow & { person: BriefPerson | null };
   type CommentWithAuthor = CommentRow & { author: BriefPerson | null };
-  type TaskWithAssignee = TaskRow & { assignee: BriefPerson | null };
+  type TaskWithAssignee = TaskRow & {
+    assignee: BriefPerson | null;
+    role: Pick<SeatRow, "id" | "role" | "role_title"> | null;
+  };
   type UpdateWithAuthor = UpdateRow & { author: BriefPerson | null };
 
   return {
@@ -576,12 +597,15 @@ export const getProject = cache(async (slug: string): Promise<ProjectDetail | nu
       createdAt: entry.created_at,
       author: entry.author ?? null,
     })),
-    tasks: ((tasks.data ?? []) as TaskWithAssignee[] | null ?? []).map((task) => ({
+    tasks: ((tasks.data ?? []) as unknown as TaskWithAssignee[] | null ?? []).map((task) => ({
       id: task.id,
       title: task.title,
       detail: task.detail,
       status: task.status,
       createdAt: task.created_at,
+      role: task.role
+        ? { id: task.role.id, role: task.role.role, roleTitle: task.role.role_title ?? "" }
+        : null,
       assignee: task.assignee ?? null,
     })),
     comments: ((comments.data ?? []) as CommentWithAuthor[])
@@ -665,8 +689,9 @@ async function readPortfolio(personId: string) {
   if (seatResult.error) throw new Error(seatResult.error.message);
 
   const owned = (ownedResult.data ?? []).map(toSummary);
-  // apply_for_seat refuses a second seat on the same project, so this map
-  // holds at most one role per project.
+  // A person can hold at most one seat per project, so this map has one role
+  // per project even though they may have sent several proposals before one
+  // was accepted.
   const roleByProject = new Map(
     (seatResult.data ?? []).map((seat) => [seat.project_id, seat.role]),
   );
@@ -819,10 +844,52 @@ export async function listTags(): Promise<{ tag: string; count: number }[]> {
  * Applications
  * ------------------------------------------------------------------ */
 
-const APPLICATION_COLUMNS =
-  "id, role, role_title, brief, status, pitch, created_at, " +
-  "project:projects!inner(slug, title, owner_id), " +
-  "person:profiles(id, username, name)";
+/**
+ * Proposals visible on one project.
+ *
+ * The table's read policy returns all of them to a manager and only the
+ * caller's own rows to a contributor. This read is deliberately not cached:
+ * its result depends on who is looking, unlike the public project detail.
+ */
+export async function listProjectProposals(
+  taskIds: number[],
+  seatIds: number[],
+): Promise<ProposalView[]> {
+  if (taskIds.length === 0 && seatIds.length === 0) return [];
+
+  const supabase = await getSupabase();
+  if (!supabase) return [];
+
+  const columns = "*, person:profiles!proposals_person_id_fkey(id, username, name)";
+  const [taskResult, seatResult] = await Promise.all([
+    taskIds.length > 0
+      ? supabase.from("proposals").select(columns).in("task_id", taskIds)
+      : Promise.resolve({ data: [], error: null }),
+    seatIds.length > 0
+      ? supabase.from("proposals").select(columns).in("seat_id", seatIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const error = taskResult.error ?? seatResult.error;
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("proposals");
+    return [];
+  }
+
+  type ProposalWithPerson = ProposalRow & { person: BriefPerson | null };
+  return [...(taskResult.data ?? []), ...(seatResult.data ?? [])]
+    .filter((row): row is ProposalWithPerson => Boolean(row.person))
+    .map((proposal) => ({
+      id: proposal.id,
+      taskId: proposal.task_id,
+      seatId: proposal.seat_id,
+      pitch: proposal.pitch,
+      status: proposal.status,
+      createdAt: proposal.created_at,
+      person: proposal.person as BriefPerson,
+    }))
+    .sort((a, b) => b.id - a.id);
+}
 
 /**
  * Which projects this person may answer applications on.
@@ -868,15 +935,18 @@ export async function listIncomingApplications(userId: string): Promise<Applicat
   const projectIds = await managedProjectIds(supabase, userId);
   if (projectIds.length === 0) return [];
 
-  const { data, error } = await supabase
-    .from("seats")
-    .select(APPLICATION_COLUMNS)
-    .in("project_id", projectIds)
-    .eq("status", "pending")
-    .order("id", { ascending: false });
-  if (error) throw new Error(error.message);
+  const [tasks, seats] = await Promise.all([
+    supabase.from("tasks").select("id").in("project_id", projectIds),
+    supabase.from("seats").select("id").in("project_id", projectIds),
+  ]);
+  if (tasks.error) throw new Error(tasks.error.message);
+  if (seats.error) throw new Error(seats.error.message);
 
-  return (data ?? []).map(toApplication);
+  const proposals = await listProjectProposals(
+    (tasks.data ?? []).map((task) => task.id),
+    (seats.data ?? []).map((seat) => seat.id),
+  );
+  return proposalApplications(supabase, proposals.filter((proposal) => proposal.status === "pending"));
 }
 
 /**
@@ -891,13 +961,29 @@ export async function listMyApplications(userId: string): Promise<ApplicationVie
   if (!supabase) return [];
 
   const { data, error } = await supabase
-    .from("seats")
-    .select(APPLICATION_COLUMNS)
-    .eq("user_id", userId)
+    .from("proposals")
+    .select("*, person:profiles!proposals_person_id_fkey(id, username, name)")
+    .eq("person_id", userId)
     .order("id", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("proposals");
+    return [];
+  }
 
-  return (data ?? []).map(toApplication);
+  type ProposalWithPerson = ProposalRow & { person: BriefPerson | null };
+  const proposals: ProposalView[] = (data ?? [])
+    .filter((row): row is ProposalWithPerson => Boolean(row.person))
+    .map((proposal) => ({
+      id: proposal.id,
+      taskId: proposal.task_id,
+      seatId: proposal.seat_id,
+      pitch: proposal.pitch,
+      status: proposal.status,
+      createdAt: proposal.created_at,
+      person: proposal.person as BriefPerson,
+    }));
+  return proposalApplications(supabase, proposals);
 }
 
 /**
@@ -913,14 +999,62 @@ export async function countIncomingApplications(userId: string): Promise<number>
   const projectIds = await managedProjectIds(supabase, userId);
   if (projectIds.length === 0) return 0;
 
-  const { count, error } = await supabase
-    .from("seats")
-    .select("id", { count: "exact", head: true })
-    .in("project_id", projectIds)
-    .eq("status", "pending");
-  if (error) throw new Error(error.message);
+  const [tasks, seats] = await Promise.all([
+    supabase.from("tasks").select("id").in("project_id", projectIds),
+    supabase.from("seats").select("id").in("project_id", projectIds),
+  ]);
+  if (tasks.error) throw new Error(tasks.error.message);
+  if (seats.error) throw new Error(seats.error.message);
+  const proposals = await listProjectProposals(
+    (tasks.data ?? []).map((task) => task.id),
+    (seats.data ?? []).map((seat) => seat.id),
+  );
+  return proposals.filter((proposal) => proposal.status === "pending").length;
+}
 
-  return count ?? 0;
+async function proposalApplications(
+  supabase: Supabase,
+  proposals: ProposalView[],
+): Promise<ApplicationView[]> {
+  if (proposals.length === 0) return [];
+  const taskIds = proposals.flatMap((proposal) => proposal.taskId === null ? [] : [proposal.taskId]);
+  const seatIds = proposals.flatMap((proposal) => proposal.seatId === null ? [] : [proposal.seatId]);
+  const [tasks, seats] = await Promise.all([
+    taskIds.length > 0 ? supabase.from("tasks").select("id, project_id, title").in("id", taskIds) : Promise.resolve({ data: [], error: null }),
+    seatIds.length > 0 ? supabase.from("seats").select("id, project_id, role, role_title").in("id", seatIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (tasks.error) throw new Error(tasks.error.message);
+  if (seats.error) throw new Error(seats.error.message);
+
+  const taskById = new Map((tasks.data ?? []).map((task) => [task.id, task]));
+  const seatById = new Map((seats.data ?? []).map((seat) => [seat.id, seat]));
+  const projectIds = [...new Set([
+    ...(tasks.data ?? []).map((task) => task.project_id),
+    ...(seats.data ?? []).map((seat) => seat.project_id),
+  ])];
+  const { data: projects, error: projectError } = await supabase
+    .from("projects")
+    .select("id, slug, title")
+    .in("id", projectIds);
+  if (projectError) throw new Error(projectError.message);
+  const projectById = new Map((projects ?? []).map((project) => [project.id, project]));
+
+  return proposals.flatMap((proposal) => {
+    const task = proposal.taskId === null ? null : taskById.get(proposal.taskId);
+    const seat = proposal.seatId === null ? null : seatById.get(proposal.seatId);
+    const project = projectById.get(task?.project_id ?? seat?.project_id ?? -1);
+    if (!project) return [];
+    return [{
+      proposalId: proposal.id,
+      targetKind: task ? "task" as const : "role" as const,
+      targetLabel: task?.title ?? roleLabel(seat?.role ?? "other", seat?.role_title ?? ""),
+      status: proposal.status,
+      pitch: proposal.pitch,
+      createdAt: proposal.createdAt,
+      project: { slug: project.slug, title: project.title },
+      person: proposal.person,
+    }];
+  });
 }
 
 /* ------------------------------------------------------------------ *
@@ -1301,33 +1435,6 @@ export async function hasBoosted(projectId: number, userId: string): Promise<boo
 
 type BriefPerson = Pick<Person, "id" | "username" | "name">;
 
-type ApplicationRow = {
-  id: number;
-  role: string;
-  role_title: string;
-  brief: string;
-  status: string;
-  pitch: string;
-  created_at: string;
-  project: { slug: string; title: string } | null;
-  person: BriefPerson | null;
-};
-
-function toApplication(row: unknown): ApplicationView {
-  const seat = row as ApplicationRow;
-  return {
-    seatId: seat.id,
-    role: seat.role,
-    roleTitle: seat.role_title ?? "",
-    brief: seat.brief,
-    status: seat.status,
-    pitch: seat.pitch,
-    createdAt: seat.created_at,
-    project: seat.project ?? { slug: "", title: "Project terhapus" },
-    person: seat.person ?? null,
-  };
-}
-
 function toSummary(row: ProjectOverviewRow): ProjectSummary {
   return {
     id: row.id,
@@ -1565,6 +1672,7 @@ function seedDetail(slug: string): ProjectDetail | null {
       detail: task.detail,
       status: task.status,
       createdAt: source.createdAt,
+      role: null,
       assignee: task.assigneeId
         ? (() => {
             const owner = seedUsers.find((user) => user.id === task.assigneeId);
