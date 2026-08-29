@@ -20,6 +20,21 @@ export function StageBadge({ stage }: { stage: Stage }) {
   );
 }
 
+/** A maintainer's explicit invitation, kept visually distinct from a stage. */
+export function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
+  return (
+    <a
+      className="github-contribute-badge"
+      href={repoUrl}
+      target="_blank"
+      rel="noreferrer"
+      title="Project ini terbuka untuk kontribusi lewat GitHub"
+    >
+      Open for Contribute on GitHub <Arrow diagonal />
+    </a>
+  );
+}
+
 export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boolean }) {
   if (tags.length === 0) return null;
 
@@ -68,7 +83,10 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
             </h3>
             <p className="tagline">{project.tagline}</p>
           </div>
-          <StageBadge stage={project.stage} />
+          <div className="project-head-badges">
+            <StageBadge stage={project.stage} />
+            {project.openForGitHubContributions ? <GitHubContributeBadge repoUrl={project.repoUrl} /> : null}
+          </div>
         </div>
 
         <NowLine project={project} />
@@ -200,6 +218,8 @@ export function ProjectCard({
         <span>Deskripsi singkat</span>
         <p>{shortText(project.problem, PROFILE_DESCRIPTION_LIMIT)}</p>
       </div>
+
+      {project.openForGitHubContributions ? <GitHubContributeBadge repoUrl={project.repoUrl} /> : null}
 
       {project.nowText ? (
         <div className="profile-project-now">

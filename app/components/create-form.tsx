@@ -24,6 +24,9 @@ export function CreateForm() {
   const initialStage = STAGES.includes(values.stage as Stage) ? (values.stage as Stage) : "idea";
   const [stage, setStage] = useState<Stage>(initialStage);
   const [wantsHelp, setWantsHelp] = useState(values.openSeat === "yes");
+  const [openForGitHubContributions, setOpenForGitHubContributions] = useState(
+    values.openForGitHubContributions === "yes",
+  );
 
   return (
     <form className="create-form" action={formAction} ref={formRef}>
@@ -35,21 +38,44 @@ export function CreateForm() {
         <p className="eyebrow">
           <span /> Pilihan cepat
         </p>
-        <h2 id="github-start-heading">Mulai dari repository GitHub</h2>
+        <h2 id="github-start-heading">Buka kontribusi lewat GitHub</h2>
         <p>
-          Tempel repository publik untuk membuat draf dari README. Setelah itu, periksa dan lengkapi
-          bagian yang belum dijawab repository. Belum punya repo? Langsung isi manual di bawah.
+          Tandai hanya jika issue dan pull request dari komunitas memang kamu sambut. Kami akan
+          menampilkan badge khusus di project, lalu membantu mengisi draft dari repository publikmu.
         </p>
-        <Field
-          label="URL repository GitHub"
-          name="repoUrl"
-          hint="Contoh: https://github.com/organisasi/project"
-          error={errors.repoUrl}
-          defaultValue={values.repoUrl}
-          type="url"
-          placeholder="https://github.com/"
+        <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
+          <input
+            type="checkbox"
+            checked={openForGitHubContributions}
+            onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
+          />
+          <span>
+            <strong>Open for Contribute on GitHub</strong>
+            <small>Orang bisa melihat bahwa kontribusi GitHub untuk project ini terbuka.</small>
+          </span>
+        </label>
+        <input
+          type="hidden"
+          name="openForGitHubContributions"
+          value={openForGitHubContributions ? "yes" : "no"}
         />
-        <GitHubImport formRef={formRef} />
+        {openForGitHubContributions ? (
+          <div className="progressive-panel">
+            <Field
+              label="URL repository GitHub"
+              name="repoUrl"
+              hint="Wajib berupa repository GitHub publik, misalnya https://github.com/organisasi/project."
+              error={errors.repoUrl}
+              defaultValue={values.repoUrl}
+              type="url"
+              placeholder="https://github.com/"
+              required
+            />
+            <GitHubImport formRef={formRef} />
+          </div>
+        ) : (
+          <input type="hidden" name="repoUrl" value={values.repoUrl ?? ""} />
+        )}
       </section>
 
       {errors.form ? (

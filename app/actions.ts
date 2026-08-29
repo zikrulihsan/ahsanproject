@@ -9,7 +9,7 @@ import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
-import { getGitHubProjectDraft, type GitHubProjectDraft } from "./lib/github";
+import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
 import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import {
@@ -31,6 +31,7 @@ export type CreateState = {
     seatRoleTitle?: string;
     seatBrief?: string;
     seatCommitment?: string;
+    openForGitHubContributions?: string;
   };
   values: Record<string, string>;
 };
@@ -131,6 +132,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     seatBrief: text(formData, "seatBrief"),
     seatCommitment: formCommitment(formData, "seatCommitment"),
     openSeat: text(formData, "openSeat"),
+    openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
   const viewer = await currentViewer();
@@ -159,6 +161,9 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     if (!values.seatCommitment) {
       errors.seatCommitment = "Berikan perkiraan waktu agar orang tahu apakah mereka bisa ikut.";
     }
+  }
+  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
+    errors.repoUrl = "Untuk membuka kontribusi GitHub, isi URL repository GitHub publik yang benar.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -199,6 +204,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         now_updated_at: values.now ? new Date().toISOString() : null,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
+        open_for_github_contributions: values.openForGitHubContributions === "yes",
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
         tags,
@@ -250,6 +256,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     liveUrl: text(formData, "liveUrl"),
     logoUrl: text(formData, "logoUrl"),
     stage: text(formData, "stage"),
+    openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
   const viewer = await currentViewer();
@@ -269,6 +276,9 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
   } else if (requestedStage === "live" && !values.liveUrl) {
     errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+  }
+  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
+    errors.repoUrl = "Untuk membuka kontribusi GitHub, isi URL repository GitHub publik yang benar.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -297,6 +307,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         now_text: values.now,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
+        open_for_github_contributions: values.openForGitHubContributions === "yes",
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
         tags,

@@ -709,6 +709,13 @@ a.seat-chip:hover { border-color: var(--ink); }
   gap: 6px; letter-spacing: .06em; padding: 5px 10px; text-transform: uppercase; white-space: nowrap;
 }
 .stage-badge i { background: currentColor; border-radius: 50%; height: 6px; opacity: .75; width: 6px; }
+.github-contribute-badge {
+  align-items: center; background: #24292f; border-radius: 99px; color: #fff; display: inline-flex;
+  font-size: 10px; font-weight: 750; gap: 5px; letter-spacing: .025em; padding: 6px 10px; width: fit-content;
+}
+.github-contribute-badge:hover { background: #0969da; color: #fff; }
+.github-contribute-badge .arrow { height: 11px; width: 11px; }
+.project-head-badges { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
 /* Solid rather than translucent, one step deeper than the tile beside it. */
 .stage-idea { background: #f8ddcb; color: #a8401b; }
 .stage-building { background: #dfeae2; color: #3b5230; }
@@ -1673,7 +1680,8 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .project-item { padding: 19px; }
   .project-head { gap: 12px; grid-template-columns: 40px minmax(0, 1fr); }
   /* The badge wraps under the title rather than squeezing it to two words. */
-  .project-head .stage-badge { grid-column: 2; margin-top: 0; }
+  .project-head-badges { align-items: flex-start; grid-column: 2; }
+  .project-head .stage-badge { margin-top: 0; }
   .project-logo { height: 40px; width: 40px; }
   .project-head h3 { font-size: 18px; }
   .project-foot { gap: 12px; grid-template-columns: minmax(0, 1fr) auto; }

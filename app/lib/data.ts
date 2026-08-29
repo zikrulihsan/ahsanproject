@@ -70,6 +70,8 @@ export type ProjectSummary = {
   docUrl: string;
   liveUrl: string;
   repoUrl: string;
+  /** Maintainer explicitly welcomes GitHub pull requests and issues. */
+  openForGitHubContributions: boolean;
   /** Project-provided visual identity; favicon remains the fallback. */
   logoUrl: string;
   createdAt: string;
@@ -1450,6 +1452,7 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     docUrl: row.doc_url,
     liveUrl: row.live_url,
     repoUrl: row.repo_url,
+    openForGitHubContributions: row.open_for_github_contributions ?? false,
     logoUrl: row.logo_url ?? "",
     createdAt: row.created_at,
     nowText: row.now_text ?? "",
@@ -1546,6 +1549,7 @@ function seedSummaries(): ProjectSummary[] {
       docUrl: project.docUrl,
       liveUrl: project.liveUrl,
       repoUrl: project.repoUrl,
+      openForGitHubContributions: false,
       logoUrl: project.logoUrl,
       createdAt: project.createdAt,
       owner: {

@@ -24,6 +24,7 @@ import { SubmitButton } from "../../components/submit-button";
 import { SiteFooter, SiteHeader, Arrow } from "../../components/shell";
 import {
   ActivityList,
+  GitHubContributeBadge,
   JourneyList,
   RungRail,
   StageBadge,
@@ -163,7 +164,12 @@ export default async function ProjectPage({
                 website={project.liveUrl}
                 logoUrl={project.logoUrl}
               />
-              <StageBadge stage={project.stage} />
+              <div className="project-head-badges">
+                <StageBadge stage={project.stage} />
+                {project.openForGitHubContributions ? (
+                  <GitHubContributeBadge repoUrl={project.repoUrl} />
+                ) : null}
+              </div>
             </div>
             <h1>{project.title}</h1>
             <p className="project-tagline">{project.tagline}</p>

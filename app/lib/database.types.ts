@@ -24,6 +24,8 @@ export type ProjectRow = {
   now_text: string;
   /** Set by a trigger when now_text changes, never by the app. */
   now_updated_at: string | null;
+  /** Explicit maintainer opt-in, not inferred from merely linking a repo. */
+  open_for_github_contributions: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -168,7 +170,8 @@ export type Database = {
       };
       projects: {
         Row: ProjectRow;
-        Insert: Omit<ProjectRow, "id" | "created_at" | "updated_at"> & { id?: never };
+        Insert: Omit<ProjectRow, "id" | "created_at" | "updated_at" | "open_for_github_contributions"> &
+          Partial<Pick<ProjectRow, "open_for_github_contributions">> & { id?: never };
         Update: Partial<Omit<ProjectRow, "id" | "owner_id" | "created_at">>;
       };
       seats: {

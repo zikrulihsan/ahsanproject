@@ -60,8 +60,13 @@ and everything that writes will say so rather than failing quietly.
      in that catalogue
    - `0013_people_directory.sql` — searchable profession, skills, experience,
      and fields for the people directory
-   - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
-     links on portfolio profiles
+  - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
+    links on portfolio profiles
+  - `0015_project_logo_url.sql` — an optional project-owned logo URL
+  - `0016_task_role_proposals.sql` — optional task/role links and multi-person
+    proposals gated by the talent-pool profile
+  - `0017_github_open_contributions.sql` — the explicit GitHub contribution
+    badge and its repository safeguard
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.

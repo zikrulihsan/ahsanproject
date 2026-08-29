@@ -19,6 +19,7 @@ export type EditableProject = {
   nowText: string;
   docUrl: string;
   repoUrl: string;
+  openForGitHubContributions: boolean;
   liveUrl: string;
   logoUrl: string;
   stage: Stage;
@@ -27,6 +28,9 @@ export type EditableProject = {
 export function EditForm({ project }: { project: EditableProject }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [stage, setStage] = useState<Stage>(project.stage);
+  const [openForGitHubContributions, setOpenForGitHubContributions] = useState(
+    project.openForGitHubContributions,
+  );
   const initial: EditState = {
     errors: {},
     values: {
@@ -34,6 +38,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       tags: project.tags.join(", "),
       now: project.nowText,
       stage: project.stage,
+      openForGitHubContributions: project.openForGitHubContributions ? "yes" : "no",
     },
   };
   const [state, formAction, pending] = useActionState(updateProject, initial);
@@ -167,15 +172,50 @@ export function EditForm({ project }: { project: EditableProject }) {
           atau keterangan yang sedang dikerjakan; “Sudah berjalan” perlu website project.
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
-        <Field
-          label="Repository GitHub atau repo lain"
-          name="repoUrl"
-          hint="Untuk repo GitHub publik, kamu bisa mengisi kolom yang masih kosong dari README."
-          error={errors.repoUrl}
-          defaultValue={values.repoUrl}
-          type="url"
+        <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
+          <input
+            type="checkbox"
+            checked={openForGitHubContributions}
+            onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
+          />
+          <span>
+            <strong>Open for Contribute on GitHub</strong>
+            <small>Tampilkan badge publik dan undang kontribusi melalui issue atau pull request.</small>
+          </span>
+        </label>
+        <input
+          type="hidden"
+          name="openForGitHubContributions"
+          value={openForGitHubContributions ? "yes" : "no"}
         />
-        <GitHubImport formRef={formRef} />
+        {openForGitHubContributions ? (
+          <div className="progressive-panel">
+            <Field
+              label="Repository GitHub"
+              name="repoUrl"
+              hint="Wajib repository GitHub publik. Gunakan impor README untuk mengisi bagian project yang masih kosong."
+              error={errors.repoUrl}
+              defaultValue={values.repoUrl}
+              type="url"
+              placeholder="https://github.com/organisasi/project"
+              required
+            />
+            <GitHubImport formRef={formRef} />
+          </div>
+        ) : (
+          <details className="optional-fields" open={Boolean(values.repoUrl)}>
+            <summary>Repository lain <span>opsional</span></summary>
+            <div className="optional-fields-body">
+              <Field
+                label="Repository GitHub atau repo lain"
+                name="repoUrl"
+                error={errors.repoUrl}
+                defaultValue={values.repoUrl}
+                type="url"
+              />
+            </div>
+          </details>
+        )}
       </fieldset>
 
       <button className="primary-button" type="submit" disabled={pending}>

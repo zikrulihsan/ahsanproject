@@ -70,6 +70,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             nowText: project.nowText,
             docUrl: project.docUrl,
             repoUrl: project.repoUrl,
+            openForGitHubContributions: project.openForGitHubContributions,
             liveUrl: project.liveUrl,
             logoUrl: project.logoUrl,
             stage: project.stage,
