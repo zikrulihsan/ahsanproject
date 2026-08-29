@@ -105,13 +105,18 @@ export function normaliseTags(tags: string): string[] {
 }
 
 export function slugify(value: string): string {
-  return value
+  const slug = value
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+
+  // The database requires at least two characters. A valid project title can
+  // still collapse to one ("A!") or none (non-Latin text), so use a stable
+  // fallback rather than letting an otherwise valid save hit a constraint.
+  return slug.length >= 2 ? slug : "project";
 }
 
 export function domainOf(url: string): string {

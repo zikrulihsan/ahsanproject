@@ -105,7 +105,7 @@ select checks.allowed($$
   insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
   values ('kelas-sore', 'Kelas Sore', 'Papan jadwal kelas tambahan gratis di kampung.',
           '11111111-1111-4111-8111-111111111111',
-          repeat('m', 130), repeat('s', 130), repeat('u', 45), array['pendidikan'])
+          repeat('m', 80), repeat('s', 80), repeat('u', 25), array['pendidikan'])
 $$, 'pemilik menaruh proyeknya sendiri');
 
 select checks.denied($$

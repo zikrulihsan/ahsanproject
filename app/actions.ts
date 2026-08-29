@@ -296,7 +296,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     }
 
     const tags = normaliseTags(values.tags);
-    const { error: updateError } = await supabase
+    const { data: updatedProject, error: updateError } = await supabase
       .from("projects")
       .update({
         title: values.title,
@@ -313,8 +313,16 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         tags,
         stage: requestedStage,
       })
-      .eq("id", project.id);
+      .eq("id", project.id)
+      .select("id")
+      .maybeSingle();
     if (updateError) throw new Error(updateError.message);
+    if (!updatedProject) {
+      return {
+        errors: { form: "The project could not be saved. Refresh the page and try again." },
+        values,
+      };
+    }
   } catch (error) {
     return { errors: { form: messageOf(error) }, values };
   }
@@ -983,10 +991,11 @@ function formCommitment(formData: FormData, key: string): string {
 }
 
 async function freeSlug(supabase: Supabase, title: string): Promise<string> {
-  const base = slugify(title) || "project";
+  const base = slugify(title);
 
   for (let suffix = 0; suffix < 50; suffix += 1) {
-    const candidate = suffix === 0 ? base : `${base}-${suffix + 1}`;
+    const ending = suffix === 0 ? "" : `-${suffix + 1}`;
+    const candidate = `${base.slice(0, 48 - ending.length).replace(/-+$/g, "")}${ending}`;
     const { data } = await supabase
       .from("projects")
       .select("id")
@@ -995,7 +1004,8 @@ async function freeSlug(supabase: Supabase, title: string): Promise<string> {
     if (!data) return candidate;
   }
 
-  return `${base}-${Date.now().toString(36)}`;
+  const ending = `-${Date.now().toString(36)}`;
+  return `${base.slice(0, 48 - ending.length).replace(/-+$/g, "")}${ending}`;
 }
 
 /** Stable pick so a project keeps the same colour and glyph on every render. */
