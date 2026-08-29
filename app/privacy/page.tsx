@@ -154,10 +154,7 @@ export default function PrivacyPage() {
           You can edit or clear your profile fields at any time, hide specific kinds of activity from
           your trail, delete a project you own, and sign out. Deleting your account entirely is not
           yet self-service on this site — to request it, or for any other question about your data,
-          reach us on{" "}
-          <a href="https://github.com/zikrulihsan/ahsanproject/issues/new?template=bug_report.yml">
-            GitHub
-          </a>
+          reach us on Email (zikrulihsanmd@gmail.com)
           .
         </p>
 
