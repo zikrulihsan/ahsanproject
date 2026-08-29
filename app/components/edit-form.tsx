@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import { updateProject, type EditState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
+import { STAGES, stageMeta, type Stage } from "../lib/stages";
 import { Field } from "./field";
 import { TopicPicker } from "./topic-picker";
 import { GitHubImport } from "./github-import";
@@ -20,13 +21,20 @@ export type EditableProject = {
   repoUrl: string;
   liveUrl: string;
   logoUrl: string;
+  stage: Stage;
 };
 
 export function EditForm({ project }: { project: EditableProject }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [stage, setStage] = useState<Stage>(project.stage);
   const initial: EditState = {
     errors: {},
-    values: { ...project, tags: project.tags.join(", "), now: project.nowText },
+    values: {
+      ...project,
+      tags: project.tags.join(", "),
+      now: project.nowText,
+      stage: project.stage,
+    },
   };
   const [state, formAction, pending] = useActionState(updateProject, initial);
   const { errors, values } = state;
@@ -118,13 +126,45 @@ export function EditForm({ project }: { project: EditableProject }) {
         defaultValue={values.now}
       />
 
+      <fieldset>
+        <legend>Status project</legend>
+        <p className="hint">
+          Pilih kondisi project saat ini. Status yang dipilih akan disimpan bersama perubahan lain.
+        </p>
+        <ul className="stage-choice">
+          {STAGES.map((item) => (
+            <li key={item}>
+              <label htmlFor={`stage-${item}`}>
+                <input
+                  id={`stage-${item}`}
+                  type="radio"
+                  name="stage"
+                  value={item}
+                  checked={stage === item}
+                  onChange={() => setStage(item)}
+                />
+                <span>
+                  <strong>{stageMeta[item].label}</strong>
+                  <small>{stageMeta[item].blurb}</small>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        {errors.stage ? (
+          <p className="field-error" role="alert">
+            {errors.stage}
+          </p>
+        ) : null}
+      </fieldset>
+
       <TopicPicker defaultValue={values.tags} error={errors.tags} />
 
       <fieldset>
         <legend>Tautan</legend>
         <p className="hint">
-          Tautan ini ikut menentukan tahap project. Kalau salah satunya dihapus dan tahapnya jadi
-          tidak terpenuhi, levelnya ikut turun sendiri.
+          Tautan ini mendukung status project. Status “Sedang dibangun” perlu satu tautan kerja
+          atau keterangan yang sedang dikerjakan; “Sudah berjalan” perlu website project.
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
         <Field

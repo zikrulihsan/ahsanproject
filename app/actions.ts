@@ -25,6 +25,7 @@ import { tags } from "./lib/cache-tags";
 export type CreateState = {
   errors: FieldErrors & {
     form?: string;
+    stage?: string;
     now?: string;
     seatRole?: string;
     seatRoleTitle?: string;
@@ -231,8 +232,8 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
  * Rewrites a project's brief.
  *
  * The same minimums apply as when it was created, so a project cannot be
- * hollowed out after the fact. If the edit takes away what its level stood on,
- * the level drops with it rather than staying as a badge that lies.
+ * hollowed out after the fact. The owner can also move its status, as long as
+ * the selected status is supported by the brief and links being saved.
  */
 export async function updateProject(_state: EditState, formData: FormData): Promise<EditState> {
   const slug = text(formData, "slug");
@@ -248,12 +249,27 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
     logoUrl: text(formData, "logoUrl"),
+    stage: text(formData, "stage"),
   };
 
   const viewer = await currentViewer();
   if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah project ini." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
+  const requestedStage = isStage(values.stage) ? values.stage : null;
+  if (!requestedStage) {
+    errors.stage = "Pilih status project yang tersedia.";
+  } else if (
+    requestedStage === "building" &&
+    !values.now &&
+    !values.docUrl &&
+    !values.repoUrl &&
+    !values.liveUrl
+  ) {
+    errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
+  } else if (requestedStage === "live" && !values.liveUrl) {
+    errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+  }
   if (Object.keys(errors).length > 0) return { errors, values };
 
   try {
@@ -270,17 +286,6 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     }
 
     const tags = normaliseTags(values.tags);
-    const stage = settleStage(project.stage as Stage, {
-      problem: values.problem,
-      solution: values.solution,
-      audience: values.audience,
-      tags,
-      nowText: values.now,
-      docUrl: values.docUrl,
-      repoUrl: values.repoUrl,
-      liveUrl: values.liveUrl,
-    });
-
     const { error: updateError } = await supabase
       .from("projects")
       .update({
@@ -295,7 +300,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
         tags,
-        stage,
+        stage: requestedStage,
       })
       .eq("id", project.id);
     if (updateError) throw new Error(updateError.message);

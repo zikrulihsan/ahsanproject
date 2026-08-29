@@ -72,6 +72,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             repoUrl: project.repoUrl,
             liveUrl: project.liveUrl,
             logoUrl: project.logoUrl,
+            stage: project.stage,
           }}
         />
 
