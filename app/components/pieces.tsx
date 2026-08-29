@@ -160,10 +160,10 @@ export function NowLine({ project }: { project: ProjectSummary }) {
   );
 }
 
-/** "Bergerak 3 hari lalu" — freshness, which beats any percentage of done. */
+/** "Aktif 3 hari lalu" — freshness, which beats any percentage of done. */
 export function freshness(project: ProjectSummary): string {
   const when = timeAgo(project.lastActivityAt || project.createdAt);
-  return when ? `Bergerak ${when}` : "";
+  return when ? `Last Update ${when}` : "";
 }
 
 /**
