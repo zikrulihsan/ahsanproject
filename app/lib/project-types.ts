@@ -34,30 +34,30 @@ export const projectTypeMeta: Record<
 > = {
   pet: {
     label: "Pet project",
-    blurb: "Dibangun sendiri untuk belajar, mencoba, dan senang-senang.",
+    blurb: "Built alone, to learn, try things out, and enjoy it.",
     contribution:
-      "Santai dan bebas bereksperimen. Tidak ada tenggat, tidak ada bayaran — yang dibawa pulang pengalaman dan karyanya.",
+      "Relaxed, and open to experiment. No deadlines and no pay — what you take away is the experience and the work itself.",
     tone: "type-pet",
   },
   community: {
-    label: "Project komunitas",
-    blurb: "Dikerjakan terbuka untuk kepentingan bersama, bukan untuk keuntungan.",
+    label: "Community project",
+    blurb: "Built in the open for shared benefit rather than for profit.",
     contribution:
-      "Kerja bareng banyak orang dan hasilnya jadi milik bersama. Cocok kalau kamu ingin karyanya dipakai luas.",
+      "Work alongside many people, on something everyone ends up owning. A good fit if you want the work used widely.",
     tone: "type-community",
   },
   product: {
-    label: "Produk berpengguna",
-    blurb: "Sudah dipakai orang di luar tim, dan belum atau tidak dimonetisasi.",
+    label: "Product with users",
+    blurb: "Already used by people outside the team, and not monetised.",
     contribution:
-      "Yang kamu kerjakan langsung dipakai pengguna yang sudah ada. Ada ritme rilis dan tanggung jawab yang mengikutinya.",
+      "What you build reaches users who are already there. That brings a release rhythm, and the responsibility that comes with it.",
     tone: "type-product",
   },
   commercial: {
-    label: "Project komersial",
-    blurb: "Sudah menghasilkan uang, atau memang diarahkan ke sana.",
+    label: "Commercial project",
+    blurb: "Earning money already, or deliberately heading that way.",
     contribution:
-      "Ada uang di dalamnya. Sepakati dulu bentuk imbalannya — bayaran, bagi hasil, atau kepemilikan — sebelum mulai.",
+      "There is money involved. Settle what you get — pay, a share, or ownership — before you start.",
     tone: "type-commercial",
   },
 };

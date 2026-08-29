@@ -22,7 +22,7 @@ import { stageMeta } from "../../../lib/stages";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Ubah project — Ahsan Project",
+  title: "Edit project — Ahsan Project",
   robots: { index: false },
 };
 
@@ -46,16 +46,16 @@ export default async function EditProjectPage({ params }: { params: Params }) {
       <main id="main-content" className="page-narrow">
         <p className="breadcrumb">
           <Link href={`/projects/${project.slug}`}>{project.title}</Link>{" "}
-          <span aria-hidden="true">/</span> Ubah
+          <span aria-hidden="true">/</span> Edit
         </p>
 
         <p className="eyebrow">
-          <span /> Ubah project
+          <span /> Edit project
         </p>
         <h1>{project.title}</h1>
         <p className="lede">
-          Alamatnya tetap <code>/projects/{project.slug}</code>, jadi tautan yang sudah kamu bagikan
-          tidak mati. Tahap sekarang: <strong>{stageMeta[project.stage].label}</strong>.
+          Its address remains <code>/projects/{project.slug}</code>, so links you have already shared
+          keep working. Current stage: <strong>{stageMeta[project.stage].label}</strong>.
         </p>
 
         <EditForm
@@ -71,28 +71,30 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             nowText: project.nowText,
             docUrl: project.docUrl,
             repoUrl: project.repoUrl,
+            openForGitHubContributions: project.openForGitHubContributions,
             liveUrl: project.liveUrl,
             logoUrl: project.logoUrl,
+            stage: project.stage,
           }}
         />
 
         <section className="danger-zone">
-          <h2>Hapus project</h2>
+          <h2>Delete project</h2>
           <p>
-            Ini permanen. Diskusi, lamaran, dan dukungan yang menempel ikut terhapus, dan tidak ada
-            cara mengembalikannya. Kalau cuma sedang tidak digarap, pindahkan saja levelnya ke{" "}
-            <strong>Diistirahatkan</strong> dari halaman project — isinya tetap terbaca.
+            This is permanent. Its discussions, applications, and support will be deleted too, with
+            no way to restore them. If work is only paused, change the project to{" "}
+            <strong>Resting</strong> from its page—the content remains visible.
           </p>
           <details>
-            <summary>Saya tetap mau menghapus</summary>
+            <summary>I still want to delete it</summary>
             <form action={deleteProject}>
               <input type="hidden" name="slug" value={project.slug} />
               <label htmlFor="confirm">
-                Ketik <code>{project.slug}</code> untuk memastikan ini bukan kepencet.
+                Type <code>{project.slug}</code> to confirm this was intentional.
               </label>
               <input id="confirm" name="confirm" type="text" autoComplete="off" required />
-              <SubmitButton className="danger" pendingLabel="Menghapus…">
-                Hapus project ini
+              <SubmitButton className="danger" pendingLabel="Deleting…">
+                Delete this project
               </SubmitButton>
             </form>
           </details>

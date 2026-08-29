@@ -19,8 +19,8 @@ import { supabaseConfigured } from "../lib/supabase";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Daftar — Ahsan Project",
-  description: "Bikin akun untuk menunjukkan yang sedang kamu bangun dan ikut membantu project orang lain.",
+  title: "Create an account — Ahsan Project",
+  description: "Create an account to show what you are building and help with other projects.",
   robots: { index: false },
 };
 
@@ -40,24 +40,27 @@ export default async function SignUpPage({ searchParams }: { searchParams?: Sear
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Daftar
+          <span /> Create an account
         </p>
-        <h1>Bikin akun dulu.</h1>
+        <h1>Start with an account.</h1>
         <p className="lede">
-          Setelah punya akun, kamu bisa menunjukkan project, menyebut bantuan yang dicari, dan ikut membantu project orang
-          lain. Halaman profilmu sekalian jadi portofolio.
+          With an account, you can show projects, name the help you need, and contribute to other
+          projects. Your profile page doubles as a portfolio.
         </p>
 
         {supabaseConfigured() ? (
           <SignUpForm next={next} />
         ) : (
           <p className="form-error">
-            Situs ini belum tersambung ke Supabase, jadi pendaftaran belum bisa dibuka.
+            This site is not connected to Supabase yet, so registration is unavailable.
           </p>
         )}
 
         <p className="auth-switch">
-          Sudah punya akun? <Link href={`/signin?next=${encodeURIComponent(next)}`}>Masuk saja</Link>.
+          Already have an account? <Link href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</Link>.
+        </p>
+        <p className="auth-privacy-note">
+          By creating an account, you agree to our <Link href="/privacy">Privacy Policy</Link>.
         </p>
       </main>
 

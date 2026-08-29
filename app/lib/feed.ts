@@ -10,7 +10,7 @@
  * anything living in `data.ts` pulls in the Supabase client and, through it,
  * `next/headers`.
  */
-export const LANES = ["untukmu", "terbaru", "aktif", "butuh-bantuan", "dibangun", "berjalan"] as const;
+export const LANES = ["for-you", "newest", "active", "needs-help", "building", "live"] as const;
 
 export type Lane = (typeof LANES)[number];
 

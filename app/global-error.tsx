@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="id">
+    <html lang="en">
       <body
         style={{
           background: "#f8f6f0",
@@ -35,10 +35,10 @@ export default function GlobalError({
       >
         <div style={{ maxWidth: 460 }}>
           <h1 style={{ fontSize: 40, letterSpacing: "-0.04em", marginBottom: 12 }}>
-            Ada yang tersendat.
+            Something went wrong.
           </h1>
           <p style={{ color: "#68746d", lineHeight: 1.7, marginBottom: 24 }}>
-            Ahsan Project gagal dimuat. Biasanya ini sementara — coba lagi sebentar lagi.
+            Ahsan Project could not load. This is usually temporary, so please try again shortly.
           </p>
           <button
             type="button"
@@ -54,7 +54,7 @@ export default function GlobalError({
               padding: "14px 24px",
             }}
           >
-            Coba lagi
+            Try again
           </button>
         </div>
       </body>

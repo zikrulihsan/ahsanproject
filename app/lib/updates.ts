@@ -26,15 +26,15 @@ export function validateUpdate(input: UpdateInput): UpdateErrors {
   const body = input.body.trim();
 
   if (!title) {
-    errors.title = "Kabarnya belum diberi judul.";
+    errors.title = "Give this update a title.";
   } else if (title.length < UPDATE_LIMITS.title.min) {
-    errors.title = `Judulnya terlalu pendek — minimal ${UPDATE_LIMITS.title.min} karakter.`;
+    errors.title = `The title is too short—at least ${UPDATE_LIMITS.title.min} characters.`;
   } else if (title.length > UPDATE_LIMITS.title.max) {
-    errors.title = `Judulnya terlalu panjang — maksimal ${UPDATE_LIMITS.title.max} karakter.`;
+    errors.title = `The title is too long—at most ${UPDATE_LIMITS.title.max} characters.`;
   }
 
   if (body.length > UPDATE_LIMITS.body.max) {
-    errors.body = `Ceritanya terlalu panjang — maksimal ${UPDATE_LIMITS.body.max} karakter.`;
+    errors.body = `The details are too long—at most ${UPDATE_LIMITS.body.max} characters.`;
   }
 
   return errors;
@@ -49,7 +49,7 @@ export function validateUpdate(input: UpdateInput): UpdateErrors {
 export function journeyDate(value: string): string {
   const then = parse(value);
   if (Number.isNaN(then)) return "";
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long" }).format(then);
+  return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "long" }).format(then);
 }
 
 export function journeyYear(value: string): string {

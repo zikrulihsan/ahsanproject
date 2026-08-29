@@ -5,7 +5,7 @@ import { useRef } from "react";
 export type SortOption = { value: string; label: string };
 
 /**
- * The board's "urutkan" control.
+ * The board's sort control.
  *
  * A plain GET form underneath: the hidden fields carry whatever else the board
  * is filtered to, so picking an order keeps the tab, the topic, and the search
@@ -54,7 +54,7 @@ export function SortSelect({
         ))}
       </select>
       <noscript>
-        <button type="submit">Urutkan</button>
+        <button type="submit">Sort</button>
       </noscript>
     </form>
   );

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { MAXIMUM } from "../lib/brief";
 
 const PRESETS = [
-  "Sekali bantu, sekitar 1–2 jam",
-  "1–2 jam per minggu selama 1 bulan",
-  "3–5 jam per minggu selama 2–3 bulan",
-  "Berkelanjutan, waktu fleksibel",
-  "Belum tahu — diskusikan bersama",
+  "One-off help, about 1–2 hours",
+  "1–2 hours per week for 1 month",
+  "3–5 hours per week for 2–3 months",
+  "Ongoing, flexible schedule",
+  "Not sure yet — discuss together",
 ] as const;
 
 export function CommitmentField({
@@ -31,7 +31,7 @@ export function CommitmentField({
 
   return (
     <div className={error ? "field commitment-field has-error" : "field commitment-field"}>
-      <label htmlFor={`${id}-preset`}>Perkiraan waktu</label>
+      <label htmlFor={`${id}-preset`}>Time commitment</label>
       <select
         id={`${id}-preset`}
         name={`${name}Preset`}
@@ -40,9 +40,9 @@ export function CommitmentField({
         aria-invalid={error ? true : undefined}
         onChange={(event) => setChoice(event.target.value)}
       >
-        <option value="" disabled>Pilih perkiraan…</option>
+        <option value="" disabled>Choose an estimate…</option>
         {PRESETS.map((option) => <option key={option} value={option}>{option}</option>)}
-        <option value="custom">Tulis perkiraan sendiri</option>
+        <option value="custom">Write your own estimate</option>
       </select>
 
       <input
@@ -55,9 +55,9 @@ export function CommitmentField({
         disabled={choice !== "custom"}
         hidden={choice !== "custom"}
         aria-invalid={error ? true : undefined}
-        placeholder="Contoh: sekitar 3 jam, selesai sebelum 10 September"
+        placeholder="For example: about 3 hours, completed before September 10"
       />
-      <p className="hint">Perkiraan kasar cukup—tidak perlu tanggal pasti kalau memang fleksibel.</p>
+      <p className="hint">A rough estimate is enough—you do not need an exact date if the schedule is flexible.</p>
       {error ? <p className="field-error commitment-error" role="alert">{error}</p> : null}
     </div>
   );

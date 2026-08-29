@@ -1,7 +1,7 @@
 import { PROJECT_TYPES, projectTypeMeta } from "../lib/project-types";
 
 /**
- * "Jenis project" as a list of four, on the create form and the edit form.
+ * The project kind as a list of four, on the create form and the edit form.
  *
  * Radios rather than a select: what separates the four is the sentence under
  * each one, and a dropdown hides exactly that. Somebody deciding between a pet
@@ -22,11 +22,11 @@ export function ProjectTypePicker({
   return (
     <div className={`type-picker ${error ? "has-error" : ""}`}>
       <p className="type-picker-label" id="project-type-label">
-        Jenis project <span aria-hidden="true">*</span>
+        Project kind <span aria-hidden="true">*</span>
       </p>
       <p className="hint" id="project-type-hint">
-        Ini yang dipakai orang untuk memilih kolaborasi seperti apa yang mereka cari. Beda dari
-        level: pet project pun boleh sudah berjalan.
+        This is what people use to pick the kind of collaboration they are after. Separate from the
+        status: a pet project can be live too.
       </p>
 
       <ul
@@ -50,7 +50,7 @@ export function ProjectTypePicker({
                 <strong>{projectTypeMeta[type].label}</strong>
                 <small>{projectTypeMeta[type].blurb}</small>
                 <small className="type-choice-note" id={`projectType-${type}-note`}>
-                  Bagi yang ikut: {projectTypeMeta[type].contribution}
+                  If you join: {projectTypeMeta[type].contribution}
                 </small>
               </span>
             </label>

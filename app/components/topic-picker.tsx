@@ -32,10 +32,10 @@ export function TopicPicker({
   return (
     <div className={`field topic-picker ${error ? "has-error" : ""}`}>
       <label id="topics-label">
-        Topik <span aria-hidden="true">*</span>
+        Topics <span aria-hidden="true">*</span>
       </label>
       <p className="hint" id="topics-hint">
-        Pilih yang paling dekat, maksimal enam. Tidak ada yang cocok? Tambahkan sendiri di bawah.
+        Choose the closest matches, up to six. Nothing fits? Add your own below.
       </p>
       <div className="topic-options" role="group" aria-labelledby="topics-label" aria-describedby="topics-hint">
         {SUGGESTED_TOPICS.map((topic) => {
@@ -56,7 +56,7 @@ export function TopicPicker({
         })}
       </div>
 
-      <label htmlFor="customTags">Topik lain <span className="optional-label">opsional</span></label>
+      <label htmlFor="customTags">Other topics <span className="optional-label">optional</span></label>
       <input
         id="customTags"
         name="customTags"
@@ -64,7 +64,7 @@ export function TopicPicker({
         defaultValue={custom}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "tags-error" : undefined}
-        placeholder="Contoh: anak, transportasi"
+        placeholder="For example: children, transportation"
       />
       {error ? (
         <p className="field-error" id="tags-error" role="alert">
@@ -74,4 +74,3 @@ export function TopicPicker({
     </div>
   );
 }
-

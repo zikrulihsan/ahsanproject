@@ -1,27 +1,52 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { setActivityVisibility, updateProfile } from "../../actions";
+import { setActivityVisibility } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { SubmitButton } from "../../components/submit-button";
-import { getPerson, getPersonStats, getPortfolio, listPersonActivity } from "../../lib/data";
+import {
+  getPerson,
+  getPersonStats,
+  getPortfolio,
+  listPeople,
+  listPersonActivity,
+  type Contribution,
+  type Person,
+  type ProjectSummary,
+} from "../../lib/data";
 import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
+import { nextSteps, remainingSteps } from "../../lib/next-steps";
 import { currentViewer } from "../../lib/session";
 
 type Params = Promise<{ username: string }>;
 
+/**
+ * Pre-render a bounded set of public portfolios for direct links and shares.
+ * Less frequently visited profiles are still cached on their first prefetch
+ * or visit, without making a growing directory slow every deployment.
+ */
+export async function generateStaticParams(): Promise<{ username: string }[]> {
+  try {
+    const people = await listPeople(80);
+    return people.slice(0, 32).map((person) => ({ username: person.username }));
+  } catch (error) {
+    console.warn("[ahsan] Profile detail was not prerendered:", error);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { username } = await params;
   const person = await getPerson(username);
-  if (!person) return { title: "Orang tidak ditemukan — Ahsan Project" };
+  if (!person) return { title: "Person not found — Ahsan Project" };
 
   const description =
-    person.headline || `Yang sedang dibangun ${person.name}, dan yang dia bantu, di Ahsan Project.`;
+    person.headline || `What ${person.name} is building and contributing to on Ahsan Project.`;
 
   return {
     title: `${person.name} — Ahsan Project`,
@@ -53,8 +78,8 @@ export default async function ProfilePage({
 
   // "Muat lebih lama" grows the limit instead of paging cursors: the list is
   // one request either way, and the URL stays shareable.
-  const showAll = query.jejak === "semua";
-  const rawLimit = Number(Array.isArray(query.batas) ? query.batas[0] : query.batas);
+  const showAll = query.trail === "all";
+  const rawLimit = Number(Array.isArray(query.limit) ? query.limit[0] : query.limit);
   const limit = Math.min(Number.isInteger(rawLimit) && rawLimit > 0 ? rawLimit : TRAIL_PAGE, 400);
 
   const isSelf = viewer?.id === person.id;
@@ -96,10 +121,10 @@ export default async function ProfilePage({
       : []),
   ];
 
-  const trailPath = (next: { jejak?: string; batas?: number }) => {
+  const trailPath = (next: { trail?: string; limit?: number }) => {
     const params = new URLSearchParams();
-    if (next.jejak === "semua") params.set("jejak", "semua");
-    if (next.batas && next.batas > TRAIL_PAGE) params.set("batas", String(next.batas));
+    if (next.trail === "all") params.set("trail", "all");
+    if (next.limit && next.limit > TRAIL_PAGE) params.set("limit", String(next.limit));
     const search = params.toString();
     return `/u/${person.username}${search ? `?${search}` : ""}#activity-heading`;
   };
@@ -115,14 +140,14 @@ export default async function ProfilePage({
           <div className="profile-hero-top">
             <div className="profile-hero-copy">
               <p className="eyebrow light">
-                <span /> Portofolio Personal
+                <span /> Personal portfolio
               </p>
               <h1>{person.name}</h1>
               {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
               {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
 
               {contacts.length > 0 ? (
-                <ul className="profile-contact-list" aria-label={`Tautan ${person.name}`}>
+                <ul className="profile-contact-list" aria-label={`${person.name}'s links`}>
                   {contacts.map((contact) => (
                     <li key={`${contact.icon}-${contact.href}`}>
                       <a
@@ -141,7 +166,7 @@ export default async function ProfilePage({
                 <div className="profile-hero-actions">
                   <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
                     <LinkIcon kind="resume" />
-                    <span>Unduh Resume</span>
+                <span>Download résumé</span>
                   </a>
                 </div>
               ) : null}
@@ -156,20 +181,20 @@ export default async function ProfilePage({
                   ))}
                 </ul>
               ) : (
-                <p className="profile-contribution-empty">Belum ada project yang tercatat.</p>
+                <p className="profile-contribution-empty">No projects recorded yet.</p>
               )}
             </aside>
           </div>
 
-          <section className="profile-summary" aria-label="Ringkasan profil">
+          <section className="profile-summary" aria-label="Profile summary">
             <div className="profile-summary-copy">
-              <p className="profile-summary-label">Ringkasan</p>
+              <p className="profile-summary-label">Summary</p>
               {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
             </div>
             <div className="profile-summary-meta">
               {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
-                <ul className="profile-tags" aria-label="Keahlian dan pengalaman">
-                  {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
+                <ul className="profile-tags" aria-label="Skills and experience">
+                  {person.yearsExperience !== null ? <li>{person.yearsExperience} years of experience</li> : null}
                   {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
                   {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
                 </ul>
@@ -177,24 +202,24 @@ export default async function ProfilePage({
               <ul className="profile-stats">
                 <li>
                   <strong>{owned.length}</strong>
-                  <span>project dibangun</span>
+                  <span>projects built</span>
                 </li>
                 {contributing.length > 0 ? (
                   <li>
                     <strong>{contributing.length}</strong>
-                    <span>ikut membantu</span>
+                    <span>projects supported</span>
                   </li>
                 ) : null}
                 {stats.tasksDone > 0 ? (
                   <li>
                     <strong>{stats.tasksDone}</strong>
-                    <span>tugas dibereskan</span>
+                    <span>tasks completed</span>
                   </li>
                 ) : null}
                 {stats.since ? (
                   <li>
                     <strong>{monthYear(stats.since)}</strong>
-                    <span>aktif sejak</span>
+                    <span>active since</span>
                   </li>
                 ) : null}
               </ul>
@@ -205,76 +230,16 @@ export default async function ProfilePage({
 
       <main id="main-content" className="profile-page">
         <div className="profile-content">
-            {isSelf ? (
-              <details className="owner-tool profile-edit">
-                <summary>Ubah profil</summary>
-                <form action={updateProfile}>
-                  <label htmlFor="name">Nama</label>
-                  <input id="name" name="name" type="text" defaultValue={person.name} />
-                  <label htmlFor="profession">Profesi / role utama</label>
-                  <input
-                    id="profession"
-                    name="profession"
-                    type="text"
-                    maxLength={80}
-                    placeholder="Contoh: Frontend Developer"
-                    defaultValue={person.profession}
-                  />
-                  <label htmlFor="headline">Satu baris tentang kamu</label>
-                  <input id="headline" name="headline" type="text" defaultValue={person.headline} />
-                  <label htmlFor="bio">Cerita singkat</label>
-                  <textarea id="bio" name="bio" rows={4} defaultValue={person.bio} />
-                  <label htmlFor="skills">Skill</label>
-                  <input
-                    id="skills"
-                    name="skills"
-                    type="text"
-                    placeholder="Next.js, Figma, User Research"
-                    defaultValue={person.skills.join(", ")}
-                  />
-                  <label htmlFor="yearsExperience">Lama pengalaman (tahun)</label>
-                  <input
-                    id="yearsExperience"
-                    name="yearsExperience"
-                    type="number"
-                    min={0}
-                    max={60}
-                    defaultValue={person.yearsExperience ?? ""}
-                  />
-                  <label htmlFor="fields">Bidang yang dikuasai</label>
-                  <input
-                    id="fields"
-                    name="fields"
-                    type="text"
-                    placeholder="Fintech, Edukasi, Civic Tech"
-                    defaultValue={person.fields.join(", ")}
-                  />
-                  <label htmlFor="website">Situs</label>
-                  <input id="website" name="website" type="url" defaultValue={person.website} />
-                  <label htmlFor="publicEmail">Email publik</label>
-                  <input id="publicEmail" name="publicEmail" type="email" defaultValue={person.publicEmail} />
-                  <label htmlFor="github">GitHub</label>
-                  <input id="github" name="github" type="url" defaultValue={person.github} />
-                  <label htmlFor="linkedin">LinkedIn</label>
-                  <input id="linkedin" name="linkedin" type="url" defaultValue={person.linkedin} />
-                  <label htmlFor="x">X / Twitter</label>
-                  <input id="x" name="x" type="url" defaultValue={person.x} />
-                  <label htmlFor="resume">Tautan résumé</label>
-                  <input id="resume" name="resume" type="url" defaultValue={person.resume} />
-                  <p className="hint">Kontak dan tautan ini bersifat publik, dan hanya tampil jika diisi.</p>
-                  <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
-                </form>
-              </details>
-            ) : null}
+            {isSelf ? <SelfTools person={person} owned={owned} contributing={contributing} /> : null}
 
             <section aria-labelledby="owned-heading">
               <h2 id="owned-heading" className="section-title">
-                Sedang dikerjakan
+                In progress
               </h2>
               {owned.length === 0 ? (
                 <p className="muted">
-                  Belum ada project.{" "}
-                  {isSelf ? <Link href="/new">Tunjukkan yang pertama</Link> : null}
+                  No projects yet.{" "}
+                  {isSelf ? <Link href="/new">Show your first</Link> : null}
                 </p>
               ) : (
                 <div className="profile-project-grid">
@@ -287,26 +252,26 @@ export default async function ProfilePage({
 
             <section aria-labelledby="activity-heading">
               <h2 id="activity-heading" className="section-title">
-                Jejak kerja
+                Work trail
               </h2>
               <p className="trail-note">
-                Jejak ini ditulis sistem saat kejadiannya — bukan diketik belakangan.
+                This trail is recorded by the system when work happens—not added afterwards.
               </p>
 
               <div className="trail-modes">
                 <Link className={showAll ? "" : "is-active"} href={trailPath({})}>
-                  Sorotan
+                  Highlights
                 </Link>
-                <Link className={showAll ? "is-active" : ""} href={trailPath({ jejak: "semua" })}>
-                  Semua jejak
+                <Link className={showAll ? "is-active" : ""} href={trailPath({ trail: "all" })}>
+                  Full trail
                 </Link>
               </div>
 
               {trail.length === 0 ? (
                 <p className="muted">
-                  {showAll ? "Belum ada jejak." : "Belum ada sorotan."}
+                  {showAll ? "No entries yet." : "No highlights yet."}
                   {isSelf
-                    ? " Yang kamu kerjakan di sini akan muncul sendiri — tidak perlu ditulis."
+                    ? " Your work here appears automatically—you do not need to add it manually."
                     : ""}
                 </p>
               ) : (
@@ -317,22 +282,22 @@ export default async function ProfilePage({
                 <p className="trail-more">
                   <Link
                     href={trailPath({
-                      jejak: showAll ? "semua" : undefined,
-                      batas: limit + TRAIL_PAGE,
+                      trail: showAll ? "all" : undefined,
+                      limit: limit + TRAIL_PAGE,
                     })}
                   >
-                    Muat jejak lebih lama
+                    Load earlier entries
                   </Link>
                 </p>
               ) : null}
 
               {isSelf ? (
                 <details className="owner-tool">
-                  <summary>Atur apa yang tampil</summary>
+                  <summary>Choose what is visible</summary>
                   <form action={setActivityVisibility}>
                     <p className="hint">
-                      Yang dicentang tampil di profilmu untuk orang lain. Yang tidak, cuma kamu yang
-                      lihat — jejaknya tetap tersimpan, tidak terhapus.
+                      Checked items appear on your public profile. Unchecked items remain visible
+                      only to you—they are still recorded and are not deleted.
                     </p>
                     <ul className="kind-list">
                       {EVENT_KINDS.map((kind) => (
@@ -350,7 +315,7 @@ export default async function ProfilePage({
                         </li>
                       ))}
                     </ul>
-                    <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
+                    <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -361,6 +326,40 @@ export default async function ProfilePage({
 
       <SiteFooter />
     </>
+  );
+}
+
+/**
+ * What the owner of this page sees that nobody else does.
+ *
+ * The editor itself used to sit here, expanded from a `<summary>` — thirteen
+ * inputs on the page whose whole job is to be shown to other people. It lives
+ * at /account/profile now, and this is the doorway to it, plus the one line that
+ * says what is still missing before the talent pool can match on anything.
+ */
+function SelfTools({
+  person,
+  owned,
+  contributing,
+}: {
+  person: Person;
+  owned: ProjectSummary[];
+  contributing: Contribution[];
+}) {
+  const remaining = remainingSteps(nextSteps({ person, owned, contributing }));
+
+  return (
+    <div className="profile-self-tools">
+      <Link className="profile-edit-link" href="/account/profile">
+        Edit profile
+      </Link>
+      {remaining.length > 0 ? (
+        <p className="profile-self-note">
+          {remaining.length} steps remain before your profile can be found in the talent pool.{" "}
+          <Link href="/get-started?all=1">View steps</Link>
+        </p>
+      ) : null}
+    </div>
   );
 }
 

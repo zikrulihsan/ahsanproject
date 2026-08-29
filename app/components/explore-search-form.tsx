@@ -67,7 +67,7 @@ export function ExploreSearchForm({
     <form
       className="discovery-search collaboration-search"
       method="get"
-      action="/kolaborasi"
+      action="/explore"
       role="search"
       ref={form}
     >
@@ -76,10 +76,10 @@ export function ExploreSearchForm({
       )}
 
       <div className="collaboration-search-mode" role="radiogroup" aria-labelledby={labelId}>
-        <span id={labelId}>Cari berdasarkan</span>
+        <span id={labelId}>Search by</span>
         {([
           ["project", "Project"],
-          ["role", "Role terbuka"],
+          ["role", "Open role"],
         ] as const).map(([value, label]) => (
           <label key={value}>
             <input
@@ -111,8 +111,8 @@ export function ExploreSearchForm({
             type="search"
             name="q"
             value={query}
-            placeholder={searchMode === "role" ? "Ketik nama role…" : "Ketik nama project…"}
-            aria-label={searchMode === "role" ? "Ketik nama role" : "Ketik nama project"}
+            placeholder={searchMode === "role" ? "Enter a role name…" : "Enter a project name…"}
+            aria-label={searchMode === "role" ? "Enter a role name" : "Enter a project name"}
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showSuggestions}
@@ -130,7 +130,7 @@ export function ExploreSearchForm({
         </div>
 
         {showSuggestions ? (
-          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label="Rekomendasi role terbuka">
+          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label="Open role suggestions">
             {matches.length > 0 ? (
               matches.map((suggestion, index) => (
                 <button
@@ -145,17 +145,17 @@ export function ExploreSearchForm({
                   onClick={() => choose(suggestion)}
                 >
                   <span>{suggestion.label}</span>
-                  <small>{suggestion.count} posisi</small>
+                  <small>{suggestion.count} open {suggestion.count === 1 ? "position" : "positions"}</small>
                 </button>
               ))
             ) : (
-              <p>Role tersebut belum sedang dibuka.</p>
+              <p>That role is not open right now.</p>
             )}
           </div>
         ) : null}
       </div>
 
-      <button type="submit">Cari</button>
+      <button type="submit">Search</button>
     </form>
   );
 }

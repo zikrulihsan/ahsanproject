@@ -10,7 +10,7 @@ import {
 } from "react";
 import { PROJECT_TABS, isProjectTab, type ProjectTab } from "../lib/project-tabs";
 
-const ProjectTabContext = createContext<ProjectTab>("tentang");
+const ProjectTabContext = createContext<ProjectTab>("about");
 
 export function ProjectTabSwitcher({
   children,
@@ -23,8 +23,8 @@ export function ProjectTabSwitcher({
 
   useEffect(() => {
     const handleHistoryChange = () => {
-      const requestedTab = new URL(window.location.href).searchParams.get("tab") ?? "tentang";
-      setActiveTab(isProjectTab(requestedTab) ? requestedTab : "tentang");
+      const requestedTab = new URL(window.location.href).searchParams.get("tab") ?? "about";
+      setActiveTab(isProjectTab(requestedTab) ? requestedTab : "about");
     };
 
     window.addEventListener("popstate", handleHistoryChange);
@@ -36,7 +36,7 @@ export function ProjectTabSwitcher({
 
     setActiveTab(tab);
     const url = new URL(window.location.href);
-    if (tab === "tentang") url.searchParams.delete("tab");
+    if (tab === "about") url.searchParams.delete("tab");
     else url.searchParams.set("tab", tab);
     window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
@@ -62,7 +62,7 @@ export function ProjectTabSwitcher({
 
   return (
     <ProjectTabContext.Provider value={activeTab}>
-      <nav className="project-tabs" aria-label="Bagian detail project" role="tablist">
+      <nav className="project-tabs" aria-label="Project detail sections" role="tablist">
         {PROJECT_TABS.map((tab, index) => (
           <button
             key={tab.id}

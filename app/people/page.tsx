@@ -11,6 +11,7 @@ import {
   experienceBandLabel,
   filterAndRankPeople,
   isExperienceBand,
+  isTalentPoolMember,
   peopleFacets,
   peoplePage,
   primaryProfession,
@@ -18,35 +19,35 @@ import {
 } from "../lib/people";
 import { shareCard } from "../content";
 
-const title = "Orang — Ahsan Project";
+const title = "People — Ahsan Project";
 const description =
-  "Cari orang berdasarkan profesi, skill, pengalaman, bidang, dan project yang mereka kerjakan di Ahsan Project.";
+  "Find people by profession, skills, experience, field, and the projects they work on at Ahsan Project.";
 
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: "/orang" },
-  openGraph: shareCard({ title, description, url: "/orang" }),
+  alternates: { canonical: "/people" },
+  openGraph: shareCard({ title, description, url: "/people" }),
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-type DirectoryParam = "q" | "profesi" | "skill" | "pengalaman" | "bidang" | "kerja" | "halaman";
+type DirectoryParam = "q" | "profession" | "skill" | "experience" | "field" | "involvement" | "page";
 
 /** The filters and page number this URL asks for. */
 function readDirectoryQuery(query: Record<string, string | string[] | undefined>) {
-  const involvementValue = one(query.kerja);
-  const experienceValue = one(query.pengalaman);
+  const involvementValue = one(query.involvement);
+  const experienceValue = one(query.experience);
   const filters: PeopleFilters = {
     q: one(query.q).slice(0, 100),
-    profession: one(query.profesi).slice(0, 80),
+    profession: one(query.profession).slice(0, 80),
     skill: one(query.skill).slice(0, 50),
     experience: isExperienceBand(experienceValue) ? experienceValue : "",
-    field: one(query.bidang).slice(0, 50),
+    field: one(query.field).slice(0, 50),
     involvement:
       involvementValue === "building" || involvementValue === "helping" ? involvementValue : "",
   };
 
-  const rawPage = Number(one(query.halaman));
+  const rawPage = Number(one(query.page));
   return { filters, requestedPage: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1 };
 }
 
@@ -62,12 +63,12 @@ export default function PeoplePage({ searchParams }: { searchParams?: SearchPara
 
   return (
     <>
-      <SiteHeader returnTo={query.then(hrefForQuery)} active="orang" />
+      <SiteHeader returnTo={query.then(hrefForQuery)} active="people" />
 
       <main id="main-content" className="people-page">
         <header className="people-directory-head">
-          <h1>Cari orang</h1>
-          <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
+          <h1>Find people</h1>
+          <p>Discover people by profession, skills, experience, field, or project.</p>
         </header>
 
         <Suspense fallback={<DirectorySkeleton />}>
@@ -95,12 +96,12 @@ function directoryPath(
 ): string {
   const base: Partial<Record<DirectoryParam, string>> = {
     q: filters.q,
-    profesi: filters.profession,
+    profession: filters.profession,
     skill: filters.skill,
-    pengalaman: filters.experience,
-    bidang: filters.field,
-    kerja: filters.involvement,
-    halaman: page > 1 ? String(page) : "",
+    experience: filters.experience,
+    field: filters.field,
+    involvement: filters.involvement,
+    page: page > 1 ? String(page) : "",
   };
 
   const params = new URLSearchParams();
@@ -113,19 +114,20 @@ function directoryPath(
   }
 
   const search = params.toString();
-  return `/orang${search ? `?${search}` : ""}`;
+  return `/people${search ? `?${search}` : ""}`;
 }
 
 async function Directory({ query }: { query: SearchParams }) {
   const { filters, requestedPage } = readDirectoryQuery(await query);
   const peopleResult = await readPublicly<PersonAtWork[]>(
-    "direktori orang",
+    "people directory",
     () => listPeopleAtWork(1000),
     [],
   );
   const allPeople = peopleResult.value;
-  const facets = peopleFacets(allPeople);
-  const matched = filterAndRankPeople(allPeople, filters);
+  const talentPoolPeople = allPeople.filter(isTalentPoolMember);
+  const facets = peopleFacets(talentPoolPeople);
+  const matched = filterAndRankPeople(talentPoolPeople, filters);
   const pagination = peoplePage(matched, requestedPage);
   const { items: people, page, pageCount } = pagination;
   const activeFilterCount = [
@@ -140,7 +142,7 @@ async function Directory({ query }: { query: SearchParams }) {
   const directoryHref = (patch: Partial<Record<DirectoryParam, string | number | null>>) =>
     directoryPath(filters, page, patch);
 
-  const topContributors = [...allPeople]
+  const topContributors = [...talentPoolPeople]
     .filter((entry) => entry.helping.length > 0)
     .sort(
       (a, b) =>
@@ -155,31 +157,31 @@ async function Directory({ query }: { query: SearchParams }) {
     <>
         {peopleResult.unavailable ? (
           <p className="public-data-notice" role="status">
-            Data orang belum berhasil dimuat. <Link href={returnTo}>Coba lagi</Link>.
+            People data could not load. <Link href={returnTo}>Try again</Link>.
           </p>
         ) : null}
 
-        <section className="people-search-panel" aria-label="Cari dan filter orang">
-          <form action="/orang" method="get">
-            {filters.involvement ? <input type="hidden" name="kerja" value={filters.involvement} /> : null}
+        <section className="people-search-panel" aria-label="Search and filter people">
+          <form action="/people" method="get">
+            {filters.involvement ? <input type="hidden" name="involvement" value={filters.involvement} /> : null}
             <div className="people-search-row">
               <label className="people-search-field">
-                <span className="sr-only">Cari orang</span>
+                <span className="sr-only">Search people</span>
                 <SearchIcon />
                 <input
                   type="search"
                   name="q"
                   maxLength={100}
                   defaultValue={filters.q}
-                  placeholder="Cari nama, profesi, skill, atau project…"
+                  placeholder="Search name, profession, skill, or project…"
                 />
               </label>
-              <button type="submit">Tampilkan hasil</button>
+              <button type="submit">Show results</button>
             </div>
 
             <div className="people-filter-grid">
-              <FilterSelect name="profesi" label="Profesi" value={filters.profession}>
-                <option value="">Semua profesi</option>
+              <FilterSelect name="profession" label="Profession" value={filters.profession}>
+                <option value="">All professions</option>
                 {filters.profession && !hasFacet(facets.professions, filters.profession) ? (
                   <option value={filters.profession}>{filters.profession} (0)</option>
                 ) : null}
@@ -191,7 +193,7 @@ async function Directory({ query }: { query: SearchParams }) {
               </FilterSelect>
 
               <FilterSelect name="skill" label="Skill" value={filters.skill}>
-                <option value="">Semua skill</option>
+                <option value="">All skills</option>
                 {filters.skill && !hasFacet(facets.skills, filters.skill) ? (
                   <option value={filters.skill}>{filters.skill} (0)</option>
                 ) : null}
@@ -202,15 +204,15 @@ async function Directory({ query }: { query: SearchParams }) {
                 ))}
               </FilterSelect>
 
-              <FilterSelect name="pengalaman" label="Pengalaman" value={filters.experience}>
-                <option value="">Semua pengalaman</option>
+              <FilterSelect name="experience" label="Experience" value={filters.experience}>
+                <option value="">All experience levels</option>
                 {EXPERIENCE_BANDS.map((band) => (
                   <option key={band} value={band}>{experienceBandLabel[band]}</option>
                 ))}
               </FilterSelect>
 
-              <FilterSelect name="bidang" label="Bidang" value={filters.field}>
-                <option value="">Semua bidang</option>
+              <FilterSelect name="field" label="Field" value={filters.field}>
+                <option value="">All fields</option>
                 {filters.field && !hasFacet(facets.fields, filters.field) ? (
                   <option value={filters.field}>{filters.field} (0)</option>
                 ) : null}
@@ -221,62 +223,62 @@ async function Directory({ query }: { query: SearchParams }) {
                 ))}
               </FilterSelect>
             </div>
-            <button className="people-filter-submit" type="submit">Tampilkan hasil</button>
+            <button className="people-filter-submit" type="submit">Show results</button>
           </form>
 
-          <div className="people-work-filters" aria-label="Filter keterlibatan">
+          <div className="people-work-filters" aria-label="Involvement filter">
             <Link
               className={filters.involvement === "" ? "is-active" : ""}
-              href={directoryHref({ kerja: null, halaman: null })}
+              href={directoryHref({ involvement: null, page: null })}
             >
-              Semua
+              All
             </Link>
             <Link
               className={filters.involvement === "building" ? "is-active" : ""}
-              href={directoryHref({ kerja: "building", halaman: null })}
+              href={directoryHref({ involvement: "building", page: null })}
             >
-              Sedang membangun
+              Building
             </Link>
             <Link
               className={filters.involvement === "helping" ? "is-active" : ""}
-              href={directoryHref({ kerja: "helping", halaman: null })}
+              href={directoryHref({ involvement: "helping", page: null })}
             >
-              Ikut membantu
+              Helping
             </Link>
           </div>
         </section>
 
         {activeFilterCount > 0 ? (
-          <div className="people-active-filters" aria-label="Filter aktif">
+          <div className="people-active-filters" aria-label="Active filters">
             <ul>
               {filters.q ? (
-                <ActiveFilter label="Pencarian" value={filters.q} href={directoryHref({ q: null, halaman: null })} />
+                <ActiveFilter label="Search" value={filters.q} href={directoryHref({ q: null, page: null })} />
               ) : null}
               {filters.profession ? (
-                <ActiveFilter label="Profesi" value={filters.profession} href={directoryHref({ profesi: null, halaman: null })} />
+                <ActiveFilter label="Profession" value={filters.profession} href={directoryHref({ profession: null, page: null })} />
               ) : null}
               {filters.skill ? (
-                <ActiveFilter label="Skill" value={filters.skill} href={directoryHref({ skill: null, halaman: null })} />
+                <ActiveFilter label="Skill" value={filters.skill} href={directoryHref({ skill: null, page: null })} />
               ) : null}
               {filters.experience ? (
                 <ActiveFilter
-                  label="Pengalaman"
+                  label="Experience"
                   value={experienceBandLabel[filters.experience]}
-                  href={directoryHref({ pengalaman: null, halaman: null })}
+                  href={directoryHref({ experience: null, page: null })}
                 />
               ) : null}
               {filters.field ? (
-                <ActiveFilter label="Bidang" value={filters.field} href={directoryHref({ bidang: null, halaman: null })} />
+                <ActiveFilter label="Field" value={filters.field} href={directoryHref({ field: null, page: null })} />
               ) : null}
               {filters.involvement ? (
                 <ActiveFilter
-                  label="Keterlibatan"
-                  value={filters.involvement === "building" ? "Sedang membangun" : "Ikut membantu"}
-                  href={directoryHref({ kerja: null, halaman: null })}
+                  label="Involvement"
+                  value={filters.involvement === "building" ? "Building" : "Helping"}
+                  href={directoryHref({ involvement: null, page: null })}
                 />
               ) : null}
             </ul>
-            <Link href="/orang">Hapus semua</Link>
+            <Link href="/people">Clear all</Link>
           </div>
         ) : null}
 
@@ -284,10 +286,10 @@ async function Directory({ query }: { query: SearchParams }) {
           <div className="people-results-layout">
             <div className="people-results-main">
               <div className="people-results-head">
-                <h2 id="people-results-heading">{matched.length} orang ditemukan</h2>
+                <h2 id="people-results-heading">{matched.length} people found</h2>
                 {matched.length > 0 ? (
                   <p>
-                    Menampilkan {pagination.from}–{pagination.to} dari {matched.length}
+                    Showing {pagination.from}–{pagination.to} of {matched.length}
                   </p>
                 ) : null}
               </div>
@@ -295,9 +297,9 @@ async function Directory({ query }: { query: SearchParams }) {
               {people.length === 0 ? (
                 <div className="people-empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>Belum ada orang yang cocok.</h3>
-                  <p>Coba kata yang lebih umum atau lepaskan satu filter untuk memperluas hasil.</p>
-                  <Link className="ghost-button" href="/orang">Lihat semua orang</Link>
+                  <h3>No matching people yet.</h3>
+                  <p>Try a broader term or remove a filter to expand the results.</p>
+                  <Link className="ghost-button" href="/people">View all people</Link>
                 </div>
               ) : (
                 <ul className="people-list">
@@ -308,13 +310,13 @@ async function Directory({ query }: { query: SearchParams }) {
               )}
 
               {pageCount > 1 ? (
-                <nav className="people-pagination" aria-label="Halaman hasil pencarian">
+                <nav className="people-pagination" aria-label="Search result pages">
                   {page > 1 ? (
-                    <Link className="pagination-direction" href={directoryHref({ halaman: page - 1 })} rel="prev">
-                      ← Sebelumnya
+                    <Link className="pagination-direction" href={directoryHref({ page: page - 1 })} rel="prev">
+                      ← Previous
                     </Link>
                   ) : (
-                    <span className="pagination-direction is-disabled">← Sebelumnya</span>
+                    <span className="pagination-direction is-disabled">← Previous</span>
                   )}
                   <div>
                     {paginationItems(page, pageCount).map((item) =>
@@ -323,8 +325,8 @@ async function Directory({ query }: { query: SearchParams }) {
                           key={item}
                           className={item === page ? "is-active" : ""}
                           aria-current={item === page ? "page" : undefined}
-                          aria-label={`Halaman ${item}`}
-                          href={directoryHref({ halaman: item })}
+                          aria-label={`Page ${item}`}
+                          href={directoryHref({ page: item })}
                         >
                           {item}
                         </Link>
@@ -334,11 +336,11 @@ async function Directory({ query }: { query: SearchParams }) {
                     )}
                   </div>
                   {page < pageCount ? (
-                    <Link className="pagination-direction" href={directoryHref({ halaman: page + 1 })} rel="next">
-                      Berikutnya →
+                    <Link className="pagination-direction" href={directoryHref({ page: page + 1 })} rel="next">
+                      Next →
                     </Link>
                   ) : (
-                    <span className="pagination-direction is-disabled">Berikutnya →</span>
+                    <span className="pagination-direction is-disabled">Next →</span>
                   )}
                 </nav>
               ) : null}
@@ -381,15 +383,15 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
   const { person, building, helping } = entry;
   const profession = primaryProfession(entry);
   const evidence = [
-    ...building.map((project) => ({ project, label: "Membangun" })),
-    ...helping.map((project) => ({ project, label: "Membantu" })),
+    ...building.map((project) => ({ project, label: "Building" })),
+    ...helping.map((project) => ({ project, label: "Helping" })),
   ].slice(0, 2);
   const headline = person.headline.trim() !== profession.trim() ? person.headline : "";
 
   return (
     <li>
       <article className="people-row">
-        <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`Profil ${person.name}`}>
+        <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`${person.name}'s profile`}>
           <span className="people-avatar" aria-hidden="true">{initials(person.name)}</span>
         </Link>
 
@@ -400,28 +402,28 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
             <small>@{person.username}</small>
           </header>
           <p className={profession ? "people-profession" : "people-profession is-empty"}>
-            {profession || "Profesi belum diisi"}
+            {profession || "Profession not added"}
           </p>
           {headline ? <p className="people-headline">{headline}</p> : null}
 
           <ul className="people-meta">
-            {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
+            {person.yearsExperience !== null ? <li>{person.yearsExperience} years of experience</li> : null}
             {person.fields.slice(0, 2).map((field) => <li key={field}>{field}</li>)}
-            {building.length > 0 ? <li>{building.length} project dibangun</li> : null}
-            {helping.length > 0 ? <li>{helping.length} kontribusi</li> : null}
+            {building.length > 0 ? <li>{building.length} projects built</li> : null}
+            {helping.length > 0 ? <li>{helping.length} contributions</li> : null}
           </ul>
 
           {person.skills.length > 0 ? (
-            <ul className="people-skills" aria-label={`Skill ${person.name}`}>
+            <ul className="people-skills" aria-label={`${person.name}'s skills`}>
               {person.skills.slice(0, 4).map((skill) => (
-                <li key={skill}><Link href={`/orang?skill=${encodeURIComponent(skill)}`}>{skill}</Link></li>
+                <li key={skill}><Link href={`/people?skill=${encodeURIComponent(skill)}`}>{skill}</Link></li>
               ))}
               {person.skills.length > 4 ? <li className="people-more">+{person.skills.length - 4}</li> : null}
             </ul>
           ) : null}
 
           <div className="people-proof">
-            <strong>Bukti kerja</strong>
+            <strong>Proof of work</strong>
             {evidence.length > 0 ? (
               <ul>
                 {evidence.map(({ project, label }) => (
@@ -432,14 +434,14 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
                 ))}
               </ul>
             ) : (
-              <p className="people-no-proof">Belum menunjukkan project publik.</p>
+              <p className="people-no-proof">No public projects shown yet.</p>
             )}
           </div>
         </div>
 
         <div className="people-row-action">
           <Link href={`/u/${person.username}`}>
-            Lihat profil <span aria-hidden="true">→</span>
+            View profile <span aria-hidden="true">→</span>
           </Link>
         </div>
       </article>
@@ -451,10 +453,10 @@ function ContributorRail({ people }: { people: PersonAtWork[] }) {
   return (
     <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
       <div className="people-contributor-card">
-        <p className="section-label">Kontributor</p>
-        <h2 id="contributors-heading">Paling banyak membantu</h2>
+        <p className="section-label">Contributors</p>
+        <h2 id="contributors-heading">Most active contributors</h2>
         <p className="people-contributor-note">
-          Diurutkan dari jumlah project berbeda yang pernah dibantu.
+          Ranked by the number of distinct projects each person has helped with.
         </p>
 
         {people.length > 0 ? (
@@ -474,11 +476,11 @@ function ContributorRail({ people }: { people: PersonAtWork[] }) {
             ))}
           </ol>
         ) : (
-          <p className="people-contributor-empty">Belum ada kontribusi lintas project yang tercatat.</p>
+          <p className="people-contributor-empty">No cross-project contributions recorded yet.</p>
         )}
 
-        <Link className="people-contributor-all" href="/orang?kerja=helping">
-          Lihat semua kontributor <span aria-hidden="true">→</span>
+        <Link className="people-contributor-all" href="/people?involvement=helping">
+          View all contributors <span aria-hidden="true">→</span>
         </Link>
       </div>
     </aside>
@@ -507,7 +509,7 @@ function FilterSelect({
 function ActiveFilter({ label, value, href }: { label: string; value: string; href: string }) {
   return (
     <li>
-      <Link href={href} aria-label={`Hapus filter ${label}: ${value}`}>
+      <Link href={href} aria-label={`Remove ${label} filter: ${value}`}>
         <small>{label}</small> {value} <span aria-hidden="true">×</span>
       </Link>
     </li>

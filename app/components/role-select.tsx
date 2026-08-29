@@ -22,7 +22,7 @@ export function RoleSelect({
       required
       onChange={(event) => onValueChange?.(event.target.value)}
     >
-      <option value="" disabled>Pilih role…</option>
+      <option value="" disabled>Choose a role…</option>
       {ROLE_GROUPS.map((group) => (
         <optgroup key={group} label={group}>
           {ROLES.filter((role) => roleMeta[role].group === group).map((role) => (

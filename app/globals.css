@@ -146,6 +146,7 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
   font-size: 10px; font-weight: 700; justify-content: center; min-width: 18px; padding: 2px 6px;
 }
 .header-actions { align-items: center; display: flex; gap: 9px; }
+.header-account-skeleton { min-width: 163px; }
 .icon-button, .avatar-button {
   align-items: center; background: #fff; border: 1px solid var(--line); display: flex;
   justify-content: center; position: relative;
@@ -250,6 +251,12 @@ nav form { display: flex; margin: 0; }
   background: transparent; color: #a64d38; font-size: 13px; font-weight: 650;
 }
 .account-signout button:hover { background: #fff2ed; color: #8d3827; }
+.account-signout button:disabled { cursor: wait; opacity: .78; }
+.signout-spinner {
+  animation: signout-spin .7s linear infinite; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; box-sizing: border-box; height: 17px; width: 17px;
+}
+@keyframes signout-spin { to { transform: rotate(360deg); } }
 
 .mobile-menu[open] > summary { border-color: #9db0a7; background: #f6f8f5; }
 .mobile-menu[open] > summary i:first-child { transform: translateY(2.75px) rotate(45deg); }
@@ -703,6 +710,13 @@ a.seat-chip:hover { border-color: var(--ink); }
   gap: 6px; letter-spacing: .06em; padding: 5px 10px; text-transform: uppercase; white-space: nowrap;
 }
 .stage-badge i { background: currentColor; border-radius: 50%; height: 6px; opacity: .75; width: 6px; }
+.github-contribute-badge {
+  align-items: center; background: #24292f; border-radius: 99px; color: #fff; display: inline-flex;
+  font-size: 10px; font-weight: 750; gap: 5px; letter-spacing: .025em; padding: 6px 10px; width: fit-content;
+}
+.github-contribute-badge:hover { background: #0969da; color: #fff; }
+.github-contribute-badge .arrow { height: 11px; width: 11px; }
+.project-head-badges { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
 /* Solid rather than translucent, one step deeper than the tile beside it. */
 .stage-idea { background: #f8ddcb; color: #a8401b; }
 .stage-building { background: #dfeae2; color: #3b5230; }
@@ -710,7 +724,7 @@ a.seat-chip:hover { border-color: var(--ink); }
 .stage-resting { background: #e4e2db; color: #4d5751; }
 
 /*
- * Jenis project, beside the level badge.
+ * Project kind, beside the status badge.
  *
  * Outlined rather than solid, so the two never compete: the level is the claim
  * the board vouches for, and this sits next to it as context. Nothing renders
@@ -725,9 +739,6 @@ a.seat-chip:hover { border-color: var(--ink); }
 .type-community { color: #2f6d6a; }
 .type-product { color: #1f5c8b; }
 .type-commercial { color: #9a5a12; }
-
-/* Level and jenis travel together wherever a card shows both. */
-.badge-stack { align-items: flex-end; display: inline-flex; flex-direction: column; gap: 5px; }
 
 
 /* -------------------------------------------------------------- project */
@@ -790,6 +801,16 @@ a.seat-chip:hover { border-color: var(--ink); }
   font-size: 12px; font-weight: 650; gap: 10px; padding: 9px 15px;
 }
 .project-links a:hover { border-color: var(--ink); }
+.github-contribution {
+  background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 14px; margin-top: 20px; padding: 20px;
+}
+.github-contribution h3 { margin-bottom: 7px; }
+.github-contribution p { color: var(--ink-soft); font-size: 14px; line-height: 1.65; margin-bottom: 15px; }
+.github-contribution a {
+  align-items: center; background: var(--ink); border-radius: 99px; color: #fff; display: inline-flex;
+  font-size: 12px; font-weight: 700; gap: 9px; padding: 10px 15px;
+}
+.github-contribution a:hover { background: #245848; }
 
 .project-tabs {
   border-bottom: 1px solid var(--line-2); display: flex; gap: clamp(24px, 3vw, 44px);
@@ -932,11 +953,21 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
   background: var(--paper); border-radius: 12px; color: var(--muted); font-size: 13px;
   line-height: 1.6; margin: 0 0 24px; padding: 13px 15px;
 }
+.github-start { background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 16px; margin: 0 0 24px; padding: 21px; }
+.github-start .eyebrow { margin-bottom: 9px; }
+.github-start h2 { font-size: 19px; letter-spacing: -.03em; margin-bottom: 7px; }
+.github-start > p:not(.eyebrow) { color: var(--ink-soft); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+.github-start .field > .hint { margin-bottom: 8px; }
+.github-start .github-import { border-top: 0; margin-bottom: 0; padding-top: 0; }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
 .create-submit { justify-content: center; width: 100%; }
 .auth-page { max-width: 520px; }
 .auth-form .hint { margin: -12px 0 18px; }
 .auth-form button { justify-content: center; width: 100%; }
+/* The Google entry point is a link, not a submit button — it has to be a plain
+   GET so the response that sends somebody to Google can carry the PKCE cookie
+   that brings them back. It still has to look like the button it replaced. */
+.auth-form .google-auth-button { justify-content: center; text-decoration: none; width: 100%; }
 .auth-form .google-auth-button {
   align-items: center; background: #fff; border: 1px solid #cbd5d0; border-radius: 12px; color: var(--ink);
   display: flex; font-size: 14px; font-weight: 680; gap: 11px; min-height: 50px; transition: background .2s ease, border-color .2s ease, transform .2s ease;
@@ -1055,6 +1086,8 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .signin-fallback-link { font-size: 12px; margin: -8px 0 22px; text-align: center; }
 .signin-fallback-link a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 650; }
 .signin-privacy { color: #82908a; font-size: 10.5px; line-height: 1.55; margin: 13px auto 0; max-width: 320px; text-align: center; }
+.signin-privacy a, .auth-privacy-note a { border-bottom: 1px solid currentColor; }
+.auth-privacy-note { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin-top: 12px; text-align: center; }
 
 @media (max-width: 900px) {
   .signin-page { gap: 35px; grid-template-columns: minmax(0, 620px); justify-content: center; padding-top: 52px; }
@@ -1117,6 +1150,11 @@ form button.danger:hover { background: #96320f; }
 .task-list h4 { font-size: 16px; font-weight: 680; letter-spacing: -.01em; margin: 0 0 6px; }
 .task-list li.is-done h4 { opacity: .6; text-decoration: line-through; }
 .task-list p { font-size: 14px; line-height: 1.6; margin: 0 0 8px; }
+.task-role { color: var(--moss); font-size: 12px !important; font-weight: 650; }
+.task-proposal { margin-top: 12px; }
+.task-proposal > summary { color: var(--coral); cursor: pointer; font-size: 13px; font-weight: 650; }
+.task-proposal form { margin-top: 10px; }
+.task-proposal-list { margin-top: 14px; }
 .task-holder { align-items: center; display: flex; font-size: 12px; font-weight: 650; gap: 8px; }
 .task-holder a { border-bottom: 1px solid var(--line-2); }
 .task-holder .avatar { height: 22px; width: 22px; }
@@ -1376,6 +1414,11 @@ form button.danger:hover { background: #96320f; }
 
 .page-narrow h1 { font-size: clamp(38px, 5vw, 60px); margin-bottom: 20px; }
 .lede { color: var(--muted); font-size: 17px; line-height: 1.7; margin-bottom: 34px; }
+.legal-content h2 { font-size: 22px; font-weight: 680; letter-spacing: -.02em; margin: 42px 0 14px; }
+.legal-content h3 { font-size: 16px; font-weight: 680; margin: 26px 0 8px; }
+.legal-content p { color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
+.legal-content ul { color: var(--ink-soft); font-size: 15px; line-height: 1.7; margin: 0 0 16px; padding-left: 20px; }
+.legal-content li + li { margin-top: 8px; }
 .how-list { list-style: none; margin: 0 0 34px; padding: 0; }
 .how-list li { border-top: 1px solid var(--line); display: flex; gap: 22px; padding: 22px 0; }
 .how-list span {
@@ -1581,7 +1624,7 @@ footer nav a:hover { color: var(--ink); }
 .stage-choice small { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 
 /*
- * Jenis project on the create and edit forms.
+ * Project kind on the create and edit forms.
  *
  * Same shape as the level list on purpose — the two questions sit side by side
  * and answering one should feel like answering the other. The extra line is the
@@ -1633,6 +1676,12 @@ form label.topic-option.is-selected { background: var(--ink); border-color: var(
 .optional-fields-body { background: var(--paper); border-radius: 14px; padding: 18px 18px 1px; }
 .optional-fields.is-required > summary { display: none; }
 .optional-fields.is-required .optional-fields-body { margin-top: 18px; }
+.github-import { border-top: 1px solid var(--line); margin: 2px 0 18px; padding-top: 17px; }
+.github-import > p:first-child { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin: 0 0 12px; }
+.github-import > p:first-child strong { color: var(--ink); }
+.github-import-message { border-radius: 10px; font-size: 12.5px; line-height: 1.55; margin: 12px 0 0; padding: 10px 12px; }
+.github-import-message.is-success { background: #eef5e8; color: #38522e; }
+.github-import-message.is-error { background: #fff0ea; color: #964125; }
 
 /* Asking for help is one choice first; the detailed ask appears only after it. */
 form label.help-toggle {
@@ -1694,7 +1743,8 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .project-item { padding: 19px; }
   .project-head { gap: 12px; grid-template-columns: 40px minmax(0, 1fr); }
   /* The badge wraps under the title rather than squeezing it to two words. */
-  .project-head .stage-badge { grid-column: 2; margin-top: 0; }
+  .project-head-badges { align-items: flex-start; grid-column: 2; }
+  .project-head .stage-badge { margin-top: 0; }
   .project-logo { height: 40px; width: 40px; }
   .project-head h3 { font-size: 18px; }
   .project-foot { gap: 12px; grid-template-columns: minmax(0, 1fr) auto; }
@@ -2139,7 +2189,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   align-items: center;
   background: #f3f6f4; border-bottom: 1px solid #e0e7e3;
   display: flex; flex-direction: column; margin: 0 auto; max-width: none; min-height: 620px;
-  padding: 92px 54px; position: relative; text-align: center; width: 100%;
+  padding: 150px 54px 84px; position: relative; text-align: center; width: 100%;
 }
 .landing-hero::before {
   background: repeating-radial-gradient(
@@ -2774,7 +2824,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .quality-note { grid-column: 1 / -1; }
   .collaboration-hero { align-items: flex-start; flex-direction: column; }
   .collaboration-filter-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .landing-hero { min-height: 0; padding-bottom: 82px; padding-top: 62px; }
+  .landing-hero { min-height: 0; padding-bottom: 82px; padding-top: 100px; }
   .landing-hero-copy { max-width: 720px; }
   .landing-hero .typing-line { min-height: 1.08em; }
   .use-case-layout { grid-template-columns: 1fr; }
@@ -2857,7 +2907,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
   .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }
-  .landing-hero { margin: 0 auto; padding: 52px 16px 48px; width: 100%; }
+  .landing-hero { margin: 0 auto; padding: 96px 16px 54px; width: 100%; }
   .landing-hero::before {
     display: block; height: 110px; left: -38px; opacity: .5; top: 330px; width: 110px;
   }
@@ -3108,6 +3158,82 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); color: #c5d2cd;
 }
 
+/* ------------------------------------------------------------------ *
+ * Next steps (/get-started) and the profile editor's doorway
+ * ------------------------------------------------------------------ *
+ *
+ * Deliberately no meter and no percentage bar. Each line is a named thing
+ * with a link at it, and "done" is a tick rather than a fraction — a profile
+ * is not a form to fill to 100%. */
+
+.start-page { padding-bottom: 60px; }
+.start-page .lede { margin-bottom: 34px; }
+
+.next-steps { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.next-step {
+  align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  display: grid; gap: 16px; grid-template-columns: 26px minmax(0, 1fr) auto; padding: 18px 20px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.next-step:hover { border-color: var(--line-2); box-shadow: 0 12px 30px rgba(25, 58, 49, .06); }
+.next-step-mark {
+  align-items: center; border: 1.5px solid var(--line-2); border-radius: 50%; color: transparent;
+  display: flex; font-size: 13px; font-weight: 750; height: 26px; justify-content: center; width: 26px;
+}
+.next-step.is-done { background: transparent; border-style: dashed; }
+.next-step.is-done .next-step-mark { background: var(--sage); border-color: var(--sage); color: var(--ink); }
+.next-step.is-done .next-step-copy h3 { color: var(--muted); }
+.next-step-copy { min-width: 0; }
+.next-step-copy h3 { font-size: 16px; font-weight: 690; letter-spacing: -.02em; margin: 0; }
+.next-step-copy p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 5px 0 0; }
+.next-step-state { color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.next-step-cta {
+  background: var(--ink); border-radius: 11px; color: var(--paper); font-size: 13px; font-weight: 660;
+  padding: 10px 16px; white-space: nowrap;
+}
+.next-step-cta:hover { background: #245848; }
+.next-step.is-done .next-step-cta { background: transparent; border: 1px solid var(--line-2); color: var(--ink); }
+.next-step.is-done .next-step-cta:hover { border-color: var(--ink); }
+.next-step-optional .section-title { margin-bottom: 14px; }
+
+.start-project-list { display: grid; gap: 14px; list-style: none; margin: 0; padding: 0; }
+.start-project-row {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
+}
+.start-project-head { align-items: center; display: grid; gap: 14px; grid-template-columns: auto minmax(0, 1fr) auto; }
+.start-project-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-width: 0; }
+.start-project-title h3 { font-size: 18px; font-weight: 700; letter-spacing: -.03em; margin: 0; }
+.start-project-title h3 a:hover { color: #2b6d58; }
+.start-project-edit {
+  border: 1px solid var(--line-2); border-radius: 11px; font-size: 13px; font-weight: 640;
+  padding: 9px 14px; white-space: nowrap;
+}
+.start-project-edit:hover { border-color: var(--ink); }
+.start-now-form { border-top: 1px solid var(--line-soft); margin-top: 16px; padding-top: 14px; }
+.start-now-form label {
+  color: var(--muted); display: block; font-size: 12px; font-weight: 660; letter-spacing: .04em;
+  margin-bottom: 7px; text-transform: uppercase;
+}
+.start-now-row { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
+.start-now-row input { margin: 0; }
+.start-now-row button { white-space: nowrap; }
+.start-project-seats { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+.start-project-seats a { border-bottom: 1px solid var(--line-2); }
+.start-skip { margin-top: 40px; }
+.start-skip a { color: var(--muted); font-size: 14px; border-bottom: 1px solid var(--line-2); }
+
+.profile-self-tools {
+  align-items: center; display: flex; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 36px;
+}
+.profile-edit-link {
+  background: var(--ink); border-radius: 11px; color: var(--paper); font-size: 13px; font-weight: 660;
+  padding: 10px 16px;
+}
+.profile-edit-link:hover { background: #245848; }
+.profile-self-note { color: var(--muted); font-size: 13px; margin: 0; }
+.profile-self-note a { border-bottom: 1px solid var(--line-2); color: var(--ink); }
+
+
 @media (max-width: 960px) {
   .people-page { padding-left: 34px; padding-right: 34px; }
   .people-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3122,6 +3248,12 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 
 @media (max-width: 720px) {
+  .next-step { gap: 10px 12px; grid-template-columns: 26px minmax(0, 1fr); padding: 16px; }
+  .next-step-cta { grid-column: 2; justify-self: start; }
+  .start-project-head { grid-template-columns: auto minmax(0, 1fr); }
+  .start-project-edit { grid-column: 2; justify-self: start; }
+  .start-now-row { grid-template-columns: 1fr; }
+  .start-now-row button { justify-content: center; width: 100%; }
   .people-page { padding: 0 20px 68px; }
   .people-directory-head { padding: 26px 1px 17px; }
   .people-directory-head h1 { font-size: 28px; }

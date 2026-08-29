@@ -51,7 +51,7 @@ export function BoardRail({
   const activeFilters = [stage, role].filter(Boolean).length;
 
   const topicList = (items: { tag: string; count: number }[]) => (
-    <ul aria-label="Bidang">
+    <ul aria-label="Categories">
       {items.map((topic) => {
         const active = tag === topic.tag;
         return (
@@ -77,8 +77,8 @@ export function BoardRail({
   const filterSections = (keyPrefix: string) => (
     <div className="rail-more-content">
       <section className="rail-section">
-        <h2>Tahap</h2>
-        <ul aria-label="Tahap">
+        <h2>Stage</h2>
+        <ul aria-label="Stages">
           {STAGES.map((key) => {
             const count = scoped.filter((project) => project.stage === key).length;
             if (count === 0 && stage !== key) return null;
@@ -105,8 +105,8 @@ export function BoardRail({
       </section>
 
       <section className="rail-section">
-        <h2>Butuh bantuan sebagai</h2>
-        <ul aria-label="Peran yang sedang dicari">
+        <h2>Needs help with</h2>
+        <ul aria-label="Roles being sought">
           {ROLES.map((key) => {
             const count = roleCounts.get(key) ?? 0;
             if (count === 0 && role !== key) return null;
@@ -135,13 +135,13 @@ export function BoardRail({
   );
 
   return (
-    <nav className="board-rail" aria-label="Saringan">
+    <nav className="board-rail" aria-label="Filters">
       <section className="rail-section rail-topics" aria-labelledby="rail-topics-title">
-        <h2 id="rail-topics-title">Bidang</h2>
-        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">Belum ada bidang.</p>}
+        <h2 id="rail-topics-title">Topics</h2>
+        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">No topics yet.</p>}
         {moreTopics.length > 0 ? (
           <details className="rail-disclosure">
-            <summary>+ {moreTopics.length} lainnya</summary>
+            <summary>+ {moreTopics.length} more</summary>
             {topicList(moreTopics)}
           </details>
         ) : null}
@@ -150,7 +150,7 @@ export function BoardRail({
       <div className="rail-more-desktop">{filterSections("desktop")}</div>
 
       <details className="rail-more-mobile">
-        <summary>Saringan · {activeFilters} aktif</summary>
+        <summary>Filters · {activeFilters} active</summary>
         {filterSections("mobile")}
       </details>
     </nav>

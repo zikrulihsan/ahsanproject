@@ -103,10 +103,10 @@ export function SearchableFilter({
         }}
         onKeyDown={handleKeys}
       />
-      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label="Hapus filter kategori">×</button> : null}
+      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label="Clear category filter">×</button> : null}
 
       {open ? (
-        <div className="searchable-filter-options" id={listId} role="listbox" aria-label="Hasil kategori">
+        <div className="searchable-filter-options" id={listId} role="listbox" aria-label="Category results">
           {matches.length > 0 ? matches.map((option, index) => (
             <button
               key={option.value}
@@ -122,7 +122,7 @@ export function SearchableFilter({
               <span>{option.label}</span>
               {option.meta ? <small>{option.meta}</small> : null}
             </button>
-          )) : <p>Kategori tidak ditemukan.</p>}
+          )) : <p>Category not found.</p>}
         </div>
       ) : null}
     </form>

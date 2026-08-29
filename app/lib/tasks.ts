@@ -11,9 +11,9 @@ export const TASK_STATUSES = ["todo", "doing", "done"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 export const taskStatusMeta: Record<TaskStatus, { label: string; blurb: string; tone: string }> = {
-  todo: { label: "Belum jalan", blurb: "Sudah dicatat, belum ada yang mulai.", tone: "task-todo" },
-  doing: { label: "Lagi dikerjain", blurb: "Ada yang sedang menggarap ini.", tone: "task-doing" },
-  done: { label: "Beres", blurb: "Sudah selesai.", tone: "task-done" },
+  todo: { label: "Not started", blurb: "Recorded, but nobody has started it yet.", tone: "task-todo" },
+  doing: { label: "In progress", blurb: "Someone is working on this.", tone: "task-doing" },
+  done: { label: "Done", blurb: "Completed.", tone: "task-done" },
 };
 
 export function isTaskStatus(value: string): value is TaskStatus {
@@ -44,15 +44,15 @@ export function validateTask(input: TaskInput): TaskErrors {
   const detail = input.detail.trim();
 
   if (!title) {
-    errors.title = "Tugasnya belum diberi judul.";
+    errors.title = "Give this task a title.";
   } else if (title.length < TASK_LIMITS.title.min) {
-    errors.title = `Judul tugasnya terlalu pendek — minimal ${TASK_LIMITS.title.min} karakter.`;
+    errors.title = `The task title is too short—at least ${TASK_LIMITS.title.min} characters.`;
   } else if (title.length > TASK_LIMITS.title.max) {
-    errors.title = `Judul tugasnya terlalu panjang — maksimal ${TASK_LIMITS.title.max} karakter.`;
+    errors.title = `The task title is too long—at most ${TASK_LIMITS.title.max} characters.`;
   }
 
   if (detail.length > TASK_LIMITS.detail.max) {
-    errors.detail = `Penjelasannya terlalu panjang — maksimal ${TASK_LIMITS.detail.max} karakter.`;
+    errors.detail = `The description is too long—at most ${TASK_LIMITS.detail.max} characters.`;
   }
 
   return errors;

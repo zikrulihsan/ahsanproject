@@ -26,7 +26,7 @@ export function RoleFields({
 
   return (
     <div className="role-fields">
-      <label htmlFor={id}>Role yang dibuka</label>
+      <label htmlFor={id}>Open role</label>
       <RoleSelect
         id={id}
         name={roleName}
@@ -34,7 +34,7 @@ export function RoleFields({
         onValueChange={setRole}
       />
       <p className="hint role-catalogue-hint">
-        Cari dari katalog. Kalau tidak ada, pilih “Role lainnya”.
+        Search the catalogue. If it is not there, choose “Other role”.
       </p>
       {roleError ? <p className="field-error role-field-error" role="alert">{roleError}</p> : null}
 
@@ -42,7 +42,7 @@ export function RoleFields({
         className={roleTitleError ? "field has-error" : "field"}
         hidden={role !== "other"}
       >
-        <label htmlFor={`${id}-title`}>Nama role lainnya</label>
+        <label htmlFor={`${id}-title`}>Other role name</label>
         <input
           id={`${id}-title`}
           name={roleTitleName}
@@ -52,7 +52,7 @@ export function RoleFields({
           required={role === "other"}
           disabled={role !== "other"}
           aria-invalid={roleTitleError ? true : undefined}
-          placeholder="Contoh: Videografer, Bendahara, Koordinator acara"
+          placeholder="For example: Videographer, Treasurer, Event coordinator"
         />
         {roleTitleError ? <p className="field-error" role="alert">{roleTitleError}</p> : null}
       </div>

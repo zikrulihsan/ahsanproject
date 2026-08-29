@@ -5,35 +5,35 @@ import { ForgotPasswordForm } from "../components/auth-forms";
 import { supabaseConfigured } from "../lib/supabase";
 
 export const metadata: Metadata = {
-  title: "Lupa kata sandi — Ahsan Project",
-  description: "Minta tautan untuk menyetel ulang kata sandi akun Ahsan Project.",
+  title: "Forgot password — Ahsan Project",
+  description: "Request a link to reset your Ahsan Project account password.",
   robots: { index: false },
 };
 
 export default function ForgotPasswordPage() {
   return (
     <>
-      <SiteHeader returnTo="/lupa-password" />
+      <SiteHeader returnTo="/forgot-password" />
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Lupa kata sandi
+          <span /> Forgot password
         </p>
-        <h1>Tidak apa-apa.</h1>
+        <h1>No problem.</h1>
         <p className="lede">
-          Masukkan emailmu, nanti kami kirim tautan untuk menyetel kata sandi baru.
+          Enter your email address and we will send you a link to set a new password.
         </p>
 
         {supabaseConfigured() ? (
           <ForgotPasswordForm />
         ) : (
           <p className="form-error">
-            Situs ini belum tersambung ke Supabase, jadi kata sandi belum bisa disetel ulang.
+            This site is not connected to Supabase yet, so passwords cannot be reset.
           </p>
         )}
 
         <p className="auth-switch">
-          Ingat lagi? <Link href="/signin">Masuk saja</Link>.
+          Remembered it? <Link href="/signin">Sign in</Link>.
         </p>
       </main>
 

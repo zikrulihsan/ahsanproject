@@ -1,4 +1,5 @@
 import type { PersonAtWork } from "./data";
+import { profileReady } from "./next-steps";
 
 export const PEOPLE_PAGE_SIZE = 12;
 
@@ -43,6 +44,16 @@ export function primaryProfession(entry: PersonAtWork): string {
   );
 }
 
+/**
+ * A public profile only joins the talent pool once it contains the details the
+ * directory can actually match: a profession, at least one skill, and a short
+ * introduction. The same rule drives the onboarding step, so the promise made
+ * there and the people shown here cannot drift apart.
+ */
+export function isTalentPoolMember(entry: PersonAtWork): boolean {
+  return profileReady(entry.person);
+}
+
 /** URL filters are exact facets; search is the deliberately broad path. */
 export function filterAndRankPeople(
   people: PersonAtWork[],
@@ -85,6 +96,24 @@ export function peopleFacets(people: PersonAtWork[]): PeopleFacets {
     skills: countValues(people.flatMap((entry) => entry.person.skills)),
     fields: countValues(people.flatMap((entry) => entry.person.fields)),
   };
+}
+
+/**
+ * The terms other people already use, most common first.
+ *
+ * Fed to the profile editor as a `<datalist>`. Suggesting rather than
+ * constraining: somebody typing "Riset Pengguna" when the rest of the site
+ * writes "User Research" is two entries in the talent pool that should have
+ * been one, and nobody can see that from inside their own form.
+ */
+export function termSuggestions(
+  people: { skills: string[]; fields: string[] }[],
+  key: "skills" | "fields",
+  limit = 40,
+): string[] {
+  return countValues(people.flatMap((person) => person[key]))
+    .slice(0, limit)
+    .map((entry) => entry.value);
 }
 
 export function peoplePage<T>(items: T[], requestedPage: number, pageSize = PEOPLE_PAGE_SIZE) {

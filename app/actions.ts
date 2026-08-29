@@ -10,24 +10,44 @@ import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
+import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
 import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
+import {
+  PROFILE_LIMITS,
+  PROFILE_MAXIMUM,
+  isEmail,
+  validateProfile,
+  type ProfileFieldErrors,
+  type ProfileInput,
+} from "./lib/profile";
 import { tags } from "./lib/cache-tags";
 
 export type CreateState = {
   errors: FieldErrors & {
     form?: string;
+    stage?: string;
     now?: string;
     projectType?: string;
     seatRole?: string;
     seatRoleTitle?: string;
     seatBrief?: string;
     seatCommitment?: string;
+    openForGitHubContributions?: string;
   };
   values: Record<string, string>;
 };
 
 export type EditState = CreateState;
+
+export type GitHubImportResult =
+  | { ok: true; draft: GitHubProjectDraft }
+  | { ok: false; error: string };
+
+export type ProfileState = {
+  errors: ProfileFieldErrors & { form?: string };
+  values: ProfileInput;
+};
 
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
 
@@ -83,6 +103,18 @@ function trailChanged(personId: string | null | undefined, slug?: string): void 
  * Projects
  * ------------------------------------------------------------------ */
 
+/** Reads public GitHub copy into a browser draft; it never writes a project. */
+export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportResult> {
+  const viewer = await currentViewer();
+  if (!viewer) return { ok: false, error: "Sign in before importing a README." };
+
+  try {
+    return { ok: true, draft: await getGitHubProjectDraft(repoUrl) };
+  } catch (error) {
+    return { ok: false, error: messageOf(error) };
+  }
+}
+
 export async function createProject(_state: CreateState, formData: FormData): Promise<CreateState> {
   const values = {
     title: text(formData, "title"),
@@ -103,17 +135,18 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     seatBrief: text(formData, "seatBrief"),
     seatCommitment: formCommitment(formData, "seatCommitment"),
     openSeat: text(formData, "openSeat"),
+    openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu sebelum menunjukkan project di sini." }, values };
+  if (!viewer) return { errors: { form: "Sign in before showing a project here." }, values };
 
   const errors: CreateState["errors"] = validateBrief(values);
   // Asked for, not defaulted. Guessing a type for somebody would put a claim on
   // their project they never made — the one thing this board will not carry —
   // and it is the answer people filter by before they read anything else.
   if (!isProjectType(values.projectType)) {
-    errors.projectType = "Pilih jenis project supaya orang tahu bentuk kolaborasinya.";
+    errors.projectType = "Choose a project kind so people know what collaborating here means.";
   }
   const requestedStage = isStage(values.stage) ? values.stage : "idea";
   if (
@@ -123,20 +156,23 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     !values.repoUrl &&
     !values.liveUrl
   ) {
-    errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
+    errors.now = "Describe the work in progress, or add a working link.";
   }
   if (requestedStage === "live" && !values.liveUrl) {
-    errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+    errors.liveUrl = "A live project needs a link other people can open.";
   }
   if (values.openSeat === "yes") {
-    if (!isRole(values.seatRole)) errors.seatRole = "Pilih role yang sedang dicari.";
+    if (!isRole(values.seatRole)) errors.seatRole = "Choose the role you are looking for.";
     if (values.seatRole === "other" && !values.seatRoleTitle) {
-      errors.seatRoleTitle = "Tulis nama role yang belum ada di katalog.";
+      errors.seatRoleTitle = "Write the name of a role that is not in the catalogue.";
     }
-    if (!values.seatBrief) errors.seatBrief = "Jelaskan pekerjaan konkret yang perlu dibantu.";
+    if (!values.seatBrief) errors.seatBrief = "Describe the specific work you need help with.";
     if (!values.seatCommitment) {
-      errors.seatCommitment = "Berikan perkiraan waktu agar orang tahu apakah mereka bisa ikut.";
+      errors.seatCommitment = "Provide a time estimate so people know whether they can join.";
     }
+  }
+  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
+    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -178,6 +214,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         now_updated_at: values.now ? new Date().toISOString() : null,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
+        open_for_github_contributions: values.openForGitHubContributions === "yes",
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
         tags,
@@ -211,8 +248,8 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
  * Rewrites a project's brief.
  *
  * The same minimums apply as when it was created, so a project cannot be
- * hollowed out after the fact. If the edit takes away what its level stood on,
- * the level drops with it rather than staying as a badge that lies.
+ * hollowed out after the fact. The owner can also move its status, as long as
+ * the selected status is supported by the brief and links being saved.
  */
 export async function updateProject(_state: EditState, formData: FormData): Promise<EditState> {
   const slug = text(formData, "slug");
@@ -229,14 +266,33 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     repoUrl: text(formData, "repoUrl"),
     liveUrl: text(formData, "liveUrl"),
     logoUrl: text(formData, "logoUrl"),
+    stage: text(formData, "stage"),
+    openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah project ini." }, values };
+  if (!viewer) return { errors: { form: "Sign in to edit this project." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
   if (!isProjectType(values.projectType)) {
-    errors.projectType = "Pilih jenis project supaya orang tahu bentuk kolaborasinya.";
+    errors.projectType = "Choose a project kind so people know what collaborating here means.";
+  }
+  const requestedStage = isStage(values.stage) ? values.stage : null;
+  if (!requestedStage) {
+    errors.stage = "Choose an available project status.";
+  } else if (
+    requestedStage === "building" &&
+    !values.now &&
+    !values.docUrl &&
+    !values.repoUrl &&
+    !values.liveUrl
+  ) {
+    errors.now = "Describe the work in progress, or add a working link.";
+  } else if (requestedStage === "live" && !values.liveUrl) {
+    errors.liveUrl = "A live project needs a link other people can open.";
+  }
+  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
+    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -248,24 +304,13 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!project) return { errors: { form: "Projectnya tidak ketemu." }, values };
+    if (!project) return { errors: { form: "Project not found." }, values };
     if (project.owner_id !== viewer.id) {
-      return { errors: { form: "Cuma pemilik project yang bisa mengubahnya." }, values };
+      return { errors: { form: "Only the project owner can edit it." }, values };
     }
 
     const tags = normaliseTags(values.tags);
-    const stage = settleStage(project.stage as Stage, {
-      problem: values.problem,
-      solution: values.solution,
-      audience: values.audience,
-      tags,
-      nowText: values.now,
-      docUrl: values.docUrl,
-      repoUrl: values.repoUrl,
-      liveUrl: values.liveUrl,
-    });
-
-    const { error: updateError } = await supabase
+    const { data: updatedProject, error: updateError } = await supabase
       .from("projects")
       .update({
         title: values.title,
@@ -276,14 +321,23 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
         now_text: values.now,
         doc_url: values.docUrl,
         repo_url: values.repoUrl,
+        open_for_github_contributions: values.openForGitHubContributions === "yes",
         live_url: values.liveUrl,
         logo_url: values.logoUrl,
         project_type: values.projectType,
         tags,
-        stage,
+        stage: requestedStage,
       })
-      .eq("id", project.id);
+      .eq("id", project.id)
+      .select("id")
+      .maybeSingle();
     if (updateError) throw new Error(updateError.message);
+    if (!updatedProject) {
+      return {
+        errors: { form: "The project could not be saved. Refresh the page and try again." },
+        values,
+      };
+    }
   } catch (error) {
     return { errors: { form: messageOf(error) }, values };
   }
@@ -392,14 +446,22 @@ export async function openSeat(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
 }
 
-export async function applyForSeat(formData: FormData): Promise<void> {
+/** Submit a proposal for either a role or a concrete unassigned task. */
+export async function submitProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
   const seatId = Number(text(formData, "seatId"));
   const pitch = text(formData, "pitch").slice(0, MAXIMUM.pitch);
-  if (!Number.isInteger(seatId) || !pitch) return;
+  const hasTask = Number.isInteger(taskId);
+  const hasSeat = Number.isInteger(seatId);
+  if (hasTask === hasSeat || !pitch) return;
 
   const supabase = await requireSupabase();
-  const { error } = await supabase.rpc("apply_for_seat", { seat_id: seatId, pitch });
+  const { error } = await supabase.rpc("submit_proposal", {
+    target_task_id: hasTask ? taskId : null,
+    target_seat_id: hasSeat ? seatId : null,
+    message: pitch,
+  });
   if (error) throw new Error(error.message);
 
   seatsChanged(slug);
@@ -408,15 +470,15 @@ export async function applyForSeat(formData: FormData): Promise<void> {
   revalidatePath("/");
 }
 
-export async function decideSeat(formData: FormData): Promise<void> {
+export async function decideProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
-  const seatId = Number(text(formData, "seatId"));
+  const proposalId = Number(text(formData, "proposalId"));
   const decision = text(formData, "decision");
-  if (!Number.isInteger(seatId) || (decision !== "terima" && decision !== "tolak")) return;
+  if (!Number.isInteger(proposalId) || (decision !== "terima" && decision !== "tolak")) return;
 
   const supabase = await requireSupabase();
-  const { error } = await supabase.rpc("decide_seat", {
-    seat_id: seatId,
+  const { error } = await supabase.rpc("decide_proposal", {
+    proposal_id: proposalId,
     accept: decision === "terima",
   });
   if (error) throw new Error(error.message);
@@ -465,6 +527,8 @@ export async function setNow(formData: FormData): Promise<void> {
   trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
+  // The same line is editable from the owner's next-steps page.
+  revalidatePath("/get-started");
 }
 
 /**
@@ -568,6 +632,9 @@ export async function createTask(formData: FormData): Promise<void> {
   const title = text(formData, "title").slice(0, TASK_LIMITS.title.max);
   const detail = text(formData, "detail").slice(0, TASK_LIMITS.detail.max);
   const assigneeId = text(formData, "assigneeId");
+  const rawSeatId = text(formData, "seatId");
+  const seatId = rawSeatId ? Number(rawSeatId) : null;
+  if (rawSeatId && !Number.isInteger(seatId)) return;
   if (Object.keys(validateTask({ title, detail })).length > 0) return;
 
   const viewer = await currentViewer();
@@ -587,6 +654,7 @@ export async function createTask(formData: FormData): Promise<void> {
     project_id: project.id,
     title,
     detail,
+    seat_id: seatId,
     assignee_id: assigneeId || null,
     created_by: viewer.id,
   });
@@ -617,6 +685,23 @@ export async function assignTask(formData: FormData): Promise<void> {
     .from("tasks")
     .update({ assignee_id: assigneeId || null })
     .eq("id", taskId);
+  if (error) throw new Error(error.message);
+
+  projectChanged(slug);
+  updateTag(tags.tasks(slug));
+  revalidatePath(`/projects/${slug}`);
+}
+
+/** Connect or disconnect an existing task from a role on the same project. */
+export async function setTaskRole(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const taskId = Number(text(formData, "taskId"));
+  const rawSeatId = text(formData, "seatId");
+  const seatId = rawSeatId ? Number(rawSeatId) : null;
+  if (!Number.isInteger(taskId) || (rawSeatId && !Number.isInteger(seatId))) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("tasks").update({ seat_id: seatId }).eq("id", taskId);
   if (error) throw new Error(error.message);
 
   projectChanged(slug);
@@ -792,44 +877,82 @@ export async function setActivityVisibility(formData: FormData): Promise<void> {
   revalidatePath(`/u/${viewer.username}`);
 }
 
-export async function updateProfile(formData: FormData): Promise<void> {
-  const viewer = await currentViewer();
-  if (!viewer) return;
+/**
+ * Saves the profile, or says what is wrong with it.
+ *
+ * Takes the `useActionState` shape rather than returning void, because the
+ * previous version silently dropped whatever it could not use: a website typed
+ * without `https://` became an empty column and the page came back looking as
+ * though the edit had been ignored. Now nothing is written until every field
+ * is acceptable, and the form comes back with what was typed still in it.
+ *
+ * `profileUrl` and `profileEmail` below stay in place under the validation.
+ * Validation is what turns a mistake into a sentence; those two are what keep
+ * an unexpected value out of the row when a request skips the form entirely.
+ */
+export async function updateProfile(
+  _state: ProfileState,
+  formData: FormData,
+): Promise<ProfileState> {
+  const returnTo = safeProjectReturnTo(text(formData, "returnTo"));
+  const values: ProfileInput = {
+    name: text(formData, "name"),
+    profession: text(formData, "profession"),
+    headline: text(formData, "headline"),
+    bio: text(formData, "bio"),
+    skills: text(formData, "skills"),
+    yearsExperience: text(formData, "yearsExperience"),
+    fields: text(formData, "fields"),
+    website: text(formData, "website"),
+    publicEmail: text(formData, "publicEmail"),
+    github: text(formData, "github"),
+    linkedin: text(formData, "linkedin"),
+    x: text(formData, "x"),
+    resume: text(formData, "resume"),
+  };
 
-  const rawExperience = text(formData, "yearsExperience");
-  const parsedExperience = rawExperience === "" ? null : Number(rawExperience);
+  const viewer = await currentViewer();
+  if (!viewer) {
+    return { errors: { form: "You are no longer signed in. Sign in again, then save once more." }, values };
+  }
+
+  const errors = validateProfile(values);
+  if (Object.keys(errors).length > 0) return { errors, values };
+
+  const rawExperience = values.yearsExperience;
   const yearsExperience =
-    parsedExperience !== null && Number.isInteger(parsedExperience)
-      ? Math.max(0, Math.min(parsedExperience, 60))
-      : null;
+    rawExperience === ""
+      ? null
+      : Math.max(0, Math.min(Number(rawExperience), PROFILE_LIMITS.yearsExperience));
 
   const supabase = await requireSupabase();
   const { error } = await supabase
     .from("profiles")
     .update({
-      name: text(formData, "name").slice(0, 80) || viewer.name,
-      profession: text(formData, "profession").slice(0, 80),
-      headline: text(formData, "headline").slice(0, 140),
-      bio: text(formData, "bio").slice(0, 800),
-      skills: normalisePeopleTerms(text(formData, "skills"), 20),
+      name: values.name.slice(0, PROFILE_MAXIMUM.name),
+      profession: values.profession.slice(0, PROFILE_MAXIMUM.profession),
+      headline: values.headline.slice(0, PROFILE_MAXIMUM.headline),
+      bio: values.bio.slice(0, PROFILE_MAXIMUM.bio),
+      skills: normalisePeopleTerms(values.skills, PROFILE_LIMITS.skills),
       years_experience: yearsExperience,
-      fields: normalisePeopleTerms(text(formData, "fields"), 10),
-      website: profileUrl(formData, "website"),
-      public_email: profileEmail(formData, "publicEmail"),
-      github: profileUrl(formData, "github"),
-      linkedin: profileUrl(formData, "linkedin"),
-      x_url: profileUrl(formData, "x"),
-      resume_url: profileUrl(formData, "resume"),
+      fields: normalisePeopleTerms(values.fields, PROFILE_LIMITS.fields),
+      website: profileUrl(values.website),
+      public_email: profileEmail(values.publicEmail),
+      github: profileUrl(values.github),
+      linkedin: profileUrl(values.linkedin),
+      x_url: profileUrl(values.x),
+      resume_url: profileUrl(values.resume),
     })
     .eq("id", viewer.id);
-  if (error) throw new Error(error.message);
+  if (error) return { errors: { form: error.message }, values };
 
   updateTag(tags.person(viewer.username));
   updateTag(tags.people);
   updateTag(tags.projects);
   revalidatePath(`/u/${viewer.username}`);
-  revalidatePath("/orang");
-  redirect(`/u/${viewer.username}`);
+  revalidatePath("/people");
+  revalidatePath("/get-started");
+  redirect(returnTo ?? `/u/${viewer.username}?saved=1`);
 }
 
 /* ------------------------------------------------------------------ *
@@ -841,8 +964,14 @@ function text(formData: FormData, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function profileUrl(formData: FormData, key: string): string {
-  const value = text(formData, key).slice(0, 300);
+/** Never turn a hidden form value into an open redirect. */
+function safeProjectReturnTo(value: string): string | null {
+  return value.startsWith("/projects/") && !value.startsWith("//") ? value : null;
+}
+
+/** Last gate before a link reaches the row, however the request arrived. */
+function profileUrl(raw: string): string {
+  const value = raw.slice(0, PROFILE_MAXIMUM.link);
   if (!value) return "";
   try {
     const url = new URL(value);
@@ -852,9 +981,9 @@ function profileUrl(formData: FormData, key: string): string {
   }
 }
 
-function profileEmail(formData: FormData, key: string): string {
-  const value = text(formData, key).toLowerCase().slice(0, 254);
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : "";
+function profileEmail(raw: string): string {
+  const value = raw.toLowerCase().slice(0, PROFILE_MAXIMUM.publicEmail);
+  return isEmail(value) ? value : "";
 }
 
 /** Topic chips and the free-text escape hatch share the old comma-list shape. */
@@ -877,10 +1006,11 @@ function formCommitment(formData: FormData, key: string): string {
 }
 
 async function freeSlug(supabase: Supabase, title: string): Promise<string> {
-  const base = slugify(title) || "project";
+  const base = slugify(title);
 
   for (let suffix = 0; suffix < 50; suffix += 1) {
-    const candidate = suffix === 0 ? base : `${base}-${suffix + 1}`;
+    const ending = suffix === 0 ? "" : `-${suffix + 1}`;
+    const candidate = `${base.slice(0, 48 - ending.length).replace(/-+$/g, "")}${ending}`;
     const { data } = await supabase
       .from("projects")
       .select("id")
@@ -889,7 +1019,8 @@ async function freeSlug(supabase: Supabase, title: string): Promise<string> {
     if (!data) return candidate;
   }
 
-  return `${base}-${Date.now().toString(36)}`;
+  const ending = `-${Date.now().toString(36)}`;
+  return `${base.slice(0, 48 - ending.length).replace(/-+$/g, "")}${ending}`;
 }
 
 /** Stable pick so a project keeps the same colour and glyph on every render. */
@@ -900,5 +1031,5 @@ function pick<T>(options: readonly T[], seed: string): T {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "Ada yang gagal saat menyimpan. Coba lagi sebentar.";
+  return error instanceof Error ? error.message : "Something went wrong while saving. Please try again shortly.";
 }

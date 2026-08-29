@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 };
 
 const USE_CASES = [
-  "Building in public, so people can see 🔍",
-  "Finding a collaborator, to grow together 📈",
-  "Turning work into a portfolio 📋",
-  "Connected by people who need you 🤝🏻",
+  "Building in public, so people can see",
+  "Finding a collaborator, to grow together",
+  "Turning work into a portfolio",
+  "Connected by people who need you",
 ];
 
 const WORKFLOW = [
@@ -35,8 +35,8 @@ const WORKFLOW = [
 
 export default async function Home() {
   const [projectsResult, peopleResult] = await Promise.all([
-    readPublicly("project beranda", () => listProjects({ lane: "terbaru" }), []),
-    readPublicly("orang di beranda", () => listPeople(400), []),
+    readPublicly("projects on the home page", () => listProjects({ lane: "newest" }), []),
+    readPublicly("people on the home page", () => listPeople(400), []),
   ]);
   const projects = projectsResult.value;
   const people = peopleResult.value;
@@ -45,7 +45,7 @@ export default async function Home() {
 
   return (
     <>
-      <SiteHeader returnTo="/" active="beranda" />
+      <SiteHeader returnTo="/" active="home" />
 
       <main id="main-content" className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">
@@ -60,7 +60,7 @@ export default async function Home() {
               <Link className="home-hero-primary" href="/new">
                 <span aria-hidden="true">+</span> Add a project
               </Link>
-              <Link className="home-hero-secondary" href="/kolaborasi">
+              <Link className="home-hero-secondary" href="/explore">
                 Browse projects <Arrow />
               </Link>
             </div>
@@ -90,9 +90,9 @@ export default async function Home() {
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
-            <p className="home-eyebrow">The reason why...</p>
-            <h2 id="use-cases-title">You should put your project here.</h2>
-            <p className="landing-section-lead">Once you share your project, you will able to:</p>
+            <p className="home-eyebrow">Why share your project?</p>
+            <h2 id="use-cases-title">Put your project where it can be seen.</h2>
+            <p className="landing-section-lead">Once you share it, you can:</p>
           </div>
 
           <div className="use-case-layout">
@@ -103,7 +103,7 @@ export default async function Home() {
             </ul>
           </div>
 
-          <Link className="landing-inline-link" href="/kolaborasi">
+          <Link className="landing-inline-link" href="/explore">
             See example projects <Arrow />
           </Link>
         </section>
@@ -112,12 +112,12 @@ export default async function Home() {
           <div className="landing-project-feature-head">
             <div>
               <p className="home-eyebrow">01 · Project Showcase</p>
-              <h2 id="project-feature-title">One project shares brings multiple oportunity 🤲</h2>
+              <h2 id="project-feature-title">One shared project creates multiple opportunities.</h2>
             </div>
           </div>
 
           <div className="landing-index-filters" aria-label="Example project filters">
-            <span>✅ Searchable</span><span>✅ Inspire and get inspired by others projects</span><span>✅ Grow with partners</span><span>✅ Find contributors</span>
+            <span>✅ Searchable</span><span>✅ Inspire and get inspired</span><span>✅ Grow with contributors</span><span>✅ Find collaborators</span>
           </div>
 
           {projects.length > 0 ? (
@@ -128,20 +128,20 @@ export default async function Home() {
             <p className="landing-data-empty">No projects yet. Add the first piece of work.</p>
           )}
 
-          <Link className="landing-inline-link" href="/kolaborasi">Browse all projects <Arrow /></Link>
+          <Link className="landing-inline-link" href="/explore">Browse all projects <Arrow /></Link>
         </section>
 
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
           <div className="portfolio-story-copy">
             <p className="home-eyebrow">02 · Portfolio builder</p>
-            <h2 id="portfolio-story-title">Tired on maintain your web portfolio by yourself? ⚙️</h2>
+            <h2 id="portfolio-story-title">Tired of maintaining a portfolio on your own?</h2>
             <p>
               Your profile collects projects, contributions, and the roles that actually happened.
               One link that grows every time something ships.
             </p>
             <ul>
-              <li><span>01</span> Project first personal portfolio</li>
-              <li><span>02</span> No need to deploy it by your self</li>
+              <li><span>01</span> A project-first personal portfolio</li>
+              <li><span>02</span> No deployment required</li>
               <li><span>03</span> Skills proven by shipped work</li>
             </ul>
             <a className="portfolio-story-link" href="https://ahsanproject.id/u/zikrul-ihsan">
@@ -182,23 +182,23 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">Complete your profile, recruiters are watching 📝</h2>
+            <h2 id="talent-story-title">Complete your profile so recruiters can find you.</h2>
             <p>
               Your profile is collected into the talent pool.
-              Recruiters, hiring manager, or founders all see the same evidence, but how?
+              Recruiters, hiring managers, and founders all see the same evidence. Here is how:
             </p>
             <ul>
-              <li><span>✓</span> Hiring manager can search by project topic</li>
-              <li><span>✓</span> Recruiters found you by relevan skill set and YoE</li>
-              <li><span>✓</span> Founders attracted by the depth of your project</li>
+              <li><span>✓</span> Hiring managers can search by project topic</li>
+              <li><span>✓</span> Recruiters can find you through relevant skills and experience</li>
+              <li><span>✓</span> Founders can see the depth of your project work</li>
             </ul>
-            <Link className="talent-story-link" href="/orang">Browse people <Arrow /></Link>
+            <Link className="talent-story-link" href="/people">Browse people <Arrow /></Link>
           </div>
 
           <div className="talent-preview" aria-label="People on Ahsan Project">
             <div className="talent-preview-head">
               <span>People with visible work</span>
-              <Link href="/orang">View all</Link>
+              <Link href="/people">View all</Link>
             </div>
             {people.length > 0 ? (
               <ul>
@@ -230,37 +230,13 @@ export default async function Home() {
           </ol>
         </section>
 
-        <section className="landing-proof-strip" aria-labelledby="proof-title">
-          <div className="proof-strip-heading">
-            <p className="home-eyebrow">Live proof</p>
-            <h2 id="proof-title">This is already running—not a concept.</h2>
-          </div>
-          <div className="proof-strip-projects" aria-label="Live projects">
-            {projects.slice(0, 3).map((project) => (
-              <Link key={project.id} href={`/projects/${project.slug}`}>
-                <ProjectLogo title={project.title} website={project.liveUrl} logoUrl={project.logoUrl} />
-                <span><strong>{project.title}</strong><small>{stageMeta[project.stage].label}</small></span>
-                <Arrow />
-              </Link>
-            ))}
-          </div>
-          <div className="proof-strip-people" aria-label="People with public work">
-            {people.slice(0, 3).map((person) => (
-              <Link key={person.id} href={`/u/${person.username}`}>
-                <span className="talent-avatar" aria-hidden="true">{initials(person.name)}</span>
-                <span><strong>{person.name}</strong><small>{person.profession || "Builder"}</small></span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         <section className="landing-final-cta" aria-labelledby="final-cta-title">
           <p className="home-eyebrow">Start with the work</p>
           <h2 id="final-cta-title">Put the work where people can see it.</h2>
           <p>Add a project even if it&apos;s still an idea. Update it as it moves.</p>
           <div>
             <Link className="home-hero-primary" href="/new"><span aria-hidden="true">+</span> Add a project</Link>
-            <Link className="landing-final-secondary" href="/kolaborasi">Find a place to contribute <Arrow /></Link>
+            <Link className="landing-final-secondary" href="/explore">Find a place to contribute <Arrow /></Link>
           </div>
           <small>Free for the community.</small>
         </section>

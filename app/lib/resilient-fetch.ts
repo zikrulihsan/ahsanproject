@@ -16,7 +16,7 @@ function requestSignal(input: RequestInfo | URL, init?: RequestInit): AbortSigna
 }
 
 function timeoutError(): Error {
-  const error = new Error("Supabase tidak merespons dalam batas waktu.");
+  const error = new Error("Supabase did not respond before the timeout.");
   error.name = "TimeoutError";
   return error;
 }

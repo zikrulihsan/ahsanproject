@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { aboutPaths, siteUrl } from "./content";
+import { siteUrl } from "./content";
 import { listPeople, listProjects } from "./lib/data";
 
 /**
@@ -16,10 +16,8 @@ import { listPeople, listProjects } from "./lib/data";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: "daily", priority: 1 },
-    { url: `${siteUrl}/kolaborasi`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteUrl}${aboutPaths.id}`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${siteUrl}${aboutPaths.en}`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${siteUrl}/orang`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${siteUrl}/explore`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/people`, changeFrequency: "daily", priority: 0.7 },
   ];
 
   try {
@@ -40,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch (error) {
-    console.warn("[ahsan] Sitemap terbit tanpa daftar project dan orang:", error);
+    console.warn("[ahsan] Sitemap was published without project and people listings:", error);
     return base;
   }
 }

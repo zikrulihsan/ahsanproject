@@ -60,13 +60,18 @@ and everything that writes will say so rather than failing quietly.
      in that catalogue
    - `0013_people_directory.sql` — searchable profession, skills, experience,
      and fields for the people directory
-   - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
-     links on portfolio profiles
-   - `0015_project_logo_url.sql` — a project's own icon or logo, instead of
-     depending on a third-party favicon cache
-   - `0016_project_types.sql` — what kind of project it is (pet project,
-     komunitas, produk berpengguna, komersial), so people browsing can pick the
-     kind of collaboration they are actually looking for
+  - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
+    links on portfolio profiles
+  - `0015_project_logo_url.sql` — an optional project-owned logo URL
+  - `0016_task_role_proposals.sql` — optional task/role links and multi-person
+    proposals gated by the talent-pool profile
+  - `0017_github_open_contributions.sql` — the explicit GitHub contribution
+    badge and its repository safeguard
+  - the timestamped files after those, in filename order — Explore's search
+    indexes, the brief-length alignment, and
+    `20260829120000_project_types.sql`, which records what kind of project it
+    is (pet project, community, product, commercial) so people browsing can
+    pick the kind of collaboration they are looking for
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -92,9 +97,43 @@ instead.
 3. In Supabase, open Authentication → Providers → Google, enable it, then paste
    the Google client ID and client secret.
 4. Under Authentication → URL Configuration, add both app callbacks to the
-   redirect allow list for every origin you use (production and local):
+   **Redirect URLs** allow list, for **every** origin people reach the site on —
+   the custom domain, the deploy URL behind it, and local:
    - `<origin>/auth/callback`
    - `<origin>/auth/confirm`
+
+> [!IMPORTANT]
+> An empty or incomplete Redirect URLs list is the quietest way to break
+> sign-in. Supabase does not report a rejected `redirect_to`; it silently
+> falls back to the **Site URL**, so the authorization code arrives on a page
+> that has no idea what to do with it and the person simply stays signed out.
+> Only `/auth/callback` and `/auth/confirm` belong on that list. Nothing else
+> in this app trades a code for a session — `/get-started` is where a *successful*
+> sign-in lands, and putting it on the allow list would break the very flow it
+> is meant to finish.
+
+Sign-in always *starts* at one address. A Netlify site answers to several —
+the custom domain, the `*.netlify.app` subdomain behind it, and a per-deploy
+permalink like `https://<deploy-id>--<site>.netlify.app` — and the address the
+function is invoked with is not always the one in the address bar. Since the
+verifier is a cookie, and a cookie belongs to one host, `/auth/google` moves
+somebody to the site's primary address *before* writing it (see `pinnedOrigin`
+in `app/lib/urls.ts`); everything after that follows the browser instead of
+pinning anything. Set `NEXT_PUBLIC_SITE_URL` to name that address, or let
+Netlify's own `URL` stand in on production deploys. A sign-in that leaves from
+one name and returns on another is what puts `?error=origin-mismatch` on the
+sign-in page.
+
+Sign-in starts at `/auth/google`, a route handler, and that is deliberate
+rather than incidental. `signInWithOAuth` generates the PKCE code verifier and
+writes it as a cookie, and `/auth/callback` reads it back to trade the
+authorization code for a session; a verifier that never reaches the browser
+fails the callback with a message about a missing verifier, which reads like a
+misconfigured redirect URL and is not one. The route handler sets that cookie
+on the very redirect that sends somebody to Google — one response carrying both
+the destination and the cookie that makes the return trip work. Only
+`/auth/callback` and `/auth/confirm` go on Supabase's allow list; `/auth/google`
+is an entry point on this site and Supabase never redirects to it.
 
 No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup
@@ -112,6 +151,8 @@ match it.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
+| `/get-started` | Where a completed sign-in lands — not a callback, never on the redirect allow list. The steps still owed, and the projects you own; forwards to the board once nothing is owed |
+| `/account/profile` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
@@ -119,6 +160,11 @@ match it.
 
 - `app/lib/brief.ts` — the minimum a project must carry before it can exist,
   plus the completeness meter. This is the "no empty ideas" rule.
+- `app/lib/profile.ts` — what a profile may carry. The ceilings are the same
+  ones the `profiles` columns check, so a typo comes back as a sentence
+  rather than a constraint error.
+- `app/lib/next-steps.ts` — the steps `/get-started` lists. Named things with a
+  link at each, never a percentage: a profile is not a form to fill to 100%.
 - `app/lib/stages.ts` — the levels (`idea → building → live`, plus `resting`)
   and what each one requires. No level asks for a team: working alone is not a
   lesser project. What they ask for is evidence the work has moved — a link, or
@@ -212,11 +258,28 @@ in Site settings → Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_SITE_URL` — the deployed origin, so confirmation emails point back
-  at the right place
+- `NEXT_PUBLIC_SITE_URL` — the site's primary address. Sign-in starts here, and
+  it is the fallback origin for links that leave the app and come back when
+  there is no request to read the origin from. On Netlify it may be left unset:
+  the primary address in Netlify's own `URL` is used for production deploys.
+  If you do set it, set it **per context** — a value shared with deploy previews
+  sends a reviewer to sign in on the live site
 
-Then add that same origin to Supabase under Authentication → URL Configuration,
-including `<origin>/auth/confirm` and `<origin>/auth/callback` as redirect URLs.
+`siteOrigin()` in `app/lib/origin.ts` prefers the origin the *browser* asked
+for — `x-forwarded-host`, not `request.url`, which is the address the function
+was invoked with and behind Netlify can be that deploy's permalink. Redirects
+inside the app use `sameOriginRedirect()` in `app/lib/redirect.ts` for the same
+reason: a relative `Location` leaves the browser on the host holding its
+cookies. Following the request rather than a pinned name is deliberate. Signing in writes the PKCE code verifier as a
+cookie on the origin it started from, and the callback has to find that cookie
+again; a single origin pinned into every link means anybody arriving by a
+second name for the site gets sent to the first one, where the verifier is not,
+and the sign-in dies at the exchange. So register **every** origin people use
+under Authentication → URL Configuration, each with `/auth/callback` and
+`/auth/confirm`, not just the canonical one.
+
+That the forwarded host comes from outside is not a hole: Supabase refuses a
+`redirect_to` that is not on the allow list, so the list is the guard.
 
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.

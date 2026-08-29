@@ -8,9 +8,11 @@ import { currentViewer, type Viewer } from "../lib/session";
 import { countIncomingApplications, countUnseenNotices } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { HeaderMenu } from "./header-menu";
+import { SignOutButton } from "./sign-out-button";
+import { Skeleton } from "./skeleton";
 
 /** Which top-level section the current page belongs to. */
-export type Section = "beranda" | "kolaborasi" | "orang" | "tentang" | "";
+export type Section = "home" | "explore" | "people" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -22,7 +24,7 @@ export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
 
 export function Brand({ footer = false }: { footer?: boolean }) {
   return (
-    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label="Ahsan Project, ke beranda">
+    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label="Ahsan Project home">
       <Logo className="brand-mark" />
       <span><strong>ahsan</strong><span className="brand-alt">project</span></span>
     </Link>
@@ -30,12 +32,22 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 }
 
 const LINKS: { href: string; label: string; key: Section; icon: HeaderIconName }[] = [
-  { href: "/kolaborasi", label: "Projects", key: "kolaborasi", icon: "explore" },
-  { href: "/#portfolio", label: "Portfolio", key: "", icon: "profile" },
-  { href: "/orang", label: "People", key: "orang", icon: "people" },
+  { href: "/", label: "Home", key: "home", icon: "home" },
+  { href: "/explore", label: "Explore", key: "explore", icon: "explore" },
+  { href: "/people", label: "People", key: "people", icon: "people" },
 ];
 
-type HeaderIconName = "home" | "explore" | "people" | "profile" | "inbox" | "add" | "signout" | "signin";
+type HeaderIconName =
+  | "home"
+  | "explore"
+  | "people"
+  | "profile"
+  | "edit"
+  | "steps"
+  | "inbox"
+  | "add"
+  | "signout"
+  | "signin";
 
 function HeaderIcon({ name }: { name: HeaderIconName }) {
   const paths: Record<HeaderIconName, React.ReactNode> = {
@@ -44,6 +56,8 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
     people: <><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20" /><circle cx="10" cy="7" r="3.5" /><path d="M17 11a3 3 0 0 0 0-6M19 14.5a4 4 0 0 1 2 3.5v2" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     inbox: <><path d="M4 5h16v13H4z" /><path d="M4 14h4l1.5 2h5l1.5-2h4" /></>,
+    edit: <><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m14 6 4 4" /></>,
+    steps: <><path d="M4 7h5v13H4zM9.5 12h5v8h-5zM15 4h5v16h-5z" /></>,
     add: <path d="M12 5v14M5 12h14" />,
     signout: <><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></>,
     signin: <><path d="M14 5h5v14h-5M10 8l-4 4 4 4M6 12h9" /></>,
@@ -54,7 +68,7 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
 
 function MainNav({ active }: { active: Section }) {
   return (
-    <nav className="desktop-nav" aria-label="Navigasi utama">
+    <nav className="desktop-nav" aria-label="Primary navigation">
       {LINKS.map((link) => (
         <Link
           key={link.href}
@@ -82,10 +96,10 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
       <div className="topbar-inner">
         <Brand />
         <MainNav active={active} />
-        <div className="header-actions header-shell-actions">
-          <Link className="nav-login" href="/signin">Sign in</Link>
-          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Add a project</Link>
-          <MobileHeaderMenu active={active} returnTo="/" waiting={0} />
+        <div className="header-actions header-shell-actions header-account-skeleton" aria-busy="true">
+          <Skeleton height={38} width={38} round />
+          <Skeleton height={40} width={116} style={{ borderRadius: 999 }} />
+          <span className="sr-only">Loading account controls…</span>
         </div>
       </div>
     </header>
@@ -101,9 +115,10 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
  * exactly what this site used to do. Behind this boundary the rest of the page
  * prerenders and ships immediately, and the header fills itself in.
  *
- * `HeaderShell` is the fallback because it is the same frame with the guest
- * actions already drawn: nothing moves when the visitor arrives except the
- * sign-in link becoming an account menu.
+ * `HeaderShell` deliberately uses neutral placeholders for account controls.
+ * Until the session resolves, we do not know whether the visitor should see a
+ * sign-in link or an account menu, and rendering either would flash the wrong
+ * state.
  */
 export function SiteHeader({
   returnTo = "/",
@@ -137,8 +152,8 @@ async function VisitorHeader({
   // rather than waiting to be found.
   const [incomingResult, unseenResult] = viewer
     ? await Promise.all([
-        readPublicly("lamaran masuk di header", () => countIncomingApplications(viewer.id), 0),
-        readPublicly("notifikasi di header", () => countUnseenNotices(viewer.id), 0),
+        readPublicly("incoming applications in header", () => countIncomingApplications(viewer.id), 0),
+        readPublicly("notifications in header", () => countUnseenNotices(viewer.id), 0),
       ])
     : [
         { value: 0, unavailable: false },
@@ -165,14 +180,14 @@ async function VisitorHeader({
               </Link>
               <AccountMenu viewer={viewer} waiting={waiting} />
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add a project
+                <span aria-hidden="true">+</span> Add project
               </Link>
             </>
           ) : (
             <>
               <Link className="nav-login" href={signInPath(destination)}>Sign in</Link>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add a project
+                <span aria-hidden="true">+</span> Add project
               </Link>
             </>
           )}
@@ -202,31 +217,36 @@ function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
     <HeaderMenu
       className="account-menu"
       summaryClassName="avatar-button"
-      summaryLabel={`Buka menu akun ${viewer.name}`}
+      summaryLabel={`Open ${viewer.name}'s account menu`}
       summary={<span aria-hidden="true">{initialsOf(viewer.name)}</span>}
     >
       <div className="account-popover">
         <AccountIdentity viewer={viewer} />
-        <nav className="account-menu-links" aria-label="Menu akun">
+        <nav className="account-menu-links" aria-label="Account menu">
           <Link href={`/u/${viewer.username}`}>
             <HeaderIcon name="profile" />
-            <span>Profil profesional</span>
+            <span>Public profile</span>
+          </Link>
+          <Link href="/account/profile">
+            <HeaderIcon name="edit" />
+            <span>Edit profile</span>
+          </Link>
+          <Link href="/get-started?all=1">
+            <HeaderIcon name="steps" />
+            <span>Next steps</span>
           </Link>
           <Link href="/inbox">
             <HeaderIcon name="inbox" />
-            <span>Kotak masuk</span>
+            <span>Inbox</span>
             {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
           </Link>
           <Link href="/new">
             <HeaderIcon name="add" />
-            <span>Tambah project</span>
+            <span>Add project</span>
           </Link>
         </nav>
         <form className="account-signout" action={signOut}>
-          <button type="submit">
-            <HeaderIcon name="signout" />
-            <span>Sign out</span>
-          </button>
+          <SignOutButton />
         </form>
       </div>
     </HeaderMenu>
@@ -247,7 +267,7 @@ function MobileHeaderMenu({
   return (
     <HeaderMenu
       className="mobile-menu"
-      summaryLabel="Buka menu navigasi"
+      summaryLabel="Open navigation menu"
       summary={
         <>
           <i aria-hidden="true" />
@@ -256,7 +276,7 @@ function MobileHeaderMenu({
       }
     >
       <div className="mobile-nav">
-        <nav className="mobile-nav-primary" aria-label="Navigasi utama mobile">
+        <nav className="mobile-nav-primary" aria-label="Mobile primary navigation">
           <p className="mobile-menu-label">Explore</p>
           {LINKS.map((link) => (
             <Link
@@ -274,28 +294,33 @@ function MobileHeaderMenu({
 
         <Link className="mobile-project-action" href="/new">
           <HeaderIcon name="add" />
-          <span>Add a project</span>
+          <span>Add project</span>
         </Link>
 
         {viewer ? (
-          <section className="mobile-account-section" aria-label="Akun">
+          <section className="mobile-account-section" aria-label="Account">
             <AccountIdentity viewer={viewer} />
-            <nav className="mobile-account-links" aria-label="Menu akun mobile">
+            <nav className="mobile-account-links" aria-label="Mobile account menu">
               <Link href={`/u/${viewer.username}`}>
                 <HeaderIcon name="profile" />
-                <span>Profil profesional</span>
+                <span>Public profile</span>
+              </Link>
+              <Link href="/account/profile">
+                <HeaderIcon name="edit" />
+                <span>Edit profile</span>
+              </Link>
+              <Link href="/get-started?all=1">
+                <HeaderIcon name="steps" />
+                <span>Next steps</span>
               </Link>
               <Link href="/inbox">
                 <HeaderIcon name="inbox" />
-                <span>Kotak masuk</span>
+                <span>Inbox</span>
                 {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
               </Link>
             </nav>
             <form className="account-signout" action={signOut}>
-              <button type="submit">
-                <HeaderIcon name="signout" />
-                <span>Sign out</span>
-              </button>
+              <SignOutButton />
             </form>
           </section>
         ) : (
@@ -314,11 +339,11 @@ function MobileHeaderMenu({
 /** One badge, two meanings — the label says which, rather than just a number. */
 function inboxLabel(incoming: number, unseen: number): string {
   const parts = [
-    incoming > 0 ? `${incoming} orang menunggu jawaban` : "",
-    unseen > 0 ? `${unseen} kabar baru` : "",
+    incoming > 0 ? `${incoming} people awaiting a response` : "",
+    unseen > 0 ? `${unseen} new updates` : "",
   ].filter(Boolean);
 
-  return parts.length > 0 ? `Kotak masuk — ${parts.join(", ")}` : "Kotak masuk";
+  return parts.length > 0 ? `Inbox — ${parts.join(", ")}` : "Inbox";
 }
 
 function initialsOf(name: string): string {
@@ -335,14 +360,11 @@ export function SiteFooter() {
     <footer>
       <Brand footer />
       <p>A public place for real work, proof, and the people behind it.</p>
-      <nav aria-label="Navigasi footer">
-        <Link href="/">Beranda</Link>
-        <Link href="/kolaborasi">Explore</Link>
-        <Link href="/orang">Orang</Link>
-        <Link href="/about">Tentang</Link>
-        <a href="https://github.com/zikrulihsan/ahsanproject" target="_blank" rel="noreferrer">
-          GitHub <Arrow diagonal />
-        </a>
+      <nav aria-label="Footer navigation">
+        <Link href="/">Home</Link>
+        <Link href="/explore">Explore</Link>
+        <Link href="/people">People</Link>
+        <Link href="/privacy">Privacy</Link>
       </nav>
       <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>

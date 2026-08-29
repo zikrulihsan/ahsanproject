@@ -51,11 +51,11 @@ export type BriefInput = {
 export type FieldErrors = Partial<Record<keyof BriefInput, string>>;
 
 const FIELD_LABELS: Record<keyof typeof MINIMUM, string> = {
-  title: "Nama project",
-  tagline: "Satu kalimat ringkas",
-  problem: "Masalah yang mau dibereskan",
-  solution: "Gambaran solusinya",
-  audience: "Untuk siapa",
+  title: "Project name",
+  tagline: "Short summary",
+  problem: "Problem to solve",
+  solution: "Proposed solution",
+  audience: "Who it is for",
 };
 
 export function validateBrief(input: BriefInput): FieldErrors {
@@ -64,26 +64,26 @@ export function validateBrief(input: BriefInput): FieldErrors {
   for (const field of Object.keys(MINIMUM) as (keyof typeof MINIMUM)[]) {
     const value = input[field].trim();
     if (!value) {
-      errors[field] = `${FIELD_LABELS[field]} belum diisi.`;
+      errors[field] = `Enter ${FIELD_LABELS[field].toLowerCase()}.`;
     } else if (value.length < MINIMUM[field]) {
-      errors[field] = `${FIELD_LABELS[field]} masih terlalu pendek — minimal ${MINIMUM[field]} karakter, baru ${value.length}.`;
+      errors[field] = `${FIELD_LABELS[field]} is too short—at least ${MINIMUM[field]} characters; currently ${value.length}.`;
     } else if (value.length > MAXIMUM[field]) {
-      errors[field] = `${FIELD_LABELS[field]} terlalu panjang — maksimal ${MAXIMUM[field]} karakter.`;
+      errors[field] = `${FIELD_LABELS[field]} is too long—at most ${MAXIMUM[field]} characters.`;
     }
   }
 
   if (tagList(input.tags).length === 0) {
-    errors.tags = "Isi minimal satu tag supaya idenya gampang ditemukan.";
+    errors.tags = "Add at least one tag so people can find the idea.";
   } else if (tagList(input.tags).length > 6) {
-    errors.tags = "Maksimal enam tag.";
+    errors.tags = "Use no more than six tags.";
   }
 
   for (const field of ["docUrl", "repoUrl", "liveUrl", "logoUrl"] as const) {
     const value = input[field].trim();
     if (value && !isHttpUrl(value)) {
-      errors[field] = "Tautan harus diawali http:// atau https://.";
+      errors[field] = "Links must start with http:// or https://.";
     } else if (field === "logoUrl" && value.length > MAXIMUM.logoUrl) {
-      errors[field] = `URL logo terlalu panjang — maksimal ${MAXIMUM.logoUrl} karakter.`;
+      errors[field] = `The logo URL is too long—at most ${MAXIMUM.logoUrl} characters.`;
     }
   }
 
@@ -105,13 +105,18 @@ export function normaliseTags(tags: string): string[] {
 }
 
 export function slugify(value: string): string {
-  return value
+  const slug = value
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+
+  // The database requires at least two characters. A valid project title can
+  // still collapse to one ("A!") or none (non-Latin text), so use a stable
+  // fallback rather than letting an otherwise valid save hit a constraint.
+  return slug.length >= 2 ? slug : "project";
 }
 
 export function domainOf(url: string): string {

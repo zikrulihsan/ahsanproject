@@ -16,10 +16,10 @@ export const PROJECT_ACCESS = ["owner", "admin", "member", "guest"] as const;
 export type ProjectAccess = (typeof PROJECT_ACCESS)[number];
 
 export const accessMeta: Record<ProjectAccess, { label: string }> = {
-  owner: { label: "Pemilik" },
+  owner: { label: "Owner" },
   admin: { label: "Admin" },
-  member: { label: "Anggota" },
-  guest: { label: "Pengunjung" },
+  member: { label: "Member" },
+  guest: { label: "Guest" },
 };
 
 type SeatLike = {

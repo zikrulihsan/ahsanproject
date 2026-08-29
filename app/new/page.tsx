@@ -4,7 +4,6 @@ import { signInPath } from "../lib/urls";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { CreateForm } from "../components/create-form";
 import { currentViewer } from "../lib/session";
-import { about } from "../content";
 
 /*
  * Allowed to block.
@@ -18,9 +17,9 @@ import { about } from "../content";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Tunjukkan project — Ahsan Project",
+  title: "Show your project — Ahsan Project",
   description:
-    "Tulis idemu lengkap dengan masalah, gambaran solusi, dan untuk siapa. Lalu buka peran supaya ada yang bisa ikut menggarap.",
+    "Write down your idea, the problem it solves, and who it is for. Then open a role if you need collaborators.",
   alternates: { canonical: "/new" },
 };
 
@@ -33,27 +32,27 @@ export default async function NewProject() {
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
-          <span /> Tunjukkan project
+          <span /> Show your project
         </p>
         {viewer ? (
           <>
-            <h1>Buat halaman projectmu.</h1>
+            <h1>Create your project page.</h1>
             <p className="lede">
-              Isi yang kamu tahu sekarang—ide pun boleh. Brief singkatnya membantu orang memahami
-              dan memutuskan apakah mereka bisa ikut.
+              Add what you know now—an idea is enough. A short brief helps people understand it
+              and decide whether they can contribute.
             </p>
             <CreateForm />
           </>
         ) : (
           <>
-            <h1>Tunjukkan yang sedang kamu bangun.</h1>
+            <h1>Show what you are building.</h1>
             <p className="lede">
-              Ide, setengah jadi, atau sudah dipakai orang—semuanya boleh. Tulis brief singkatnya,
-              lalu buka bantuan kalau memang dibutuhkan.
+              An idea, a work in progress, or something people already use—it all belongs here.
+              Write a short brief, then ask for help if you need it.
             </p>
 
             <ol className="how-list">
-              {about.id.how.map((step) => (
+              {guestSteps.map((step) => (
                 <li key={step.step}>
                   <span>{step.step}</span>
                   <div>
@@ -66,7 +65,7 @@ export default async function NewProject() {
 
             <p className="sign-in-callout">
               <Link className="primary-button" href={signInPath("/new")}>
-                Masuk dulu untuk menunjukkan project
+                Sign in to show your project
               </Link>
             </p>
           </>
@@ -77,3 +76,21 @@ export default async function NewProject() {
     </>
   );
 }
+
+const guestSteps = [
+  {
+    step: "01",
+    title: "Describe the project",
+    body: "Share the problem, your proposed solution, and the people it is for.",
+  },
+  {
+    step: "02",
+    title: "Show what is happening now",
+    body: "A short update gives visitors a clear picture of where the work stands.",
+  },
+  {
+    step: "03",
+    title: "Invite the right help",
+    body: "Open a role when you need a collaborator, and explain the work involved.",
+  },
+];
