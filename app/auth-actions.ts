@@ -74,32 +74,6 @@ export async function signIn(_state: AuthState, formData: FormData): Promise<Aut
   redirect(startPath(next));
 }
 
-/** Starts Google's OAuth flow and returns through the app's PKCE callback. */
-export async function signInWithGoogle(formData: FormData): Promise<void> {
-  const next = safeNextPath(text(formData, "next"));
-  const supabase = await requireSupabase();
-  const origin = await siteOrigin();
-  const callback = new URL("/auth/callback", origin);
-  callback.searchParams.set("next", next);
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: callback.toString(),
-      skipBrowserRedirect: true,
-    },
-  });
-
-  if (error || !data.url) {
-    const destination = new URL("/signin", origin);
-    destination.searchParams.set("error", "google-gagal");
-    if (next !== "/") destination.searchParams.set("next", next);
-    redirect(destination.toString());
-  }
-
-  redirect(data.url);
-}
-
 /**
  * Sends the "set a new password" link.
  *

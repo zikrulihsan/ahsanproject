@@ -38,8 +38,9 @@ export function startPath(next: string | null | undefined): string {
   return target === "/" ? "/mulai" : target;
 }
 
-/** The one route allowed to trade an authorization code for a session. */
+/** The routes that know what to do with an authorization code. */
 export const CALLBACK_PATH = "/auth/callback";
+export const CONFIRM_PATH = "/auth/confirm";
 
 /**
  * What to do with an OAuth `code` that turned up on the wrong page.
@@ -68,8 +69,11 @@ export function strayCodeTarget(
   signedIn: boolean,
 ): { pathname: string; search: string } | null {
   const code = search.get("code");
-  // `/auth/callback` is where a code belongs; redirecting it to itself loops.
-  if (!code || pathname === CALLBACK_PATH) return null;
+  // A code belongs on these two, which spend it themselves: redirecting the
+  // callback to itself loops, and moving a confirmation link to the callback
+  // would drop it back on `/auth/confirm` afterwards with nothing left to
+  // confirm.
+  if (!code || pathname === CALLBACK_PATH || pathname === CONFIRM_PATH) return null;
 
   if (signedIn) {
     const cleaned = new URLSearchParams(search);
@@ -118,4 +122,73 @@ export function projectLogoUrl(value: string | null | undefined): string {
   } catch {
     return "";
   }
+}
+
+/**
+ * An absolute `http(s)` origin, or `null` for anything else. Path, query, and
+ * trailing slash are dropped: only scheme, host, and port survive.
+ */
+export function normalizeOrigin(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The one address a sign-in should start from, when the deployment names one.
+ *
+ * A site answers to more than one name — a custom domain, the `*.netlify.app`
+ * subdomain behind it, and a per-deploy permalink like
+ * `<deploy-id>--<site>.netlify.app`. Every name serves the same app, so
+ * anything can be reached from any of them; a sign-in cannot. The PKCE code
+ * verifier is a cookie, cookies belong to one host, and a round trip that
+ * leaves from one name and returns on another finds nothing where the verifier
+ * should be. That is `alamat-beda` on the sign-in page.
+ *
+ * So `/auth/google` moves somebody to this origin *before* it writes the
+ * verifier, and builds its callback from it. Nothing else is pinned: the
+ * callback, the confirmation links, and every redirect in between stay on
+ * whatever host the browser is actually using.
+ *
+ * `null` means no name is nominated and the request's own origin is used, which
+ * is the right answer for local development and for a preview deploy.
+ */
+export function pinnedOrigin(env: Record<string, string | undefined>): string | null {
+  const configured = normalizeOrigin(env.NEXT_PUBLIC_SITE_URL);
+  if (configured) return configured;
+
+  // Netlify puts the site's primary address in `URL`. Only trust it in the
+  // production context: on a deploy preview it still points at production, and
+  // sending a reviewer there would sign them in to the wrong site entirely.
+  if (env.CONTEXT === "production") return normalizeOrigin(env.URL);
+
+  return null;
+}
+
+/**
+ * The origin the *browser* asked for, read from the request's own headers.
+ *
+ * Not `request.url` or `request.nextUrl.origin`: those are the address the
+ * server was invoked with, and behind a hosting layer that can be an internal
+ * name — on Netlify, the deploy's own `<deploy-id>--<site>.netlify.app`
+ * permalink — even when nobody ever typed it. Cookies belong to the host in
+ * the address bar, so anything a sign-in depends on has to be built from this.
+ *
+ * A chain of proxies appends to `x-forwarded-host`, and the first entry is the
+ * one the browser used. Anything that does not parse as an ordinary web origin
+ * is refused rather than passed on to `new URL`.
+ */
+export function originFromHeaders(headers: { get(name: string): string | null }): string | null {
+  const forwarded = headers.get("x-forwarded-host") ?? headers.get("host");
+  const host = forwarded?.split(",")[0]?.trim();
+  if (!host) return null;
+
+  const local = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  return normalizeOrigin(`${headers.get("x-forwarded-proto") ?? (local ? "http" : "https")}://${host}`);
 }

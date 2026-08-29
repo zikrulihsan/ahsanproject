@@ -102,6 +102,29 @@ instead.
 > sign-in lands, and putting it on the allow list would break the very flow it
 > is meant to finish.
 
+Sign-in always *starts* at one address. A Netlify site answers to several —
+the custom domain, the `*.netlify.app` subdomain behind it, and a per-deploy
+permalink like `https://<deploy-id>--<site>.netlify.app` — and the address the
+function is invoked with is not always the one in the address bar. Since the
+verifier is a cookie, and a cookie belongs to one host, `/auth/google` moves
+somebody to the site's primary address *before* writing it (see `pinnedOrigin`
+in `app/lib/urls.ts`); everything after that follows the browser instead of
+pinning anything. Set `NEXT_PUBLIC_SITE_URL` to name that address, or let
+Netlify's own `URL` stand in on production deploys. A sign-in that leaves from
+one name and returns on another is what puts `?error=alamat-beda` on the
+sign-in page.
+
+Sign-in starts at `/auth/google`, a route handler, and that is deliberate
+rather than incidental. `signInWithOAuth` generates the PKCE code verifier and
+writes it as a cookie, and `/auth/callback` reads it back to trade the
+authorization code for a session; a verifier that never reaches the browser
+fails the callback with a message about a missing verifier, which reads like a
+misconfigured redirect URL and is not one. The route handler sets that cookie
+on the very redirect that sends somebody to Google — one response carrying both
+the destination and the cookie that makes the return trip work. Only
+`/auth/callback` and `/auth/confirm` go on Supabase's allow list; `/auth/google`
+is an entry point on this site and Supabase never redirects to it.
+
 No Google client secret belongs in this Next.js app. Supabase stores it and the
 app only uses the existing public URL and anon key. Supabase's current setup
 screens and exact callback value are documented in its
@@ -219,11 +242,19 @@ in Site settings → Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_SITE_URL` — a fallback origin for links that leave the app and
-  come back, used only when there is no request to read the origin from
+- `NEXT_PUBLIC_SITE_URL` — the site's primary address. Sign-in starts here, and
+  it is the fallback origin for links that leave the app and come back when
+  there is no request to read the origin from. On Netlify it may be left unset:
+  the primary address in Netlify's own `URL` is used for production deploys.
+  If you do set it, set it **per context** — a value shared with deploy previews
+  sends a reviewer to sign in on the live site
 
-`siteOrigin()` in `app/lib/origin.ts` prefers the origin of the request being
-served, and that is deliberate. Signing in writes the PKCE code verifier as a
+`siteOrigin()` in `app/lib/origin.ts` prefers the origin the *browser* asked
+for — `x-forwarded-host`, not `request.url`, which is the address the function
+was invoked with and behind Netlify can be that deploy's permalink. Redirects
+inside the app use `sameOriginRedirect()` in `app/lib/redirect.ts` for the same
+reason: a relative `Location` leaves the browser on the host holding its
+cookies. Following the request rather than a pinned name is deliberate. Signing in writes the PKCE code verifier as a
 cookie on the origin it started from, and the callback has to find that cookie
 again; a single origin pinned into every link means anybody arriving by a
 second name for the site gets sent to the first one, where the verifier is not,
