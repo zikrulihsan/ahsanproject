@@ -364,6 +364,7 @@ export function SiteFooter() {
         <Link href="/">Home</Link>
         <Link href="/explore">Explore</Link>
         <Link href="/people">People</Link>
+        <Link href="/privacy">Privacy</Link>
       </nav>
       <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>
