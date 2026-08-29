@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 };
 
 const USE_CASES = [
-  "Building in public, so people can see 🔍",
-  "Finding a collaborator, to grow together 📈",
-  "Turning work into a portfolio 📋",
-  "Connected by people who need you 🤝🏻",
+  "Building in public, so people can see",
+  "Finding a collaborator, to grow together",
+  "Turning work into a portfolio",
+  "Connected by people who need you",
 ];
 
 const WORKFLOW = [
@@ -111,7 +111,7 @@ export default async function Home() {
           <div className="landing-project-feature-head">
             <div>
               <p className="home-eyebrow">01 · Project Showcase</p>
-              <h2 id="project-feature-title">One shared project brings multiple oportunity 🤲</h2>
+              <h2 id="project-feature-title">One shared project brings multiple oportunity.</h2>
             </div>
           </div>
 
@@ -133,7 +133,7 @@ export default async function Home() {
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
           <div className="portfolio-story-copy">
             <p className="home-eyebrow">02 · Portfolio builder</p>
-            <h2 id="portfolio-story-title">Tired on maintain your web portfolio by yourself? ⚙️</h2>
+            <h2 id="portfolio-story-title">Tired of maintaining your web portfolio by yourself?</h2>
             <p>
               Your profile collects projects, contributions, and the roles that actually happened.
               One link that grows every time something ships.
@@ -181,7 +181,7 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">Complete your profile, recruiters are watching 📝</h2>
+            <h2 id="talent-story-title">Complete your profile, recruiters are watching!</h2>
             <p>
               Your profile is collected into the talent pool.
               Recruiters, hiring manager, or founders all see the same evidence, but how?
