@@ -111,7 +111,7 @@ export default async function Home() {
           <div className="landing-project-feature-head">
             <div>
               <p className="home-eyebrow">01 · Project Showcase</p>
-              <h2 id="project-feature-title">One project shares brings multiple oportunity 🤲</h2>
+              <h2 id="project-feature-title">One shared project brings multiple oportunity 🤲</h2>
             </div>
           </div>
 

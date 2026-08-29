@@ -18,6 +18,11 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // Let a Link start upgrading an unseen dynamic detail route while it is in
+  // view. That makes a click from Explore feel instant even when the project
+  // was created after the last deployment and therefore was not pre-rendered
+  // below yet.
+  partialPrefetching: true,
   cacheLife: {
     // The board, the people directory, a project page. Someone posting a
     // project wants to see it appear; the tag invalidation covers that, and

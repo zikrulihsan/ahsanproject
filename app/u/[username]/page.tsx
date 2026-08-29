@@ -12,6 +12,7 @@ import {
   getPerson,
   getPersonStats,
   getPortfolio,
+  listPeople,
   listPersonActivity,
   type Contribution,
   type Person,
@@ -23,6 +24,21 @@ import { nextSteps, remainingSteps } from "../../lib/next-steps";
 import { currentViewer } from "../../lib/session";
 
 type Params = Promise<{ username: string }>;
+
+/**
+ * Pre-render a bounded set of public portfolios for direct links and shares.
+ * Less frequently visited profiles are still cached on their first prefetch
+ * or visit, without making a growing directory slow every deployment.
+ */
+export async function generateStaticParams(): Promise<{ username: string }[]> {
+  try {
+    const people = await listPeople(80);
+    return people.slice(0, 32).map((person) => ({ username: person.username }));
+  } catch (error) {
+    console.warn("[ahsan] Detail profil tidak diprerender:", error);
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { username } = await params;

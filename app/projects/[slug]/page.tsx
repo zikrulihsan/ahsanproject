@@ -38,6 +38,7 @@ import {
   getProject,
   hasBoosted,
   isFollowing,
+  listProjects,
   listProjectProposals,
   listProjectActivity,
   type ProjectDetail,
@@ -65,6 +66,26 @@ import { isGitHubRepositoryUrl } from "../../lib/github";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ tab?: string | string[] }>;
+
+/**
+ * Prime the public project pages people are most likely to open from Explore.
+ *
+ * Cache Components upgrades every other slug after its first prefetch or
+ * visit, so this deliberately stays a bounded set: a catalogue growing into
+ * thousands of projects must not turn every deployment into thousands of
+ * five-query detail renders.
+ */
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  try {
+    const projects = await listProjects({ lane: "aktif" });
+    return projects.slice(0, 32).map((project) => ({ slug: project.slug }));
+  } catch (error) {
+    // A temporary database outage should not make a deploy fail. Unknown
+    // slugs still receive the segment loading state and upgrade on first use.
+    console.warn("[ahsan] Detail project tidak diprerender:", error);
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
