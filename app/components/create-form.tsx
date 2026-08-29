@@ -44,14 +44,18 @@ const DETAIL_FIELDS = [
  * anything at all. The page behind the link can answer most of what that form
  * was asking, so it does, and the rest waits.
  *
- * Two things sit under the link, in this order and no other:
+ * Under it, two things and no more:
  *
- *   - one optional question, already open, in a box: what is interesting about
- *     this. It is the only thing a machine cannot read off the page, and it is
- *     what makes the entry worth reading rather than worth indexing.
- *   - everything the old form asked, behind a button, all of it optional. Every
+ *   - one optional question, already open: what is interesting about this. It
+ *     is the only thing a machine cannot read off the page, and it is what
+ *     makes the entry worth reading rather than worth indexing.
+ *   - everything the old form asked, behind a toggle, all of it optional. Every
  *     field still exists and still saves; none of it stands between a person
  *     and a published project.
+ *
+ * Nothing here carries a label or a hint the placeholder already says, and
+ * there is one button. Explaining a form this short costs more attention than
+ * filling it in.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
@@ -118,31 +122,25 @@ export function CreateForm() {
       ) : null}
 
       <section className="link-start">
-        <label htmlFor="link">Project link</label>
-        <p className="hint" id="link-hint">
-          A website, an app listing, a repository — anything that opens. We read the name,
-          description and icon from the page itself.
-        </p>
-        <div className="link-start-row">
-          <input
-            id="link"
-            name="link"
-            type="text"
-            inputMode="url"
-            autoComplete="url"
-            autoFocus
-            spellCheck={false}
-            placeholder="pamerin.lol"
-            value={link}
-            onChange={(event) => changeLink(event.target.value)}
-            aria-describedby="link-hint"
-            aria-invalid={errors.link ? true : undefined}
-            required
-          />
-          <button className="primary-button" type="submit" disabled={pending}>
-            {pending ? "Adding…" : "Add project"}
-          </button>
-        </div>
+        {/* The label is the placeholder. A field this size, alone on the page,
+            does not need a heading above it explaining that it is a field. */}
+        <label className="sr-only" htmlFor="link">
+          Link to your project
+        </label>
+        <input
+          id="link"
+          name="link"
+          type="text"
+          inputMode="url"
+          autoComplete="url"
+          autoFocus
+          spellCheck={false}
+          placeholder="Link to your project"
+          value={link}
+          onChange={(event) => changeLink(event.target.value)}
+          aria-invalid={errors.link ? true : undefined}
+          required
+        />
         {errors.link ? (
           <p className="field-error" role="alert">
             {errors.link}
@@ -150,27 +148,29 @@ export function CreateForm() {
         ) : null}
 
         <LinkReading reading={reading} preview={preview} error={previewError} />
-      </section>
 
-      <section className="link-highlight">
-        <Field
-          label="What is interesting about this project?"
+        <label className="sr-only" htmlFor="highlight">
+          What is interesting about this project?
+        </label>
+        <textarea
+          id="highlight"
           name="highlight"
-          hint="Optional, and the one thing the link cannot tell us. A sentence or two is plenty."
-          error={errors.highlight}
-          defaultValue={values.highlight}
-          rows={3}
+          rows={2}
           maxLength={MAXIMUM.highlight}
-          placeholder="For example: it turns a spreadsheet a hundred people were emailing around into something that just works."
+          defaultValue={values.highlight}
+          aria-invalid={errors.highlight ? true : undefined}
+          placeholder="What is interesting about it? (optional)"
         />
+        {errors.highlight ? (
+          <p className="field-error" role="alert">
+            {errors.highlight}
+          </p>
+        ) : null}
       </section>
 
       <details className="project-details" open={detailsHaveErrors}>
         <summary>
-          <span className="project-details-toggle">Add project details</span>
-          <span className="project-details-note">
-            Optional — every field here can also be filled in later, from the project page.
-          </span>
+          <span className="project-details-toggle">Add project details (optional)</span>
         </summary>
 
         <div className="project-details-body">
@@ -419,9 +419,6 @@ export function CreateForm() {
       <button className="primary-button create-submit" type="submit" disabled={pending}>
         {pending ? "Adding…" : "Add project"}
       </button>
-      <p className="link-form-footnote">
-        You can edit everything afterwards, and add the rest of the brief whenever you want.
-      </p>
     </form>
   );
 }
@@ -471,11 +468,11 @@ function LinkReading({
         {preview.tagline ? <p>{preview.tagline}</p> : null}
         <small>{preview.domain}</small>
       </div>
-      <p className="link-preview-note">
-        {preview.fetched
-          ? "Recorded from the page. Change any of it under “Add project details”."
-          : "That page would not let us read it, so we used the address. Add a name and summary under “Add project details”."}
-      </p>
+      {/* When the read worked, the card is the message. Only the case that
+          needs explaining gets a sentence. */}
+      {preview.fetched ? null : (
+        <p className="link-preview-note">That page would not let us read it, so we used its address.</p>
+      )}
     </div>
   );
 }

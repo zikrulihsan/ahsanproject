@@ -30,46 +30,21 @@ export default async function NewProject() {
     <>
       <SiteHeader returnTo="/new" />
 
-      <main id="main-content" className="page-narrow">
-        <p className="eyebrow">
-          <span /> Add your project
-        </p>
+      {/* One line, one field, one button. A page whose whole job is to take a
+          link should not spend the visitor's attention introducing itself. */}
+      <main id="main-content" className="page-narrow new-page">
+        <h1>
+          Show anything you built. <span>One link is enough.</span>
+        </h1>
+
         {viewer ? (
-          <>
-            <h1>Paste the link. That is the whole form.</h1>
-            <p className="lede">
-              We read the name, the description and the icon from the page itself. Everything
-              else—the brief, the topics, the role you are looking for—is optional, and you can add
-              it any time after the project is up.
-            </p>
-            <CreateForm />
-          </>
+          <CreateForm />
         ) : (
-          <>
-            <h1>Adding a project takes one link.</h1>
-            <p className="lede">
-              An idea, a work in progress, or something people already use—it all belongs here.
-              Paste the link and the project is up; the rest can be filled in whenever you want.
-            </p>
-
-            <ol className="how-list">
-              {guestSteps.map((step) => (
-                <li key={step.step}>
-                  <span>{step.step}</span>
-                  <div>
-                    <h2>{step.title}</h2>
-                    <p>{step.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <p className="sign-in-callout">
-              <Link className="primary-button" href={signInPath("/new")}>
-                Sign in and paste your link
-              </Link>
-            </p>
-          </>
+          <p className="sign-in-callout">
+            <Link className="primary-button" href={signInPath("/new")}>
+              Sign in to add your project
+            </Link>
+          </p>
         )}
       </main>
 
@@ -77,21 +52,3 @@ export default async function NewProject() {
     </>
   );
 }
-
-const guestSteps = [
-  {
-    step: "01",
-    title: "Paste the link",
-    body: "A website, an app listing, or a repository. We read the name, description and icon from the page.",
-  },
-  {
-    step: "02",
-    title: "Say what is interesting about it",
-    body: "Optional, one or two sentences, and the one thing a link cannot tell us on its own.",
-  },
-  {
-    step: "03",
-    title: "Add the rest whenever you want",
-    body: "The brief, the topics, and the role you are looking for all wait on the project page, not on this form.",
-  },
-];
