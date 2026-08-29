@@ -53,9 +53,9 @@ const DETAIL_FIELDS = [
  *     field still exists and still saves; none of it stands between a person
  *     and a published project.
  *
- * Nothing here carries a label or a hint the placeholder already says, and
- * there is one button. Explaining a form this short costs more attention than
- * filling it in.
+ * Short, but not styled apart: the labelled fields and the pill disclosure
+ * are the ones every other form here uses. What was cut is the explaining —
+ * a form with one required field is quicker to fill in than to read about.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
@@ -122,55 +122,45 @@ export function CreateForm() {
       ) : null}
 
       <section className="link-start">
-        {/* The label is the placeholder. A field this size, alone on the page,
-            does not need a heading above it explaining that it is a field. */}
-        <label className="sr-only" htmlFor="link">
-          Link to your project
-        </label>
-        <input
-          id="link"
-          name="link"
-          type="text"
-          inputMode="url"
-          autoComplete="url"
-          autoFocus
-          spellCheck={false}
-          placeholder="Link to your project"
-          value={link}
-          onChange={(event) => changeLink(event.target.value)}
-          aria-invalid={errors.link ? true : undefined}
-          required
-        />
-        {errors.link ? (
-          <p className="field-error" role="alert">
-            {errors.link}
-          </p>
-        ) : null}
+        <div className={`field ${errors.link ? "has-error" : ""}`}>
+          <label htmlFor="link">Project link</label>
+          <input
+            id="link"
+            name="link"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            autoFocus
+            spellCheck={false}
+            placeholder="https://"
+            value={link}
+            onChange={(event) => changeLink(event.target.value)}
+            aria-invalid={errors.link ? true : undefined}
+            required
+          />
+          {errors.link ? (
+            <p className="field-error" role="alert">
+              {errors.link}
+            </p>
+          ) : null}
+        </div>
 
         <LinkReading reading={reading} preview={preview} error={previewError} />
 
-        <label className="sr-only" htmlFor="highlight">
-          What is interesting about this project?
-        </label>
-        <textarea
-          id="highlight"
+        <Field
+          label="What is interesting about this project?"
           name="highlight"
-          rows={2}
-          maxLength={MAXIMUM.highlight}
+          hint="Optional."
+          error={errors.highlight}
           defaultValue={values.highlight}
-          aria-invalid={errors.highlight ? true : undefined}
-          placeholder="What is interesting about it? (optional)"
+          rows={3}
+          maxLength={MAXIMUM.highlight}
         />
-        {errors.highlight ? (
-          <p className="field-error" role="alert">
-            {errors.highlight}
-          </p>
-        ) : null}
       </section>
 
-      <details className="project-details" open={detailsHaveErrors}>
+      <details className="optional-fields project-details" open={detailsHaveErrors}>
         <summary>
-          <span className="project-details-toggle">Add project details (optional)</span>
+          Add project details <span>optional</span>
         </summary>
 
         <div className="project-details-body">
