@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   faviconUrl,
+  normalizeOrigin,
+  pinnedOrigin,
   projectLogoUrl,
   safeNextPath,
   signInPath,
@@ -115,5 +117,54 @@ test("a project logo accepts only ordinary web image URLs", () => {
   assert.equal(projectLogoUrl("https://flipcard.id/favicon.ico"), "https://flipcard.id/favicon.ico");
   for (const value of ["", "flipcard.id/logo.png", "data:image/png,x", "javascript:alert(1)"]) {
     assert.equal(projectLogoUrl(value), "");
+  }
+});
+
+test("an origin keeps only its scheme, host, and port", () => {
+  assert.equal(normalizeOrigin("https://ahsanproject.id/"), "https://ahsanproject.id");
+  assert.equal(normalizeOrigin("  https://ahsanproject.id/mulai?a=1  "), "https://ahsanproject.id");
+  assert.equal(normalizeOrigin("http://localhost:3000"), "http://localhost:3000");
+});
+
+test("anything that is not an ordinary web origin is refused", () => {
+  for (const nonsense of ["", null, undefined, "ahsanproject.id", "javascript:alert(1)", "/mulai"]) {
+    assert.equal(normalizeOrigin(nonsense), null, `${nonsense} bukan origin`);
+  }
+});
+
+test("a configured site URL is where a sign-in starts", () => {
+  assert.equal(
+    pinnedOrigin({ NEXT_PUBLIC_SITE_URL: "https://ahsanproject.id/" }),
+    "https://ahsanproject.id",
+  );
+  // Netlify's own primary address, and it wins over nothing else being set.
+  assert.equal(
+    pinnedOrigin({ CONTEXT: "production", URL: "https://ahsanproject-dev.netlify.app" }),
+    "https://ahsanproject-dev.netlify.app",
+  );
+  assert.equal(
+    pinnedOrigin({
+      NEXT_PUBLIC_SITE_URL: "https://ahsanproject.id",
+      CONTEXT: "production",
+      URL: "https://ahsanproject-dev.netlify.app",
+    }),
+    "https://ahsanproject.id",
+  );
+});
+
+test("a preview deploy and a laptop keep their own address", () => {
+  // On a deploy preview Netlify still reports production in URL; pinning it
+  // would send a reviewer to sign in on the live site instead.
+  assert.equal(
+    pinnedOrigin({ CONTEXT: "deploy-preview", URL: "https://ahsanproject.id" }),
+    null,
+  );
+  assert.equal(pinnedOrigin({}), null);
+  assert.equal(pinnedOrigin({ NEXT_PUBLIC_SITE_URL: "  " }), null);
+});
+
+test("a code left alone on the routes that spend it", () => {
+  for (const home of ["/auth/callback", "/auth/confirm"]) {
+    assert.equal(strayCodeTarget(home, params("code=abc&next=%2Fmulai"), false), null, home);
   }
 });

@@ -1,7 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { resilientSupabaseFetch } from "../../lib/resilient-fetch";
-import { safeNextPath } from "../../lib/urls";
+import { sameOriginRedirect } from "../../lib/redirect";
+import { siteOrigin } from "../../lib/origin";
+import { pinnedOrigin, safeNextPath } from "../../lib/urls";
+
+/**
+ * Marks the one bounce this route is allowed to make, so a hosting layer that
+ * reports a host we disagree with costs a single extra redirect instead of an
+ * endless loop.
+ */
+const PINNED = "alamat";
 
 /**
  * Starts the Google sign-in, and hands the browser the cookie that finishes it.
@@ -25,9 +34,22 @@ import { safeNextPath } from "../../lib/urls";
 export async function GET(request: NextRequest) {
   const next = safeNextPath(request.nextUrl.searchParams.get("next"));
 
+  // Where the whole round trip has to happen: the verifier written below and
+  // the callback that reads it back must be the same host, and this is the
+  // only moment either can still be chosen. Nothing is written yet, so moving
+  // somebody now costs a redirect and nothing else. See `pinnedOrigin`.
+  const browser = await siteOrigin();
+  const pinned = pinnedOrigin(process.env);
+  if (pinned && pinned !== browser && request.nextUrl.searchParams.get(PINNED) !== "utama") {
+    const start = new URL("/auth/google", pinned);
+    start.searchParams.set("next", next);
+    start.searchParams.set(PINNED, "utama");
+    return NextResponse.redirect(start);
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return refuse(request, next);
+  if (!url || !anonKey) return refuse(next);
 
   // Collected rather than written through `cookies()`: these have to land on
   // the redirect below, and nowhere else.
@@ -45,10 +67,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // The origin being served, not a configured one: the verifier is stored
-  // against this host, so the callback has to come back to this host. See
-  // `siteOrigin()` in app/lib/origin.ts for the same rule stated at length.
-  const callback = new URL("/auth/callback", request.nextUrl.origin);
+  // The origin the browser is on, not the one this function was invoked with:
+  // the verifier is stored against the host in the address bar, so the callback
+  // has to come back to that host. `request.nextUrl.origin` is the invoking
+  // address, which behind Netlify can be the deploy's own permalink even when
+  // nobody ever typed it. See `siteOrigin()` in app/lib/origin.ts.
+  const callback = new URL("/auth/callback", pinned ?? browser);
   callback.searchParams.set("next", next);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -58,7 +82,7 @@ export async function GET(request: NextRequest) {
 
   if (error || !data.url) {
     console.error("[ahsan] Google OAuth gagal dimulai.", error);
-    return refuse(request, next);
+    return refuse(next);
   }
 
   if (pending.length === 0) {
@@ -66,7 +90,7 @@ export async function GET(request: NextRequest) {
     // them back to a failure. Better to stop here than to spend somebody's time
     // proving it.
     console.error("[ahsan] Verifier PKCE tidak dihasilkan; Google OAuth dibatalkan.");
-    return refuse(request, next);
+    return refuse(next);
   }
 
   const response = NextResponse.redirect(data.url);
@@ -76,9 +100,8 @@ export async function GET(request: NextRequest) {
   return response;
 }
 
-function refuse(request: NextRequest, next: string): NextResponse {
-  const destination = new URL("/signin", request.url);
-  destination.searchParams.set("error", "google-gagal");
-  if (next !== "/") destination.searchParams.set("next", next);
-  return NextResponse.redirect(destination);
+function refuse(next: string): NextResponse {
+  const failure = new URLSearchParams({ error: "google-gagal" });
+  if (next !== "/") failure.set("next", next);
+  return sameOriginRedirect(`/signin?${failure}`);
 }

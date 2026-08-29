@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { resilientSupabaseFetch } from "./app/lib/resilient-fetch";
-import { strayCodeTarget } from "./app/lib/urls";
+import { sameOriginRedirect } from "./app/lib/redirect";
+import { originFromHeaders, strayCodeTarget } from "./app/lib/urls";
 
 /**
  * Keeps the Supabase session cookie fresh.
@@ -17,9 +18,7 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/") {
     const boardKeys = ["stage", "lane", "tag", "role", "q", "cari", "needs"];
     if (boardKeys.some((key) => request.nextUrl.searchParams.has(key))) {
-      const destination = request.nextUrl.clone();
-      destination.pathname = "/kolaborasi";
-      return NextResponse.redirect(destination);
+      return sameOriginRedirect(`/kolaborasi${request.nextUrl.search}`, browserOrigin(request));
     }
   }
 
@@ -35,10 +34,13 @@ export async function proxy(request: NextRequest) {
     hasSessionCookie(request),
   );
   if (stray) {
-    const destination = request.nextUrl.clone();
-    destination.pathname = stray.pathname;
-    destination.search = stray.search;
-    return NextResponse.redirect(destination);
+    // Same host, deliberately: the code is about to be spent against a verifier
+    // cookie that only exists on the host the browser is on. `nextUrl` is the
+    // address this function was invoked with, which is not always that host.
+    return sameOriginRedirect(
+      stray.search ? `${stray.pathname}?${stray.search}` : stray.pathname,
+      browserOrigin(request),
+    );
   }
 
   let response = NextResponse.next({ request });
@@ -78,6 +80,11 @@ export async function proxy(request: NextRequest) {
   }
 
   return response;
+}
+
+/** The address the browser used, with the invoking address as a last resort. */
+function browserOrigin(request: NextRequest): string {
+  return originFromHeaders(request.headers) ?? request.nextUrl.origin;
 }
 
 /**
