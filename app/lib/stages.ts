@@ -17,23 +17,23 @@ export type Stage = (typeof STAGES)[number];
 
 export const stageMeta: Record<Stage, { label: string; blurb: string; tone: string }> = {
   idea: {
-    label: "Ide",
-    blurb: "Baru gagasan, tapi sudah ditulis serius dan terbuka untuk dibahas.",
+    label: "Idea",
+    blurb: "Just an idea, but written down seriously and open for discussion.",
     tone: "stage-idea",
   },
   building: {
-    label: "Sedang dibangun",
-    blurb: "Ada yang sedang menggarapnya. Hasilnya belum bisa dipakai orang lain.",
+    label: "Building",
+    blurb: "Someone is working on it. Other people cannot use the result yet.",
     tone: "stage-building",
   },
   live: {
-    label: "Sudah berjalan",
-    blurb: "Sudah bisa dipakai orang lain hari ini juga.",
+    label: "Live",
+    blurb: "Other people can use it today.",
     tone: "stage-live",
   },
   resting: {
-    label: "Diistirahatkan",
-    blurb: "Sedang tidak dikerjakan. Boleh diambil alih atau dilanjutkan.",
+    label: "Resting",
+    blurb: "It is not being worked on now. It can be continued or taken over.",
     tone: "stage-resting",
   },
 };
@@ -71,10 +71,10 @@ export type Requirement = { label: string; met: boolean };
 export function requirementsFor(stage: Stage, project: StageInput): Requirement[] {
   const brief: Requirement[] = [
     {
-      label: "Brief terisi: masalah, solusi, dan untuk siapa",
+      label: "Brief completed: problem, solution, and audience",
       met: Boolean(project.problem && project.solution && project.audience),
     },
-    { label: "Punya minimal satu tag", met: project.tags.length > 0 },
+    { label: "Has at least one tag", met: project.tags.length > 0 },
   ];
 
   switch (stage) {
@@ -84,14 +84,14 @@ export function requirementsFor(stage: Stage, project: StageInput): Requirement[
       return [
         ...brief,
         {
-          label: "Ada yang sedang dikerjakan, atau tautan kerjanya",
+          label: "Includes current work or a working link",
           met: Boolean(project.nowText || project.repoUrl || project.docUrl || project.liveUrl),
         },
       ];
     case "live":
       return [
         ...requirementsFor("building", project),
-        { label: "Ada tautan yang bisa dibuka orang lain", met: Boolean(project.liveUrl) },
+        { label: "Includes a link other people can open", met: Boolean(project.liveUrl) },
       ];
     case "resting":
       return [];

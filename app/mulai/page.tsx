@@ -20,8 +20,8 @@ import { signInPath } from "../lib/urls";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Langkah berikutnya — Ahsan Project",
-  description: "Yang tersisa supaya projectmu terlihat dan profilmu bisa ditemukan.",
+  title: "Next steps — Ahsan Project",
+  description: "What remains to make your projects visible and your profile discoverable.",
   robots: { index: false },
 };
 
@@ -62,13 +62,13 @@ export default async function StartPage({
 
       <main id="main-content" className="page-narrow start-page">
         <p className="eyebrow">
-          <span /> Langkah berikutnya
+          <span /> Next steps
         </p>
-        <h1>Halo, {firstName}.</h1>
+        <h1>Hello, {firstName}.</h1>
         <p className="lede">
           {remaining.length === 0
-            ? "Semua langkahnya sudah beres. Yang di bawah ini tinggal tempat mengubahnya lagi."
-            : `Sisa ${remaining.length} langkah supaya projectmu terlihat dan profilmu bisa ditemukan orang. Tidak ada yang wajib sekarang juga.`}
+            ? "You have completed all the steps. Use the options below to update them again."
+            : `${remaining.length} steps remain to make your projects visible and your profile discoverable. None are required right now.`}
         </p>
 
         <ol className="next-steps">
@@ -80,7 +80,7 @@ export default async function StartPage({
         {extras.length > 0 ? (
           <section className="next-step-optional" aria-labelledby="optional-heading">
             <h2 id="optional-heading" className="section-title">
-              Kalau perlu
+              If you need it
             </h2>
             <ol className="next-steps">
               {extras.map((step) => (
@@ -92,12 +92,12 @@ export default async function StartPage({
 
         <section aria-labelledby="projects-heading">
           <h2 id="projects-heading" className="section-title">
-            Project kamu
+            Your projects
           </h2>
 
           {owned.length === 0 ? (
             <p className="muted">
-              Belum ada. <Link href="/new">Tunjukkan yang pertama</Link> — boleh yang masih ide.
+              Nothing here yet. <Link href="/new">Show your first project</Link>—an idea is enough.
             </p>
           ) : (
             <ul className="start-project-list">
@@ -109,7 +109,7 @@ export default async function StartPage({
         </section>
 
         <p className="start-skip">
-          <Link href="/">Lewati dulu, lihat-lihat board</Link>
+          <Link href="/">Skip for now and browse the board</Link>
         </p>
       </main>
 
@@ -127,12 +127,12 @@ function StepRow({ step }: { step: NextStep }) {
       <div className="next-step-copy">
         <h3>
           {step.title}
-          {step.done ? <span className="next-step-state"> · sudah</span> : null}
+          {step.done ? <span className="next-step-state"> · done</span> : null}
         </h3>
         <p>{step.blurb}</p>
       </div>
       <Link className="next-step-cta" href={step.href}>
-        {step.done ? "Ubah" : step.cta}
+        {step.done ? "Edit" : step.cta}
       </Link>
     </li>
   );
@@ -158,13 +158,13 @@ function StartProjectRow({ project }: { project: ProjectSummary }) {
           <StageBadge stage={project.stage} />
         </div>
         <Link className="start-project-edit" href={`/projects/${project.slug}/edit`}>
-          Ubah brief
+          Edit brief
         </Link>
       </div>
 
       <form className="start-now-form" action={setNow}>
         <input type="hidden" name="slug" value={project.slug} />
-        <label htmlFor={`now-${project.slug}`}>Sekarang sedang…</label>
+        <label htmlFor={`now-${project.slug}`}>Working on now…</label>
         <div className="start-now-row">
           <input
             id={`now-${project.slug}`}
@@ -172,18 +172,18 @@ function StartProjectRow({ project }: { project: ProjectSummary }) {
             type="text"
             maxLength={MAXIMUM.now}
             defaultValue={project.nowText}
-            placeholder="Contoh: Menyusun materi keselamatan pertama."
+            placeholder="For example: Drafting the first safety materials."
           />
-          <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
+          <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
         </div>
       </form>
 
       <p className="start-project-seats">
         {project.openSeatCount > 0
-          ? `${project.openSeatCount} role terbuka.`
-          : "Belum ada role terbuka."}{" "}
+          ? `${project.openSeatCount} open roles.`
+          : "No open roles yet."}{" "}
         <Link href={`/projects/${project.slug}?tab=kolaborasi`}>
-          {project.openSeatCount > 0 ? "Lihat kolaborasi" : "Buka role"}
+          {project.openSeatCount > 0 ? "View collaboration" : "Open a role"}
         </Link>
       </p>
     </li>

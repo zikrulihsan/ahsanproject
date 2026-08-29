@@ -33,5 +33,5 @@ export function Skeleton({
 
 /** What a screen reader hears while the bars are on show. */
 export function LoadingNote() {
-  return <p className="sr-only">Memuat…</p>;
+  return <p className="sr-only">Loading…</p>;
 }

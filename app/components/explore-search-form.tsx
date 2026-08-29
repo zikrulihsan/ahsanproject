@@ -76,7 +76,7 @@ export function ExploreSearchForm({
       )}
 
       <div className="collaboration-search-mode" role="radiogroup" aria-labelledby={labelId}>
-        <span id={labelId}>Cari berdasarkan</span>
+        <span id={labelId}>Search by</span>
         {([
           ["project", "Project"],
           ["role", "Role terbuka"],
@@ -149,13 +149,13 @@ export function ExploreSearchForm({
                 </button>
               ))
             ) : (
-              <p>Role tersebut belum sedang dibuka.</p>
+              <p>That role is not open right now.</p>
             )}
           </div>
         ) : null}
       </div>
 
-      <button type="submit">Cari</button>
+      <button type="submit">Search</button>
     </form>
   );
 }

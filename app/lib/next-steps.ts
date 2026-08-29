@@ -61,29 +61,29 @@ export function nextSteps({
   const steps: NextStep[] = [
     {
       id: "project",
-      title: "Tunjukkan project pertamamu",
+      title: "Show your first project",
       blurb:
-        "Boleh yang masih ide, yang setengah jadi, atau yang sudah dipakai orang. Dari sinilah portofolio dan jejakmu tumbuh.",
+        "An idea, a work in progress, or something people already use all count. This is where your portfolio and work trail begin.",
       href: "/new",
-      cta: "Tunjukkan project",
+      cta: "Show a project",
       done: owned.length > 0 || contributing.length > 0,
     },
     {
       id: "talent",
-      title: "Lengkapi profil untuk talent pool",
+      title: "Complete your talent-pool profile",
       blurb:
-        "Profesi, skill, dan sedikit cerita. Ini yang dipakai orang saat mencari orang di /orang.",
+        "Your profession, skills, and a little about you. People use these details when searching /orang.",
       href: "/akun/profil",
-      cta: "Lengkapi profil",
+      cta: "Complete profile",
       done: profileReady(person),
     },
     {
       id: "contact",
-      title: "Kasih satu cara orang menghubungimu",
+      title: "Add one way to contact you",
       blurb:
-        "Email publik, LinkedIn, GitHub, situs, atau résumé — satu saja cukup. Email yang kamu pakai untuk masuk tidak pernah ditampilkan.",
-      href: "/akun/profil#kontak",
-      cta: "Tambahkan tautan",
+        "A public email, LinkedIn, GitHub, website, or résumé—one is enough. The email you use to sign in is never shown.",
+      href: "/akun/profil#contact",
+      cta: "Add a link",
       done: hasContact(person),
     },
   ];
@@ -93,21 +93,21 @@ export function nextSteps({
     const quiet = owned.find((project) => !project.nowText) ?? owned[0];
     steps.push({
       id: "now",
-      title: "Tulis yang sedang dikerjakan",
+      title: "Describe what you are working on",
       blurb:
-        "Satu kalimat. Inilah yang membedakan project yang hidup dari daftar ide yang ditinggalkan.",
+        "One sentence. This is what separates a living project from an abandoned idea list.",
       href: `/projects/${quiet.slug}`,
-      cta: "Tulis kalimatnya",
+      cta: "Write the update",
       done: owned.some((project) => project.nowText !== ""),
     });
 
     const seatless = owned.find((project) => project.openSeatCount === 0) ?? owned[0];
     steps.push({
       id: "role",
-      title: "Buka role kalau butuh bantuan",
-      blurb: "Sebut yang perlu dibantu dan perkiraan waktunya. Boleh dilewati — bekerja sendiri bukan project yang lebih rendah.",
+      title: "Open a role when you need help",
+      blurb: "Name the work and its estimated time commitment. This is optional—working alone does not make a project less valuable.",
       href: `/projects/${seatless.slug}?tab=kolaborasi`,
-      cta: "Buka role",
+      cta: "Open a role",
       done: owned.some((project) => project.openSeatCount > 0),
       optional: true,
     });

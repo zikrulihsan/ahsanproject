@@ -28,17 +28,17 @@ export type EventKind = (typeof EVENT_KINDS)[number];
 
 /** Labels for the checkbox list where somebody chooses what stays public. */
 export const eventKindMeta: Record<EventKind, { label: string }> = {
-  project_created: { label: "Menaruh ide baru" },
-  project_stage_changed: { label: "Memindahkan tahap project" },
-  seat_opened: { label: "Membuka peran" },
-  seat_applied: { label: "Melamar peran" },
-  seat_filled: { label: "Gabung ke project" },
-  task_created: { label: "Menambah tugas" },
-  task_taken: { label: "Kebagian tugas" },
-  task_done: { label: "Membereskan tugas" },
-  comment_posted: { label: "Ikut membahas" },
-  boost_given: { label: "Mendukung project" },
-  update_posted: { label: "Mengabari perkembangan" },
+  project_created: { label: "Added a new idea" },
+  project_stage_changed: { label: "Changed a project stage" },
+  seat_opened: { label: "Opened a role" },
+  seat_applied: { label: "Applied for a role" },
+  seat_filled: { label: "Joined a project" },
+  task_created: { label: "Added a task" },
+  task_taken: { label: "Took a task" },
+  task_done: { label: "Completed a task" },
+  comment_posted: { label: "Joined a discussion" },
+  boost_given: { label: "Supported a project" },
+  update_posted: { label: "Posted an update" },
 };
 
 export function isEventKind(value: string): value is EventKind {
@@ -107,31 +107,31 @@ export function activityParts(event: ActivityLike): { lead: string; trail: strin
 
   switch (event.kind) {
     case "project_created":
-      return { lead: "menaruh ide ", trail: "." };
+      return { lead: "added ", trail: "." };
     case "project_stage_changed":
-      return { lead: "memindahkan ", trail: ` ke tahap ${stage}.` };
+      return { lead: "moved ", trail: ` to ${stage}.` };
     case "seat_opened":
-      return { lead: `membuka peran ${role} di `, trail: "." };
+      return { lead: `opened the ${role} role on `, trail: "." };
     case "seat_applied":
-      return { lead: `melamar sebagai ${role} di `, trail: "." };
+      return { lead: `applied as ${role} on `, trail: "." };
     case "seat_filled":
-      return { lead: "mulai menggarap ", trail: ` sebagai ${role}.` };
+      return { lead: "started working on ", trail: ` as ${role}.` };
     case "task_created":
-      return { lead: `menambah tugas “${task}” di `, trail: "." };
+      return { lead: `added the task “${task}” to `, trail: "." };
     case "task_taken":
-      return { lead: `kebagian tugas “${task}” di `, trail: "." };
+      return { lead: `took the task “${task}” on `, trail: "." };
     case "task_done":
-      return { lead: `membereskan tugas “${task}” di `, trail: "." };
+      return { lead: `completed the task “${task}” on `, trail: "." };
     case "comment_posted":
-      return { lead: "ikut membahas ", trail: "." };
+      return { lead: "joined the discussion on ", trail: "." };
     case "boost_given":
-      return { lead: "mendukung ", trail: "." };
+      return { lead: "supported ", trail: "." };
     case "update_posted":
-      return { lead: "mengabari perkembangan ", trail: payload.update_title ? `: “${payload.update_title}”.` : "." };
+      return { lead: "posted an update on ", trail: payload.update_title ? `: “${payload.update_title}”.` : "." };
     default:
       // A kind this build has not heard of still reads as something, the same
       // way roleLabel falls back rather than throwing.
-      return { lead: "ikut mengerjakan ", trail: "." };
+      return { lead: "contributed to ", trail: "." };
   }
 }
 

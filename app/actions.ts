@@ -104,7 +104,7 @@ function trailChanged(personId: string | null | undefined, slug?: string): void 
 /** Reads public GitHub copy into a browser draft; it never writes a project. */
 export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportResult> {
   const viewer = await currentViewer();
-  if (!viewer) return { ok: false, error: "Masuk dulu sebelum mengimpor README." };
+  if (!viewer) return { ok: false, error: "Sign in before importing a README." };
 
   try {
     return { ok: true, draft: await getGitHubProjectDraft(repoUrl) };
@@ -136,7 +136,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu sebelum menunjukkan project di sini." }, values };
+  if (!viewer) return { errors: { form: "Sign in before showing a project here." }, values };
 
   const errors: CreateState["errors"] = validateBrief(values);
   const requestedStage = isStage(values.stage) ? values.stage : "idea";
@@ -147,15 +147,15 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     !values.repoUrl &&
     !values.liveUrl
   ) {
-    errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
+    errors.now = "Describe the work in progress, or add a working link.";
   }
   if (requestedStage === "live" && !values.liveUrl) {
-    errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+    errors.liveUrl = "A live project needs a link other people can open.";
   }
   if (values.openSeat === "yes") {
-    if (!isRole(values.seatRole)) errors.seatRole = "Pilih role yang sedang dicari.";
+    if (!isRole(values.seatRole)) errors.seatRole = "Choose the role you are looking for.";
     if (values.seatRole === "other" && !values.seatRoleTitle) {
-      errors.seatRoleTitle = "Tulis nama role yang belum ada di katalog.";
+      errors.seatRoleTitle = "Write the name of a role that is not in the catalogue.";
     }
     if (!values.seatBrief) errors.seatBrief = "Jelaskan pekerjaan konkret yang perlu dibantu.";
     if (!values.seatCommitment) {
@@ -163,7 +163,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     }
   }
   if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
-    errors.repoUrl = "Untuk membuka kontribusi GitHub, isi URL repository GitHub publik yang benar.";
+    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -260,12 +260,12 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
   };
 
   const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Masuk dulu untuk mengubah project ini." }, values };
+  if (!viewer) return { errors: { form: "Sign in to edit this project." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
   const requestedStage = isStage(values.stage) ? values.stage : null;
   if (!requestedStage) {
-    errors.stage = "Pilih status project yang tersedia.";
+    errors.stage = "Choose an available project status.";
   } else if (
     requestedStage === "building" &&
     !values.now &&
@@ -273,12 +273,12 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     !values.repoUrl &&
     !values.liveUrl
   ) {
-    errors.now = "Ceritakan yang sedang dikerjakan, atau tambahkan satu tautan kerja.";
+    errors.now = "Describe the work in progress, or add a working link.";
   } else if (requestedStage === "live" && !values.liveUrl) {
-    errors.liveUrl = "Project yang sudah berjalan perlu tautan yang bisa dibuka orang lain.";
+    errors.liveUrl = "A live project needs a link other people can open.";
   }
   if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
-    errors.repoUrl = "Untuk membuka kontribusi GitHub, isi URL repository GitHub publik yang benar.";
+    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -290,9 +290,9 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!project) return { errors: { form: "Projectnya tidak ketemu." }, values };
+    if (!project) return { errors: { form: "Project not found." }, values };
     if (project.owner_id !== viewer.id) {
-      return { errors: { form: "Cuma pemilik project yang bisa mengubahnya." }, values };
+      return { errors: { form: "Only the project owner can edit it." }, values };
     }
 
     const tags = normaliseTags(values.tags);
@@ -890,7 +890,7 @@ export async function updateProfile(
 
   const viewer = await currentViewer();
   if (!viewer) {
-    return { errors: { form: "Kamu sudah tidak dalam keadaan masuk. Masuk lagi, lalu simpan sekali lagi." }, values };
+    return { errors: { form: "You are no longer signed in. Sign in again, then save once more." }, values };
   }
 
   const errors = validateProfile(values);
@@ -1006,5 +1006,5 @@ function pick<T>(options: readonly T[], seed: string): T {
 }
 
 function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "Ada yang gagal saat menyimpan. Coba lagi sebentar.";
+  return error instanceof Error ? error.message : "Something went wrong while saving. Please try again shortly.";
 }

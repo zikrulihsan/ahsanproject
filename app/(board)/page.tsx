@@ -44,7 +44,7 @@ export default async function Home() {
 
   return (
     <>
-      <SiteHeader returnTo="/" active="beranda" />
+      <SiteHeader returnTo="/" active="home" />
 
       <main id="main-content" className="landing-page">
         <section className="landing-hero" aria-labelledby="landing-title">

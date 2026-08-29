@@ -23,12 +23,12 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   const next = safeNextPath(text(formData, "next"));
   const values = { email, name, next };
 
-  if (!email.includes("@")) return { error: "Alamat emailnya belum benar.", values };
-  if (name.length < 2) return { error: "Isi namamu, minimal dua huruf.", values };
+  if (!email.includes("@")) return { error: "Enter a valid email address.", values };
+  if (name.length < 2) return { error: "Enter a name with at least two letters.", values };
   if (password.length < MIN_PASSWORD) {
-    return { error: `Kata sandi minimal ${MIN_PASSWORD} karakter.`, values };
+    return { error: `Your password must be at least ${MIN_PASSWORD} characters.`, values };
   }
-  if (password !== confirm) return { error: "Ulangan kata sandinya belum sama.", values };
+  if (password !== confirm) return { error: "The password confirmation does not match.", values };
 
   const supabase = await requireSupabase();
   const origin = await siteOrigin();
@@ -52,7 +52,7 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   // has to open the link before they can do anything.
   if (!data.session) {
     return {
-      notice: `Kami kirim tautan konfirmasi ke ${email}. Buka tautannya untuk menyelesaikan pendaftaran.`,
+      notice: `We sent a confirmation link to ${email}. Open it to finish creating your account.`,
       values,
     };
   }
@@ -89,7 +89,7 @@ export async function requestPasswordReset(
   const email = text(formData, "email").toLowerCase();
   const values = { email };
 
-  if (!email.includes("@")) return { error: "Alamat emailnya belum benar.", values };
+  if (!email.includes("@")) return { error: "Enter a valid email address.", values };
 
   const supabase = await requireSupabase();
   const origin = await siteOrigin();
@@ -99,13 +99,13 @@ export async function requestPasswordReset(
   // A rate limit is worth saying out loud; anything else stays behind the
   // same neutral notice, so a failure cannot be read as "this email exists".
   if (error && /rate|limit|too many/i.test(error.message)) {
-    return { error: "Terlalu sering meminta. Tunggu sebentar lalu coba lagi.", values };
+    return { error: "Too many requests. Please wait a moment and try again.", values };
   }
 
   return {
     notice:
-      `Kalau ${email} terdaftar di sini, tautan untuk menyetel ulang kata sandi sudah dikirim. ` +
-      "Tautannya berlaku sebentar saja, jadi buka segera.",
+      `If ${email} is registered here, we have sent a password reset link. ` +
+      "The link expires soon, so please open it promptly.",
     values,
   };
 }
@@ -121,16 +121,16 @@ export async function updatePassword(_state: AuthState, formData: FormData): Pro
   const confirm = raw(formData, "confirm");
 
   if (password.length < MIN_PASSWORD) {
-    return { error: `Kata sandi minimal ${MIN_PASSWORD} karakter.`, values: {} };
+    return { error: `Your password must be at least ${MIN_PASSWORD} characters.`, values: {} };
   }
-  if (password !== confirm) return { error: "Ulangan kata sandinya belum sama.", values: {} };
+  if (password !== confirm) return { error: "The password confirmation does not match.", values: {} };
 
   const supabase = await requireSupabase();
   const { data: session } = await supabase.auth.getUser();
   if (!session.user) {
     return {
       error:
-        "Tautannya sudah kedaluwarsa atau sudah dipakai. Minta tautan baru lewat “Lupa kata sandi”.",
+        "This link has expired or has already been used. Request a new one through “Forgot password.”",
       values: {},
     };
   }
@@ -164,11 +164,11 @@ function raw(formData: FormData, key: string): string {
 /** Supabase answers in English; these are the ones people actually hit. */
 function translate(message: string): string {
   const known: Record<string, string> = {
-    "Invalid login credentials": "Email atau kata sandinya tidak cocok.",
-    "Email not confirmed": "Emailnya belum dikonfirmasi. Cek kotak masuk kamu dulu.",
-    "User already registered": "Email ini sudah terdaftar. Coba masuk saja.",
+    "Invalid login credentials": "The email address or password is incorrect.",
+    "Email not confirmed": "Your email address has not been confirmed. Check your inbox first.",
+    "User already registered": "This email address is already registered. Try signing in instead.",
     "New password should be different from the old password.":
-      "Kata sandi barunya masih sama dengan yang lama.",
+      "Your new password must be different from the old one.",
   };
 
   return known[message] ?? message;

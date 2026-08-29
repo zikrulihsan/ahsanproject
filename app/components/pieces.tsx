@@ -28,7 +28,7 @@ export function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
       href={repoUrl}
       target="_blank"
       rel="noreferrer"
-      title="Project ini terbuka untuk kontribusi lewat GitHub"
+      title="This project is open to contributions through GitHub"
     >
       Open for Contribute on GitHub <Arrow diagonal />
     </a>
@@ -94,7 +94,7 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
         {project.openRoles.length > 0 ? (
           <div className="open-call">
             <p className="open-call-head">
-              <span className="dot" aria-hidden="true" /> Terbuka untuk kontribusi
+              <span className="dot" aria-hidden="true" /> Open to contributions
             </p>
             <SeatChips roles={project.openRoles} />
           </div>
@@ -107,14 +107,14 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
             </span>
             <small>
               {project.owner.name}
-              {helpers > 0 ? ` + ${helpers} orang` : ""}
+              {helpers > 0 ? ` + ${helpers} people` : ""}
             </small>
           </Link>
 
           <span className="row-freshness">{freshness(project)}</span>
 
           <Link className="detail-link" href={`/projects/${project.slug}`}>
-            Lihat <Arrow />
+            View <Arrow />
           </Link>
         </div>
       </article>
@@ -134,7 +134,7 @@ export function NowLine({ project }: { project: ProjectSummary }) {
 
   return (
     <div className="now-line">
-      <p className="now-label">Sekarang</p>
+      <p className="now-label">Now</p>
       <p className="now-text">{project.nowText}</p>
     </div>
   );
@@ -162,7 +162,7 @@ export function RungRail({ stage }: { stage: Stage }) {
   }
 
   return (
-    <ol className="rung-rail" aria-label="Perjalanan project">
+    <ol className="rung-rail" aria-label="Project journey">
       {RUNGS.map((rung, index) => (
         <li
           key={rung}
@@ -215,7 +215,7 @@ export function ProjectCard({
       </div>
 
       <div className="profile-project-description">
-        <span>Deskripsi singkat</span>
+        <span>Short description</span>
         <p>{shortText(project.problem, PROFILE_DESCRIPTION_LIMIT)}</p>
       </div>
 
@@ -223,31 +223,31 @@ export function ProjectCard({
 
       {project.nowText ? (
         <div className="profile-project-now">
-          <span>Sekarang</span>
+          <span>Now</span>
           <p>{project.nowText}</p>
         </div>
       ) : null}
 
       <div className={`profile-project-roles${project.openRoles.length === 0 ? " profile-project-roles-empty" : ""}`}>
-        <small>Sedang mencari</small>
+        <small>Looking for</small>
         {project.openRoles.length > 0 ? (
           <SeatChips roles={project.openRoles} counts={roleCounts} maxVisible={2} />
         ) : (
-          <span className="profile-project-roles-none">Belum membuka posisi</span>
+          <span className="profile-project-roles-none">No open roles yet</span>
         )}
       </div>
 
       <div className="profile-project-footer">
         <span>{freshness(project) || "Baru ditampilkan"}</span>
-        <nav className="profile-project-actions" aria-label={`Tautan ${project.title}`}>
+        <nav className="profile-project-actions" aria-label={`${project.title} links`}>
           {project.liveUrl ? (
-            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={`Buka website ${project.title}`}>
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} website`}>
               <LinkIcon kind="website" />
               <span>Website</span>
             </a>
           ) : null}
           {project.repoUrl ? (
-            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={`Buka GitHub ${project.title}`}>
+            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} on GitHub`}>
               <LinkIcon kind="github" />
               <span>GitHub</span>
             </a>
@@ -265,7 +265,7 @@ export function ProjectCard({
 export function ProjectIconLink({ project }: { project: ProjectSummary }) {
   return (
     <li>
-      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Buka ${project.title}`}>
+      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Open ${project.title}`}>
         <ProjectLogo
           title={project.title}
           website={project.liveUrl}
@@ -295,7 +295,7 @@ export function SeatChips({
   const remaining = roles.length - shownRoles.length;
 
   return (
-    <ul className="seat-chips" aria-label="Bantuan yang dicari">
+    <ul className="seat-chips" aria-label="Help needed">
       {shownRoles.map((role, index) => {
         const many = counts?.[role] ?? 0;
         const label = (
@@ -319,7 +319,7 @@ export function SeatChips({
       })}
       {remaining > 0 ? (
         <li>
-          <span className="seat-chip seat-chip-more" aria-label={`${remaining} role lain tersedia`}>+{remaining}</span>
+          <span className="seat-chip seat-chip-more" aria-label={`${remaining} more roles available`}>+{remaining}</span>
         </li>
       ) : null}
     </ul>
@@ -399,10 +399,10 @@ export function BoardCard({
           {project.openRoles.length > 0 ? (
             <div className="home-open-call">
               <div className="home-open-label">
-                <p><PeopleIcon /> Role yang dicari</p>
+                <p><PeopleIcon /> Roles needed</p>
                 <small>Membuka {project.openSeatCount} posisi</small>
               </div>
-              <ul className="home-role-chips" aria-label="Posisi yang sedang dibuka">
+              <ul className="home-role-chips" aria-label="Open roles">
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
                     <Link href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
@@ -415,15 +415,15 @@ export function BoardCard({
           ) : (
             <div className="home-open-call home-open-call-empty">
               <div className="home-open-label">
-                <p><PeopleIcon /> Role yang dicari</p>
-                <small>Tidak ada posisi</small>
+                <p><PeopleIcon /> Roles needed</p>
+                <small>No roles</small>
               </div>
-              <p>Belum membuka posisi kontribusi</p>
+              <p>No contribution roles open yet</p>
             </div>
           )}
 
           {project.tags.length > 0 ? (
-            <ul className="home-category-chips" aria-label="Kategori project">
+            <ul className="home-category-chips" aria-label="Project categories">
               {project.tags.map((tag) => (
                 <li key={tag}>
                   <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
@@ -437,10 +437,10 @@ export function BoardCard({
               <span className="avatar" aria-hidden="true">
                 {initials(project.owner.name)}
               </span>
-              <small>Digagas oleh <strong>{project.owner.name}</strong></small>
+              <small>Started by <strong>{project.owner.name}</strong></small>
             </Link>
             <Link className="home-project-link" href={`/projects/${project.slug}`}>
-              Lihat project <Arrow />
+              View project <Arrow />
             </Link>
           </div>
         </div>
@@ -501,9 +501,9 @@ export function JourneyList({
       <li className="journey-start">
         <p className="journey-when">{journeyDate(startedAt)}</p>
         <div>
-          <h3>Project dimulai</h3>
+          <h3>Project started</h3>
           <p>
-            <Link href={`/projects/${slug}`}>Ditunjukkan di sini</Link> {timeAgo(startedAt)}.
+            <Link href={`/projects/${slug}`}>Shown here</Link> {timeAgo(startedAt)}.
           </p>
         </div>
       </li>
@@ -524,7 +524,7 @@ export function initials(name: string): string {
 export function monthYear(value: string): string {
   const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
   if (Number.isNaN(then)) return "";
-  return new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(then);
+  return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(then);
 }
 
 export function timeAgo(value: string): string {
@@ -532,10 +532,10 @@ export function timeAgo(value: string): string {
   if (Number.isNaN(then)) return "";
 
   const days = Math.floor((Date.now() - then) / 86_400_000);
-  if (days < 1) return "hari ini";
-  if (days < 30) return `${days} hari lalu`;
-  if (days < 365) return `${Math.floor(days / 30)} bulan lalu`;
-  return `${Math.floor(days / 365)} tahun lalu`;
+  if (days < 1) return "today";
+  if (days < 30) return `${days} days ago`;
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return `${Math.floor(days / 365)} years ago`;
 }
 
 /**
@@ -579,8 +579,8 @@ export function ActivityList({
             </p>
             <small>
               {timeAgo(event.createdAt)}
-              {gone ? " · projectnya sudah dihapus" : ""}
-              {isHidden ? " · cuma kamu yang lihat" : ""}
+              {gone ? " · project deleted" : ""}
+              {isHidden ? " · only visible to you" : ""}
             </small>
           </li>
         );

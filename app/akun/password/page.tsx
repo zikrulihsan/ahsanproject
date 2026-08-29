@@ -17,8 +17,8 @@ import { supabaseConfigured } from "../../lib/supabase";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Kata sandi baru — Ahsan Project",
-  description: "Setel kata sandi baru untuk akun Ahsan Project.",
+  title: "New password — Ahsan Project",
+  description: "Set a new password for your Ahsan Project account.",
   robots: { index: false },
 };
 
@@ -40,28 +40,28 @@ export default async function NewPasswordPage() {
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Kata sandi
+          <span /> Password
         </p>
-        <h1>Setel yang baru.</h1>
+        <h1>Set a new password.</h1>
 
         {!supabaseConfigured() ? (
           <p className="form-error">
-            Situs ini belum tersambung ke Supabase, jadi kata sandi belum bisa disetel.
+            This site is not connected to Supabase yet, so passwords cannot be set.
           </p>
         ) : viewer ? (
           <>
             <p className="lede">
-              Setelah disimpan, kata sandi lamamu tidak berlaku lagi.
+              After saving, your old password will no longer work.
             </p>
             <NewPasswordForm />
           </>
         ) : (
           <>
             <p className="form-error" role="alert">
-              Tautannya sudah kedaluwarsa atau sudah dipakai, jadi belum ada yang bisa diubah.
+              This link has expired or has already been used, so there is nothing to change yet.
             </p>
             <p className="auth-switch">
-              <Link href="/lupa-password">Minta tautan baru</Link>.
+              <Link href="/lupa-password">Request a new link</Link>.
             </p>
           </>
         )}

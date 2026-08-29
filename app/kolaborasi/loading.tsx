@@ -4,7 +4,7 @@ import { LoadingNote, Skeleton } from "../components/skeleton";
 export default function Loading() {
   return (
     <>
-      <HeaderShell active="kolaborasi" />
+      <HeaderShell active="explore" />
       <main id="main-content" className="discovery-page collaboration-page">
         <LoadingNote />
         <section className="collaboration-hero">

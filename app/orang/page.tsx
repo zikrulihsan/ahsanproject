@@ -19,9 +19,9 @@ import {
 } from "../lib/people";
 import { shareCard } from "../content";
 
-const title = "Orang — Ahsan Project";
+const title = "People — Ahsan Project";
 const description =
-  "Cari orang berdasarkan profesi, skill, pengalaman, bidang, dan project yang mereka kerjakan di Ahsan Project.";
+  "Find people by profession, skills, experience, field, and the projects they work on at Ahsan Project.";
 
 export const metadata: Metadata = {
   title,
@@ -63,12 +63,12 @@ export default function PeoplePage({ searchParams }: { searchParams?: SearchPara
 
   return (
     <>
-      <SiteHeader returnTo={query.then(hrefForQuery)} active="orang" />
+      <SiteHeader returnTo={query.then(hrefForQuery)} active="people" />
 
       <main id="main-content" className="people-page">
         <header className="people-directory-head">
-          <h1>Cari orang</h1>
-          <p>Temukan berdasarkan profesi, skill, pengalaman, bidang, atau project.</p>
+          <h1>Find people</h1>
+          <p>Discover people by profession, skills, experience, field, or project.</p>
         </header>
 
         <Suspense fallback={<DirectorySkeleton />}>
@@ -157,7 +157,7 @@ async function Directory({ query }: { query: SearchParams }) {
     <>
         {peopleResult.unavailable ? (
           <p className="public-data-notice" role="status">
-            Data orang belum berhasil dimuat. <Link href={returnTo}>Coba lagi</Link>.
+            People data could not load. <Link href={returnTo}>Try again</Link>.
           </p>
         ) : null}
 
@@ -166,22 +166,22 @@ async function Directory({ query }: { query: SearchParams }) {
             {filters.involvement ? <input type="hidden" name="kerja" value={filters.involvement} /> : null}
             <div className="people-search-row">
               <label className="people-search-field">
-                <span className="sr-only">Cari orang</span>
+                <span className="sr-only">Search people</span>
                 <SearchIcon />
                 <input
                   type="search"
                   name="q"
                   maxLength={100}
                   defaultValue={filters.q}
-                  placeholder="Cari nama, profesi, skill, atau project…"
+                  placeholder="Search name, profession, skill, or project…"
                 />
               </label>
-              <button type="submit">Tampilkan hasil</button>
+              <button type="submit">Show results</button>
             </div>
 
             <div className="people-filter-grid">
               <FilterSelect name="profesi" label="Profesi" value={filters.profession}>
-                <option value="">Semua profesi</option>
+                <option value="">All professions</option>
                 {filters.profession && !hasFacet(facets.professions, filters.profession) ? (
                   <option value={filters.profession}>{filters.profession} (0)</option>
                 ) : null}
@@ -193,7 +193,7 @@ async function Directory({ query }: { query: SearchParams }) {
               </FilterSelect>
 
               <FilterSelect name="skill" label="Skill" value={filters.skill}>
-                <option value="">Semua skill</option>
+                <option value="">All skills</option>
                 {filters.skill && !hasFacet(facets.skills, filters.skill) ? (
                   <option value={filters.skill}>{filters.skill} (0)</option>
                 ) : null}
@@ -205,14 +205,14 @@ async function Directory({ query }: { query: SearchParams }) {
               </FilterSelect>
 
               <FilterSelect name="pengalaman" label="Pengalaman" value={filters.experience}>
-                <option value="">Semua pengalaman</option>
+                <option value="">All experience levels</option>
                 {EXPERIENCE_BANDS.map((band) => (
                   <option key={band} value={band}>{experienceBandLabel[band]}</option>
                 ))}
               </FilterSelect>
 
               <FilterSelect name="bidang" label="Bidang" value={filters.field}>
-                <option value="">Semua bidang</option>
+                <option value="">All fields</option>
                 {filters.field && !hasFacet(facets.fields, filters.field) ? (
                   <option value={filters.field}>{filters.field} (0)</option>
                 ) : null}
@@ -223,7 +223,7 @@ async function Directory({ query }: { query: SearchParams }) {
                 ))}
               </FilterSelect>
             </div>
-            <button className="people-filter-submit" type="submit">Tampilkan hasil</button>
+            <button className="people-filter-submit" type="submit">Show results</button>
           </form>
 
           <div className="people-work-filters" aria-label="Filter keterlibatan">
@@ -278,7 +278,7 @@ async function Directory({ query }: { query: SearchParams }) {
                 />
               ) : null}
             </ul>
-            <Link href="/orang">Hapus semua</Link>
+            <Link href="/orang">Clear all</Link>
           </div>
         ) : null}
 
@@ -297,9 +297,9 @@ async function Directory({ query }: { query: SearchParams }) {
               {people.length === 0 ? (
                 <div className="people-empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>Belum ada orang yang cocok.</h3>
-                  <p>Coba kata yang lebih umum atau lepaskan satu filter untuk memperluas hasil.</p>
-                  <Link className="ghost-button" href="/orang">Lihat semua orang</Link>
+                  <h3>No matching people yet.</h3>
+                  <p>Try a broader term or remove a filter to expand the results.</p>
+                  <Link className="ghost-button" href="/orang">View all people</Link>
                 </div>
               ) : (
                 <ul className="people-list">
@@ -340,7 +340,7 @@ async function Directory({ query }: { query: SearchParams }) {
                       Berikutnya →
                     </Link>
                   ) : (
-                    <span className="pagination-direction is-disabled">Berikutnya →</span>
+                    <span className="pagination-direction is-disabled">Next →</span>
                   )}
                 </nav>
               ) : null}
@@ -383,15 +383,15 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
   const { person, building, helping } = entry;
   const profession = primaryProfession(entry);
   const evidence = [
-    ...building.map((project) => ({ project, label: "Membangun" })),
-    ...helping.map((project) => ({ project, label: "Membantu" })),
+    ...building.map((project) => ({ project, label: "Building" })),
+    ...helping.map((project) => ({ project, label: "Helping" })),
   ].slice(0, 2);
   const headline = person.headline.trim() !== profession.trim() ? person.headline : "";
 
   return (
     <li>
       <article className="people-row">
-        <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`Profil ${person.name}`}>
+        <Link className="people-row-avatar" href={`/u/${person.username}`} aria-label={`${person.name}'s profile`}>
           <span className="people-avatar" aria-hidden="true">{initials(person.name)}</span>
         </Link>
 
@@ -402,14 +402,14 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
             <small>@{person.username}</small>
           </header>
           <p className={profession ? "people-profession" : "people-profession is-empty"}>
-            {profession || "Profesi belum diisi"}
+            {profession || "Profession not added"}
           </p>
           {headline ? <p className="people-headline">{headline}</p> : null}
 
           <ul className="people-meta">
             {person.yearsExperience !== null ? <li>{person.yearsExperience} th pengalaman</li> : null}
             {person.fields.slice(0, 2).map((field) => <li key={field}>{field}</li>)}
-            {building.length > 0 ? <li>{building.length} project dibangun</li> : null}
+            {building.length > 0 ? <li>{building.length} projects built</li> : null}
             {helping.length > 0 ? <li>{helping.length} kontribusi</li> : null}
           </ul>
 
@@ -423,7 +423,7 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
           ) : null}
 
           <div className="people-proof">
-            <strong>Bukti kerja</strong>
+            <strong>Proof of work</strong>
             {evidence.length > 0 ? (
               <ul>
                 {evidence.map(({ project, label }) => (
@@ -434,14 +434,14 @@ function PersonRow({ entry }: { entry: PersonAtWork }) {
                 ))}
               </ul>
             ) : (
-              <p className="people-no-proof">Belum menunjukkan project publik.</p>
+              <p className="people-no-proof">No public projects shown yet.</p>
             )}
           </div>
         </div>
 
         <div className="people-row-action">
           <Link href={`/u/${person.username}`}>
-            Lihat profil <span aria-hidden="true">→</span>
+            View profile <span aria-hidden="true">→</span>
           </Link>
         </div>
       </article>
@@ -453,8 +453,8 @@ function ContributorRail({ people }: { people: PersonAtWork[] }) {
   return (
     <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
       <div className="people-contributor-card">
-        <p className="section-label">Kontributor</p>
-        <h2 id="contributors-heading">Paling banyak membantu</h2>
+        <p className="section-label">Contributors</p>
+        <h2 id="contributors-heading">Most active contributors</h2>
         <p className="people-contributor-note">
           Diurutkan dari jumlah project berbeda yang pernah dibantu.
         </p>
@@ -476,7 +476,7 @@ function ContributorRail({ people }: { people: PersonAtWork[] }) {
             ))}
           </ol>
         ) : (
-          <p className="people-contributor-empty">Belum ada kontribusi lintas project yang tercatat.</p>
+          <p className="people-contributor-empty">No cross-project contributions recorded yet.</p>
         )}
 
         <Link className="people-contributor-all" href="/orang?kerja=helping">

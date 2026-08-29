@@ -38,7 +38,7 @@ export function CreateForm() {
         <p className="eyebrow">
           <span /> Pilihan cepat
         </p>
-        <h2 id="github-start-heading">Buka kontribusi lewat GitHub</h2>
+        <h2 id="github-start-heading">Open contributions through GitHub</h2>
         <p>
           Tandai hanya jika issue dan pull request dari komunitas memang kamu sambut. Kami akan
           menampilkan badge khusus di project, lalu membantu mengisi draft dari repository publikmu.
@@ -51,7 +51,7 @@ export function CreateForm() {
           />
           <span>
             <strong>Open for Contribute on GitHub</strong>
-            <small>Orang bisa melihat bahwa kontribusi GitHub untuk project ini terbuka.</small>
+            <small>People can see that GitHub contributions are open for this project.</small>
           </span>
         </label>
         <input
@@ -231,7 +231,7 @@ export function CreateForm() {
           open={Boolean(errors.docUrl)}
         >
           <summary>
-            Tambahkan tautan pendukung <span>opsional</span>
+            Add supporting links <span>optional</span>
           </summary>
           <div className="optional-fields-body">
             <Field
@@ -261,8 +261,8 @@ export function CreateForm() {
             onChange={(event) => setWantsHelp(event.target.checked)}
           />
           <span>
-            <strong>Ya, saya sedang mencari bantuan</strong>
-            <small>Tampilkan role, pekerjaan yang dibantu, dan perkiraan waktunya.</small>
+            <strong>Yes, I am looking for help</strong>
+            <small>Show the role, the work involved, and the estimated time.</small>
           </span>
         </label>
 
@@ -280,7 +280,7 @@ export function CreateForm() {
             />
 
             <div className={errors.seatBrief ? "field has-error" : "field"}>
-              <label htmlFor="seatBrief">Yang perlu dibantu</label>
+              <label htmlFor="seatBrief">What needs help</label>
               <textarea
                 id="seatBrief"
                 name="seatBrief"

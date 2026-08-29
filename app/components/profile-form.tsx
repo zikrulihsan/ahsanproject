@@ -44,11 +44,11 @@ export function ProfileForm({
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">1</span> Siapa kamu
+          <span className="step-number">1</span> About you
         </legend>
 
         <Field
-          label="Nama"
+          label="Name"
           name="name"
           error={errors.name}
           defaultValue={values.name}
@@ -57,28 +57,28 @@ export function ProfileForm({
         />
 
         <Field
-          label="Profesi atau role utama"
+          label="Profession or primary role"
           name="profession"
-          hint="Sebutan yang kamu pakai sendiri. Ini yang paling sering dicari orang di halaman Orang."
+          hint="The title you use for yourself. This is what people most often search for in the People directory."
           error={errors.profession}
           defaultValue={values.profession}
           maxLength={PROFILE_MAXIMUM.profession}
-          placeholder="Contoh: Frontend Developer"
+          placeholder="For example: Frontend Developer"
         />
 
         <Field
-          label="Satu baris tentang kamu"
+          label="Your one-line introduction"
           name="headline"
-          hint="Muncul tepat di bawah namamu, dan jadi deskripsi saat profilmu dibagikan."
+          hint="It appears directly beneath your name and is used when your profile is shared."
           error={errors.headline}
           defaultValue={values.headline}
           maxLength={PROFILE_MAXIMUM.headline}
         />
 
         <Field
-          label="Cerita singkat"
+          label="Short bio"
           name="bio"
-          hint="Apa yang biasa kamu kerjakan, dan yang sedang kamu dalami sekarang."
+          hint="What you usually work on and what you are exploring now."
           error={errors.bio}
           defaultValue={values.bio}
           rows={5}
@@ -88,17 +88,17 @@ export function ProfileForm({
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">2</span> Supaya ditemukan di talent pool
+          <span className="step-number">2</span> Be discoverable in the talent pool
         </legend>
         <p className="step-intro">
-          Yang diisi di sini jadi saringan di halaman <strong>Orang</strong>. Project yang kamu
-          bangun tetap jadi buktinya — ini cuma supaya orang sampai ke sana.
+          These details power the filters in the <strong>People</strong> directory. Your projects
+          remain the proof of your work—this just helps people find them.
         </p>
 
         <Field
-          label="Skill"
+          label="Skills"
           name="skills"
-          hint={`Pisahkan dengan koma, maksimal ${PROFILE_LIMITS.skills}. Pakai istilah yang disarankan kalau cocok, supaya orang menemukanmu dengan kata yang sama.`}
+          hint={`Separate with commas, up to ${PROFILE_LIMITS.skills}. Use suggested terms when they fit so people can find you using the same words.`}
           error={errors.skills}
           defaultValue={values.skills}
           list="skill-suggestions"
@@ -106,9 +106,9 @@ export function ProfileForm({
         />
 
         <Field
-          label="Lama pengalaman (tahun)"
+          label="Years of experience"
           name="yearsExperience"
-          hint="Boleh dikosongkan."
+          hint="Optional."
           error={errors.yearsExperience}
           defaultValue={values.yearsExperience}
           type="number"
@@ -117,13 +117,13 @@ export function ProfileForm({
         />
 
         <Field
-          label="Bidang yang dikuasai"
+          label="Fields of expertise"
           name="fields"
-          hint={`Pisahkan dengan koma, maksimal ${PROFILE_LIMITS.fields}.`}
+          hint={`Separate with commas, up to ${PROFILE_LIMITS.fields}.`}
           error={errors.fields}
           defaultValue={values.fields}
           list="field-suggestions"
-          placeholder="Fintech, Edukasi, Civic Tech"
+          placeholder="Fintech, Education, Civic Tech"
         />
 
         <datalist id="skill-suggestions">
@@ -138,27 +138,26 @@ export function ProfileForm({
         </datalist>
       </fieldset>
 
-      <fieldset className="step" id="kontak">
+      <fieldset className="step" id="contact">
         <legend>
-          <span className="step-number">3</span> Cara menghubungimu
+          <span className="step-number">3</span> How people can reach you
         </legend>
         <p className="step-intro">
-          Semua tautan di bawah bersifat publik dan hanya tampil kalau diisi. Email yang kamu pakai
-          untuk masuk tidak pernah ditampilkan — isi <strong>Email publik</strong> kalau memang mau
-          dihubungi lewat email.
+          All links below are public and only appear when filled in. The email address you use to
+          sign in is never shown—add a <strong>Public email</strong> if you want to be contacted by email.
         </p>
 
         <Field
-          label="Email publik"
+          label="Public email"
           name="publicEmail"
           error={errors.publicEmail}
           defaultValue={values.publicEmail}
           type="email"
           maxLength={PROFILE_MAXIMUM.publicEmail}
-          placeholder="nama@contoh.id"
+          placeholder="name@example.com"
         />
         <Field
-          label="Situs"
+          label="Website"
           name="website"
           error={errors.website}
           defaultValue={values.website}
@@ -194,9 +193,9 @@ export function ProfileForm({
           placeholder="https://x.com/"
         />
         <Field
-          label="Tautan résumé"
+          label="Résumé link"
           name="resume"
-          hint="Tautan ke berkas résumé yang bisa dibuka siapa saja."
+          hint="A link to a résumé file that anyone can open."
           error={errors.resume}
           defaultValue={values.resume}
           type="url"
@@ -206,7 +205,7 @@ export function ProfileForm({
       </fieldset>
 
       <button className="primary-button create-submit" type="submit" disabled={pending}>
-        {pending ? "Menyimpan…" : "Simpan profil"}
+        {pending ? "Saving…" : "Save profile"}
       </button>
     </form>
   );

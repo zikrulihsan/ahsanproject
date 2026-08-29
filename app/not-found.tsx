@@ -6,11 +6,11 @@ export default function NotFound() {
     <>
       <SiteHeader />
       <main id="main-content" className="notfound">
-        <h1>Tidak ketemu.</h1>
-        <p className="muted">Halamannya mungkin sudah pindah, atau tautannya keliru.</p>
+        <h1>Page not found.</h1>
+        <p className="muted">This page may have moved, or the link may be incorrect.</p>
         <p style={{ marginTop: 24 }}>
           <Link className="primary-button" href="/">
-            Kembali ke papan <Arrow />
+            Back to the board <Arrow />
           </Link>
         </p>
       </main>

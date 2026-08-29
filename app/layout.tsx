@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "Ahsan Project",
     type: "website",
-    locale: "id_ID",
+    locale: "en_US",
     images: [defaultShareImage],
   },
   twitter: { card: "summary_large_image", images: [defaultShareImage.url] },
@@ -39,10 +39,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Indonesian is the document default; the English story page sets lang="en"
-  // on its own <main>, since only the root layout may render <html>.
   return (
-    <html lang="id">
+    <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
     </html>
   );

@@ -77,7 +77,7 @@ export function BoardRail({
   const filterSections = (keyPrefix: string) => (
     <div className="rail-more-content">
       <section className="rail-section">
-        <h2>Tahap</h2>
+        <h2>Stage</h2>
         <ul aria-label="Tahap">
           {STAGES.map((key) => {
             const count = scoped.filter((project) => project.stage === key).length;
@@ -105,7 +105,7 @@ export function BoardRail({
       </section>
 
       <section className="rail-section">
-        <h2>Butuh bantuan sebagai</h2>
+        <h2>Needs help with</h2>
         <ul aria-label="Peran yang sedang dicari">
           {ROLES.map((key) => {
             const count = roleCounts.get(key) ?? 0;
@@ -137,8 +137,8 @@ export function BoardRail({
   return (
     <nav className="board-rail" aria-label="Saringan">
       <section className="rail-section rail-topics" aria-labelledby="rail-topics-title">
-        <h2 id="rail-topics-title">Bidang</h2>
-        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">Belum ada bidang.</p>}
+        <h2 id="rail-topics-title">Topics</h2>
+        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">No topics yet.</p>}
         {moreTopics.length > 0 ? (
           <details className="rail-disclosure">
             <summary>+ {moreTopics.length} lainnya</summary>

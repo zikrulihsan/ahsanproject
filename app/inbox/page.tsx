@@ -29,8 +29,8 @@ import { SubmitButton } from "../components/submit-button";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Kotak masuk — Ahsan Project",
-  description: "Kabar dari project yang kamu ikuti, dan lamaran dari kedua sisinya.",
+  title: "Inbox — Ahsan Project",
+  description: "Updates from projects you follow and applications in both directions.",
   robots: { index: false },
 };
 
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
  * row, so one target can collect several people's offers at once.
  */
 const STATUS_LABEL: Record<string, string> = {
-  pending: "Menunggu jawaban",
-  accepted: "Diterima",
-  declined: "Tidak dilanjutkan",
+  pending: "Awaiting a response",
+  accepted: "Accepted",
+  declined: "Not moving forward",
 };
 
 export default async function InboxPage() {
@@ -62,18 +62,18 @@ export default async function InboxPage() {
 
       <main id="main-content" className="page-narrow inbox">
         <p className="eyebrow">
-          <span /> Kotak masuk
+          <span /> Inbox
         </p>
-        <h1>Kabar dan lamaran.</h1>
+        <h1>Updates and applications.</h1>
         <p className="lede">
-          Yang bergerak di project yang kamu ikuti, yang menunggu jawabanmu, dan yang sedang kamu
-          tunggu jawabannya — di satu tempat.
+          Everything moving in the projects you follow, what awaits your response, and what you are
+          waiting to hear back about—in one place.
         </p>
 
         {notices.length > 0 ? (
           <section aria-labelledby="notices-heading">
             <h2 id="notices-heading" className="section-title">
-              Kabar untukmu {unseen > 0 ? `(${unseen} baru)` : ""}
+              Updates for you {unseen > 0 ? `(${unseen} new)` : ""}
             </h2>
 
             <ul className="notice-list">
@@ -87,8 +87,8 @@ export default async function InboxPage() {
 
             {unseen > 0 ? (
               <form action={markNoticesSeen}>
-                <SubmitButton className="quiet" pendingLabel="Sebentar…">
-                  Tandai sudah dibaca
+                <SubmitButton className="quiet" pendingLabel="Please wait…">
+                  Mark as read
                 </SubmitButton>
               </form>
             ) : null}
@@ -98,7 +98,7 @@ export default async function InboxPage() {
         {followed.length > 0 ? (
           <section aria-labelledby="followed-heading">
             <h2 id="followed-heading" className="section-title">
-              Dari yang kamu ikuti
+              From projects you follow
             </h2>
             <ul className="followed-list">
               {followed.map((update) => (
@@ -121,13 +121,13 @@ export default async function InboxPage() {
 
         <section aria-labelledby="incoming-heading">
           <h2 id="incoming-heading" className="section-title">
-            Menunggu jawabanmu {incoming.length > 0 ? `(${incoming.length})` : ""}
+            Awaiting your response {incoming.length > 0 ? `(${incoming.length})` : ""}
           </h2>
 
           {incoming.length === 0 ? (
             <p className="muted">
-              Belum ada yang mau ikut membantu. Project yang menyebut bantuannya jauh lebih mungkin
-              dapat teman mengerjakan — buka satu di halaman projectmu.
+              Nobody has applied to help yet. Projects that clearly name the help they need are much
+              more likely to find collaborators—open one from your project page.
             </p>
           ) : (
             <ul className="application-list">
@@ -138,10 +138,10 @@ export default async function InboxPage() {
                   <form action={decideProposal}>
                     <input type="hidden" name="slug" value={application.project.slug} />
                     <input type="hidden" name="proposalId" value={application.proposalId} />
-                    <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">
-                      Terima
+                    <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">
+                      Accept
                     </SubmitButton>
-                    <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
+                    <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
                   </form>
                 </li>
               ))}
@@ -151,13 +151,13 @@ export default async function InboxPage() {
 
         <section aria-labelledby="mine-heading">
           <h2 id="mine-heading" className="section-title">
-            Yang kamu ikuti sendiri
+            Your applications
           </h2>
 
           {mine.length === 0 ? (
             <p className="muted">
-              Kamu belum ikut di mana-mana.{" "}
-              <Link href="/kolaborasi?needs=open">Lihat yang sedang butuh tangan</Link>.
+              You have not joined anything yet.{" "}
+              <Link href="/kolaborasi?needs=open">See projects that need a hand</Link>.
             </p>
           ) : (
             <ul className="application-list">
@@ -188,7 +188,7 @@ export default async function InboxPage() {
  */
 function NoticeLine({ notice }: { notice: NoticeView }) {
   const target = notice.payload.target || (notice.payload.role ? roleLabel(notice.payload.role) : "");
-  const title = notice.payload.title || "project yang sudah dihapus";
+  const title = notice.payload.title || "deleted project";
   const slug = notice.payload.slug;
   const project = slug ? (
     <Link href={`/projects/${slug}`}>{title}</Link>
@@ -199,30 +199,30 @@ function NoticeLine({ notice }: { notice: NoticeView }) {
   if (notice.kind === "application_accepted") {
     return (
       <p>
-        Lamaranmu diterima — kamu sekarang {target ? <strong>{target}</strong> : "anggota"} di{" "}
+        Your application was accepted—you are now {target ? <strong>{target}</strong> : "a member"} of{" "}
         {project}.
       </p>
     );
   }
 
   if (notice.kind === "proposal_accepted") {
-    return <p>Proposalmu untuk <strong>{target || "kontribusi"}</strong> diterima di {project}.</p>;
+    return <p>Your proposal for <strong>{target || "a contribution"}</strong> was accepted on {project}.</p>;
   }
 
   if (notice.kind === "application_declined") {
     return (
       <p>
-        Peran {target ? <strong>{target}</strong> : ""} di {project} dibuka lagi, jadi lamaranmu tidak
-        dilanjutkan. Masih banyak yang butuh orang.
+        The {target ? <strong>{target}</strong> : "role"} on {project} has reopened, so your application
+        is not moving forward. There are plenty of other projects looking for help.
       </p>
     );
   }
 
   if (notice.kind === "proposal_declined") {
-    return <p>Proposalmu untuk <strong>{target || "kontribusi"}</strong> di {project} belum dilanjutkan.</p>;
+    return <p>Your proposal for <strong>{target || "a contribution"}</strong> on {project} is not moving forward.</p>;
   }
 
-  return <p>Ada kabar dari {project}.</p>;
+  return <p>There is an update from {project}.</p>;
 }
 
 function ApplicationHead({
@@ -244,11 +244,11 @@ function ApplicationHead({
           {showApplicant && application.person ? (
             <>
               <Link href={`/u/${application.person.username}`}>{application.person.name}</Link>{" "}
-              mau bantu mengerjakan <strong>{application.targetLabel}</strong>
+              wants to help with <strong>{application.targetLabel}</strong>
             </>
           ) : (
             <>
-              <strong>{application.targetLabel}</strong> di{" "}
+              <strong>{application.targetLabel}</strong> on{" "}
               <Link href={`/projects/${application.project.slug}`}>
                 {application.project.title}
               </Link>

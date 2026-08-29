@@ -132,7 +132,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <fieldset>
-        <legend>Status project</legend>
+        <legend>Project status</legend>
         <p className="hint">
           Pilih kondisi project saat ini. Status yang dipilih akan disimpan bersama perubahan lain.
         </p>
@@ -166,7 +166,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       <TopicPicker defaultValue={values.tags} error={errors.tags} />
 
       <fieldset>
-        <legend>Tautan</legend>
+        <legend>Links</legend>
         <p className="hint">
           Tautan ini mendukung status project. Status “Sedang dibangun” perlu satu tautan kerja
           atau keterangan yang sedang dikerjakan; “Sudah berjalan” perlu website project.
@@ -180,7 +180,7 @@ export function EditForm({ project }: { project: EditableProject }) {
           />
           <span>
             <strong>Open for Contribute on GitHub</strong>
-            <small>Tampilkan badge publik dan undang kontribusi melalui issue atau pull request.</small>
+            <small>Show a public badge and invite contributions through issues or pull requests.</small>
           </span>
         </label>
         <input
@@ -204,7 +204,7 @@ export function EditForm({ project }: { project: EditableProject }) {
           </div>
         ) : (
           <details className="optional-fields" open={Boolean(values.repoUrl)}>
-            <summary>Repository lain <span>opsional</span></summary>
+            <summary>Other repository <span>optional</span></summary>
             <div className="optional-fields-body">
               <Field
                 label="Repository GitHub atau repo lain"

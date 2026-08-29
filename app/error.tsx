@@ -20,13 +20,13 @@ export default function ErrorPage({
 
   return (
     <main id="main-content" className="notfound">
-      <h1>Ada yang tersendat.</h1>
+      <h1>Something went wrong.</h1>
       <p className="muted">
-        Papannya gagal dimuat. Biasanya ini sementara — coba lagi sebentar lagi.
+        The board could not load. This is usually temporary, so please try again shortly.
       </p>
       <p style={{ marginTop: 24 }}>
         <button className="primary-button" type="button" onClick={reset}>
-          Coba lagi
+          Try again
         </button>
       </p>
     </main>

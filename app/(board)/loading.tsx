@@ -4,7 +4,7 @@ import { LoadingNote, Skeleton } from "../components/skeleton";
 export default function Loading() {
   return (
     <>
-      <HeaderShell active="beranda" />
+      <HeaderShell active="home" />
       <main id="main-content" className="landing-page">
         <LoadingNote />
 

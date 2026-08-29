@@ -39,21 +39,21 @@ export function SignInForm({ next }: { next: string }) {
 
       <div className="auth-field">
         <div className="auth-label-row">
-          <label htmlFor="password">Kata sandi</label>
-          <Link href="/lupa-password">Lupa kata sandi?</Link>
+          <label htmlFor="password">Password</label>
+          <Link href="/lupa-password">Forgot password?</Link>
         </div>
         <input
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
-          placeholder="Masukkan kata sandi"
+          placeholder="Enter your password"
           required
         />
       </div>
 
       <button className="primary-button auth-submit" type="submit" disabled={pending}>
-        <span>{pending ? "Sebentar…" : "Masuk dengan email"}</span>
+        <span>{pending ? "Please wait…" : "Sign in with email"}</span>
         {!pending ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>
@@ -71,22 +71,22 @@ export function SignUpForm({ next }: { next: string }) {
       <GoogleButton next={next} />
       <AuthDivider />
 
-      <label htmlFor="name">Nama</label>
+      <label htmlFor="name">Name</label>
       <input id="name" name="name" type="text" autoComplete="name" required defaultValue={state.values.name} />
-      <p className="hint">Nama ini yang muncul di halaman project dan di profilmu.</p>
+      <p className="hint">This name appears on your projects and profile.</p>
 
       <label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state.values.email} />
 
-      <label htmlFor="password">Kata sandi</label>
+      <label htmlFor="password">Password</label>
       <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} />
-      <p className="hint">Minimal 8 karakter.</p>
+      <p className="hint">At least 8 characters.</p>
 
-      <label htmlFor="confirm">Ulangi kata sandi</label>
+      <label htmlFor="confirm">Repeat password</label>
       <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Sebentar…" : "Daftar"}
+        {pending ? "Please wait…" : "Create account"}
       </button>
     </form>
   );
@@ -108,10 +108,10 @@ export function ForgotPasswordForm() {
         required
         defaultValue={state.values.email}
       />
-      <p className="hint">Pakai alamat yang kamu pakai waktu daftar.</p>
+      <p className="hint">Use the address associated with your account.</p>
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Mengirim…" : "Kirim tautannya"}
+        {pending ? "Sending…" : "Send reset link"}
       </button>
     </form>
   );
@@ -124,7 +124,7 @@ export function NewPasswordForm() {
     <form className="auth-form" action={formAction}>
       <Message state={state} />
 
-      <label htmlFor="password">Kata sandi baru</label>
+      <label htmlFor="password">New password</label>
       <input
         id="password"
         name="password"
@@ -133,9 +133,9 @@ export function NewPasswordForm() {
         required
         minLength={8}
       />
-      <p className="hint">Minimal 8 karakter.</p>
+      <p className="hint">At least 8 characters.</p>
 
-      <label htmlFor="confirm">Ulangi kata sandi baru</label>
+      <label htmlFor="confirm">Repeat new password</label>
       <input
         id="confirm"
         name="confirm"
@@ -146,7 +146,7 @@ export function NewPasswordForm() {
       />
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Menyimpan…" : "Simpan kata sandi"}
+        {pending ? "Saving…" : "Save password"}
       </button>
     </form>
   );
@@ -167,7 +167,7 @@ function GoogleButton({ next }: { next: string }) {
   return (
     <a className="google-auth-button" href={href}>
       <GoogleMark />
-      <span>Lanjutkan dengan Google</span>
+      <span>Continue with Google</span>
     </a>
   );
 }
@@ -175,7 +175,7 @@ function GoogleButton({ next }: { next: string }) {
 function AuthDivider() {
   return (
     <div className="auth-divider" aria-hidden="true">
-      <span>atau pakai email</span>
+      <span>or use email</span>
     </div>
   );
 }

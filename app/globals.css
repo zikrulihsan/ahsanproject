@@ -146,6 +146,7 @@ svg.icon { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: 
   font-size: 10px; font-weight: 700; justify-content: center; min-width: 18px; padding: 2px 6px;
 }
 .header-actions { align-items: center; display: flex; gap: 9px; }
+.header-account-skeleton { min-width: 163px; }
 .icon-button, .avatar-button {
   align-items: center; background: #fff; border: 1px solid var(--line); display: flex;
   justify-content: center; position: relative;

@@ -167,9 +167,9 @@ export default async function ProjectPage({
       <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
-            <Link href="/">Jelajah</Link> <span aria-hidden="true">/</span> {project.title}
+            <Link href="/">Explore</Link> <span aria-hidden="true">/</span> {project.title}
           </p>
-          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Ubah project</Link> : null}
+          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Edit project</Link> : null}
         </div>
 
         {/* Identity, then what it is, then who is behind it, then the two
@@ -232,14 +232,14 @@ export default async function ProjectPage({
                     <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
                       <span aria-hidden="true">♡</span>
                       <strong>{project.boostCount}</strong>
-                      <span className="sr-only">dukungan</span>
+                      <span className="sr-only">support</span>
                     </SubmitButton>
                   </form>
                 ) : (
                   <Link className="boost" href={signInPath(returnTo)}>
                     <span aria-hidden="true">♡</span>
                     <strong>{project.boostCount}</strong>
-                    <span className="sr-only">dukungan</span>
+                    <span className="sr-only">support</span>
                   </Link>
                 )}
               </div>
@@ -277,22 +277,22 @@ export default async function ProjectPage({
           <div className="project-main">
             <ProjectTabContent tab="tentang">
               <section className="brief" aria-labelledby="brief-heading">
-                <h2 id="brief-heading">Tentang project ini</h2>
+                <h2 id="brief-heading">About this project</h2>
                 <article>
-                  <h3>Masalah yang ingin dibereskan</h3>
+                  <h3>Problem to solve</h3>
                   <p>{project.problem}</p>
                 </article>
                 <article>
-                  <h3>Yang sedang dibuat</h3>
+                  <h3>What is being built</h3>
                   <p>{project.solution}</p>
                 </article>
                 <article>
-                  <h3>Untuk siapa</h3>
+                  <h3>Who it is for</h3>
                   <p>{project.audience}</p>
                 </article>
                 {isGitHubRepositoryUrl(project.repoUrl) ? (
                   <article className="github-contribution">
-                    <h3>Ingin bantu lewat kode?</h3>
+                    <h3>Want to help with code?</h3>
                     <p>
                       Lihat panduan kontribusi, issue yang tersedia, atau buka pull request langsung dari
                       repository GitHub project ini.
@@ -310,7 +310,7 @@ export default async function ProjectPage({
                 the project look alive rather than parked. */}
             <ProjectTabContent tab="tentang">
               <section className="now-card" aria-labelledby="now-heading">
-              <h2 id="now-heading">Sedang dikerjakan</h2>
+              <h2 id="now-heading">Work in progress</h2>
 
               {project.nowText ? (
                 <>
@@ -331,7 +331,7 @@ export default async function ProjectPage({
                   <summary>{project.nowText ? "Perbarui" : "Tulis sekarang sedang apa"}</summary>
                   <form action={setNow}>
                     <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="now-text">Sekarang sedang…</label>
+                    <label htmlFor="now-text">Working on now…</label>
                     <input
                       id="now-text"
                       name="now"
@@ -344,7 +344,7 @@ export default async function ProjectPage({
                       Satu kalimat, ganti kapan pun arahnya berubah. Ini yang dibaca orang untuk
                       tahu project ini masih jalan.
                     </p>
-                    <SubmitButton pendingLabel="Menyimpan…">Simpan</SubmitButton>
+                    <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -355,7 +355,7 @@ export default async function ProjectPage({
             <ProjectTabContent tab="kolaborasi">
               {(open.length > 0 || isManager) && (
                 <section className="help" aria-labelledby="help-heading">
-                <h2 id="help-heading">Mau ikut bantu?</h2>
+                <h2 id="help-heading">Want to help?</h2>
 
                 {open.length > 0 ? (
                   <ul className="seat-list">
@@ -369,7 +369,7 @@ export default async function ProjectPage({
                           ) : null}
                         </div>
                         {isOwner ? (
-                          <p className="muted">Menunggu orang lain.</p>
+                          <p className="muted">Waiting for someone to join.</p>
                         ) : viewer ? (
                           viewerSeat ? (
                             <p className="muted">
@@ -380,14 +380,14 @@ export default async function ProjectPage({
                           ) : !canPropose ? (
                             <p className="muted">
                               Lengkapi profil talent pool untuk mengajukan role ini. {" "}
-                              <Link href={profileReturnTo}>Lengkapi profil</Link>
+                              <Link href={profileReturnTo}>Complete your profile</Link>
                             </p>
                           ) : (
                             proposalsForSeat(seat.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
-                              <p className="muted">Proposalmu sedang menunggu jawaban.</p>
+                              <p className="muted">Your proposal is awaiting a response.</p>
                             ) : (
                               <details>
-                                <summary>Ajukan diri untuk role ini</summary>
+                                <summary>Apply for this role</summary>
                                 <form action={submitProposal}>
                                 <input type="hidden" name="slug" value={project.slug} />
                                 <input type="hidden" name="seatId" value={seat.id} />
@@ -402,7 +402,7 @@ export default async function ProjectPage({
                                   required
                                   placeholder="Contoh: saya pernah bantu riset serupa, bisa luangkan 3 jam per minggu."
                                 />
-                                  <SubmitButton pendingLabel="Mengirim…">Kirim proposal</SubmitButton>
+                                  <SubmitButton pendingLabel="Sending…">Send proposal</SubmitButton>
                                 </form>
                               </details>
                             )
@@ -424,7 +424,7 @@ export default async function ProjectPage({
 
                 {isManager && proposals.filter((proposal) => proposal.seatId && proposal.status === "pending").length > 0 ? (
                   <div className="pending-list">
-                    <h3>Proposal role yang menunggu</h3>
+                    <h3>Pending role proposals</h3>
                     {open.flatMap((seat) => proposalsForSeat(seat.id)
                       .filter((proposal) => proposal.status === "pending")
                       .map((proposal) => (
@@ -434,8 +434,8 @@ export default async function ProjectPage({
                           <form action={decideProposal}>
                             <input type="hidden" name="slug" value={project.slug} />
                             <input type="hidden" name="proposalId" value={proposal.id} />
-                            <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">Terima</SubmitButton>
-                            <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
+                            <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">Accept</SubmitButton>
+                            <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
                           </form>
                         </article>
                       )))}
@@ -444,17 +444,17 @@ export default async function ProjectPage({
 
                 {isManager ? (
                   <details className="owner-tool">
-                    <summary>Cari bantuan baru</summary>
+                    <summary>Find new help</summary>
                     <form action={openSeat}>
                       <input type="hidden" name="slug" value={project.slug} />
                       <RoleFields id="new-seat-role" />
-                      <label htmlFor="new-seat-brief">Yang perlu dibantu</label>
+                      <label htmlFor="new-seat-brief">What needs help</label>
                       <textarea id="new-seat-brief" name="brief" rows={3} required />
                       <CommitmentField
                         id="new-seat-commitment"
                         name="commitment"
                       />
-                      <SubmitButton pendingLabel="Membuka…">Buka</SubmitButton>
+                      <SubmitButton pendingLabel="Opening…">Open role</SubmitButton>
                     </form>
                   </details>
                 ) : null}
@@ -464,8 +464,8 @@ export default async function ProjectPage({
 
             <ProjectTabContent tab="perjalanan">
               <section className="journey-section" aria-labelledby="journey-heading">
-              <h2 id="journey-heading">Perjalanan project</h2>
-              <p className="muted">Ditulis orang yang mengerjakannya, dari yang terbaru.</p>
+              <h2 id="journey-heading">Project journey</h2>
+              <p className="muted">Written by the people working on it, newest first.</p>
 
               <JourneyList
                 updates={project.updates}
@@ -477,7 +477,7 @@ export default async function ProjectPage({
                         <form className="journey-remove" action={deleteUpdate}>
                           <input type="hidden" name="slug" value={project.slug} />
                           <input type="hidden" name="updateId" value={update.id} />
-                          <SubmitButton className="quiet">Hapus</SubmitButton>
+                          <SubmitButton className="quiet">Delete</SubmitButton>
                         </form>
                       )
                     : undefined
@@ -486,10 +486,10 @@ export default async function ProjectPage({
 
               {isManager ? (
                 <details className="owner-tool">
-                  <summary>Tulis kabar baru</summary>
+                  <summary>Write an update</summary>
                   <form action={postUpdate}>
                     <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="update-title">Kabarnya apa</label>
+                    <label htmlFor="update-title">What is the update?</label>
                     <input
                       id="update-title"
                       name="title"
@@ -499,7 +499,7 @@ export default async function ProjectPage({
                       maxLength={UPDATE_LIMITS.title.max}
                       placeholder="Draft materi pertama selesai"
                     />
-                    <label htmlFor="update-body">Ceritanya</label>
+                    <label htmlFor="update-body">Details</label>
                     <textarea
                       id="update-body"
                       name="body"
@@ -507,7 +507,7 @@ export default async function ProjectPage({
                       maxLength={UPDATE_LIMITS.body.max}
                       placeholder="Apa yang berubah, apa yang dipelajari, apa yang berikutnya."
                     />
-                    <SubmitButton pendingLabel="Mengirim…">Kirim kabar</SubmitButton>
+                    <SubmitButton pendingLabel="Sending…">Post update</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -516,7 +516,7 @@ export default async function ProjectPage({
 
             <ProjectTabContent tab="kolaborasi">
               <section className="team" aria-labelledby="team-heading">
-              <h2 id="team-heading">Orang di balik project</h2>
+              <h2 id="team-heading">People behind the project</h2>
 
               <ul className="member-list">
                 <li>
@@ -527,7 +527,7 @@ export default async function ProjectPage({
                     <strong>
                       <Link href={`/u/${project.owner.username}`}>{project.owner.name}</Link>
                     </strong>
-                    <small>Yang memulai</small>
+                    <small>Started it</small>
                   </span>
                 </li>
                 {team.map((seat) => (
@@ -554,7 +554,7 @@ export default async function ProjectPage({
 
               {isOwner && team.length > 0 ? (
                 <details className="owner-tool">
-                  <summary>Atur akses</summary>
+                  <summary>Manage access</summary>
                   <p className="hint">
                     Admin bisa mengurus tugas, mencari bantuan, menjawab yang tertarik, dan menulis
                     kabar. Brief, level, dan hapus project tetap cuma kamu.
@@ -622,7 +622,7 @@ export default async function ProjectPage({
                                         </Link>
                                       </>
                                     ) : (
-                                      <span className="muted">Belum ada yang ambil</span>
+                                      <span className="muted">Nobody has taken it yet</span>
                                     )}
                                   </p>
 
@@ -638,26 +638,26 @@ export default async function ProjectPage({
                                         name="assigneeId"
                                         defaultValue={task.assignee?.id ?? ""}
                                       >
-                                        <option value="">Belum ada yang ambil</option>
+                                        <option value="">Nobody has taken it yet</option>
                                         {assignable.map((person) => (
                                           <option key={person.id} value={person.id}>
                                             {person.name}
                                           </option>
                                         ))}
                                       </select>
-                                      <SubmitButton pendingLabel="Sebentar…">Simpan</SubmitButton>
+                                      <SubmitButton pendingLabel="Please wait…">Save</SubmitButton>
                                       <label className="sr-only" htmlFor={`task-role-${task.id}`}>
                                         Role terkait {task.title}
                                       </label>
                                       <select id={`task-role-${task.id}`} name="seatId" defaultValue={task.role?.id ?? ""}>
-                                        <option value="">Tanpa role terkait</option>
+                                        <option value="">No related role</option>
                                         {project.seats.map((seat) => (
                                           <option key={seat.id} value={seat.id}>
                                             {roleLabel(seat.role, seat.roleTitle)}
                                           </option>
                                         ))}
                                       </select>
-                                      <SubmitButton className="quiet" formAction={setTaskRole}>Simpan role</SubmitButton>
+                                      <SubmitButton className="quiet" formAction={setTaskRole}>Save role</SubmitButton>
                                       <SubmitButton className="quiet" formAction={deleteTask}>
                                         Hapus
                                       </SubmitButton>
@@ -666,23 +666,23 @@ export default async function ProjectPage({
 
                                   {!isManager && !task.assignee && task.status !== "done" ? (
                                     !viewer ? (
-                                      <Link className="ghost-button" href={signInPath(returnTo)}>Masuk untuk mengajukan tugas</Link>
+                                      <Link className="ghost-button" href={signInPath(returnTo)}>Sign in to apply for this task</Link>
                                     ) : !canPropose ? (
                                       <p className="muted">
                                         Lengkapi profil talent pool untuk mengajukan tugas ini. {" "}
-                                        <Link href={profileReturnTo}>Lengkapi profil</Link>
+                                        <Link href={profileReturnTo}>Complete your profile</Link>
                                       </p>
                                     ) : proposalsForTask(task.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
-                                      <p className="muted">Proposalmu sedang menunggu jawaban.</p>
+                                      <p className="muted">Your proposal is awaiting a response.</p>
                                     ) : (
                                       <details className="task-proposal">
-                                        <summary>Ajukan diri untuk mengerjakan</summary>
+                                        <summary>Apply to work on this</summary>
                                         <form action={submitProposal}>
                                           <input type="hidden" name="slug" value={project.slug} />
                                           <input type="hidden" name="taskId" value={task.id} />
-                                          <label htmlFor={`task-pitch-${task.id}`}>Kenapa kamu cocok mengerjakan ini?</label>
+                                          <label htmlFor={`task-pitch-${task.id}`}>Why are you a good fit for this?</label>
                                           <textarea id={`task-pitch-${task.id}`} name="pitch" rows={3} required />
-                                          <SubmitButton pendingLabel="Mengirim…">Kirim proposal</SubmitButton>
+                                          <SubmitButton pendingLabel="Sending…">Send proposal</SubmitButton>
                                         </form>
                                       </details>
                                     )
@@ -690,16 +690,16 @@ export default async function ProjectPage({
 
                                   {isManager && proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").length > 0 ? (
                                     <div className="pending-list task-proposal-list">
-                                      <h4>Proposal untuk tugas ini</h4>
+                                      <h4>Proposals for this task</h4>
                                       {proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").map((proposal) => (
                                         <article key={proposal.id} className="pending-card">
-                                          <p><strong>{proposal.person.name}</strong> ingin mengerjakan tugas ini.</p>
+                                          <p><strong>{proposal.person.name}</strong> wants to work on this task.</p>
                                           <blockquote>{proposal.pitch}</blockquote>
                                           <form action={decideProposal}>
                                             <input type="hidden" name="slug" value={project.slug} />
                                             <input type="hidden" name="proposalId" value={proposal.id} />
-                                            <SubmitButton name="decision" value="terima" pendingLabel="Sebentar…">Terima</SubmitButton>
-                                            <SubmitButton className="quiet" name="decision" value="tolak">Tolak</SubmitButton>
+                                            <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">Accept</SubmitButton>
+                                            <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
                                           </form>
                                         </article>
                                       ))}
@@ -741,32 +741,32 @@ export default async function ProjectPage({
 
                 {isManager ? (
                   <details className="owner-tool">
-                    <summary>Tambah tugas</summary>
+                    <summary>Add task</summary>
                     <form action={createTask}>
                       <input type="hidden" name="slug" value={project.slug} />
-                      <label htmlFor="task-title">Tugasnya apa</label>
+                      <label htmlFor="task-title">Task title</label>
                       <input id="task-title" name="title" type="text" required maxLength={120} />
-                      <label htmlFor="task-detail">Penjelasan singkat</label>
+                      <label htmlFor="task-detail">Short description</label>
                       <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
-                      <label htmlFor="task-role">Terkait role (opsional)</label>
+                      <label htmlFor="task-role">Related role (optional)</label>
                       <select id="task-role" name="seatId" defaultValue="">
-                        <option value="">Tidak terhubung ke role</option>
+                        <option value="">Not linked to a role</option>
                         {project.seats.map((seat) => (
                           <option key={seat.id} value={seat.id}>
                             {roleLabel(seat.role, seat.roleTitle)}{seat.status === "open" ? " · terbuka" : ""}
                           </option>
                         ))}
                       </select>
-                      <label htmlFor="task-assignee">Siapa yang pegang</label>
+                      <label htmlFor="task-assignee">Assignee</label>
                       <select id="task-assignee" name="assigneeId" defaultValue="">
-                        <option value="">Belum ada yang ambil</option>
+                        <option value="">Nobody has taken it yet</option>
                         {assignable.map((person) => (
                           <option key={person.id} value={person.id}>
                             {person.name}
                           </option>
                         ))}
                       </select>
-                      <SubmitButton pendingLabel="Menambah…">Tambah tugas</SubmitButton>
+                      <SubmitButton pendingLabel="Adding…">Add task</SubmitButton>
                     </form>
                   </details>
                 ) : null}
@@ -780,7 +780,7 @@ export default async function ProjectPage({
               {viewer ? (
                 <form className="comment-form" action={addComment}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <label htmlFor="comment-body">Tanggapan atau pertanyaan</label>
+                  <label htmlFor="comment-body">Comment or question</label>
                   <textarea
                     id="comment-body"
                     name="body"
@@ -788,16 +788,16 @@ export default async function ProjectPage({
                     required
                     placeholder="Bagian mana yang menurutmu paling berisiko? Ada cara yang lebih sederhana?"
                   />
-                  <SubmitButton pendingLabel="Mengirim…">Kirim</SubmitButton>
+                  <SubmitButton pendingLabel="Sending…">Send</SubmitButton>
                 </form>
               ) : (
                 <p className="muted">
-                  <Link href={signInPath(returnTo)}>Masuk</Link> untuk ikut membahas project ini.
+                  <Link href={signInPath(returnTo)}>Sign in</Link> to join this project’s discussion.
                 </p>
               )}
 
               {project.comments.length === 0 ? (
-                <p className="muted">Belum ada yang berkomentar. Mulai duluan boleh banget.</p>
+                <p className="muted">No comments yet. Feel free to start the conversation.</p>
               ) : (
                 <ul className="comment-list">
                   {project.comments.map((comment) => (
@@ -820,7 +820,7 @@ export default async function ProjectPage({
             <ProjectTabContent tab="perjalanan">
               {history.length > 0 ? (
                 <section className="history" aria-labelledby="history-heading">
-                  <h2 id="history-heading">Tercatat sistem</h2>
+                  <h2 id="history-heading">System record</h2>
                   <p className="muted">
                     Ditulis sendiri saat kejadian — bukan diketik. Melengkapi perjalanan di atas.
                   </p>
@@ -832,10 +832,10 @@ export default async function ProjectPage({
 
           <aside className="project-side">
             <section className="level-card">
-              <h2>Sejauh ini</h2>
+              <h2>So far</h2>
               <RungRail stage={project.stage} />
 
-              <h3>Syarat tahap ini</h3>
+              <h3>Requirements for this stage</h3>
               <ul className="requirement-list">
                 {requirementsFor(project.stage, stageInput).map((requirement) => (
                   <li key={requirement.label} className={requirement.met ? "met" : ""}>
@@ -848,7 +848,7 @@ export default async function ProjectPage({
               {isOwner ? (
                 <form className="stage-form" action={setStage}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <h3>Pindahkan tahap</h3>
+                  <h3>Change stage</h3>
                   <div className="stage-buttons">
                     {STAGES.filter((stage) => stage !== project.stage).map((stage) => {
                       const allowed = meetsStage(stage, stageInput);

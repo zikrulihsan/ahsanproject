@@ -17,8 +17,8 @@ import { signInPath } from "../../lib/urls";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Ubah profil — Ahsan Project",
-  description: "Ubah profil, keahlian, dan tautan kontak di Ahsan Project.",
+  title: "Edit profile — Ahsan Project",
+  description: "Edit your profile, skills, and contact links on Ahsan Project.",
   robots: { index: false },
 };
 
@@ -37,7 +37,7 @@ export default async function EditProfilePage({
 
   // Suggestions only. If the directory cannot be read the form still works —
   // it just stops proposing the words other people already use.
-  const people = await readPublicly("saran istilah profil", () => listPeople(400), []);
+  const people = await readPublicly("profile term suggestions", () => listPeople(400), []);
 
   return (
     <>
@@ -45,13 +45,13 @@ export default async function EditProfilePage({
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
-          <span /> Profil
+          <span /> Profile
         </p>
-        <h1>Isi datamu.</h1>
+        <h1>Complete your profile.</h1>
         <p className="lede">
-          Ini yang orang lihat di <Link href={`/u/${viewer.username}`}>halaman portofoliomu</Link>{" "}
-          dan yang dipakai untuk menemukanmu di <Link href="/orang">talent pool</Link>. Semua bisa
-          diubah lagi kapan saja.
+          This is what people see on <Link href={`/u/${viewer.username}`}>your portfolio page</Link>{" "}
+          and use to find you in the <Link href="/orang">talent pool</Link>. You can update it at
+          any time.
         </p>
 
         <ProfileForm
@@ -62,8 +62,8 @@ export default async function EditProfilePage({
         />
 
         <p className="hint">
-          Alamat web profilmu — <code>/u/{viewer.username}</code> — dibuatkan sistem dan belum bisa
-          diubah dari sini. Kata sandi diubah di <Link href="/akun/password">halaman kata sandi</Link>.
+          Your profile URL—<code>/u/{viewer.username}</code>—is created by the system and cannot be
+          changed here. Change your password on the <Link href="/akun/password">password page</Link>.
         </p>
       </main>
 

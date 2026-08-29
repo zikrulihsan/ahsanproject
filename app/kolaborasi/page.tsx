@@ -27,7 +27,7 @@ import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
 import { viewerId } from "../lib/session";
 
 const title = "Explore — Ahsan Project";
-const description = "Explore project berdasarkan kategori, level, dan role, lalu temukan tempat terbaik untuk ikut berkontribusi.";
+const description = "Explore projects by category, stage, and role, then find the best place to contribute.";
 
 export const metadata: Metadata = {
   title,
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
 };
 
 const SORTS: { value: Lane; label: string }[] = [
-  { value: "untukmu", label: "Pilihan untukmu" },
-  { value: "terbaru", label: "Project terbaru" },
+  { value: "untukmu", label: "For you" },
+  { value: "terbaru", label: "Newest projects" },
   { value: "aktif", label: "Paling aktif" },
 ];
 
@@ -95,13 +95,13 @@ export default function CollaborationPage({ searchParams }: { searchParams?: Sea
 
   return (
     <>
-      <SiteHeader returnTo={params.then((value) => pathFor(readBoardQuery(value)))} active="kolaborasi" />
+      <SiteHeader returnTo={params.then((value) => pathFor(readBoardQuery(value)))} active="explore" />
 
       <main id="main-content" className="discovery-page collaboration-page">
         <section className="collaboration-hero" aria-labelledby="collaboration-title">
           <div>
             <h1 id="collaboration-title">Explore & Contribute</h1>
-            <p>Telusuri project berdasarkan kebutuhanmu, lalu pilih kontribusi yang paling cocok, atau dapatkan inspirasi disana.</p>
+            <p>Browse projects by what they need, find a contribution that fits, or get inspired.</p>
           </div>
           <ContributorPulse />
         </section>
@@ -133,7 +133,7 @@ async function ContributorPulse() {
       </div>
       <p>
         <strong>{people.length} kontributor</strong>
-        <small>siap membangun bersama</small>
+        <small>ready to build together</small>
       </p>
     </div>
   );
@@ -255,11 +255,11 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     <>
         {dataUnavailable ? (
           <p className="public-data-notice" role="status">
-            Sebagian data belum berhasil dimuat. <Link href={currentPath}>Coba lagi</Link>.
+            Some data could not load. <Link href={currentPath}>Try again</Link>.
           </p>
         ) : null}
 
-        <section className="collaboration-panel" aria-label="Cari project atau role, lalu filter dan urutkan hasil">
+        <section className="collaboration-panel" aria-label="Search projects or roles, then filter and sort the results">
           <ExploreSearchForm
             mode={searchBy}
             q={q}
@@ -289,7 +289,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   action="/kolaborasi"
                   name="lane"
                   value={sort}
-                  label="Urutkan project"
+                  label="Sort projects"
                   options={SORTS}
                   hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs }}
                 />
@@ -313,14 +313,14 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
               </div>
 
               <div className="collaboration-control">
-                <span>Level project</span>
+                <span>Project stage</span>
                 <SortSelect
                   action="/kolaborasi"
                   name="stage"
                   value={stage}
-                  label="Filter level project"
+                  label="Filter project stages"
                   options={[
-                    { value: "", label: "Semua level" },
+                    { value: "", label: "All stages" },
                     ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
                   ]}
                   hidden={{ tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "untukmu" ? "" : sort }}
@@ -328,14 +328,14 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
               </div>
 
               <div className="collaboration-control">
-                <span>Kebutuhan</span>
+                <span>Needs</span>
                 <SortSelect
                   action="/kolaborasi"
                   name="needs"
                   value={needs}
-                  label="Filter kebutuhan kolaborator"
+                  label="Filter collaboration needs"
                   options={[
-                    { value: "", label: "Semua project" },
+                    { value: "", label: "All projects" },
                     { value: "open", label: "Mencari kolaborator" },
                   ]}
                   hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", lane: sort === "untukmu" ? "" : sort }}
@@ -355,12 +355,12 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   </Link>
                 </li>
               ) : null}
-              {tag ? <li><Link href={linkTo({ lane: sort, stage, role, q, searchBy, needs })}>Kategori: <strong>{tag}</strong> <span>×</span></Link></li> : null}
-              {stage ? <li><Link href={linkTo({ lane: sort, tag, role, q, searchBy, needs })}>Level: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
-              {needs ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy })}>Kebutuhan: <strong>Mencari kolaborator</strong> <span>×</span></Link></li> : null}
-              {q ? <li><Link href={linkTo({ lane: sort, stage, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role dicari" : "Pencarian"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
+              {tag ? <li><Link href={linkTo({ lane: sort, stage, role, q, searchBy, needs })}>Category: <strong>{tag}</strong> <span>×</span></Link></li> : null}
+              {stage ? <li><Link href={linkTo({ lane: sort, tag, role, q, searchBy, needs })}>Stage: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
+              {needs ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy })}>Needs: <strong>Looking for collaborators</strong> <span>×</span></Link></li> : null}
+              {q ? <li><Link href={linkTo({ lane: sort, stage, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role search" : "Search"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
             </ul>
-            <Link className="clear-filters" href={linkTo({ lane: sort })}>Hapus semua</Link>
+            <Link className="clear-filters" href={linkTo({ lane: sort })}>Clear all</Link>
           </div>
         ) : null}
 
@@ -368,16 +368,16 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
           <section className="home-projects" aria-labelledby="collaboration-project-list-title">
             <div className="home-list-head collaboration-list-head">
               <div>
-                <h2 id="collaboration-project-list-title">Project untuk kolaborasi</h2>
-                <p>{projects.length} project ditemukan</p>
+                <h2 id="collaboration-project-list-title">Projects for collaboration</h2>
+                <p>{projects.length} projects found</p>
               </div>
             </div>
 
-            <div className="feed" aria-label="Daftar proyek">
+            <div className="feed" aria-label="Project list">
               {projects.length === 0 ? (
                 <div className="empty home-empty">
-                  <p>Belum ada project yang cocok dengan pencarian ini.</p>
-                  <Link href="/kolaborasi">Lihat semua project</Link>
+                  <p>No projects match this search yet.</p>
+                  <Link href="/kolaborasi">View all projects</Link>
                 </div>
               ) : (
                 <ul className="board-grid">
@@ -396,20 +396,20 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
           <aside className="discovery-sidebar" aria-label="Pintasan kolaborasi">
             <section className="show-project-card">
               <span className="show-project-plus" aria-hidden="true">+</span>
-              <h2>Punya sesuatu yang sedang dibangun?</h2>
-              <p>Tunjukkan project-mu dan temukan orang yang bisa membawanya lebih jauh.</p>
-              <Link href="/new">Tambah project</Link>
-              <small>Gratis untuk komunitas</small>
+              <h2>Building something?</h2>
+              <p>Show your project and find people who can help move it forward.</p>
+              <Link href="/new">Add a project</Link>
+              <small>Free for the community</small>
             </section>
 
             <section className="role-ranking">
               <div className="role-ranking-head">
                 <div>
-                  <p className="home-eyebrow">Mulai dari peranmu</p>
-                  <h2>Role yang paling dicari</h2>
-                  <p>Pilih role, lalu lihat project yang sedang menunggu kontribusimu.</p>
+                  <p className="home-eyebrow">Start with your role</p>
+                  <h2>Most requested roles</h2>
+                  <p>Choose a role, then see projects waiting for your contribution.</p>
                 </div>
-                <span className="live-dot" title="Diperbarui dari posisi yang sedang terbuka" />
+                <span className="live-dot" title="Updated from open roles" />
               </div>
               {rankedRoles.length > 0 ? (
                 <ol>
@@ -427,10 +427,10 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   ))}
                 </ol>
               ) : (
-                <p className="role-ranking-empty">Belum ada role yang sedang dibuka.</p>
+                <p className="role-ranking-empty">No roles are open yet.</p>
               )}
               <Link className="all-roles-link" href="/kolaborasi?searchBy=role&needs=open">
-                Lihat semua role <Arrow />
+                View all roles <Arrow />
               </Link>
             </section>
           </aside>
