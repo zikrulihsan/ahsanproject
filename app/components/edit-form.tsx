@@ -5,6 +5,7 @@ import { updateProject, type EditState } from "../actions";
 import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { STAGES, stageMeta, type Stage } from "../lib/stages";
 import { Field } from "./field";
+import { ProjectTypePicker } from "./project-type-picker";
 import { TopicPicker } from "./topic-picker";
 import { GitHubImport } from "./github-import";
 
@@ -16,6 +17,8 @@ export type EditableProject = {
   solution: string;
   audience: string;
   tags: string[];
+  /** One of PROJECT_TYPES, or empty on a project made before it was asked. */
+  projectType: string;
   nowText: string;
   docUrl: string;
   repoUrl: string;
@@ -164,6 +167,8 @@ export function EditForm({ project }: { project: EditableProject }) {
       </fieldset>
 
       <TopicPicker defaultValue={values.tags} error={errors.tags} />
+
+      <ProjectTypePicker defaultValue={values.projectType} error={errors.projectType} />
 
       <fieldset>
         <legend>Links</legend>

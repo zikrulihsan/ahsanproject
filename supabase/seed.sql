@@ -24,12 +24,12 @@ begin
 
   -- Tap Tap Dzikr
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('tap-tap-dzikr', 'Tap Tap Dzikr', 'Trade mindless social-media tapping for mindful remembrance.', owner,
-     'live', 'Our thumbs are trained to tap and scroll without thinking, and social media is always within reach. The intention to remember often loses to that habit, especially when it means finding prayer beads or counting in your head while doing something else.', 'A daily remembrance counter made as simple as possible: open, tap, done. No account, no nagging notifications, and no numbers that make it feel competitive. Counts stay on the device so they can continue tomorrow.',
+     'live', 'pet', 'Our thumbs are trained to tap and scroll without thinking, and social media is always within reach. The intention to remember often loses to that habit, especially when it means finding prayer beads or counting in your head while doing something else.', 'A daily remembrance counter made as simple as possible: open, tap, done. No account, no nagging notifications, and no numbers that make it feel competitive. Counts stay on the device so they can continue tomorrow.',
      'Anyone who wants to turn a tapping habit into something more calming.', 'Preparing dark mode and a layout that is comfortable to use with one hand.',
      '2026-08-11 09:00:00',
      '', 'https://dzikir-harian.netlify.app/', '',
@@ -51,12 +51,12 @@ begin
 
   -- Wecard
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('wecard', 'Wecard', 'Question cards for conversations that go beyond small talk.', owner,
-     'live', 'Conversations with people close to us often get stuck on the same questions: Have you eaten? How is work? When are you getting married? What we want to ask is usually deeper, but no one wants to start for fear it will feel awkward.', 'A collection of question cards organized by situation—friends, family, and partners. Open a card and let the question start the conversation, so no one has to feel awkward about going first.',
+     'live', 'product', 'Conversations with people close to us often get stuck on the same questions: Have you eaten? How is work? When are you getting married? What we want to ask is usually deeper, but no one wants to start for fear it will feel awkward.', 'A collection of question cards organized by situation—friends, family, and partners. Open a card and let the question start the conversation, so no one has to feel awkward about going first.',
      'Friends, families, and partners who want deeper conversations without knowing how to begin.', 'Creating a deck of around 40 question cards for conversations with colleagues.',
      '2026-07-28 09:00:00',
      '', 'https://wecard-app.netlify.app/', 'https://flipcard.id/favicon.ico',
@@ -75,12 +75,12 @@ begin
 
   -- CariKontak
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('carikontak', 'CariKontak', 'Essential local numbers, ready when you really need them.', owner,
-     'live', 'When something urgent happens—a leaking roof, a broken motorbike, an ambulance needed—time is spent looking for a number. Contacts for tradespeople, repair shops, and emergency services are usually scattered across old chats, notes, or someone else’s memory.', 'A place to store and find essential contacts by area, so numbers are there before they are needed. People can add to the data together, helping a neighborhood through a shared directory.',
+     'live', 'product', 'When something urgent happens—a leaking roof, a broken motorbike, an ambulance needed—time is spent looking for a number. Contacts for tradespeople, repair shops, and emergency services are usually scattered across old chats, notes, or someone else’s memory.', 'A place to store and find essential contacts by area, so numbers are there before they are needed. People can add to the data together, helping a neighborhood through a shared directory.',
      'Residents who want one place for their area’s essential phone numbers.', 'Organizing contacts by district before opening the directory to other areas.',
      '2026-06-19 09:00:00',
      '', 'https://carikontak.com/', '',
@@ -95,12 +95,12 @@ begin
 
   -- Quick Invoice
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('invoice-cepat', 'Quick Invoice', 'Create invoices for your services or products without a complicated process.', owner,
-     'live', 'Small business owners often invoice through chat because existing invoicing apps feel heavy: create an account, fill in a company profile, choose a plan. That is too many steps for one simple bill.', 'A short form that immediately creates a clean, shareable invoice. No account or subscription—just fill in what is needed and send it to the customer.',
+     'live', 'commercial', 'Small business owners often invoice through chat because existing invoicing apps feel heavy: create an account, fill in a company profile, choose a plan. That is too many steps for one simple bill.', 'A short form that immediately creates a clean, shareable invoice. No account or subscription—just fill in what is needed and send it to the customer.',
      'Freelancers and small business owners who invoice a few times each month.', 'Testing printing on the thermal printers sellers use most often.',
      '2026-04-30 09:00:00',
      '', 'https://umkmproject-invoice.netlify.app/', '',
@@ -116,12 +116,12 @@ begin
 
   -- Main Aman
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('main-aman', 'Main Aman', 'A learning space that helps children stay safer.', owner,
-     'live', 'Children are told to be careful but are rarely shown what risky situations look like. Parents also often struggle to start conversations about body boundaries, strangers, or situations that feel unsafe.', 'Lightweight learning materials that parents and children can open together, with everyday situations and what a child should do. The language is simple enough for children to revisit on their own.',
+     'live', 'community', 'Children are told to be careful but are rarely shown what risky situations look like. Parents also often struggle to start conversations about body boundaries, strangers, or situations that feel unsafe.', 'Lightweight learning materials that parents and children can open together, with everyday situations and what a child should do. The language is simple enough for children to revisit on their own.',
      'Primary-school children with their parents or teachers.', 'Drafting the first safety materials for children aged 5–8.',
      '2026-08-18 09:00:00',
      '', 'https://mainaman.netlify.app/', '',
@@ -143,12 +143,12 @@ begin
 
   -- Swegrowth
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('swegrowth', 'Swegrowth', 'A community portal for Indonesian software engineers.', owner,
-     'live', 'Valuable experiences from Indonesian engineers are scattered across social-media threads and chat groups that disappear within days. People just starting out struggle to find them again when they really need them.', 'One portal where stories, learning resources, and work experience are collected for people to revisit anytime. Its content comes from the community, not just one person.',
+     'live', 'community', 'Valuable experiences from Indonesian engineers are scattered across social-media threads and chat groups that disappear within days. People just starting out struggle to find them again when they really need them.', 'One portal where stories, learning resources, and work experience are collected for people to revisit anytime. Its content comes from the community, not just one person.',
      'Indonesian software engineers, especially in their early years.', 'Building a portal that brings together community programs and learning resources.',
      '2026-08-05 09:00:00',
      '', 'https://swegrowth.id/', '',
@@ -167,12 +167,12 @@ begin
 
   -- Warung Antre
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('warung-antre', 'Warung Antre', 'A digital queue for busy food stalls and small cafés at mealtimes.', owner,
-     'idea', 'At lunchtime, small food stalls get busy and orders are kept in someone’s head. Customers wait without knowing their place, sellers struggle to remember, and later arrivals are sometimes served first. The confusion is small but happens every day.', 'A queue number system that works from one screen at the stall: customers scan a code and the seller advances the queue when an order is ready. No extra hardware, no training, and it keeps working on a weak signal.',
+     'idea', 'commercial', 'At lunchtime, small food stalls get busy and orders are kept in someone’s head. Customers wait without knowing their place, sellers struggle to remember, and later arrivals are sometimes served first. The confusion is small but happens every day.', 'A queue number system that works from one screen at the stall: customers scan a code and the seller advances the queue when an order is ready. No extra hardware, no training, and it keeps working on a weak signal.',
      'Food stalls, coffee shops, and small outlets that get busy at certain times.', '',
      null,
      '', '', '',
@@ -208,12 +208,12 @@ begin
 
   -- School Carpool
   insert into public.projects
-    (slug, title, tagline, owner_id, stage, problem, solution, audience,
+    (slug, title, tagline, owner_id, stage, project_type, problem, solution, audience,
      now_text, now_updated_at, doc_url, live_url, logo_url, repo_url, tags, glyph,
      created_at, updated_at)
   values
     ('titip-jemput', 'School Carpool', 'A school pick-up coordination board for parents in one neighborhood.', owner,
-     'building', 'Parents in one neighborhood often pick up from the same school at the same time, yet still travel separately. Coordination gets stuck in group chats: messages disappear, people who need a ride hesitate to ask, and people with spare seats do not know who needs them.', 'A simple board with weekly pick-up schedules: who leaves when, for which school, and how many seats are free. Parents can simply mark a need or make an offer without negotiating in a busy group chat.',
+     'building', 'community', 'Parents in one neighborhood often pick up from the same school at the same time, yet still travel separately. Coordination gets stuck in group chats: messages disappear, people who need a ride hesitate to ask, and people with spare seats do not know who needs them.', 'A simple board with weekly pick-up schedules: who leaves when, for which school, and how many seats are free. Parents can simply mark a need or make an offer without negotiating in a busy group chat.',
      'Parents in one neighborhood or housing complex with the same destination school.', 'Finding out how many parents are truly headed in the same direction.',
      '2026-08-14 09:00:00',
      '', '', '',
