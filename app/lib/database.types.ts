@@ -46,6 +46,8 @@ export type ProjectOverviewRow = Omit<ProjectRow, "updated_at"> & {
   done_task_count: number;
   /** Newest of the project's own writes, its updates, comments, tasks, seats. */
   last_activity_at: string;
+  /** Generated full brief used by the indexed Explore text search. */
+  search_text: string;
 };
 
 export type ProfileRow = {

@@ -326,13 +326,11 @@ async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
   }
   if (query.q) {
     // The whole brief, not just its opening: somebody searching "flutter"
-    // should find the project that only says so under solution. `now_text` is
-    // in there too — what a project is doing right now is worth finding by.
+    // should find the project that only says so under solution. `search_text`
+    // is a generated project column with one trigram index, so this stays fast
+    // without maintaining a separate large index for every brief field.
     const term = `%${escapeLike(query.q)}%`;
-    request = request.or(
-      `title.ilike.${term},tagline.ilike.${term},problem.ilike.${term},` +
-        `solution.ilike.${term},audience.ilike.${term},now_text.ilike.${term}`,
-    );
+    request = request.ilike("search_text", term);
   }
 
   const { data, error } = await request

@@ -229,30 +229,6 @@ export default async function Home() {
           </ol>
         </section>
 
-        <section className="landing-proof-strip" aria-labelledby="proof-title">
-          <div className="proof-strip-heading">
-            <p className="home-eyebrow">Live proof</p>
-            <h2 id="proof-title">This is already running—not a concept.</h2>
-          </div>
-          <div className="proof-strip-projects" aria-label="Live projects">
-            {projects.slice(0, 3).map((project) => (
-              <Link key={project.id} href={`/projects/${project.slug}`}>
-                <ProjectLogo title={project.title} website={project.liveUrl} logoUrl={project.logoUrl} />
-                <span><strong>{project.title}</strong><small>{stageMeta[project.stage].label}</small></span>
-                <Arrow />
-              </Link>
-            ))}
-          </div>
-          <div className="proof-strip-people" aria-label="People with public work">
-            {people.slice(0, 3).map((person) => (
-              <Link key={person.id} href={`/u/${person.username}`}>
-                <span className="talent-avatar" aria-hidden="true">{initials(person.name)}</span>
-                <span><strong>{person.name}</strong><small>{person.profession || "Builder"}</small></span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         <section className="landing-final-cta" aria-labelledby="final-cta-title">
           <p className="home-eyebrow">Start with the work</p>
           <h2 id="final-cta-title">Put the work where people can see it.</h2>
