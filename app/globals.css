@@ -1059,6 +1059,8 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .signin-fallback-link { font-size: 12px; margin: -8px 0 22px; text-align: center; }
 .signin-fallback-link a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 650; }
 .signin-privacy { color: #82908a; font-size: 10.5px; line-height: 1.55; margin: 13px auto 0; max-width: 320px; text-align: center; }
+.signin-privacy a, .auth-privacy-note a { border-bottom: 1px solid currentColor; }
+.auth-privacy-note { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin-top: 12px; text-align: center; }
 
 @media (max-width: 900px) {
   .signin-page { gap: 35px; grid-template-columns: minmax(0, 620px); justify-content: center; padding-top: 52px; }
