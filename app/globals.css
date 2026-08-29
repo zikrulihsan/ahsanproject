@@ -961,30 +961,24 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .github-start .github-import { border-top: 0; margin-bottom: 0; padding-top: 0; }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
 
-/* The page that takes a link is one column, centred on the thing it wants. */
-.new-page { text-align: center; }
-.new-page h1 { margin: 0 auto 26px; max-width: 15ch; }
-.new-page h1 span { color: var(--moss); display: block; }
-.new-page .create-form { text-align: left; }
-
 /* ------------------------------------------------- adding a project by link
 
-   One input, one optional line, one button. Everything the old form said out
-   loud — labels, hints, a note under the toggle — is gone, because a form this
-   short is quicker to fill in than to read about. */
+   The page is short, not styled differently: the eyebrow, the labelled fields
+   and the pill disclosure are the same ones every other form here uses. The
+   only thing that departs from the rest is the size of the link box, because
+   it is the one thing the page is asking for. */
 
 .link-form { padding-bottom: 26px; }
-.link-start input, .link-start textarea { font-size: 16px; }
-.link-start input { min-height: 56px; padding: 15px 17px; }
-.link-start textarea { margin-top: 12px; resize: vertical; }
+.link-start input { font-size: 16px; min-height: 54px; padding: 14px 16px; }
 .link-start .field-error { margin: 10px 0 0; }
+.link-start .field:first-child { margin-bottom: 20px; }
 
-.link-reading { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+.link-reading { color: var(--muted); font-size: 13px; margin: -8px 0 20px; }
 .link-reading.is-quiet { color: var(--ink-soft); }
 
 .link-preview {
   align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
-  display: grid; gap: 4px 13px; grid-template-columns: 40px minmax(0, 1fr); margin-top: 12px; padding: 13px 14px;
+  display: grid; gap: 4px 13px; grid-template-columns: 40px minmax(0, 1fr); margin: -8px 0 22px; padding: 13px 14px;
 }
 .link-preview-mark {
   align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 10px; display: flex;
@@ -1003,19 +997,12 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
   color: var(--muted); font-size: 12px; grid-column: 1 / -1; line-height: 1.5; margin: 9px 0 0;
 }
 
-/* A quiet line, not a second button competing with the one that submits. */
-.project-details { margin: 16px 0 20px; }
-.project-details > summary {
-  border: 0; border-radius: 0; cursor: pointer; display: inline-flex; align-items: center;
-  list-style: none; padding: 0;
-}
-.project-details[open] > summary { margin-bottom: 20px; }
-.project-details > summary::-webkit-details-marker { display: none; }
-.project-details-toggle { color: var(--muted); font-size: 13px; font-weight: 600; }
-.project-details > summary:hover .project-details-toggle { color: var(--ink); }
-.project-details-toggle::before { content: "▸"; font-size: 10px; margin-right: 8px; }
-.project-details[open] .project-details-toggle::before { content: "▾"; }
-.project-details-body fieldset:last-of-type { margin-bottom: 0; }
+/* Inherits the pill summary from .optional-fields; only the spacing differs,
+   because this one opens the whole of the old form rather than one field.
+   Scoped to the form so it outranks the .optional-fields margin defined
+   further down the file. */
+.link-form .project-details { margin: 4px 0 24px; }
+.link-form .project-details-body fieldset:last-of-type { margin-bottom: 0; }
 
 /* The owner's own words, at the top of the brief they may not have written. */
 .brief-highlight {

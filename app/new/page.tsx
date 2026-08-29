@@ -30,12 +30,13 @@ export default async function NewProject() {
     <>
       <SiteHeader returnTo="/new" />
 
-      {/* One line, one field, one button. A page whose whole job is to take a
-          link should not spend the visitor's attention introducing itself. */}
-      <main id="main-content" className="page-narrow new-page">
-        <h1>
-          Show anything you built. <span>One link is enough.</span>
-        </h1>
+      <main id="main-content" className="page-narrow">
+        <p className="eyebrow">
+          <span /> Add your project
+        </p>
+        <h1>Show what you built.</h1>
+        {/* One line, because the field below says the rest. */}
+        <p className="lede">Paste the link. Everything else is optional.</p>
 
         {viewer ? (
           <CreateForm />
