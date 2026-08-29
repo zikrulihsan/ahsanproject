@@ -960,6 +960,83 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .github-start .field > .hint { margin-bottom: 8px; }
 .github-start .github-import { border-top: 0; margin-bottom: 0; padding-top: 0; }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
+
+/* ------------------------------------------------- adding a project by link
+
+   The whole point of this form is that the first screen holds one input. The
+   link box is therefore sized like a headline rather than a field, the
+   highlight sits in a quiet box beneath it, and everything the old form asked
+   for is folded behind a button that looks like a button. */
+
+.link-form { padding-bottom: 24px; }
+.link-start > label {
+  display: block; font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 4px;
+}
+.link-start > .hint { margin: 0 0 14px; }
+.link-start-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.link-start-row input {
+  flex: 1 1 260px; font-size: 17px; min-height: 54px; padding: 14px 16px;
+}
+.link-start-row .primary-button { flex: none; justify-content: center; min-height: 54px; }
+.link-start .field-error { margin: 10px 0 0; }
+
+.link-reading { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+.link-reading.is-quiet { color: var(--ink-soft); }
+
+.link-preview {
+  align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  display: grid; gap: 4px 14px; grid-template-columns: 44px minmax(0, 1fr); margin-top: 16px; padding: 15px 16px;
+}
+.link-preview-mark {
+  align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 11px; display: flex;
+  height: 44px; justify-content: center; overflow: hidden; width: 44px;
+}
+.link-preview-mark img { height: 100%; object-fit: contain; width: 100%; }
+.link-preview-mark > span { font-size: 17px; font-weight: 700; }
+.link-preview-copy { min-width: 0; }
+.link-preview-copy strong { display: block; font-size: 15px; letter-spacing: -.015em; }
+.link-preview-copy p {
+  color: var(--ink-soft); font-size: 13px; line-height: 1.55; margin: 3px 0 0;
+  overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.link-preview-copy small { color: var(--muted); display: block; font-size: 12px; margin-top: 5px; }
+.link-preview-note {
+  color: var(--muted); font-size: 12px; grid-column: 1 / -1; line-height: 1.55; margin: 11px 0 0;
+}
+
+.link-highlight { margin-top: 26px; }
+.link-highlight .field { margin-bottom: 0; }
+.link-highlight label { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+
+.project-details { border-top: 1px solid var(--line-soft); margin-top: 26px; padding-top: 22px; }
+.project-details > summary {
+  align-items: baseline; border: 0; border-radius: 0; cursor: pointer; display: flex; flex-wrap: wrap;
+  gap: 4px 12px; list-style: none; padding: 0;
+}
+.project-details[open] > summary { margin-bottom: 0; }
+.project-details > summary::-webkit-details-marker { display: none; }
+.project-details-toggle {
+  background: transparent; border: 1px solid var(--line-2); border-radius: 12px; display: inline-flex;
+  font-size: 14px; font-weight: 650; min-height: 44px; align-items: center; padding: 0 18px;
+  transition: background .2s ease, border-color .2s ease;
+}
+.project-details > summary:hover .project-details-toggle { background: var(--paper); border-color: var(--moss-light); }
+.project-details-toggle::before { content: "+"; margin-right: 9px; }
+.project-details[open] .project-details-toggle::before { content: "–"; }
+.project-details-note { color: var(--muted); font-size: 12px; line-height: 1.55; }
+.project-details-body { margin-top: 22px; }
+.project-details-body fieldset:last-of-type { margin-bottom: 0; }
+
+.project-details:not([open]) ~ .create-submit { display: none; }
+
+.link-form-footnote { color: var(--muted); font-size: 12px; margin: 12px 0 0; text-align: center; }
+
+/* The owner's own words, at the top of the brief they may not have written. */
+.brief-highlight {
+  border-left: 3px solid var(--lime); font-size: 17px; line-height: 1.6; margin: 0 0 22px; padding-left: 16px;
+}
+.brief-empty { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0; }
+.brief-empty a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 650; }
 .create-submit { justify-content: center; width: 100%; }
 .auth-page { max-width: 520px; }
 .auth-form .hint { margin: -12px 0 18px; }

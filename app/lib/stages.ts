@@ -42,12 +42,8 @@ export function isStage(value: string): value is Stage {
   return (STAGES as readonly string[]).includes(value);
 }
 
-/** Everything a level check needs to know about a project. */
+/** Everything a level check needs to know about a project: its evidence. */
 export type StageInput = {
-  problem: string;
-  solution: string;
-  audience: string;
-  tags: string[];
   /** What the project is working on right now — see projects.now_text. */
   nowText: string;
   docUrl: string;
@@ -60,29 +56,28 @@ export type Requirement = { label: string; met: boolean };
 /**
  * What a project must have to sit at a given level.
  *
- * `building` accepts the "sekarang sedang…" line as evidence, not only a link.
- * Somebody who has just started has nothing to link yet and is still building;
- * saying out loud what they are working on is the same claim, and it is the
- * one a single row can vouch for — which matters, because the CHECK constraint
- * in the schema enforces the same rule and cannot see other tables.
+ * Evidence only. These used to also ask for a finished brief and a topic, back
+ * when no project could exist without both; now that a project can arrive as a
+ * link and be written up later, that clause would have parked every live
+ * product at "idea" until its owner found time to write three paragraphs — a
+ * badge that lies, in the direction that helps nobody.
  *
- * `resting` is a decision, not an achievement, so it carries no requirements.
+ * What is left is what the badge actually claims. `building` accepts the
+ * "working on now" line as evidence, not only a link: somebody who has just
+ * started has nothing to link yet and is still building, and saying out loud
+ * what they are working on is the same claim. It is also the one a single row
+ * can vouch for, which matters, because the CHECK constraint in the schema
+ * enforces the same rule and cannot see other tables.
+ *
+ * `idea` is the floor and asks for nothing; `resting` is a decision rather
+ * than an achievement, so it carries no requirements either.
  */
 export function requirementsFor(stage: Stage, project: StageInput): Requirement[] {
-  const brief: Requirement[] = [
-    {
-      label: "Brief completed: problem, solution, and audience",
-      met: Boolean(project.problem && project.solution && project.audience),
-    },
-    { label: "Has at least one tag", met: project.tags.length > 0 },
-  ];
-
   switch (stage) {
     case "idea":
-      return brief;
+      return [];
     case "building":
       return [
-        ...brief,
         {
           label: "Includes current work or a working link",
           met: Boolean(project.nowText || project.repoUrl || project.docUrl || project.liveUrl),

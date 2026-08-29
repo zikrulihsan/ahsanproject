@@ -17,9 +17,9 @@ import { currentViewer } from "../lib/session";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Show your project — Ahsan Project",
+  title: "Add your project — Ahsan Project",
   description:
-    "Write down your idea, the problem it solves, and who it is for. Then open a role if you need collaborators.",
+    "Paste the link. We read the name, description and icon from the page itself. Everything else is optional and can wait.",
   alternates: { canonical: "/new" },
 };
 
@@ -32,23 +32,24 @@ export default async function NewProject() {
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
-          <span /> Show your project
+          <span /> Add your project
         </p>
         {viewer ? (
           <>
-            <h1>Create your project page.</h1>
+            <h1>Paste the link. That is the whole form.</h1>
             <p className="lede">
-              Add what you know now—an idea is enough. A short brief helps people understand it
-              and decide whether they can contribute.
+              We read the name, the description and the icon from the page itself. Everything
+              else—the brief, the topics, the role you are looking for—is optional, and you can add
+              it any time after the project is up.
             </p>
             <CreateForm />
           </>
         ) : (
           <>
-            <h1>Show what you are building.</h1>
+            <h1>Adding a project takes one link.</h1>
             <p className="lede">
               An idea, a work in progress, or something people already use—it all belongs here.
-              Write a short brief, then ask for help if you need it.
+              Paste the link and the project is up; the rest can be filled in whenever you want.
             </p>
 
             <ol className="how-list">
@@ -65,7 +66,7 @@ export default async function NewProject() {
 
             <p className="sign-in-callout">
               <Link className="primary-button" href={signInPath("/new")}>
-                Sign in to show your project
+                Sign in and paste your link
               </Link>
             </p>
           </>
@@ -80,17 +81,17 @@ export default async function NewProject() {
 const guestSteps = [
   {
     step: "01",
-    title: "Describe the project",
-    body: "Share the problem, your proposed solution, and the people it is for.",
+    title: "Paste the link",
+    body: "A website, an app listing, or a repository. We read the name, description and icon from the page.",
   },
   {
     step: "02",
-    title: "Show what is happening now",
-    body: "A short update gives visitors a clear picture of where the work stands.",
+    title: "Say what is interesting about it",
+    body: "Optional, one or two sentences, and the one thing a link cannot tell us on its own.",
   },
   {
     step: "03",
-    title: "Invite the right help",
-    body: "Open a role when you need a collaborator, and explain the work involved.",
+    title: "Add the rest whenever you want",
+    body: "The brief, the topics, and the role you are looking for all wait on the project page, not on this form.",
   },
 ];

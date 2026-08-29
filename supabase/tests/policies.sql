@@ -115,11 +115,13 @@ select checks.denied($$
           repeat('m', 130), repeat('s', 130), repeat('u', 45), array['uji'])
 $$, 'menaruh proyek atas nama orang lain');
 
-select checks.denied($$
-  insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
-  values ('kosongan', 'Kosongan', 'Ide yang briefnya tidak diisi sungguh-sungguh.',
-          '11111111-1111-4111-8111-111111111111', 'pendek', 'pendek', 'pendek', array['uji'])
-$$, 'brief kosongan ditolak database');
+-- Sejak 20260829130000_link_first_projects.sql, brief bukan lagi syarat masuk:
+-- satu tautan sudah cukup, sisanya diisi belakangan dari halaman proyek.
+select checks.allowed($$
+  insert into public.projects (slug, title, owner_id, stage, live_url, highlight)
+  values ('tautan-saja', 'Tautan Saja', '11111111-1111-4111-8111-111111111111',
+          'live', 'https://contoh.id/', 'Yang menarik: dipakai orang tiap hari.')
+$$, 'proyek yang datang cuma sebagai tautan');
 
 select checks.denied($$
   insert into public.projects (slug, title, tagline, owner_id, stage, problem, solution, audience, tags)

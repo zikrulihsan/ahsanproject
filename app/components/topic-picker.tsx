@@ -32,7 +32,7 @@ export function TopicPicker({
   return (
     <div className={`field topic-picker ${error ? "has-error" : ""}`}>
       <label id="topics-label">
-        Topics <span aria-hidden="true">*</span>
+        Topics <span className="optional-label">optional</span>
       </label>
       <p className="hint" id="topics-hint">
         Choose the closest matches, up to six. Nothing fits? Add your own below.

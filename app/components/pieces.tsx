@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { projectTypeLabel, projectTypeMeta, projectTypeTone, isProjectType } from "../lib/project-types";
+import { projectBlurb } from "../lib/brief";
 import { roleLabel } from "../lib/roles";
 import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
@@ -99,7 +100,7 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
                 {project.title}
               </Link>
             </h3>
-            <p className="tagline">{project.tagline}</p>
+            <p className="tagline">{projectBlurb(project)}</p>
           </div>
           <div className="project-head-badges">
             <StageBadge stage={project.stage} />
@@ -225,7 +226,7 @@ export function ProjectCard({
               {project.title}
             </Link>
           </h3>
-          <p className="profile-project-tagline">{project.tagline}</p>
+          <p className="profile-project-tagline">{projectBlurb(project)}</p>
           {categoryPosition === "below" ? (
             <p className="profile-project-category">{category}</p>
           ) : null}
@@ -404,7 +405,7 @@ export function BoardCard({
                     {project.title}
                   </Link>
                 </h3>
-                <p className="home-project-tagline">{project.tagline}</p>
+                <p className="home-project-tagline">{projectBlurb(project)}</p>
                 <p className="home-project-meta">
                   <span>{stageMeta[project.stage].label}</span>
                   {projectTypeLabel(project.projectType) ? (

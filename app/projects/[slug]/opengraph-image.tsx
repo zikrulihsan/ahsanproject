@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getProject } from "../../lib/data";
+import { projectBlurb } from "../../lib/brief";
 import { roleLabel } from "../../lib/roles";
 import { stageMeta, type Stage } from "../../lib/stages";
 
@@ -102,7 +103,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               {(() => {
                 // What it is doing beats what it is: a shared link should say
                 // the project is alive, not only what it is called.
-                const line = project.nowText ? `Now: ${project.nowText}` : project.tagline;
+                const line = project.nowText ? `Now: ${project.nowText}` : projectBlurb(project);
                 return line.length > 150 ? `${line.slice(0, 150)}…` : line;
               })()}
             </div>

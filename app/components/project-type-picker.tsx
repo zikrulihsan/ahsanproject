@@ -10,7 +10,9 @@ import { PROJECT_TYPES, projectTypeMeta } from "../lib/project-types";
  *
  * Nothing is preselected, on purpose — see `createProject`. A default here
  * would let every project that never thought about the question ship as a pet
- * project, which is a claim nobody made.
+ * project, which is a claim nobody made. Leaving it unanswered is allowed for
+ * the same reason: an empty kind reads as "not stated", and a guessed one
+ * reads as a claim.
  */
 export function ProjectTypePicker({
   defaultValue = "",
@@ -22,7 +24,7 @@ export function ProjectTypePicker({
   return (
     <div className={`type-picker ${error ? "has-error" : ""}`}>
       <p className="type-picker-label" id="project-type-label">
-        Project kind <span aria-hidden="true">*</span>
+        Project kind <span className="optional-label">optional</span>
       </p>
       <p className="hint" id="project-type-hint">
         This is what people use to pick the kind of collaboration they are after. Separate from the

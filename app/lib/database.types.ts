@@ -16,6 +16,11 @@ export type ProjectRow = {
    * and app/lib/project-types.ts.
    */
   project_type: string;
+  /**
+   * Why this is worth a look, in the owner's own words — the one question a
+   * link-first submission asks. See 20260829130000_link_first_projects.sql.
+   */
+  highlight: string;
   problem: string;
   solution: string;
   audience: string;

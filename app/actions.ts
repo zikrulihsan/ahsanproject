@@ -3,7 +3,14 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSupabase, type Supabase } from "./lib/supabase";
-import { MAXIMUM, normaliseTags, slugify, validateBrief, type FieldErrors } from "./lib/brief";
+import {
+  MAXIMUM,
+  domainOf,
+  normaliseTags,
+  slugify,
+  validateBrief,
+  type FieldErrors,
+} from "./lib/brief";
 import { isProjectType } from "./lib/project-types";
 import { isRole } from "./lib/roles";
 import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
@@ -11,6 +18,7 @@ import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
 import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
+import { fetchLinkMetadata, normaliseLink, titleFromLink } from "./lib/link-metadata";
 import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import {
@@ -26,6 +34,7 @@ import { tags } from "./lib/cache-tags";
 export type CreateState = {
   errors: FieldErrors & {
     form?: string;
+    link?: string;
     stage?: string;
     now?: string;
     projectType?: string;
@@ -42,6 +51,24 @@ export type EditState = CreateState;
 
 export type GitHubImportResult =
   | { ok: true; draft: GitHubProjectDraft }
+  | { ok: false; error: string };
+
+/** What a pasted link turned out to be, as the form shows it back. */
+export type LinkPreview = {
+  /** Exactly what was typed, so the form can tell a stale preview from a fresh one. */
+  requested: string;
+  url: string;
+  domain: string;
+  title: string;
+  tagline: string;
+  logoUrl: string;
+  imageUrl: string;
+  /** False when the page could not be read; the title is then from the address. */
+  fetched: boolean;
+};
+
+export type LinkPreviewResult =
+  | { ok: true; preview: LinkPreview }
   | { ok: false; error: string };
 
 export type ProfileState = {
@@ -115,8 +142,55 @@ export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportR
   }
 }
 
+/**
+ * Reads a pasted link so the form can show what it found.
+ *
+ * A preview, not a save: the same read runs again inside `createProject` when
+ * the browser never got one, so a person who pastes and submits immediately is
+ * not punished for being quick.
+ */
+export async function previewProjectLink(rawLink: string): Promise<LinkPreviewResult> {
+  const viewer = await currentViewer();
+  if (!viewer) return { ok: false, error: "Sign in before adding a project." };
+
+  const link = normaliseLink(rawLink);
+  if (!link) return { ok: false, error: "That does not look like a link yet." };
+
+  const metadata = await fetchLinkMetadata(link);
+  return {
+    ok: true,
+    preview: {
+      requested: rawLink.trim(),
+      url: link,
+      domain: metadata.domain || domainOf(link),
+      title: metadata.title || titleFromLink(link),
+      tagline: metadata.description,
+      logoUrl: usableLogo(metadata.iconUrl, metadata.imageUrl),
+      imageUrl: metadata.imageUrl,
+      fetched: metadata.fetched,
+    },
+  };
+}
+
+/**
+ * Adds a project from a link.
+ *
+ * Everything except the link is optional, and the two ways a person can reach
+ * this differ only in how much they chose to fill in:
+ *
+ *   - paste a link and press the button, in which case the page's own title,
+ *     description and icon are recorded and the project exists in one step;
+ *   - open "Add project details" first and write as much as they want, in
+ *     which case what they wrote wins over anything the page said about itself.
+ *
+ * Nothing the upstream page does can stop the save. A site that is slow, down
+ * or hostile to robots costs the project its description, not its existence —
+ * the address itself still yields a name.
+ */
 export async function createProject(_state: CreateState, formData: FormData): Promise<CreateState> {
   const values = {
+    link: text(formData, "link"),
+    highlight: text(formData, "highlight").slice(0, MAXIMUM.highlight),
     title: text(formData, "title"),
     tagline: text(formData, "tagline"),
     problem: text(formData, "problem"),
@@ -141,26 +215,43 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   const viewer = await currentViewer();
   if (!viewer) return { errors: { form: "Sign in before showing a project here." }, values };
 
-  const errors: CreateState["errors"] = validateBrief(values);
-  // Asked for, not defaulted. Guessing a type for somebody would put a claim on
-  // their project they never made — the one thing this board will not carry —
-  // and it is the answer people filter by before they read anything else.
-  if (!isProjectType(values.projectType)) {
-    errors.projectType = "Choose a project kind so people know what collaborating here means.";
+  const link = normaliseLink(values.link);
+  if (!link) {
+    return {
+      errors: { link: "Paste the project link — a website, an app listing, or a repository." },
+      values,
+    };
   }
-  const requestedStage = isStage(values.stage) ? values.stage : "idea";
-  if (
-    requestedStage === "building" &&
-    !values.now &&
-    !values.docUrl &&
-    !values.repoUrl &&
-    !values.liveUrl
-  ) {
-    errors.now = "Describe the work in progress, or add a working link.";
-  }
-  if (requestedStage === "live" && !values.liveUrl) {
-    errors.liveUrl = "A live project needs a link other people can open.";
-  }
+
+  /*
+   * Where the link belongs on the project.
+   *
+   * A repository is not the same claim as a product: sending a GitHub URL to
+   * `live_url` would badge a pile of source code as something other people can
+   * use today. Anything else is treated as the thing itself.
+   */
+  const repoLink = isGitHubRepositoryUrl(link);
+  const repoUrl = values.repoUrl || (repoLink ? link : "");
+  const liveUrl = values.liveUrl || (repoLink ? "" : link);
+
+  // Only read the page when the person has not already named the project — for
+  // anybody who filled the details in themselves there is nothing left to find.
+  const metadata = values.title && values.tagline && values.logoUrl
+    ? null
+    : await fetchLinkMetadata(link);
+  const title = values.title || metadata?.title || titleFromLink(link);
+  const tagline = values.tagline || (metadata?.description ?? "");
+  const logoUrl = values.logoUrl || usableLogo(metadata?.iconUrl, metadata?.imageUrl);
+
+  const brief = {
+    ...values,
+    title,
+    tagline,
+    repoUrl,
+    liveUrl,
+    logoUrl,
+  };
+  const errors: CreateState["errors"] = validateBrief(brief);
   if (values.openSeat === "yes") {
     if (!isRole(values.seatRole)) errors.seatRole = "Choose the role you are looking for.";
     if (values.seatRole === "other" && !values.seatRoleTitle) {
@@ -171,40 +262,48 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
       errors.seatCommitment = "Provide a time estimate so people know whether they can join.";
     }
   }
-  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
+  if (values.projectType && !isProjectType(values.projectType)) {
+    errors.projectType = "Choose one of the available project kinds.";
+  }
+  if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(repoUrl)) {
     errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
-  // The level somebody picks has to be one the project actually earns; a badge
-  // is a claim, and an unearned claim is the one thing this board will not
-  // carry. Anything that does not hold up settles to the highest level it does.
+  /*
+   * The stage nobody was asked for.
+   *
+   * Guessing an answer on somebody's behalf is what this board refuses to do —
+   * but this is not a guess. A link that opens is evidence a stranger can use
+   * the thing today, and a repository is evidence work is happening; both are
+   * observable from the row itself, which is exactly what every stage rule
+   * asks for. Anyone who picked a stage in the details keeps it, and
+   * `settleStage` still drops a claim the links do not support.
+   */
   const tags = normaliseTags(values.tags);
+  const requestedStage = isStage(values.stage) ? values.stage : repoLink ? "building" : "live";
   const stage = settleStage(requestedStage, {
-    problem: values.problem,
-    solution: values.solution,
-    audience: values.audience,
-    tags,
     nowText: values.now,
     docUrl: values.docUrl,
-    repoUrl: values.repoUrl,
-    liveUrl: values.liveUrl,
+    repoUrl,
+    liveUrl,
   });
 
   let slug = "";
   try {
     const supabase = await requireSupabase();
-    slug = await freeSlug(supabase, values.title);
+    slug = await freeSlug(supabase, title);
 
     const { data: project, error } = await supabase
       .from("projects")
       .insert({
         slug,
-        title: values.title,
-        tagline: values.tagline,
+        title,
+        tagline,
         owner_id: viewer.id,
         stage,
-        project_type: values.projectType,
+        project_type: isProjectType(values.projectType) ? values.projectType : "",
+        highlight: values.highlight,
         problem: values.problem,
         solution: values.solution,
         audience: values.audience,
@@ -213,12 +312,12 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
         // life already saying what it is doing gets its first timestamp here.
         now_updated_at: values.now ? new Date().toISOString() : null,
         doc_url: values.docUrl,
-        repo_url: values.repoUrl,
+        repo_url: repoUrl,
         open_for_github_contributions: values.openForGitHubContributions === "yes",
-        live_url: values.liveUrl,
-        logo_url: values.logoUrl,
+        live_url: liveUrl,
+        logo_url: logoUrl,
         tags,
-        glyph: pick(GLYPHS, values.tagline),
+        glyph: pick(GLYPHS, tagline || title),
       })
       .select("id")
       .single();
@@ -245,6 +344,19 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
 }
 
 /**
+ * The mark to store for a project, out of what the page offered.
+ *
+ * An icon is what a card wants — square, small, already the project's face
+ * everywhere else. A social image is the fallback rather than the first choice:
+ * it is usually a wide banner with the name written across it, which reads
+ * badly at 40 pixels. Either way the column is 500 characters, and a URL longer
+ * than that is not worth truncating into a broken image.
+ */
+function usableLogo(iconUrl?: string, imageUrl?: string): string {
+  return [iconUrl, imageUrl].find((url) => url && url.length <= MAXIMUM.logoUrl) ?? "";
+}
+
+/**
  * Rewrites a project's brief.
  *
  * The same minimums apply as when it was created, so a project cannot be
@@ -256,6 +368,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
   const values = {
     title: text(formData, "title"),
     tagline: text(formData, "tagline"),
+    highlight: text(formData, "highlight").slice(0, MAXIMUM.highlight),
     problem: text(formData, "problem"),
     solution: text(formData, "solution"),
     audience: text(formData, "audience"),
@@ -274,8 +387,11 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
   if (!viewer) return { errors: { form: "Sign in to edit this project." }, values };
 
   const errors: EditState["errors"] = validateBrief(values);
-  if (!isProjectType(values.projectType)) {
-    errors.projectType = "Choose a project kind so people know what collaborating here means.";
+  // Empty stays allowed here for the same reason it is allowed in the column:
+  // an owner filling in the rest of a link-first project should not be stopped
+  // at a question they have no answer for yet.
+  if (values.projectType && !isProjectType(values.projectType)) {
+    errors.projectType = "Choose one of the available project kinds.";
   }
   const requestedStage = isStage(values.stage) ? values.stage : null;
   if (!requestedStage) {
@@ -315,6 +431,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
       .update({
         title: values.title,
         tagline: values.tagline,
+        highlight: values.highlight,
         problem: values.problem,
         solution: values.solution,
         audience: values.audience,
@@ -386,10 +503,6 @@ export async function setStage(formData: FormData): Promise<void> {
   if (!project) return;
 
   const allowed = meetsStage(stage as Stage, {
-    problem: project.problem,
-    solution: project.solution,
-    audience: project.audience,
-    tags: project.tags,
     nowText: project.now_text ?? "",
     docUrl: project.doc_url,
     repoUrl: project.repo_url,

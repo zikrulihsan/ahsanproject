@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { updateProject, type EditState } from "../actions";
-import { MAXIMUM, MINIMUM } from "../lib/brief";
+import { MAXIMUM } from "../lib/brief";
 import { STAGES, stageMeta, type Stage } from "../lib/stages";
 import { Field } from "./field";
 import { ProjectTypePicker } from "./project-type-picker";
@@ -13,6 +13,8 @@ export type EditableProject = {
   slug: string;
   title: string;
   tagline: string;
+  /** Why it is worth a look, in the owner's words. Empty until they say. */
+  highlight: string;
   problem: string;
   solution: string;
   audience: string;
@@ -86,10 +88,23 @@ export function EditForm({ project }: { project: EditableProject }) {
         hint="Explain its main benefit in plain language."
         error={errors.tagline}
         defaultValue={values.tagline}
-        minLength={MINIMUM.tagline}
         maxLength={MAXIMUM.tagline}
-        required
       />
+
+      <Field
+        label="What is interesting about this project?"
+        name="highlight"
+        hint="A sentence or two in your own words. This is what people read first."
+        error={errors.highlight}
+        defaultValue={values.highlight}
+        rows={3}
+        maxLength={MAXIMUM.highlight}
+      />
+
+      <p className="step-intro">
+        Nothing below is required. A project can sit here as a link and a highlight, and the brief
+        can be written whenever you have something to say.
+      </p>
 
       <Field
         label="Problem to solve"
@@ -98,9 +113,7 @@ export function EditForm({ project }: { project: EditableProject }) {
         error={errors.problem}
         defaultValue={values.problem}
         rows={6}
-        minLength={MINIMUM.problem}
         maxLength={MAXIMUM.problem}
-        required
       />
 
       <Field
@@ -110,9 +123,7 @@ export function EditForm({ project }: { project: EditableProject }) {
         error={errors.solution}
         defaultValue={values.solution}
         rows={6}
-        minLength={MINIMUM.solution}
         maxLength={MAXIMUM.solution}
-        required
       />
 
       <Field
@@ -122,9 +133,7 @@ export function EditForm({ project }: { project: EditableProject }) {
         error={errors.audience}
         defaultValue={values.audience}
         rows={3}
-        minLength={MINIMUM.audience}
         maxLength={MAXIMUM.audience}
-        required
       />
 
       <Field
