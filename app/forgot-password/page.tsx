@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ForgotPasswordPage() {
   return (
     <>
-      <SiteHeader returnTo="/lupa-password" />
+      <SiteHeader returnTo="/forgot-password" />
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">

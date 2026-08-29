@@ -35,7 +35,7 @@ export const metadata: Metadata = {
  *
  * Nothing here blocks anybody. Every step can be skipped, and once none are
  * owed the page forwards to the board instead of standing in the way of every
- * future sign-in — `?semua=1` keeps it reachable on purpose from the menu.
+ * future sign-in — `?all=1` keeps it reachable on purpose from the menu.
  */
 export default async function StartPage({
   searchParams,
@@ -43,10 +43,10 @@ export default async function StartPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const viewer = await currentViewer();
-  if (!viewer) redirect(signInPath("/mulai"));
+  if (!viewer) redirect(signInPath("/get-started"));
 
   const query = (await searchParams) ?? {};
-  const keepOpen = query.semua === "1";
+  const keepOpen = query.all === "1";
 
   const { owned, contributing } = await getPortfolio(viewer);
   const steps = nextSteps({ person: viewer, owned, contributing });
@@ -58,7 +58,7 @@ export default async function StartPage({
 
   return (
     <>
-      <SiteHeader returnTo="/mulai" />
+      <SiteHeader returnTo="/get-started" />
 
       <main id="main-content" className="page-narrow start-page">
         <p className="eyebrow">
@@ -182,7 +182,7 @@ function StartProjectRow({ project }: { project: ProjectSummary }) {
         {project.openSeatCount > 0
           ? `${project.openSeatCount} open roles.`
           : "No open roles yet."}{" "}
-        <Link href={`/projects/${project.slug}?tab=kolaborasi`}>
+        <Link href={`/projects/${project.slug}?tab=collaboration`}>
           {project.openSeatCount > 0 ? "View collaboration" : "Open a role"}
         </Link>
       </p>

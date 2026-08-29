@@ -9,7 +9,7 @@ import { monthYear } from "../../components/pieces";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Portofolio di Ahsan Project";
+export const alt = "Portfolio on Ahsan Project";
 
 const PAPER = "#f8f6f0";
 const INK = "#183d34";
@@ -51,10 +51,10 @@ export default async function Image({ params }: { params: Promise<{ username: st
 
   const numbers = [
     `${owned.length} project`,
-    live > 0 ? `${live} sudah berjalan` : "",
-    contributing.length > 0 ? `${contributing.length} ikut membantu` : "",
-    stats.rolesTaken > 0 ? `${stats.rolesTaken} kali ikut membantu` : "",
-    stats.tasksDone > 0 ? `${stats.tasksDone} tugas beres` : "",
+    live > 0 ? `${live} live` : "",
+    contributing.length > 0 ? `${contributing.length} contributions` : "",
+    stats.rolesTaken > 0 ? `${stats.rolesTaken} roles joined` : "",
+    stats.tasksDone > 0 ? `${stats.tasksDone} tasks completed` : "",
   ]
     .filter(Boolean)
     .join("  ·  ");
@@ -110,8 +110,8 @@ export default async function Image({ params }: { params: Promise<{ username: st
           {numbers ? <div style={{ display: "flex", fontSize: 32 }}>{numbers}</div> : null}
           <div style={{ display: "flex", fontSize: 24, color: MUTED }}>
             {stats.since
-              ? `Aktif sejak ${monthYear(stats.since)} — jejaknya ditulis sistem, bukan diketik.`
-              : "Jejaknya ditulis sistem, bukan diketik."}
+              ? `Active since ${monthYear(stats.since)} — the system records this trail; it is not typed in later.`
+              : "The system records this trail; it is not typed in later."}
           </div>
         </div>
       </div>

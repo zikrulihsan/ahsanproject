@@ -94,7 +94,7 @@ export async function requestPasswordReset(
   const supabase = await requireSupabase();
   const origin = await siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent("/akun/password")}`,
+    redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent("/account/password")}`,
   });
   // A rate limit is worth saying out loud; anything else stays behind the
   // same neutral notice, so a failure cannot be read as "this email exists".

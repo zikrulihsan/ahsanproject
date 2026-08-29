@@ -79,29 +79,29 @@ export async function getGitHubProjectDraft(
 ): Promise<GitHubProjectDraft> {
   const repository = parseGitHubRepositoryUrl(repoUrl);
   if (!repository) {
-    throw new Error("Gunakan URL repository publik GitHub, misalnya https://github.com/organisasi/project.");
+    throw new Error("Use a public GitHub repository URL, for example https://github.com/organization/project.");
   }
 
   const path = `/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}`;
   const response = await githubRequest(request, `${GITHUB_API}${path}`);
-  if (response.status === 404) throw new Error("Repository GitHub itu tidak ditemukan atau bukan repository publik.");
-  if (response.status === 403) throw new Error("GitHub sedang membatasi permintaan. Coba lagi beberapa saat lagi.");
-  if (!response.ok) throw new Error("Data repository GitHub belum bisa dibaca. Coba lagi sebentar.");
+  if (response.status === 404) throw new Error("That GitHub repository was not found or is not public.");
+  if (response.status === 403) throw new Error("GitHub is limiting requests. Please try again shortly.");
+  if (!response.ok) throw new Error("GitHub repository data could not be read. Please try again shortly.");
 
   const data = (await response.json()) as GitHubRepositoryResponse;
   const readmeResponse = await githubRequest(request, `${GITHUB_API}${path}/readme`);
   if (!readmeResponse.ok && readmeResponse.status !== 404) {
-    throw new Error("README GitHub belum bisa dibaca. Coba lagi sebentar.");
+    throw new Error("The GitHub README could not be read. Please try again shortly.");
   }
   const readme = readmeResponse.ok ? readmeText((await readmeResponse.json()) as GitHubReadmeResponse) : "";
 
   return {
     title: clip(markdownTitle(readme) || stringValue(data.name), 60),
     tagline: clip(firstParagraph(readme) || stringValue(data.description), 140),
-    problem: clip(section(readme, ["masalah", "problem"]), 2000),
-    solution: clip(section(readme, ["solusi", "solution", "what we build", "what we're building"]), 2000),
-    audience: clip(section(readme, ["untuk siapa", "audience", "target users", "who is it for"]), 600),
-    now: clip(section(readme, ["status", "what's next", "selanjutnya", "roadmap"]), 200),
+    problem: clip(section(readme, ["problem"]), 2000),
+    solution: clip(section(readme, ["solution", "what we build", "what we're building"]), 2000),
+    audience: clip(section(readme, ["audience", "target users", "who is it for"]), 600),
+    now: clip(section(readme, ["status", "what's next", "roadmap"]), 200),
     tags: topics(data.topics),
     liveUrl: publicUrl(data.homepage),
     readmeFound: Boolean(readme),

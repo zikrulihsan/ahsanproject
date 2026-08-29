@@ -39,35 +39,35 @@ test("the sign-in link carries a safe destination, or none at all", () => {
 });
 
 test("a plain sign-in lands on the next-steps page", () => {
-  assert.equal(startPath("/"), "/mulai");
-  assert.equal(startPath(""), "/mulai");
-  assert.equal(startPath(null), "/mulai");
-  // Anything off-site collapses to "/" first, so it cannot skip past /mulai.
-  assert.equal(startPath("https://contoh-jahat.example"), "/mulai");
+  assert.equal(startPath("/"), "/get-started");
+  assert.equal(startPath(""), "/get-started");
+  assert.equal(startPath(null), "/get-started");
+  // Anything off-site collapses to "/" first, so it cannot skip past /get-started.
+  assert.equal(startPath("https://malicious-example.example"), "/get-started");
 });
 
 test("a destination somebody actually asked for always wins", () => {
   assert.equal(startPath("/projects/warung-antre"), "/projects/warung-antre");
-  assert.equal(startPath("/akun/password"), "/akun/password");
-  assert.equal(startPath("/kolaborasi?cari=desain"), "/kolaborasi?cari=desain");
+  assert.equal(startPath("/account/password"), "/account/password");
+  assert.equal(startPath("/explore?q=design"), "/explore?q=design");
 });
 
 test("a code stranded off the callback is sent where it can be spent", () => {
   assert.deepEqual(
-    strayCodeTarget("/mulai", params("code=abc&next=%2F"), false),
+    strayCodeTarget("/get-started", params("code=abc&next=%2F"), false),
     { pathname: "/auth/callback", search: "code=abc" },
   );
   // A destination worth keeping survives the detour.
   assert.deepEqual(
-    strayCodeTarget("/", params("code=abc&next=%2Fkolaborasi"), false),
-    { pathname: "/auth/callback", search: "code=abc&next=%2Fkolaborasi" },
+    strayCodeTarget("/", params("code=abc&next=%2Fexplore"), false),
+    { pathname: "/auth/callback", search: "code=abc&next=%2Fexplore" },
   );
 });
 
 test("with no next of its own, the page the code landed on becomes the destination", () => {
   assert.deepEqual(
-    strayCodeTarget("/kolaborasi", params("code=abc"), false),
-    { pathname: "/auth/callback", search: "code=abc&next=%2Fkolaborasi" },
+    strayCodeTarget("/explore", params("code=abc"), false),
+    { pathname: "/auth/callback", search: "code=abc&next=%2Fexplore" },
   );
 });
 
@@ -84,15 +84,15 @@ test("the callback itself is never redirected to itself", () => {
 });
 
 test("a request with no code is left alone", () => {
-  assert.equal(strayCodeTarget("/mulai", params(""), false), null);
-  assert.equal(strayCodeTarget("/mulai", params("semua=1"), true), null);
+  assert.equal(strayCodeTarget("/get-started", params(""), false), null);
+  assert.equal(strayCodeTarget("/get-started", params("all=1"), true), null);
 });
 
 test("somebody already signed in keeps their session and loses the spent code", () => {
   // Spending it again would fail and throw them back to /signin.
   assert.deepEqual(
-    strayCodeTarget("/mulai", params("code=abc&semua=1"), true),
-    { pathname: "/mulai", search: "semua=1" },
+    strayCodeTarget("/get-started", params("code=abc&all=1"), true),
+    { pathname: "/get-started", search: "all=1" },
   );
   assert.deepEqual(
     strayCodeTarget("/", params("code=abc"), true),
@@ -122,12 +122,12 @@ test("a project logo accepts only ordinary web image URLs", () => {
 
 test("an origin keeps only its scheme, host, and port", () => {
   assert.equal(normalizeOrigin("https://ahsanproject.id/"), "https://ahsanproject.id");
-  assert.equal(normalizeOrigin("  https://ahsanproject.id/mulai?a=1  "), "https://ahsanproject.id");
+  assert.equal(normalizeOrigin("  https://ahsanproject.id/get-started?a=1  "), "https://ahsanproject.id");
   assert.equal(normalizeOrigin("http://localhost:3000"), "http://localhost:3000");
 });
 
 test("anything that is not an ordinary web origin is refused", () => {
-  for (const nonsense of ["", null, undefined, "ahsanproject.id", "javascript:alert(1)", "/mulai"]) {
+  for (const nonsense of ["", null, undefined, "ahsanproject.id", "javascript:alert(1)", "/get-started"]) {
     assert.equal(normalizeOrigin(nonsense), null, `${nonsense} bukan origin`);
   }
 });

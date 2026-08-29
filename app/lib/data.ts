@@ -209,8 +209,8 @@ function warnMissingTable(table: string): void {
   if (warned.has(table)) return;
   warned.add(table);
   console.warn(
-    `[ahsan] Tabel "${table}" belum ada di Supabase. Jalankan berkas di supabase/migrations/ ` +
-      `sesuai urutannya. Sementara ini bagiannya dilewati.`,
+    `[ahsan] Table "${table}" does not exist in Supabase yet. Run the files in supabase/migrations/ ` +
+      `in order. This feature will be skipped for now.`,
   );
 }
 
@@ -222,18 +222,18 @@ function warnMissingTable(table: string): void {
  * that is not a thing an ORDER BY can express.
  */
 const LANE_QUERY: Record<Lane, { stage?: string; needsHelp?: boolean; column: string }> = {
-  untukmu: { column: "last_activity_at" },
-  terbaru: { column: "created_at" },
-  aktif: { column: "last_activity_at" },
-  "butuh-bantuan": { needsHelp: true, column: "last_activity_at" },
-  dibangun: { stage: "building", column: "last_activity_at" },
-  berjalan: { stage: "live", column: "last_activity_at" },
+  "for-you": { column: "last_activity_at" },
+  newest: { column: "created_at" },
+  active: { column: "last_activity_at" },
+  "needs-help": { needsHelp: true, column: "last_activity_at" },
+  building: { stage: "building", column: "last_activity_at" },
+  live: { stage: "live", column: "last_activity_at" },
 };
 
 /** The filters that decide what the database is asked for. */
 function projectQueryKey(query: FeedQuery): string {
   return JSON.stringify({
-    lane: query.lane ?? "untukmu",
+    lane: query.lane ?? "for-you",
     stage: query.stage ?? "",
     tag: query.tag ?? "",
     needsHelp: Boolean(query.needsHelp),
@@ -265,7 +265,7 @@ async function readProjects(key: string): Promise<ProjectSummary[]> {
  *
  * In the order the database gave, deliberately. Arranging the "untukmu" lane
  * for a particular visitor is `arrangeForYou`, and it belongs to the caller
- * that knows who is looking — see `app/kolaborasi/page.tsx`. Keeping it out of
+ * that knows who is looking — see `app/explore/page.tsx`. Keeping it out of
  * here is what lets this read start before the session is known, instead of
  * queueing behind an auth round trip for a sort it could do afterwards.
  */
@@ -274,7 +274,7 @@ export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummar
 }
 
 async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
-  const lane = query.lane ?? "untukmu";
+  const lane = query.lane ?? "for-you";
   const shape = LANE_QUERY[lane];
 
   const supabase = getPublicSupabase();
@@ -763,7 +763,7 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
   cacheLife("board");
   cacheTag(tags.people, tags.projects, tags.seats);
 
-  const [people, projects] = await Promise.all([listPeople(limit), listProjects({ lane: "terbaru" })]);
+  const [people, projects] = await Promise.all([listPeople(limit), listProjects({ lane: "newest" })]);
 
   const byId = new Map(projects.map((project) => [project.id, project]));
   const helping = new Map<string, ProjectSummary[]>();
@@ -774,7 +774,7 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
     const { data, error } = await supabase
       .from("seats")
       // Keep the directory on the original seat shape. `role_title` arrived
-      // in migration 0012 and is presentation detail, not something /orang
+      // in migration 0012 and is presentation detail, not something /people
       // should require merely to render a contributor.
       .select("project_id, user_id, role")
       .eq("status", "filled");
@@ -783,7 +783,7 @@ export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
       // Contributions enrich each result; they are not the directory's source of
       // truth. A rollout with an older seats schema must not turn every public
       // profile into a 500 page.
-      console.warn(`[ahsan] Kontribusi di direktori orang dilewati: ${error.message}`);
+      console.warn(`[ahsan] Contributions were skipped in the people directory: ${error.message}`);
     } else {
       for (const seat of data ?? []) {
         const project = seat.user_id ? byId.get(seat.project_id) : undefined;
@@ -1410,7 +1410,7 @@ export async function listFollowedUpdates(userId: string, limit = 12): Promise<F
     body: entry.body,
     createdAt: entry.created_at,
     author: entry.author ?? null,
-    project: entry.project ?? { slug: "", title: "Project yang sudah dihapus" },
+    project: entry.project ?? { slug: "", title: "Deleted project" },
   }));
 }
 
@@ -1505,7 +1505,7 @@ function toActivity(row: EventRow & { actor?: BriefPerson | null }): ActivityEve
     createdAt: row.created_at,
     projectId: row.project_id,
     projectSlug: payload.slug ?? "",
-    projectTitle: payload.title ?? "project yang sudah dihapus",
+    projectTitle: payload.title ?? "deleted project",
     payload,
     actor: row.actor ?? null,
   };
@@ -1584,7 +1584,7 @@ function seedSummaries(): ProjectSummary[] {
 }
 
 function seedFeed(query: FeedQuery): ProjectSummary[] {
-  const lane = query.lane ?? "untukmu";
+  const lane = query.lane ?? "for-you";
   const shape = LANE_QUERY[lane];
   const needle = query.q?.toLowerCase() ?? "";
   const roleNeedle = query.roleQuery ?? "";
@@ -1626,7 +1626,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
   });
 
   const ordered = matching.sort(
-    lane === "terbaru"
+    lane === "newest"
       ? (a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id
       : (a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt) || b.id - a.id,
   );

@@ -10,7 +10,7 @@ import { pinnedOrigin, safeNextPath } from "../../lib/urls";
  * reports a host we disagree with costs a single extra redirect instead of an
  * endless loop.
  */
-const PINNED = "alamat";
+const PINNED = "origin";
 
 /**
  * Starts the Google sign-in, and hands the browser the cookie that finishes it.
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (error || !data.url) {
-    console.error("[ahsan] Google OAuth gagal dimulai.", error);
+    console.error("[ahsan] Google OAuth could not start.", error);
     return refuse(next);
   }
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     // Without a verifier the round trip cannot succeed, and Google would send
     // them back to a failure. Better to stop here than to spend somebody's time
     // proving it.
-    console.error("[ahsan] Verifier PKCE tidak dihasilkan; Google OAuth dibatalkan.");
+    console.error("[ahsan] No PKCE verifier was created; Google OAuth was cancelled.");
     return refuse(next);
   }
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
 }
 
 function refuse(next: string): NextResponse {
-  const failure = new URLSearchParams({ error: "google-gagal" });
+  const failure = new URLSearchParams({ error: "google-failed" });
   if (next !== "/") failure.set("next", next);
   return sameOriginRedirect(`/signin?${failure}`);
 }

@@ -103,7 +103,7 @@ instead.
 > falls back to the **Site URL**, so the authorization code arrives on a page
 > that has no idea what to do with it and the person simply stays signed out.
 > Only `/auth/callback` and `/auth/confirm` belong on that list. Nothing else
-> in this app trades a code for a session — `/mulai` is where a *successful*
+> in this app trades a code for a session — `/get-started` is where a *successful*
 > sign-in lands, and putting it on the allow list would break the very flow it
 > is meant to finish.
 
@@ -116,7 +116,7 @@ somebody to the site's primary address *before* writing it (see `pinnedOrigin`
 in `app/lib/urls.ts`); everything after that follows the browser instead of
 pinning anything. Set `NEXT_PUBLIC_SITE_URL` to name that address, or let
 Netlify's own `URL` stand in on production deploys. A sign-in that leaves from
-one name and returns on another is what puts `?error=alamat-beda` on the
+one name and returns on another is what puts `?error=origin-mismatch` on the
 sign-in page.
 
 Sign-in starts at `/auth/google`, a route handler, and that is deliberate
@@ -146,8 +146,8 @@ match it.
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
 | `/new` | Show a project. The brief is required — an empty project cannot be created |
-| `/mulai` | Where a completed sign-in lands — not a callback, never on the redirect allow list. The steps still owed, and the projects you own; forwards to the board once nothing is owed |
-| `/akun/profil` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
+| `/get-started` | Where a completed sign-in lands — not a callback, never on the redirect allow list. The steps still owed, and the projects you own; forwards to the board once nothing is owed |
+| `/account/profile` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
 
@@ -158,7 +158,7 @@ match it.
 - `app/lib/profile.ts` — what a profile may carry. The ceilings are the same
   ones the `profiles` columns check, so a typo comes back as a sentence
   rather than a constraint error.
-- `app/lib/next-steps.ts` — the steps `/mulai` lists. Named things with a
+- `app/lib/next-steps.ts` — the steps `/get-started` lists. Named things with a
   link at each, never a percentage: a profile is not a form to fill to 100%.
 - `app/lib/stages.ts` — the levels (`idea → building → live`, plus `resting`)
   and what each one requires. No level asks for a team: working alone is not a

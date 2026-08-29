@@ -157,7 +157,7 @@ export default async function InboxPage() {
           {mine.length === 0 ? (
             <p className="muted">
               You have not joined anything yet.{" "}
-              <Link href="/kolaborasi?needs=open">See projects that need a hand</Link>.
+              <Link href="/explore?needs=open">See projects that need a hand</Link>.
             </p>
           ) : (
             <ul className="application-list">

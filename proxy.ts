@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/") {
     const boardKeys = ["stage", "lane", "tag", "role", "q", "cari", "needs"];
     if (boardKeys.some((key) => request.nextUrl.searchParams.has(key))) {
-      return sameOriginRedirect(`/kolaborasi${request.nextUrl.search}`, browserOrigin(request));
+      return sameOriginRedirect(`/explore${request.nextUrl.search}`, browserOrigin(request));
     }
   }
 
@@ -49,9 +49,9 @@ export async function proxy(request: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) return response;
 
-  // A guest carries no auth cookie, so there is no session to refresh — and
-  // getUser() below is a network round trip to the auth server. Skipping it
-  // takes that latency off every anonymous page view, which is most of them.
+  // A guest carries no auth cookie, so there is no session to refresh. Skipping
+  // validation takes that work off every anonymous page view, which is most of
+  // them.
   if (!hasSessionCookie(request)) return response;
 
   const supabase = createServerClient(url, anonKey, {
@@ -71,12 +71,15 @@ export async function proxy(request: NextRequest) {
   });
 
   try {
-    await supabase.auth.getUser();
+    // With the default asymmetric keys, getClaims() verifies locally after its
+    // JWKS key has been cached. It still refreshes the cookie when needed;
+    // symmetric-key projects fall back to an Auth request for verification.
+    await supabase.auth.getClaims();
   } catch (error) {
     // A stale session must not make every public route unreachable when the
     // auth service is briefly unavailable. The page can continue as a guest;
     // writes still perform their own authenticated checks.
-    console.error("[ahsan] Refresh sesi dilewati karena Supabase Auth tidak merespons.", error);
+    console.error("[ahsan] Session refresh was skipped because Supabase Auth did not respond.", error);
   }
 
   return response;

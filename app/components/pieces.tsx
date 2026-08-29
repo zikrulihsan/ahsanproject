@@ -43,7 +43,7 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
       {tags.map((tag) =>
         linked ? (
           <li key={tag}>
-            <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
+            <Link href={`/explore?tag=${encodeURIComponent(tag)}`}>#{tag}</Link>
           </li>
         ) : (
           <li key={tag}>#{tag}</li>
@@ -308,7 +308,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
+              <Link className="seat-chip" href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
                 {label}
               </Link>
             ) : (
@@ -385,12 +385,12 @@ export function BoardCard({
                 <p className="home-project-tagline">{project.tagline}</p>
                 <p className="home-project-meta">
                   <span>{stageMeta[project.stage].label}</span>
-                  <span>{freshness(project) || "Baru ditampilkan"}</span>
-                  <span>{project.commentCount} diskusi</span>
+                  <span>{freshness(project) || "Recently listed"}</span>
+                  <span>{project.commentCount} discussions</span>
                 </p>
               </div>
             </div>
-            <div className="home-project-vote" aria-label={`${project.boostCount} dukungan`}>
+            <div className="home-project-vote" aria-label={`${project.boostCount} supports`}>
               <span aria-hidden="true">▲</span>
               <strong>{project.boostCount}</strong>
             </div>
@@ -400,12 +400,12 @@ export function BoardCard({
             <div className="home-open-call">
               <div className="home-open-label">
                 <p><PeopleIcon /> Roles needed</p>
-                <small>Membuka {project.openSeatCount} posisi</small>
+                <small>{project.openSeatCount} open positions</small>
               </div>
               <ul className="home-role-chips" aria-label="Open roles">
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
-                    <Link href={`/kolaborasi?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
+                    <Link href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
                       {roleLabel(role)} · {count}
                     </Link>
                   </li>
@@ -426,7 +426,7 @@ export function BoardCard({
             <ul className="home-category-chips" aria-label="Project categories">
               {project.tags.map((tag) => (
                 <li key={tag}>
-                  <Link href={`/kolaborasi?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
+                  <Link href={`/explore?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
                 </li>
               ))}
             </ul>
@@ -490,7 +490,7 @@ export function JourneyList({
               {update.author ? (
                 <Link href={`/u/${update.author.username}`}>{update.author.name}</Link>
               ) : (
-                "Seseorang"
+                "Someone"
               )}{" "}
               · {timeAgo(update.createdAt)}
             </p>

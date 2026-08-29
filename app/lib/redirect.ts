@@ -14,7 +14,7 @@ import { safeNextPath } from "./urls";
  * Mid sign-in that is fatal. The PKCE verifier and the session cookies belong
  * to the host they were written on, so changing host between the start and the
  * exchange loses them — a completed Google login landing on
- * `/signin?error=alamat-beda` is this bug, not a Supabase misconfiguration.
+ * `/signin?error=origin-mismatch` is this bug, not a Supabase misconfiguration.
  *
  * A `Location` header is allowed to be a path (RFC 9110 §10.2.2) and the
  * browser resolves it against the address it actually asked for, which is the

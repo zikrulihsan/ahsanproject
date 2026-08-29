@@ -34,8 +34,8 @@ const WORKFLOW = [
 
 export default async function Home() {
   const [projectsResult, peopleResult] = await Promise.all([
-    readPublicly("project beranda", () => listProjects({ lane: "terbaru" }), []),
-    readPublicly("orang di beranda", () => listPeople(400), []),
+    readPublicly("projects on the home page", () => listProjects({ lane: "newest" }), []),
+    readPublicly("people on the home page", () => listPeople(400), []),
   ]);
   const projects = projectsResult.value;
   const people = peopleResult.value;
@@ -59,7 +59,7 @@ export default async function Home() {
               <Link className="home-hero-primary" href="/new">
                 <span aria-hidden="true">+</span> Add a project
               </Link>
-              <Link className="home-hero-secondary" href="/kolaborasi">
+              <Link className="home-hero-secondary" href="/explore">
                 Browse projects <Arrow />
               </Link>
             </div>
@@ -102,7 +102,7 @@ export default async function Home() {
             </ul>
           </div>
 
-          <Link className="landing-inline-link" href="/kolaborasi">
+          <Link className="landing-inline-link" href="/explore">
             See example projects <Arrow />
           </Link>
         </section>
@@ -127,7 +127,7 @@ export default async function Home() {
             <p className="landing-data-empty">No projects yet. Add the first piece of work.</p>
           )}
 
-          <Link className="landing-inline-link" href="/kolaborasi">Browse all projects <Arrow /></Link>
+          <Link className="landing-inline-link" href="/explore">Browse all projects <Arrow /></Link>
         </section>
 
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
@@ -191,13 +191,13 @@ export default async function Home() {
               <li><span>✓</span> Recruiters found you by relevan skill set and YoE</li>
               <li><span>✓</span> Founders attracted by the depth of your project</li>
             </ul>
-            <Link className="talent-story-link" href="/orang">Browse people <Arrow /></Link>
+            <Link className="talent-story-link" href="/people">Browse people <Arrow /></Link>
           </div>
 
           <div className="talent-preview" aria-label="People on Ahsan Project">
             <div className="talent-preview-head">
               <span>People with visible work</span>
-              <Link href="/orang">View all</Link>
+              <Link href="/people">View all</Link>
             </div>
             {people.length > 0 ? (
               <ul>
@@ -235,7 +235,7 @@ export default async function Home() {
           <p>Add a project even if it&apos;s still an idea. Update it as it moves.</p>
           <div>
             <Link className="home-hero-primary" href="/new"><span aria-hidden="true">+</span> Add a project</Link>
-            <Link className="landing-final-secondary" href="/kolaborasi">Find a place to contribute <Arrow /></Link>
+            <Link className="landing-final-secondary" href="/explore">Find a place to contribute <Arrow /></Link>
           </div>
           <small>Free for the community.</small>
         </section>

@@ -40,7 +40,7 @@ export function SignInForm({ next }: { next: string }) {
       <div className="auth-field">
         <div className="auth-label-row">
           <label htmlFor="password">Password</label>
-          <Link href="/lupa-password">Forgot password?</Link>
+          <Link href="/forgot-password">Forgot password?</Link>
         </div>
         <input
           id="password"

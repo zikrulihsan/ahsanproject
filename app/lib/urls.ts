@@ -30,12 +30,12 @@ export function signInPath(next: string): string {
  *
  * A destination they actually asked for always wins: clicking "Saya tertarik"
  * on a project and signing in has to end up back on that project. Only a
- * plain sign-in, with nothing in mind, is sent to `/mulai` — which forwards
+ * plain sign-in, with nothing in mind, is sent to `/get-started` — which forwards
  * to the board on its own once there is nothing left to do there.
  */
 export function startPath(next: string | null | undefined): string {
   const target = safeNextPath(next);
-  return target === "/" ? "/mulai" : target;
+  return target === "/" ? "/get-started" : target;
 }
 
 /** The routes that know what to do with an authorization code. */
@@ -149,7 +149,7 @@ export function normalizeOrigin(value: string | null | undefined): string | null
  * anything can be reached from any of them; a sign-in cannot. The PKCE code
  * verifier is a cookie, cookies belong to one host, and a round trip that
  * leaves from one name and returns on another finds nothing where the verifier
- * should be. That is `alamat-beda` on the sign-in page.
+ * should be. That is `origin-mismatch` on the sign-in page.
  *
  * So `/auth/google` moves somebody to this origin *before* it writes the
  * verifier, and builds its callback from it. Nothing else is pinned: the

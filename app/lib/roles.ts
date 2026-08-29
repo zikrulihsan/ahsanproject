@@ -172,7 +172,7 @@ export function roleLabel(value: string, customTitle = ""): string {
   const role = normaliseRole(value);
   if (role === "other") return customTitle.trim() || roleMeta.other.label;
   if (role) return roleMeta[role].label;
-  return "Peran";
+  return "Role";
 }
 
 /**

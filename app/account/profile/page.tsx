@@ -10,7 +10,7 @@ import { currentViewer, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 
 /*
- * Allowed to block — same reason as the rest of /akun. Nothing here is
+ * Allowed to block — same reason as the rest of /account. Nothing here is
  * cacheable or indexed: the page is one person's own form, and a visitor
  * about to be redirected should not watch it paint first.
  */
@@ -28,7 +28,7 @@ export default async function EditProfilePage({
   searchParams: Promise<{ returnTo?: string | string[] }>;
 }) {
   const viewer = await currentViewer();
-  if (!viewer) redirect(signInPath("/akun/profil"));
+  if (!viewer) redirect(signInPath("/account/profile"));
   const query = await searchParams;
   const requestedReturnTo = Array.isArray(query.returnTo) ? query.returnTo[0] : query.returnTo;
   // This is only a convenience after a blocked proposal, never an external
@@ -41,7 +41,7 @@ export default async function EditProfilePage({
 
   return (
     <>
-      <SiteHeader returnTo="/akun/profil" />
+      <SiteHeader returnTo="/account/profile" />
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
@@ -50,7 +50,7 @@ export default async function EditProfilePage({
         <h1>Complete your profile.</h1>
         <p className="lede">
           This is what people see on <Link href={`/u/${viewer.username}`}>your portfolio page</Link>{" "}
-          and use to find you in the <Link href="/orang">talent pool</Link>. You can update it at
+          and use to find you in the <Link href="/people">talent pool</Link>. You can update it at
           any time.
         </p>
 
@@ -63,7 +63,7 @@ export default async function EditProfilePage({
 
         <p className="hint">
           Your profile URL—<code>/u/{viewer.username}</code>—is created by the system and cannot be
-          changed here. Change your password on the <Link href="/akun/password">password page</Link>.
+          changed here. Change your password on the <Link href="/account/password">password page</Link>.
         </p>
       </main>
 

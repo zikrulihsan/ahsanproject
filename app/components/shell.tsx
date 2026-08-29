@@ -33,8 +33,8 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 
 const LINKS: { href: string; label: string; key: Section; icon: HeaderIconName }[] = [
   { href: "/", label: "Home", key: "home", icon: "home" },
-  { href: "/kolaborasi", label: "Explore", key: "explore", icon: "explore" },
-  { href: "/orang", label: "People", key: "people", icon: "people" },
+  { href: "/explore", label: "Explore", key: "explore", icon: "explore" },
+  { href: "/people", label: "People", key: "people", icon: "people" },
 ];
 
 type HeaderIconName =
@@ -152,8 +152,8 @@ async function VisitorHeader({
   // rather than waiting to be found.
   const [incomingResult, unseenResult] = viewer
     ? await Promise.all([
-        readPublicly("lamaran masuk di header", () => countIncomingApplications(viewer.id), 0),
-        readPublicly("notifikasi di header", () => countUnseenNotices(viewer.id), 0),
+        readPublicly("incoming applications in header", () => countIncomingApplications(viewer.id), 0),
+        readPublicly("notifications in header", () => countUnseenNotices(viewer.id), 0),
       ])
     : [
         { value: 0, unavailable: false },
@@ -227,11 +227,11 @@ function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
             <HeaderIcon name="profile" />
             <span>Public profile</span>
           </Link>
-          <Link href="/akun/profil">
+          <Link href="/account/profile">
             <HeaderIcon name="edit" />
             <span>Edit profile</span>
           </Link>
-          <Link href="/mulai?semua=1">
+          <Link href="/get-started?all=1">
             <HeaderIcon name="steps" />
             <span>Next steps</span>
           </Link>
@@ -305,11 +305,11 @@ function MobileHeaderMenu({
                 <HeaderIcon name="profile" />
                 <span>Public profile</span>
               </Link>
-              <Link href="/akun/profil">
+              <Link href="/account/profile">
                 <HeaderIcon name="edit" />
                 <span>Edit profile</span>
               </Link>
-              <Link href="/mulai?semua=1">
+              <Link href="/get-started?all=1">
                 <HeaderIcon name="steps" />
                 <span>Next steps</span>
               </Link>
@@ -362,8 +362,8 @@ export function SiteFooter() {
       <p>A public place for real work, proof, and the people behind it.</p>
       <nav aria-label="Footer navigation">
         <Link href="/">Home</Link>
-        <Link href="/kolaborasi">Explore</Link>
-        <Link href="/orang">People</Link>
+        <Link href="/explore">Explore</Link>
+        <Link href="/people">People</Link>
       </nav>
       <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>

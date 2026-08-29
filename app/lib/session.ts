@@ -5,33 +5,46 @@ import type { ProfileRow } from "./database.types";
 
 export type Viewer = Person & { email: string };
 
+type AuthIdentity = {
+  id: string;
+  email: string;
+  userMetadata: Record<string, unknown>;
+};
+
 /**
  * The account the request is signed in as, or `null` for a guest.
  *
- * Uses `getUser()` rather than `getSession()`: the session cookie is whatever
- * the browser sent, while `getUser()` has the auth server vouch for it. Pages
- * decide what to show from this, but the database decides what may actually
- * happen — see `supabase/migrations/0003_policies.sql`.
+ * Uses `getClaims()` rather than trusting `getSession()`: the claims are
+ * verified against Supabase's signing key. With the default asymmetric JWT
+ * keys this happens locally after the JWKS key is cached, rather than calling
+ * the Auth user endpoint on every navigation. Pages decide what to show from
+ * this, but the database decides what may actually happen — see
+ * `supabase/migrations/0003_policies.sql`.
  *
- * Wrapped in cache() because it is a network round trip to the auth server and
- * several things on a page want to know who is asking. Both `viewerId` and
- * `currentViewer` go through here, so a page pays for it once however many of
- * them it calls.
+ * Wrapped in cache() so both `viewerId` and `currentViewer` share one verified
+ * identity within a render, however many times they ask for it.
  */
-const authUser = cache(async () => {
+const authUser = cache(async (): Promise<AuthIdentity | null> => {
   try {
     const supabase = await getSupabase();
     if (!supabase) return null;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return user;
+    const { data, error } = await supabase.auth.getClaims();
+    if (error) throw error;
+
+    const claims = data?.claims;
+    if (!claims?.sub) return null;
+
+    return {
+      id: claims.sub,
+      email: typeof claims.email === "string" ? claims.email : "",
+      userMetadata: isRecord(claims.user_metadata) ? claims.user_metadata : {},
+    };
   } catch (error) {
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
-    console.error("[ahsan] Sesi pengunjung gagal dibaca; lanjut sebagai tamu.", error);
+    console.error("[ahsan] Visitor session could not be read; continuing as a guest.", error);
     return null;
   }
 });
@@ -72,14 +85,14 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
     // an auth user that lost its public half. Put it back rather than showing
     // somebody a half-signed-in site they cannot escape.
     const fallbackName =
-      (user.user_metadata?.name as string | undefined)?.trim() ||
+      (user.userMetadata.name as string | undefined)?.trim() ||
       user.email?.split("@")[0] ||
-      "Orang";
+      "Person";
     const { data: created, error: createError } = await supabase
       .from("profiles")
       .insert({
         id: user.id,
-        username: `orang-${user.id.slice(0, 8)}`,
+        username: `person-${user.id.slice(0, 8)}`,
         name: fallbackName.slice(0, 80),
       })
       .select("*")
@@ -91,7 +104,7 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
-    console.error("[ahsan] Sesi pengunjung gagal dibaca; lanjut sebagai tamu.", error);
+    console.error("[ahsan] Visitor session could not be read; continuing as a guest.", error);
     return null;
   }
 });
@@ -116,4 +129,8 @@ function toViewer(profile: ProfileRow, email: string): Viewer {
     activityHidden: profile.activity_hidden ?? [],
     email,
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

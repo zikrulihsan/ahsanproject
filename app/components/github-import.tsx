@@ -19,7 +19,7 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
     const form = formRef.current;
     const repoUrl = valueOf(form, "repoUrl");
     if (!repoUrl) {
-      setMessage({ tone: "error", text: "Tempel URL repository GitHub dulu." });
+      setMessage({ tone: "error", text: "Paste a GitHub repository URL first." });
       return;
     }
 
@@ -31,12 +31,12 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
       }
 
       const changed = applyDraft(form, result.draft);
-      const readmeNote = result.draft.readmeFound ? "README-nya sudah dibaca." : "README tidak ditemukan; data repo yang tersedia tetap dipakai.";
+      const readmeNote = result.draft.readmeFound ? "The README has been read." : "No README was found; available repository data is still being used.";
       setMessage({
         tone: "success",
         text: changed.length
-          ? `${readmeNote} Mengisi ${changed.join(", ")}; periksa dulu sebelum menyimpan.`
-          : `${readmeNote} Kolom yang relevan sudah terisi, jadi tidak ada tulisanmu yang ditimpa.`,
+          ? `${readmeNote} Filled in ${changed.join(", ")}; review it before saving.`
+          : `${readmeNote} Relevant fields are already filled in, so none of your writing was overwritten.`,
       });
     });
   }
@@ -44,11 +44,11 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
   return (
     <div className="github-import">
       <p>
-        Kami akan membaca README dan detail repository publik untuk mengisi kolom yang masih kosong.
-        Tidak ada yang disimpan sampai kamu memilih menerbitkan project.
+        We will read the README and public repository details to fill in blank fields.
+        Nothing is saved until you publish the project.
       </p>
       <button className="quiet" type="button" onClick={startImport} disabled={pending}>
-        {pending ? "Membaca GitHub…" : "Isi draft dari README GitHub"}
+        {pending ? "Reading GitHub…" : "Fill draft from GitHub README"}
       </button>
       {message ? (
         <p className={`github-import-message is-${message.tone}`} role={message.tone === "error" ? "alert" : undefined} aria-live="polite">
@@ -68,12 +68,12 @@ function applyDraft(form: HTMLFormElement | null, draft: GitHubProjectDraft): st
   if (!form) return [];
 
   const fields: Array<[keyof Pick<GitHubProjectDraft, "title" | "tagline" | "problem" | "solution" | "audience" | "now" | "liveUrl">, string]> = [
-    ["title", "nama project"],
-    ["tagline", "ringkasan"],
-    ["problem", "masalah"],
-    ["solution", "solusi"],
-    ["audience", "sasaran pengguna"],
-    ["now", "yang sedang dikerjakan"],
+    ["title", "project name"],
+    ["tagline", "summary"],
+    ["problem", "problem"],
+    ["solution", "solution"],
+    ["audience", "target audience"],
+    ["now", "current work"],
     ["liveUrl", "website"],
   ];
   const changed: string[] = [];
@@ -93,7 +93,7 @@ function applyDraft(form: HTMLFormElement | null, draft: GitHubProjectDraft): st
   if (!existingTopics && !customTags?.value.trim() && draft.tags.length && customTags) {
     customTags.value = draft.tags.join(", ");
     customTags.dispatchEvent(new Event("input", { bubbles: true }));
-    changed.push("topik");
+    changed.push("topics");
   }
 
   return changed;

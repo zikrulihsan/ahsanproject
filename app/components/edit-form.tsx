@@ -54,12 +54,12 @@ export function EditForm({ project }: { project: EditableProject }) {
 
       <input type="hidden" name="slug" value={project.slug} />
 
-      <Field label="Nama project" name="title" error={errors.title} defaultValue={values.title} required />
+      <Field label="Project name" name="title" error={errors.title} defaultValue={values.title} required />
 
       <Field
-        label="Website project"
+        label="Project website"
         name="liveUrl"
-        hint="Favicon website dipakai jika URL logo tidak diisi. Kosongkan kalau projectmu belum punya website."
+        hint="The website favicon is used when no logo URL is provided. Leave blank if your project does not have a website yet."
         error={errors.liveUrl}
         defaultValue={values.liveUrl}
         type="url"
@@ -67,20 +67,20 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="URL icon atau logo"
+        label="Icon or logo URL"
         name="logoUrl"
-        hint="Opsional. Tautkan langsung ke PNG, SVG, WebP, atau ICO."
+        hint="Optional. Link directly to a PNG, SVG, WebP, or ICO file."
         error={errors.logoUrl}
         defaultValue={values.logoUrl}
         maxLength={MAXIMUM.logoUrl}
         type="url"
-        placeholder="https://contoh.id/logo.png"
+        placeholder="https://example.com/logo.png"
       />
 
       <Field
-        label="Satu kalimat"
+        label="One-line summary"
         name="tagline"
-        hint="Jelaskan manfaat utamanya dengan bahasa sehari-hari."
+        hint="Explain its main benefit in plain language."
         error={errors.tagline}
         defaultValue={values.tagline}
         minLength={MINIMUM.tagline}
@@ -89,9 +89,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Masalah yang ingin diselesaikan"
+        label="Problem to solve"
         name="problem"
-        hint="Satu–dua kalimat yang konkret sudah cukup."
+        hint="One or two concrete sentences are enough."
         error={errors.problem}
         defaultValue={values.problem}
         rows={6}
@@ -101,9 +101,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Apa yang sedang dibuat"
+        label="What you are making"
         name="solution"
-        hint="Jelaskan bentuk solusi dan arah yang ingin dicoba."
+        hint="Describe the form of the solution and the direction you want to explore."
         error={errors.solution}
         defaultValue={values.solution}
         rows={6}
@@ -113,9 +113,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Untuk siapa"
+        label="Who it is for"
         name="audience"
-        hint="Sebut kelompok orang yang paling terbantu secara spesifik."
+        hint="Name the group of people it will help most specifically."
         error={errors.audience}
         defaultValue={values.audience}
         rows={3}
@@ -125,16 +125,16 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Sekarang sedang…"
+        label="Working on now…"
         name="now"
-        hint={`Satu kalimat tentang yang sedang dikerjakan. Maksimal ${MAXIMUM.now} karakter — bisa juga diganti langsung dari halaman project.`}
+        hint={`One sentence about the current work. Up to ${MAXIMUM.now} characters—you can also update it directly from the project page.`}
         defaultValue={values.now}
       />
 
       <fieldset>
         <legend>Project status</legend>
         <p className="hint">
-          Pilih kondisi project saat ini. Status yang dipilih akan disimpan bersama perubahan lain.
+          Choose the project’s current status. The selected status is saved with your other changes.
         </p>
         <ul className="stage-choice">
           {STAGES.map((item) => (
@@ -168,8 +168,8 @@ export function EditForm({ project }: { project: EditableProject }) {
       <fieldset>
         <legend>Links</legend>
         <p className="hint">
-          Tautan ini mendukung status project. Status “Sedang dibangun” perlu satu tautan kerja
-          atau keterangan yang sedang dikerjakan; “Sudah berjalan” perlu website project.
+          These links support the project status. “Building” needs a working link or a current-work
+          description; “Live” needs a project website.
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
         <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
@@ -193,11 +193,11 @@ export function EditForm({ project }: { project: EditableProject }) {
             <Field
               label="Repository GitHub"
               name="repoUrl"
-              hint="Wajib repository GitHub publik. Gunakan impor README untuk mengisi bagian project yang masih kosong."
+              hint="A public GitHub repository is required. Use the README import to fill in any empty project fields."
               error={errors.repoUrl}
               defaultValue={values.repoUrl}
               type="url"
-              placeholder="https://github.com/organisasi/project"
+              placeholder="https://github.com/organization/project"
               required
             />
             <GitHubImport formRef={formRef} />
@@ -207,7 +207,7 @@ export function EditForm({ project }: { project: EditableProject }) {
             <summary>Other repository <span>optional</span></summary>
             <div className="optional-fields-body">
               <Field
-                label="Repository GitHub atau repo lain"
+                label="GitHub or other repository"
                 name="repoUrl"
                 error={errors.repoUrl}
                 defaultValue={values.repoUrl}
@@ -219,7 +219,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       </fieldset>
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Menyimpan…" : "Simpan perubahan"}
+        {pending ? "Saving…" : "Save changes"}
       </button>
     </form>
   );

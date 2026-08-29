@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   // SSR template can instead send token_hash + type straight here. Support
   // both so changing an email template cannot strand an otherwise valid link.
   if (!code && (!tokenHash || !type)) {
-    return sameOriginRedirect("/signin?error=tautan-tidak-lengkap");
+    return sameOriginRedirect("/signin?error=incomplete-link");
   }
 
   const supabase = await getSupabase();
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     ? await supabase.auth.exchangeCodeForSession(code)
     : await supabase.auth.verifyOtp({ type: type!, token_hash: tokenHash! });
   if (error) {
-    return sameOriginRedirect("/signin?error=tautan-kedaluwarsa");
+    return sameOriginRedirect("/signin?error=expired-link");
   }
 
   return sameOriginRedirect(next);

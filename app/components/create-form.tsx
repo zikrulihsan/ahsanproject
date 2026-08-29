@@ -31,17 +31,17 @@ export function CreateForm() {
   return (
     <form className="create-form" action={formAction} ref={formRef}>
       <p className="form-start-note">
-        Mulai dari yang kamu tahu sekarang. Semua isi bisa diubah lagi setelah project terbit.
+        Start with what you know now. You can update every detail after the project is published.
       </p>
 
       <section className="github-start" aria-labelledby="github-start-heading">
         <p className="eyebrow">
-          <span /> Pilihan cepat
+          <span /> Quick start
         </p>
         <h2 id="github-start-heading">Open contributions through GitHub</h2>
         <p>
-          Tandai hanya jika issue dan pull request dari komunitas memang kamu sambut. Kami akan
-          menampilkan badge khusus di project, lalu membantu mengisi draft dari repository publikmu.
+          Select this only if you welcome community issues and pull requests. We will show a
+          dedicated project badge and help prefill the draft from your public repository.
         </p>
         <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
           <input
@@ -62,9 +62,9 @@ export function CreateForm() {
         {openForGitHubContributions ? (
           <div className="progressive-panel">
             <Field
-              label="URL repository GitHub"
+              label="GitHub repository URL"
               name="repoUrl"
-              hint="Wajib berupa repository GitHub publik, misalnya https://github.com/organisasi/project."
+              hint="Must be a public GitHub repository, for example https://github.com/organization/project."
               error={errors.repoUrl}
               defaultValue={values.repoUrl}
               type="url"
@@ -86,16 +86,16 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">1</span> Kenalkan projectmu
+          <span className="step-number">1</span> Introduce your project
         </legend>
 
         <Field
-          label="Website project"
+          label="Project website"
           name="liveUrl"
           hint={
             stage === "live"
-              ? "Wajib untuk project yang sudah berjalan. Favicon website dipakai jika URL logo tidak diisi."
-              : "Kalau diisi, favicon website dipakai jika URL logo tidak diisi. Belum punya? Lewati dulu."
+              ? "Required for a live project. The website favicon is used when no logo URL is provided."
+              : "When provided, the website favicon is used if no logo URL is given. Do not have one yet? Skip it for now."
           }
           error={errors.liveUrl}
           defaultValue={values.liveUrl}
@@ -105,37 +105,37 @@ export function CreateForm() {
         />
 
         <Field
-          label="URL icon atau logo"
+          label="Icon or logo URL"
           name="logoUrl"
-          hint="Opsional. Gunakan tautan langsung ke PNG, SVG, WebP, atau ICO."
+          hint="Optional. Use a direct link to a PNG, SVG, WebP, or ICO file."
           error={errors.logoUrl}
           defaultValue={values.logoUrl}
           maxLength={MAXIMUM.logoUrl}
           type="url"
-          placeholder="https://contoh.id/logo.png"
+          placeholder="https://example.com/logo.png"
         />
 
         <Field
-          label="Nama project"
+          label="Project name"
           name="title"
-          hint="Sebut apa adanya. Nama bisa diubah nanti."
+          hint="Use its real name. You can change it later."
           error={errors.title}
           defaultValue={values.title}
           minLength={MINIMUM.title}
           maxLength={MAXIMUM.title}
-          placeholder="Contoh: Main Aman"
+          placeholder="For example: Stay Safe"
           required
         />
 
         <Field
-          label="Ringkasan satu kalimat"
+          label="One-line summary"
           name="tagline"
-          hint="Jelaskan manfaat utamanya dengan bahasa sehari-hari."
+          hint="Explain its main benefit in plain language."
           error={errors.tagline}
           defaultValue={values.tagline}
           minLength={MINIMUM.tagline}
           maxLength={MAXIMUM.tagline}
-          placeholder="Contoh: Materi keselamatan digital yang bisa dipakai orang tua dan anak."
+          placeholder="For example: Digital safety materials for parents and children."
           required
         />
 
@@ -144,17 +144,16 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">2</span> Brief singkat
+          <span className="step-number">2</span> Short brief
         </legend>
         <p className="step-intro">
-          Tidak perlu seperti proposal. Satu–dua kalimat yang konkret untuk setiap pertanyaan sudah
-          cukup.
+          This does not need to read like a proposal. One or two concrete sentences per question are enough.
         </p>
 
         <Field
-          label="Masalah apa yang ingin diselesaikan?"
+          label="What problem are you solving?"
           name="problem"
-          hint="Siapa yang kesulitan, dalam situasi apa, dan kenapa cara sekarang belum cukup."
+          hint="Who is struggling, in what situation, and why is the current approach not enough?"
           error={errors.problem}
           defaultValue={values.problem}
           rows={4}
@@ -164,9 +163,9 @@ export function CreateForm() {
         />
 
         <Field
-          label="Apa yang sedang kamu buat?"
+          label="What are you making?"
           name="solution"
-          hint="Belum harus detail—cukup jelaskan bentuk solusi dan arah yang ingin dicoba."
+          hint="It does not need to be detailed yet—describe the form of the solution and the direction you want to explore."
           error={errors.solution}
           defaultValue={values.solution}
           rows={4}
@@ -176,9 +175,9 @@ export function CreateForm() {
         />
 
         <Field
-          label="Untuk siapa?"
+          label="Who is it for?"
           name="audience"
-          hint="Sebut kelompok orang yang paling terbantu secara spesifik."
+          hint="Name the group of people it will help most specifically."
           error={errors.audience}
           defaultValue={values.audience}
           rows={2}
@@ -190,7 +189,7 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">3</span> Kondisinya sekarang
+          <span className="step-number">3</span> Current status
         </legend>
 
         <ul className="stage-choice">
@@ -216,13 +215,13 @@ export function CreateForm() {
 
         {stage === "building" || stage === "live" ? (
           <Field
-            label="Sekarang sedang mengerjakan apa?"
+            label="What are you working on now?"
             name="now"
-            hint="Satu kalimat saja. Bisa diganti kapan pun dari halaman project."
+            hint="One sentence is enough. You can update it any time from the project page."
             error={errors.now}
             defaultValue={values.now}
             maxLength={MAXIMUM.now}
-            placeholder="Contoh: Menyusun materi keselamatan pertama."
+            placeholder="For example: Drafting the first safety materials."
           />
         ) : null}
 
@@ -235,7 +234,7 @@ export function CreateForm() {
           </summary>
           <div className="optional-fields-body">
             <Field
-              label="Dokumen atau riset"
+              label="Document or research"
               name="docUrl"
               error={errors.docUrl}
               defaultValue={values.docUrl}
@@ -248,10 +247,10 @@ export function CreateForm() {
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">4</span> Mencari bantuan?
+          <span className="step-number">4</span> Looking for help?
         </legend>
         <p className="hint">
-          Bagian ini benar-benar opsional. Kamu bisa membuka role nanti dari halaman project.
+          This is entirely optional. You can open a role later from the project page.
         </p>
 
         <label className={`help-toggle ${wantsHelp ? "is-on" : ""}`}>
@@ -289,7 +288,7 @@ export function CreateForm() {
                 defaultValue={values.seatBrief}
                 required
                 aria-invalid={errors.seatBrief ? true : undefined}
-                placeholder="Contoh: ngobrol dengan lima calon pengguna dan rangkum temuannya."
+                placeholder="For example: Interview five potential users and summarize what you learn."
               />
               {errors.seatBrief ? (
                 <p className="field-error" role="alert">
@@ -309,7 +308,7 @@ export function CreateForm() {
       </fieldset>
 
       <button className="primary-button create-submit" type="submit" disabled={pending}>
-        {pending ? "Menyimpan…" : "Tunjukkan project"}
+        {pending ? "Saving…" : "Publish project"}
       </button>
     </form>
   );

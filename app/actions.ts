@@ -157,9 +157,9 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     if (values.seatRole === "other" && !values.seatRoleTitle) {
       errors.seatRoleTitle = "Write the name of a role that is not in the catalogue.";
     }
-    if (!values.seatBrief) errors.seatBrief = "Jelaskan pekerjaan konkret yang perlu dibantu.";
+    if (!values.seatBrief) errors.seatBrief = "Describe the specific work you need help with.";
     if (!values.seatCommitment) {
-      errors.seatCommitment = "Berikan perkiraan waktu agar orang tahu apakah mereka bisa ikut.";
+      errors.seatCommitment = "Provide a time estimate so people know whether they can join.";
     }
   }
   if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
@@ -505,7 +505,7 @@ export async function setNow(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
   // The same line is editable from the owner's next-steps page.
-  revalidatePath("/mulai");
+  revalidatePath("/get-started");
 }
 
 /**
@@ -927,9 +927,9 @@ export async function updateProfile(
   updateTag(tags.people);
   updateTag(tags.projects);
   revalidatePath(`/u/${viewer.username}`);
-  revalidatePath("/orang");
-  revalidatePath("/mulai");
-  redirect(returnTo ?? `/u/${viewer.username}?tersimpan=1`);
+  revalidatePath("/people");
+  revalidatePath("/get-started");
+  redirect(returnTo ?? `/u/${viewer.username}?saved=1`);
 }
 
 /* ------------------------------------------------------------------ *

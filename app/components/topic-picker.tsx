@@ -32,7 +32,7 @@ export function TopicPicker({
   return (
     <div className={`field topic-picker ${error ? "has-error" : ""}`}>
       <label id="topics-label">
-        Topik <span aria-hidden="true">*</span>
+        Topics <span aria-hidden="true">*</span>
       </label>
       <p className="hint" id="topics-hint">
         Choose the closest matches, up to six. Nothing fits? Add your own below.
@@ -64,7 +64,7 @@ export function TopicPicker({
         defaultValue={custom}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "tags-error" : undefined}
-        placeholder="Contoh: anak, transportasi"
+        placeholder="For example: children, transportation"
       />
       {error ? (
         <p className="field-error" id="tags-error" role="alert">

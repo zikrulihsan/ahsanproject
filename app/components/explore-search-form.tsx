@@ -67,7 +67,7 @@ export function ExploreSearchForm({
     <form
       className="discovery-search collaboration-search"
       method="get"
-      action="/kolaborasi"
+      action="/explore"
       role="search"
       ref={form}
     >
@@ -79,7 +79,7 @@ export function ExploreSearchForm({
         <span id={labelId}>Search by</span>
         {([
           ["project", "Project"],
-          ["role", "Role terbuka"],
+          ["role", "Open role"],
         ] as const).map(([value, label]) => (
           <label key={value}>
             <input
@@ -111,8 +111,8 @@ export function ExploreSearchForm({
             type="search"
             name="q"
             value={query}
-            placeholder={searchMode === "role" ? "Ketik nama role…" : "Ketik nama project…"}
-            aria-label={searchMode === "role" ? "Ketik nama role" : "Ketik nama project"}
+            placeholder={searchMode === "role" ? "Enter a role name…" : "Enter a project name…"}
+            aria-label={searchMode === "role" ? "Enter a role name" : "Enter a project name"}
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showSuggestions}

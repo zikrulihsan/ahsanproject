@@ -72,8 +72,8 @@ export function nextSteps({
       id: "talent",
       title: "Complete your talent-pool profile",
       blurb:
-        "Your profession, skills, and a little about you. People use these details when searching /orang.",
-      href: "/akun/profil",
+        "Your profession, skills, and a little about you. People use these details when searching /people.",
+      href: "/account/profile",
       cta: "Complete profile",
       done: profileReady(person),
     },
@@ -82,7 +82,7 @@ export function nextSteps({
       title: "Add one way to contact you",
       blurb:
         "A public email, LinkedIn, GitHub, website, or résumé—one is enough. The email you use to sign in is never shown.",
-      href: "/akun/profil#contact",
+      href: "/account/profile#contact",
       cta: "Add a link",
       done: hasContact(person),
     },
@@ -106,7 +106,7 @@ export function nextSteps({
       id: "role",
       title: "Open a role when you need help",
       blurb: "Name the work and its estimated time commitment. This is optional—working alone does not make a project less valuable.",
-      href: `/projects/${seatless.slug}?tab=kolaborasi`,
+      href: `/projects/${seatless.slug}?tab=collaboration`,
       cta: "Open a role",
       done: owned.some((project) => project.openSeatCount > 0),
       optional: true,

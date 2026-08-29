@@ -28,7 +28,7 @@ test("only a name is actually required", () => {
 
 test("a link without a scheme is refused rather than silently dropped", () => {
   for (const field of ["website", "github", "linkedin", "x", "resume"]) {
-    const errors = validateProfile({ ...named, [field]: "contoh.id/halaman" });
+    const errors = validateProfile({ ...named, [field]: "example.com/page" });
     assert.ok(errors[field], `${field} harus ditolak`);
   }
   assert.deepEqual(validateProfile({ ...named, website: "https://contoh.id" }), {});

@@ -36,7 +36,7 @@ export default async function NewPasswordPage() {
 
   return (
     <>
-      <SiteHeader returnTo="/akun/password" />
+      <SiteHeader returnTo="/account/password" />
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
@@ -61,7 +61,7 @@ export default async function NewPasswordPage() {
               This link has expired or has already been used, so there is nothing to change yet.
             </p>
             <p className="auth-switch">
-              <Link href="/lupa-password">Request a new link</Link>.
+              <Link href="/forgot-password">Request a new link</Link>.
             </p>
           </>
         )}

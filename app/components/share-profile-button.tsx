@@ -33,7 +33,7 @@ export function ShareProfileButton({
       try {
         await navigator.share({
           title: `${name} — Ahsan Project`,
-          text: `Lihat profil dan karya ${name} di Ahsan Project.`,
+          text: `View ${name}'s profile and work on Ahsan Project.`,
           url,
         });
         return;
@@ -52,17 +52,17 @@ export function ShareProfileButton({
 
   const label =
     status === "copied"
-      ? "Tautan disalin"
+      ? "Link copied"
       : status === "error"
-        ? "Gagal menyalin"
-        : "Bagikan profil";
+        ? "Could not copy link"
+        : "Share profile";
 
   return (
     <div className="profile-share-control">
       <button
         aria-label={label}
         className="profile-share-button"
-        title="Bagikan profil"
+        title="Share profile"
         type="button"
         onClick={share}
       >
@@ -70,9 +70,9 @@ export function ShareProfileButton({
       </button>
       <span className="sr-only" role="status" aria-live="polite">
         {status === "copied"
-          ? "Tautan profil berhasil disalin."
+          ? "Profile link copied."
           : status === "error"
-            ? "Tautan profil gagal disalin."
+            ? "Could not copy profile link."
             : ""}
       </span>
     </div>
@@ -94,7 +94,7 @@ async function copyToClipboard(value: string) {
   input.select();
   const copied = document.execCommand("copy");
   input.remove();
-  if (!copied) throw new Error("Browser tidak dapat menyalin tautan.");
+  if (!copied) throw new Error("The browser could not copy the link.");
 }
 
 function ShareIcon() {

@@ -28,10 +28,10 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 /** Why a confirmation link sent somebody back here. Set by /auth/confirm. */
 const LINK_PROBLEMS: Record<string, string> = {
-  "tautan-kedaluwarsa": "This confirmation link has expired or has already been used. Try signing in, or create a new account if needed.",
-  "tautan-tidak-lengkap": "This confirmation link is incomplete. Open the complete link from your email again.",
-  "google-gagal": "Google sign-in did not work. Please try again or use email instead.",
-  "alamat-beda":
+  "expired-link": "This confirmation link has expired or has already been used. Try signing in, or create a new account if needed.",
+  "incomplete-link": "This confirmation link is incomplete. Open the complete link from your email again.",
+  "google-failed": "Google sign-in did not work. Please try again or use email instead.",
+  "origin-mismatch":
     "Sign-in started at one address and returned to another, so the session could not be created. " +
     "Open the site at its primary address and try again. Site administrators should register " +
     "/auth/callback and /auth/confirm for each address in Supabase → Authentication → URL Configuration.",
@@ -114,7 +114,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
                   still browse the board.
                 </p>
                 <p className="signin-fallback-link">
-                  <Link href="/lupa-password">Forgot your password?</Link>
+                  <Link href="/forgot-password">Forgot your password?</Link>
                 </p>
               </>
             )}

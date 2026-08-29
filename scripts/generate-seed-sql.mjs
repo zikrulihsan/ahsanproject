@@ -85,7 +85,7 @@ const sql = `-- Seed data for Ahsan Project.
 do $$
 declare
   -- Who should own these projects. Change this to your own address.
-  owner_email text := 'ganti@dengan-emailmu.com';
+  owner_email text := 'replace-with-your-email@example.com';
   owner       uuid;
   new_project bigint;
 begin
@@ -93,7 +93,7 @@ begin
 
   if owner is null then
     raise exception
-      'Tidak ada akun dengan email %. Daftar dulu lewat situsnya, baru jalankan berkas ini.',
+      'No account exists for email %. Sign up through the site first, then run this file.',
       owner_email;
   end if;
 ${body}

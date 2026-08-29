@@ -18,6 +18,16 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  async redirects() {
+    return [
+      { source: "/kolaborasi", destination: "/explore", permanent: true },
+      { source: "/orang", destination: "/people", permanent: true },
+      { source: "/mulai", destination: "/get-started", permanent: true },
+      { source: "/lupa-password", destination: "/forgot-password", permanent: true },
+      { source: "/akun/profil", destination: "/account/profile", permanent: true },
+      { source: "/akun/password", destination: "/account/password", permanent: true },
+    ];
+  },
   // Let a Link start upgrading an unseen dynamic detail route while it is in
   // view. That makes a click from Explore feel instant even when the project
   // was created after the last deployment and therefore was not pre-rendered
@@ -28,7 +38,10 @@ const nextConfig: NextConfig = {
     // project wants to see it appear; the tag invalidation covers that, and
     // this is the backstop for rows that changed in the database directly.
     board: {
-      stale: 60,
+      // Keep public discovery results in the browser Router Cache long enough
+      // that moving among Home, Explore, and People does not fetch them again.
+      // A write still clears this immediately through updateTag/revalidatePath.
+      stale: 300,
       revalidate: 300,
       expire: 3600,
     },

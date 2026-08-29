@@ -35,7 +35,7 @@ export async function generateStaticParams(): Promise<{ username: string }[]> {
     const people = await listPeople(80);
     return people.slice(0, 32).map((person) => ({ username: person.username }));
   } catch (error) {
-    console.warn("[ahsan] Detail profil tidak diprerender:", error);
+    console.warn("[ahsan] Profile detail was not prerendered:", error);
     return [];
   }
 }
@@ -78,8 +78,8 @@ export default async function ProfilePage({
 
   // "Muat lebih lama" grows the limit instead of paging cursors: the list is
   // one request either way, and the URL stays shareable.
-  const showAll = query.jejak === "semua";
-  const rawLimit = Number(Array.isArray(query.batas) ? query.batas[0] : query.batas);
+  const showAll = query.trail === "all";
+  const rawLimit = Number(Array.isArray(query.limit) ? query.limit[0] : query.limit);
   const limit = Math.min(Number.isInteger(rawLimit) && rawLimit > 0 ? rawLimit : TRAIL_PAGE, 400);
 
   const isSelf = viewer?.id === person.id;
@@ -121,10 +121,10 @@ export default async function ProfilePage({
       : []),
   ];
 
-  const trailPath = (next: { jejak?: string; batas?: number }) => {
+  const trailPath = (next: { trail?: string; limit?: number }) => {
     const params = new URLSearchParams();
-    if (next.jejak === "semua") params.set("jejak", "semua");
-    if (next.batas && next.batas > TRAIL_PAGE) params.set("batas", String(next.batas));
+    if (next.trail === "all") params.set("trail", "all");
+    if (next.limit && next.limit > TRAIL_PAGE) params.set("limit", String(next.limit));
     const search = params.toString();
     return `/u/${person.username}${search ? `?${search}` : ""}#activity-heading`;
   };
@@ -140,14 +140,14 @@ export default async function ProfilePage({
           <div className="profile-hero-top">
             <div className="profile-hero-copy">
               <p className="eyebrow light">
-                <span /> Portofolio Personal
+                <span /> Personal portfolio
               </p>
               <h1>{person.name}</h1>
               {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
               {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
 
               {contacts.length > 0 ? (
-                <ul className="profile-contact-list" aria-label={`Tautan ${person.name}`}>
+                <ul className="profile-contact-list" aria-label={`${person.name}'s links`}>
                   {contacts.map((contact) => (
                     <li key={`${contact.icon}-${contact.href}`}>
                       <a
@@ -186,14 +186,14 @@ export default async function ProfilePage({
             </aside>
           </div>
 
-          <section className="profile-summary" aria-label="Ringkasan profil">
+          <section className="profile-summary" aria-label="Profile summary">
             <div className="profile-summary-copy">
               <p className="profile-summary-label">Summary</p>
               {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
             </div>
             <div className="profile-summary-meta">
               {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
-                <ul className="profile-tags" aria-label="Keahlian dan pengalaman">
+                <ul className="profile-tags" aria-label="Skills and experience">
                   {person.yearsExperience !== null ? <li>{person.yearsExperience} years of experience</li> : null}
                   {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
                   {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
@@ -262,7 +262,7 @@ export default async function ProfilePage({
                 <Link className={showAll ? "" : "is-active"} href={trailPath({})}>
                   Highlights
                 </Link>
-                <Link className={showAll ? "is-active" : ""} href={trailPath({ jejak: "semua" })}>
+                <Link className={showAll ? "is-active" : ""} href={trailPath({ trail: "all" })}>
                   Full trail
                 </Link>
               </div>
@@ -282,8 +282,8 @@ export default async function ProfilePage({
                 <p className="trail-more">
                   <Link
                     href={trailPath({
-                      jejak: showAll ? "semua" : undefined,
-                      batas: limit + TRAIL_PAGE,
+                      trail: showAll ? "all" : undefined,
+                      limit: limit + TRAIL_PAGE,
                     })}
                   >
                     Load earlier entries
@@ -334,7 +334,7 @@ export default async function ProfilePage({
  *
  * The editor itself used to sit here, expanded from a `<summary>` — thirteen
  * inputs on the page whose whole job is to be shown to other people. It lives
- * at /akun/profil now, and this is the doorway to it, plus the one line that
+ * at /account/profile now, and this is the doorway to it, plus the one line that
  * says what is still missing before the talent pool can match on anything.
  */
 function SelfTools({
@@ -350,13 +350,13 @@ function SelfTools({
 
   return (
     <div className="profile-self-tools">
-      <Link className="profile-edit-link" href="/akun/profil">
+      <Link className="profile-edit-link" href="/account/profile">
         Edit profile
       </Link>
       {remaining.length > 0 ? (
         <p className="profile-self-note">
           {remaining.length} steps remain before your profile can be found in the talent pool.{" "}
-          <Link href="/mulai?semua=1">View steps</Link>
+          <Link href="/get-started?all=1">View steps</Link>
         </p>
       ) : null}
     </div>

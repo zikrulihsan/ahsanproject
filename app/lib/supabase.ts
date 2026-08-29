@@ -55,7 +55,7 @@ export const getSupabase = cache(async (): Promise<Supabase | null> => {
           // like a misconfigured redirect URL and is not one. Swallowing that
           // silently is how it stayed invisible, so say it out loud.
           const names = cookiesToSet.map((cookie) => cookie.name).join(", ");
-          console.error(`[ahsan] Cookie sesi gagal ditulis (${names}).`, error);
+          console.error(`[ahsan] Session cookie could not be written (${names}).`, error);
         }
       },
     },
@@ -65,8 +65,8 @@ export const getSupabase = cache(async (): Promise<Supabase | null> => {
 export class SupabaseUnavailableError extends Error {
   constructor() {
     super(
-      "Belum ada Supabase yang terpasang, jadi perubahan tidak bisa disimpan. " +
-        "Isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY lalu jalankan ulang.",
+      "Supabase is not configured, so changes cannot be saved. " +
+        "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, then run the app again.",
     );
     this.name = "SupabaseUnavailableError";
   }
