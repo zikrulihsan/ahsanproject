@@ -124,7 +124,8 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
               <Link href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</Link>
             </p>
             <p className="signin-privacy">
-              When you use Google, we only receive your name, email address, and profile photo.
+              When you use Google, we only receive your name, email address, and profile photo. See
+              our <Link href="/privacy">Privacy Policy</Link>.
             </p>
           </div>
         </section>

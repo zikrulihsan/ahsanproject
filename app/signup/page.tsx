@@ -59,6 +59,9 @@ export default async function SignUpPage({ searchParams }: { searchParams?: Sear
         <p className="auth-switch">
           Already have an account? <Link href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</Link>.
         </p>
+        <p className="auth-privacy-note">
+          By creating an account, you agree to our <Link href="/privacy">Privacy Policy</Link>.
+        </p>
       </main>
 
       <SiteFooter />
