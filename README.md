@@ -68,10 +68,13 @@ and everything that writes will say so rather than failing quietly.
   - `0017_github_open_contributions.sql` — the explicit GitHub contribution
     badge and its repository safeguard
   - the timestamped files after those, in filename order — Explore's search
-    indexes, the brief-length alignment, and
+    indexes, the brief-length alignment,
     `20260829120000_project_types.sql`, which records what kind of project it
     is (pet project, community, product, commercial) so people browsing can
-    pick the kind of collaboration they are looking for
+    pick the kind of collaboration they are looking for, and
+    `20260829130000_link_first_projects.sql`, which drops the brief's length
+    floors and adds `highlight`, so a project can arrive as a link and be
+    written up afterwards
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -150,7 +153,7 @@ match it.
 | `/` | The board — five lanes (`?lane=`), narrowed by level, kind, topic, role, search |
 | `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
 | `/u/<username>` | One person: what they are building, what they helped build, their trail |
-| `/new` | Show a project. The brief is required — an empty project cannot be created |
+| `/new` | Add a project. One field: the link. Its page supplies the name, description and icon; the brief and everything else is optional and can be added later |
 | `/get-started` | Where a completed sign-in lands — not a callback, never on the redirect allow list. The steps still owed, and the projects you own; forwards to the board once nothing is owed |
 | `/account/profile` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
@@ -158,8 +161,12 @@ match it.
 
 ### Where the rules live
 
-- `app/lib/brief.ts` — the minimum a project must carry before it can exist,
-  plus the completeness meter. This is the "no empty ideas" rule.
+- `app/lib/brief.ts` — what a project may carry and what it must: a name, and
+  a ceiling on everything else. The old floors (a full brief before a project
+  could exist) are gone — see `20260829130000_link_first_projects.sql`.
+- `app/lib/link-metadata.ts` — reads a pasted link's own title, description and
+  icon so adding a project costs one field, and fences that read in so a URL
+  from a stranger cannot be pointed at anything private.
 - `app/lib/profile.ts` — what a profile may carry. The ceilings are the same
   ones the `profiles` columns check, so a typo comes back as a sentence
   rather than a constraint error.

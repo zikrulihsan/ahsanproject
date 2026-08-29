@@ -57,9 +57,11 @@ export default function PrivacyPage() {
 
         <h3>Projects</h3>
         <p>
-          Title, tagline, brief (problem, solution, audience), tags, stage, what you are working on
-          right now, the journey you post, open roles, and a logo — all of this is public the moment
-          a project is created, because the product exists to make work visible. Do not put anything
+          The link you paste and what your page says about itself (its name, description and icon,
+          which we read once when you add it), what you say is interesting about the project,
+          tagline, brief (problem, solution, audience), tags, stage, what you are working on right
+          now, the journey you post, open roles, and a logo — all of this is public the moment a
+          project is created, because the product exists to make work visible. Do not put anything
           here you would not want public.
         </p>
 

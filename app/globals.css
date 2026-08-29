@@ -960,6 +960,69 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .github-start .field > .hint { margin-bottom: 8px; }
 .github-start .github-import { border-top: 0; margin-bottom: 0; padding-top: 0; }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
+
+/* The page that takes a link is one column, centred on the thing it wants. */
+.new-page { text-align: center; }
+.new-page h1 { margin: 0 auto 26px; max-width: 15ch; }
+.new-page h1 span { color: var(--moss); display: block; }
+.new-page .create-form { text-align: left; }
+
+/* ------------------------------------------------- adding a project by link
+
+   One input, one optional line, one button. Everything the old form said out
+   loud — labels, hints, a note under the toggle — is gone, because a form this
+   short is quicker to fill in than to read about. */
+
+.link-form { padding-bottom: 26px; }
+.link-start input, .link-start textarea { font-size: 16px; }
+.link-start input { min-height: 56px; padding: 15px 17px; }
+.link-start textarea { margin-top: 12px; resize: vertical; }
+.link-start .field-error { margin: 10px 0 0; }
+
+.link-reading { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+.link-reading.is-quiet { color: var(--ink-soft); }
+
+.link-preview {
+  align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  display: grid; gap: 4px 13px; grid-template-columns: 40px minmax(0, 1fr); margin-top: 12px; padding: 13px 14px;
+}
+.link-preview-mark {
+  align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 10px; display: flex;
+  height: 40px; justify-content: center; overflow: hidden; width: 40px;
+}
+.link-preview-mark img { height: 100%; object-fit: contain; width: 100%; }
+.link-preview-mark > span { font-size: 16px; font-weight: 700; }
+.link-preview-copy { min-width: 0; }
+.link-preview-copy strong { display: block; font-size: 15px; letter-spacing: -.015em; }
+.link-preview-copy p {
+  color: var(--ink-soft); font-size: 13px; line-height: 1.5; margin: 2px 0 0;
+  overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.link-preview-copy small { color: var(--muted); display: block; font-size: 12px; margin-top: 4px; }
+.link-preview-note {
+  color: var(--muted); font-size: 12px; grid-column: 1 / -1; line-height: 1.5; margin: 9px 0 0;
+}
+
+/* A quiet line, not a second button competing with the one that submits. */
+.project-details { margin: 16px 0 20px; }
+.project-details > summary {
+  border: 0; border-radius: 0; cursor: pointer; display: inline-flex; align-items: center;
+  list-style: none; padding: 0;
+}
+.project-details[open] > summary { margin-bottom: 20px; }
+.project-details > summary::-webkit-details-marker { display: none; }
+.project-details-toggle { color: var(--muted); font-size: 13px; font-weight: 600; }
+.project-details > summary:hover .project-details-toggle { color: var(--ink); }
+.project-details-toggle::before { content: "▸"; font-size: 10px; margin-right: 8px; }
+.project-details[open] .project-details-toggle::before { content: "▾"; }
+.project-details-body fieldset:last-of-type { margin-bottom: 0; }
+
+/* The owner's own words, at the top of the brief they may not have written. */
+.brief-highlight {
+  border-left: 3px solid var(--lime); font-size: 17px; line-height: 1.6; margin: 0 0 22px; padding-left: 16px;
+}
+.brief-empty { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0; }
+.brief-empty a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 650; }
 .create-submit { justify-content: center; width: 100%; }
 .auth-page { max-width: 520px; }
 .auth-form .hint { margin: -12px 0 18px; }

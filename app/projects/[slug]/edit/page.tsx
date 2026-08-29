@@ -63,6 +63,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             slug: project.slug,
             title: project.title,
             tagline: project.tagline,
+            highlight: project.highlight,
             problem: project.problem,
             solution: project.solution,
             audience: project.audience,

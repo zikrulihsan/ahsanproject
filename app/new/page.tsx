@@ -17,9 +17,9 @@ import { currentViewer } from "../lib/session";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Show your project — Ahsan Project",
+  title: "Add your project — Ahsan Project",
   description:
-    "Write down your idea, the problem it solves, and who it is for. Then open a role if you need collaborators.",
+    "Paste the link. We read the name, description and icon from the page itself. Everything else is optional and can wait.",
   alternates: { canonical: "/new" },
 };
 
@@ -30,45 +30,21 @@ export default async function NewProject() {
     <>
       <SiteHeader returnTo="/new" />
 
-      <main id="main-content" className="page-narrow">
-        <p className="eyebrow">
-          <span /> Show your project
-        </p>
+      {/* One line, one field, one button. A page whose whole job is to take a
+          link should not spend the visitor's attention introducing itself. */}
+      <main id="main-content" className="page-narrow new-page">
+        <h1>
+          Show anything you built. <span>One link is enough.</span>
+        </h1>
+
         {viewer ? (
-          <>
-            <h1>Create your project page.</h1>
-            <p className="lede">
-              Add what you know now—an idea is enough. A short brief helps people understand it
-              and decide whether they can contribute.
-            </p>
-            <CreateForm />
-          </>
+          <CreateForm />
         ) : (
-          <>
-            <h1>Show what you are building.</h1>
-            <p className="lede">
-              An idea, a work in progress, or something people already use—it all belongs here.
-              Write a short brief, then ask for help if you need it.
-            </p>
-
-            <ol className="how-list">
-              {guestSteps.map((step) => (
-                <li key={step.step}>
-                  <span>{step.step}</span>
-                  <div>
-                    <h2>{step.title}</h2>
-                    <p>{step.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <p className="sign-in-callout">
-              <Link className="primary-button" href={signInPath("/new")}>
-                Sign in to show your project
-              </Link>
-            </p>
-          </>
+          <p className="sign-in-callout">
+            <Link className="primary-button" href={signInPath("/new")}>
+              Sign in to add your project
+            </Link>
+          </p>
         )}
       </main>
 
@@ -76,21 +52,3 @@ export default async function NewProject() {
     </>
   );
 }
-
-const guestSteps = [
-  {
-    step: "01",
-    title: "Describe the project",
-    body: "Share the problem, your proposed solution, and the people it is for.",
-  },
-  {
-    step: "02",
-    title: "Show what is happening now",
-    body: "A short update gives visitors a clear picture of where the work stands.",
-  },
-  {
-    step: "03",
-    title: "Invite the right help",
-    body: "Open a role when you need a collaborator, and explain the work involved.",
-  },
-];

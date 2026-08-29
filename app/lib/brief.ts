@@ -1,23 +1,27 @@
 import { tagList } from "./stages";
 
 /**
- * The bare minimum a project must carry before it exists here.
+ * The one thing a project must carry: a name, and a link to itself.
  *
- * The point of the rule is that nobody can post a one-line "ide bagus" and
- * walk away: whoever reads it should be able to tell what the problem is, what
- * the guess at a solution is, and who it is for.
+ * It used to be more. A project could not exist here until its owner had
+ * written a problem, a solution and an audience at length, which read as a
+ * standard and worked as a wall — the people whose projects this board most
+ * wanted were the ones who met six required paragraphs and closed the tab.
+ *
+ * The brief did not go anywhere; it moved. Adding a project takes a link, and
+ * everything below is filled in afterwards, by the owner, from the project page
+ * itself. `MINIMUM` is what is left of the old floor: a real name, because a
+ * row nobody can name is a row nobody can find.
  */
 export const MINIMUM = {
   title: 3,
-  tagline: 20,
-  problem: 80,
-  solution: 80,
-  audience: 25,
 } as const;
 
 export const MAXIMUM = {
   title: 60,
   tagline: 140,
+  /** projects.highlight — "what is interesting about this", in their words. */
+  highlight: 280,
   problem: 2000,
   solution: 2000,
   audience: 600,
@@ -38,6 +42,7 @@ export const MAXIMUM = {
 export type BriefInput = {
   title: string;
   tagline: string;
+  highlight: string;
   problem: string;
   solution: string;
   audience: string;
@@ -50,31 +55,54 @@ export type BriefInput = {
 
 export type FieldErrors = Partial<Record<keyof BriefInput, string>>;
 
-const FIELD_LABELS: Record<keyof typeof MINIMUM, string> = {
+const FIELD_LABELS: Record<keyof BriefInput, string> = {
   title: "Project name",
   tagline: "Short summary",
+  highlight: "What is interesting about this project",
   problem: "Problem to solve",
   solution: "Proposed solution",
   audience: "Who it is for",
+  tags: "Topics",
+  docUrl: "Document link",
+  repoUrl: "Repository link",
+  liveUrl: "Project link",
+  logoUrl: "Logo link",
 };
 
+const CAPPED = [
+  "title",
+  "tagline",
+  "highlight",
+  "problem",
+  "solution",
+  "audience",
+] as const satisfies readonly (keyof typeof MAXIMUM)[];
+
+/**
+ * Checks what is written, never that something was written.
+ *
+ * Every field but the name is optional now, so an empty value is an answer —
+ * "not said yet" — and only a value somebody actually typed is held to the
+ * ceiling the database enforces.
+ */
 export function validateBrief(input: BriefInput): FieldErrors {
   const errors: FieldErrors = {};
 
-  for (const field of Object.keys(MINIMUM) as (keyof typeof MINIMUM)[]) {
+  const title = input.title.trim();
+  if (!title) {
+    errors.title = "Enter the project name.";
+  } else if (title.length < MINIMUM.title) {
+    errors.title = `${FIELD_LABELS.title} is too short—at least ${MINIMUM.title} characters.`;
+  }
+
+  for (const field of CAPPED) {
     const value = input[field].trim();
-    if (!value) {
-      errors[field] = `Enter ${FIELD_LABELS[field].toLowerCase()}.`;
-    } else if (value.length < MINIMUM[field]) {
-      errors[field] = `${FIELD_LABELS[field]} is too short—at least ${MINIMUM[field]} characters; currently ${value.length}.`;
-    } else if (value.length > MAXIMUM[field]) {
+    if (value.length > MAXIMUM[field]) {
       errors[field] = `${FIELD_LABELS[field]} is too long—at most ${MAXIMUM[field]} characters.`;
     }
   }
 
-  if (tagList(input.tags).length === 0) {
-    errors.tags = "Add at least one tag so people can find the idea.";
-  } else if (tagList(input.tags).length > 6) {
+  if (tagList(input.tags).length > 6) {
     errors.tags = "Use no more than six tags.";
   }
 
@@ -88,6 +116,28 @@ export function validateBrief(input: BriefInput): FieldErrors {
   }
 
   return errors;
+}
+
+/**
+ * The line a card shows under the project name.
+ *
+ * A link-first project may have no summary of its own yet, in which case the
+ * owner's highlight is the closest thing to one, and the domain is better than
+ * an empty row.
+ */
+export function projectBlurb(project: {
+  tagline: string;
+  highlight: string;
+  liveUrl: string;
+  repoUrl: string;
+}): string {
+  const highlight = project.highlight.trim();
+  return (
+    project.tagline.trim() ||
+    (highlight.length > 140 ? `${highlight.slice(0, 139).trimEnd()}…` : highlight) ||
+    domainOf(project.liveUrl) ||
+    domainOf(project.repoUrl)
+  );
 }
 
 export function isHttpUrl(value: string): boolean {

@@ -69,6 +69,8 @@ export type ProjectSummary = {
    * every reader.
    */
   projectType: string;
+  /** The owner's own reason this is worth a look. Empty until they say. */
+  highlight: string;
   problem: string;
   solution: string;
   audience: string;
@@ -1456,6 +1458,9 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     // ?? "" keeps reads alive on a database that has not run 0016 yet; a board
     // without the column simply shows no type badge and offers no type filter.
     projectType: row.project_type ?? "",
+    // ?? "" keeps reads alive on a database that has not run
+    // 20260829130000_link_first_projects.sql yet.
+    highlight: row.highlight ?? "",
     problem: row.problem,
     solution: row.solution,
     audience: row.audience,
@@ -1558,6 +1563,9 @@ function seedSummaries(): ProjectSummary[] {
     return {
       ...project,
       stage: project.stage as Stage,
+      // The seeded projects predate the question and carry a full brief, so
+      // there is nothing for a highlight to stand in for.
+      highlight: "",
       docUrl: project.docUrl,
       liveUrl: project.liveUrl,
       repoUrl: project.repoUrl,
@@ -1628,6 +1636,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
       const haystack = [
         project.title,
         project.tagline,
+        project.highlight,
         project.problem,
         project.solution,
         project.audience,

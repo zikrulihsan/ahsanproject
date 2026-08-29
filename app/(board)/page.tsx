@@ -7,6 +7,7 @@ import { ProjectLogo } from "../components/project-logo";
 import { RotatingHeadline } from "../components/rotating-headline";
 import { listPeople, listProjects, type Person, type ProjectSummary } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
+import { projectBlurb } from "../lib/brief";
 import { projectTypeLabel } from "../lib/project-types";
 import { roleLabel } from "../lib/roles";
 import { stageMeta } from "../lib/stages";
@@ -259,7 +260,7 @@ function ProjectIndexRow({ project }: { project: ProjectSummary }) {
           {project.tags[0] ? ` · ${project.tags[0]}` : ""}
         </p>
         <h3><Link className="card-cover-link" href={`/projects/${project.slug}`}>{project.title}</Link></h3>
-        <p>{project.tagline}</p>
+        <p>{projectBlurb(project)}</p>
       </div>
       <div className="landing-index-role">
         <small>{openRole ? "Open role" : "Build log"}</small>

@@ -34,7 +34,7 @@ import {
   initials,
   timeAgo,
 } from "../../components/pieces";
-import { MAXIMUM, domainOf } from "../../lib/brief";
+import { MAXIMUM, domainOf, projectBlurb } from "../../lib/brief";
 import {
   getProject,
   hasBoosted,
@@ -97,13 +97,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: `${project.title} — Ahsan Project`,
     // What it is doing now says more than what it is, when there is one.
-    description: project.nowText || project.tagline,
+    description: project.nowText || projectBlurb(project),
     alternates: { canonical: `/projects/${project.slug}` },
     // The card image comes from opengraph-image.tsx beside this file.
     openGraph: {
       type: "article",
       title: `${project.title} — Ahsan Project`,
-      description: project.nowText || project.tagline,
+      description: project.nowText || projectBlurb(project),
       url: `/projects/${project.slug}`,
     },
   };
@@ -196,7 +196,7 @@ export default async function ProjectPage({
               </div>
             </div>
             <h1>{project.title}</h1>
-            <p className="project-tagline">{project.tagline}</p>
+            <p className="project-tagline">{projectBlurb(project)}</p>
             <TagRow tags={project.tags} />
 
             {projectTypeContribution(project.projectType) ? (
@@ -291,18 +291,48 @@ export default async function ProjectPage({
             <ProjectTabContent tab="about">
               <section className="brief" aria-labelledby="brief-heading">
                 <h2 id="brief-heading">About this project</h2>
-                <article>
-                  <h3>Problem to solve</h3>
-                  <p>{project.problem}</p>
-                </article>
-                <article>
-                  <h3>What is being built</h3>
-                  <p>{project.solution}</p>
-                </article>
-                <article>
-                  <h3>Who it is for</h3>
-                  <p>{project.audience}</p>
-                </article>
+
+                {/* The owner's own words come first: on a project added as a
+                    link this is the whole of what a person wrote, and on a
+                    fully written one it is still the part worth reading first. */}
+                {project.highlight ? (
+                  <p className="brief-highlight">{project.highlight}</p>
+                ) : null}
+
+                {project.problem ? (
+                  <article>
+                    <h3>Problem to solve</h3>
+                    <p>{project.problem}</p>
+                  </article>
+                ) : null}
+                {project.solution ? (
+                  <article>
+                    <h3>What is being built</h3>
+                    <p>{project.solution}</p>
+                  </article>
+                ) : null}
+                {project.audience ? (
+                  <article>
+                    <h3>Who it is for</h3>
+                    <p>{project.audience}</p>
+                  </article>
+                ) : null}
+
+                {/* A project that arrived as a link has nothing here yet. Saying
+                    so, and saying who can fix it, beats an empty heading. */}
+                {!project.problem && !project.solution && !project.audience ? (
+                  <p className="brief-empty">
+                    {isOwner
+                      ? "The brief is still empty. Adding the problem, what you are making, and who it is for takes a couple of minutes and is what makes people want to help."
+                      : "The brief has not been written yet. What the project links to is the best place to start."}
+                    {isOwner ? (
+                      <>
+                        {" "}
+                        <Link href={`/projects/${project.slug}/edit`}>Write the brief</Link>
+                      </>
+                    ) : null}
+                  </p>
+                ) : null}
                 {isGitHubRepositoryUrl(project.repoUrl) ? (
                   <article className="github-contribution">
                     <h3>Want to help with code?</h3>
@@ -902,10 +932,6 @@ export default async function ProjectPage({
 
 function toStageInput(project: ProjectDetail): StageInput {
   return {
-    problem: project.problem,
-    solution: project.solution,
-    audience: project.audience,
-    tags: project.tags,
     nowText: project.nowText,
     docUrl: project.docUrl,
     repoUrl: project.repoUrl,
