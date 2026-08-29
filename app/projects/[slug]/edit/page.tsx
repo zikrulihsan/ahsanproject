@@ -67,6 +67,7 @@ export default async function EditProjectPage({ params }: { params: Params }) {
             solution: project.solution,
             audience: project.audience,
             tags: project.tags,
+            projectType: project.projectType,
             nowText: project.nowText,
             docUrl: project.docUrl,
             repoUrl: project.repoUrl,

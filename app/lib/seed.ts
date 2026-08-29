@@ -70,6 +70,8 @@ export type SeedProject = {
   tagline: string;
   ownerId: string;
   stage: string;
+  /** Why it exists — see app/lib/project-types.ts. Empty means unstated. */
+  projectType: string;
   problem: string;
   solution: string;
   audience: string;
@@ -163,6 +165,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Trade mindless social-media tapping for mindful remembrance.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "pet",
     problem:
       "Our thumbs are trained to tap and scroll without thinking, and social media is always within reach. The intention to remember often loses to that habit, especially when it means finding prayer beads or counting in your head while doing something else.",
     solution:
@@ -209,6 +212,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Question cards for conversations that go beyond small talk.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "product",
     problem:
       "Conversations with people close to us often get stuck on the same questions: Have you eaten? How is work? When are you getting married? What we want to ask is usually deeper, but no one wants to start for fear it will feel awkward.",
     solution:
@@ -250,6 +254,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Essential local numbers, ready when you really need them.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "product",
     problem:
       "When something urgent happens—a leaking roof, a broken motorbike, an ambulance needed—time is spent looking for a number. Contacts for tradespeople, repair shops, and emergency services are usually scattered across old chats, notes, or someone else’s memory.",
     solution:
@@ -281,6 +286,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "Create invoices for your services or products without a complicated process.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "commercial",
     problem:
       "Small business owners often invoice through chat because existing invoicing apps feel heavy: create an account, fill in a company profile, choose a plan. That is too many steps for one simple bill.",
     solution:
@@ -316,6 +322,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "A learning space that helps children stay safer.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "community",
     problem:
       "Children are told to be careful but are rarely shown what risky situations look like. Parents also often struggle to start conversations about body boundaries, strangers, or situations that feel unsafe.",
     solution:
@@ -362,6 +369,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "A community portal for Indonesian software engineers.",
     ownerId: "seed-zikrul",
     stage: "live",
+    projectType: "community",
     problem:
       "Valuable experiences from Indonesian engineers are scattered across social-media threads and chat groups that disappear within days. People just starting out struggle to find them again when they really need them.",
     solution:
@@ -403,6 +411,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "A digital queue for busy food stalls and small cafés at mealtimes.",
     ownerId: "seed-zikrul",
     stage: "idea",
+    projectType: "commercial",
     problem:
       "At lunchtime, small food stalls get busy and orders are kept in someone’s head. Customers wait without knowing their place, sellers struggle to remember, and later arrivals are sometimes served first. The confusion is small but happens every day.",
     solution:
@@ -475,6 +484,7 @@ export const seedProjects: SeedProject[] = [
     tagline: "A school pick-up coordination board for parents in one neighborhood.",
     ownerId: "seed-zikrul",
     stage: "building",
+    projectType: "community",
     problem:
       "Parents in one neighborhood often pick up from the same school at the same time, yet still travel separately. Coordination gets stuck in group chats: messages disappear, people who need a ride hesitate to ask, and people with spare seats do not know who needs them.",
     solution:

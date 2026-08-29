@@ -62,6 +62,13 @@ export type ProjectSummary = {
   title: string;
   tagline: string;
   stage: Stage;
+  /**
+   * Why the project exists — one of PROJECT_TYPES, or empty when it predates
+   * the question. Deliberately not narrowed to `ProjectType`: an older row can
+   * carry the empty string, and pretending otherwise pushes the check onto
+   * every reader.
+   */
+  projectType: string;
   problem: string;
   solution: string;
   audience: string;
@@ -169,6 +176,8 @@ export type ApplicationView = {
 export type FeedQuery = {
   lane?: Lane;
   stage?: string;
+  /** One of PROJECT_TYPES — the board only passes values isProjectType() took. */
+  projectType?: string;
   tag?: string;
   /** Only projects that are actively asking for at least one collaborator. */
   needsHelp?: boolean;
@@ -235,6 +244,7 @@ function projectQueryKey(query: FeedQuery): string {
   return JSON.stringify({
     lane: query.lane ?? "for-you",
     stage: query.stage ?? "",
+    projectType: query.projectType ?? "",
     tag: query.tag ?? "",
     needsHelp: Boolean(query.needsHelp),
     role: query.role ?? "",
@@ -318,6 +328,7 @@ async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
   // the lanes that already fix one.
   const stage = shape.stage ?? query.stage;
   if (stage) request = request.eq("stage", stage);
+  if (query.projectType) request = request.eq("project_type", query.projectType);
   if (shape.needsHelp || query.needsHelp) request = request.gt("open_seat_count", 0);
   if (query.tag) request = request.contains("tags", [query.tag]);
   if (query.role) {
@@ -1442,6 +1453,9 @@ function toSummary(row: ProjectOverviewRow): ProjectSummary {
     title: row.title,
     tagline: row.tagline,
     stage: row.stage as Stage,
+    // ?? "" keeps reads alive on a database that has not run 0016 yet; a board
+    // without the column simply shows no type badge and offers no type filter.
+    projectType: row.project_type ?? "",
     problem: row.problem,
     solution: row.solution,
     audience: row.audience,
@@ -1592,6 +1606,7 @@ function seedFeed(query: FeedQuery): ProjectSummary[] {
 
   const matching = seedSummaries().filter((project) => {
     if (stage && project.stage !== stage) return false;
+    if (query.projectType && project.projectType !== query.projectType) return false;
     if ((shape.needsHelp || query.needsHelp) && project.openSeatCount === 0) return false;
     if (query.tag && !project.tags.includes(query.tag)) return false;
     if (query.role) {

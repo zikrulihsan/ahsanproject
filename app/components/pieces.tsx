@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { projectTypeLabel, projectTypeMeta, projectTypeTone, isProjectType } from "../lib/project-types";
 import { roleLabel } from "../lib/roles";
 import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
@@ -16,6 +17,23 @@ export function StageBadge({ stage }: { stage: Stage }) {
     <span className={`stage-badge ${meta.tone}`} title={meta.blurb}>
       <i aria-hidden="true" />
       {meta.label}
+    </span>
+  );
+}
+
+/**
+ * What kind of project this is, as a pill beside the status badge.
+ *
+ * Renders nothing at all for a project that has not said. A grey "not stated"
+ * chip on every older card would be noise standing in for an answer, and the
+ * board already reads as "no badge means nothing was claimed".
+ */
+export function TypeBadge({ type }: { type: string }) {
+  if (!isProjectType(type)) return null;
+
+  return (
+    <span className={`type-badge ${projectTypeTone(type)}`} title={projectTypeMeta[type].blurb}>
+      {projectTypeMeta[type].label}
     </span>
   );
 }
@@ -85,6 +103,7 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
           </div>
           <div className="project-head-badges">
             <StageBadge stage={project.stage} />
+            <TypeBadge type={project.projectType} />
             {project.openForGitHubContributions ? <GitHubContributeBadge repoUrl={project.repoUrl} /> : null}
           </div>
         </div>
@@ -211,7 +230,10 @@ export function ProjectCard({
             <p className="profile-project-category">{category}</p>
           ) : null}
         </div>
-        <StageBadge stage={project.stage} />
+        <div className="project-head-badges">
+          <StageBadge stage={project.stage} />
+          <TypeBadge type={project.projectType} />
+        </div>
       </div>
 
       <div className="profile-project-description">
@@ -385,6 +407,9 @@ export function BoardCard({
                 <p className="home-project-tagline">{project.tagline}</p>
                 <p className="home-project-meta">
                   <span>{stageMeta[project.stage].label}</span>
+                  {projectTypeLabel(project.projectType) ? (
+                    <span className="home-project-type">{projectTypeLabel(project.projectType)}</span>
+                  ) : null}
                   <span>{freshness(project) || "Recently listed"}</span>
                   <span>{project.commentCount} discussions</span>
                 </p>
