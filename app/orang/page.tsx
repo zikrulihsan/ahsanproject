@@ -11,6 +11,7 @@ import {
   experienceBandLabel,
   filterAndRankPeople,
   isExperienceBand,
+  isTalentPoolMember,
   peopleFacets,
   peoplePage,
   primaryProfession,
@@ -124,8 +125,9 @@ async function Directory({ query }: { query: SearchParams }) {
     [],
   );
   const allPeople = peopleResult.value;
-  const facets = peopleFacets(allPeople);
-  const matched = filterAndRankPeople(allPeople, filters);
+  const talentPoolPeople = allPeople.filter(isTalentPoolMember);
+  const facets = peopleFacets(talentPoolPeople);
+  const matched = filterAndRankPeople(talentPoolPeople, filters);
   const pagination = peoplePage(matched, requestedPage);
   const { items: people, page, pageCount } = pagination;
   const activeFilterCount = [
@@ -140,7 +142,7 @@ async function Directory({ query }: { query: SearchParams }) {
   const directoryHref = (patch: Partial<Record<DirectoryParam, string | number | null>>) =>
     directoryPath(filters, page, patch);
 
-  const topContributors = [...allPeople]
+  const topContributors = [...talentPoolPeople]
     .filter((entry) => entry.helping.length > 0)
     .sort(
       (a, b) =>

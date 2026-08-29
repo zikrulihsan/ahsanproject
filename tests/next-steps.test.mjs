@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { hasContact, nextSteps, profileReady, remainingSteps } from "../app/lib/next-steps.ts";
+import { isTalentPoolMember } from "../app/lib/people.ts";
 
 const emptyPerson = {
   profession: "",
@@ -85,6 +86,13 @@ test("a profile needs a profession, a skill, and something written", () => {
   assert.equal(profileReady(filledPerson), true);
   // Whitespace is not an answer.
   assert.equal(profileReady({ ...filledPerson, profession: "   " }), false);
+});
+
+test("the talent pool uses the same ready-profile rule as onboarding", () => {
+  const entry = (person) => ({ person, building: [], helping: [], roles: [] });
+
+  assert.equal(isTalentPoolMember(entry(emptyPerson)), false);
+  assert.equal(isTalentPoolMember(entry(filledPerson)), true);
 });
 
 test("any one public link is enough to be reachable", () => {

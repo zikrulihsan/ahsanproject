@@ -31,9 +31,10 @@ export function Brand({ footer = false }: { footer?: boolean }) {
 }
 
 const LINKS: { href: string; label: string; key: Section; icon: HeaderIconName }[] = [
-  { href: "/kolaborasi", label: "Projects", key: "kolaborasi", icon: "explore" },
-  { href: "/#portfolio", label: "Portfolio", key: "", icon: "profile" },
-  { href: "/orang", label: "People", key: "orang", icon: "people" },
+  { href: "/", label: "Beranda", key: "beranda", icon: "home" },
+  { href: "/kolaborasi", label: "Kolaborasi", key: "kolaborasi", icon: "explore" },
+  { href: "/orang", label: "Orang", key: "orang", icon: "people" },
+  { href: "/about", label: "Tentang", key: "tentang", icon: "profile" },
 ];
 
 type HeaderIconName =
@@ -96,8 +97,8 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
         <Brand />
         <MainNav active={active} />
         <div className="header-actions header-shell-actions">
-          <Link className="nav-login" href="/signin">Sign in</Link>
-          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Add a project</Link>
+          <Link className="nav-login" href="/signin">Masuk</Link>
+          <Link className="primary-action" href="/new"><span aria-hidden="true">+</span> Tambah project</Link>
           <MobileHeaderMenu active={active} returnTo="/" waiting={0} />
         </div>
       </div>
@@ -178,14 +179,14 @@ async function VisitorHeader({
               </Link>
               <AccountMenu viewer={viewer} waiting={waiting} />
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add a project
+                <span aria-hidden="true">+</span> Tambah project
               </Link>
             </>
           ) : (
             <>
-              <Link className="nav-login" href={signInPath(destination)}>Sign in</Link>
+              <Link className="nav-login" href={signInPath(destination)}>Masuk</Link>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add a project
+                <span aria-hidden="true">+</span> Tambah project
               </Link>
             </>
           )}
@@ -275,7 +276,7 @@ function MobileHeaderMenu({
     >
       <div className="mobile-nav">
         <nav className="mobile-nav-primary" aria-label="Navigasi utama mobile">
-          <p className="mobile-menu-label">Explore</p>
+          <p className="mobile-menu-label">Jelajahi</p>
           {LINKS.map((link) => (
             <Link
               key={link.href}
@@ -292,7 +293,7 @@ function MobileHeaderMenu({
 
         <Link className="mobile-project-action" href="/new">
           <HeaderIcon name="add" />
-          <span>Add a project</span>
+          <span>Tambah project</span>
         </Link>
 
         {viewer ? (
@@ -325,7 +326,7 @@ function MobileHeaderMenu({
           <div className="mobile-guest-actions">
             <Link href={signInPath(returnTo)}>
               <HeaderIcon name="signin" />
-              <span>Sign in</span>
+              <span>Masuk</span>
             </Link>
           </div>
         )}

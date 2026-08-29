@@ -1,4 +1,5 @@
 import type { PersonAtWork } from "./data";
+import { profileReady } from "./next-steps";
 
 export const PEOPLE_PAGE_SIZE = 12;
 
@@ -41,6 +42,16 @@ export function primaryProfession(entry: PersonAtWork): string {
     entry.roles[0] ||
     (entry.building.length > 0 ? "Project Builder" : "")
   );
+}
+
+/**
+ * A public profile only joins the talent pool once it contains the details the
+ * directory can actually match: a profession, at least one skill, and a short
+ * introduction. The same rule drives the onboarding step, so the promise made
+ * there and the people shown here cannot drift apart.
+ */
+export function isTalentPoolMember(entry: PersonAtWork): boolean {
+  return profileReady(entry.person);
 }
 
 /** URL filters are exact facets; search is the deliberately broad path. */
