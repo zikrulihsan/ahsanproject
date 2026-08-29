@@ -50,7 +50,7 @@ export function CreateForm() {
             onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
           />
           <span>
-            <strong>Open for Contribute on GitHub</strong>
+            <strong>Open to GitHub contributions</strong>
             <small>People can see that GitHub contributions are open for this project.</small>
           </span>
         </label>

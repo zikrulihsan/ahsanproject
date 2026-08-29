@@ -6,17 +6,16 @@
  * problem without forcing unusual projects into the wrong bucket.
  */
 export const SUGGESTED_TOPICS = [
-  "pendidikan",
-  "kesehatan",
-  "komunitas",
-  "umkm",
-  "lingkungan",
-  "teknologi",
-  "ibadah",
-  "keluarga",
-  "karier",
-  "keuangan",
-  "layanan publik",
-  "kreatif",
+  "education",
+  "health",
+  "community",
+  "small business",
+  "environment",
+  "technology",
+  "faith",
+  "family",
+  "careers",
+  "finance",
+  "public services",
+  "creative",
 ] as const;
-

@@ -89,9 +89,9 @@ export default async function Home() {
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
-            <p className="home-eyebrow">The reason why...</p>
-            <h2 id="use-cases-title">You should put your project here.</h2>
-            <p className="landing-section-lead">Once you share your project, you will able to:</p>
+            <p className="home-eyebrow">Why share your project?</p>
+            <h2 id="use-cases-title">Put your project where it can be seen.</h2>
+            <p className="landing-section-lead">Once you share it, you can:</p>
           </div>
 
           <div className="use-case-layout">
@@ -111,7 +111,7 @@ export default async function Home() {
           <div className="landing-project-feature-head">
             <div>
               <p className="home-eyebrow">01 · Project Showcase</p>
-              <h2 id="project-feature-title">One shared project brings multiple oportunity.</h2>
+              <h2 id="project-feature-title">One shared project creates multiple opportunities.</h2>
             </div>
           </div>
 
@@ -133,14 +133,14 @@ export default async function Home() {
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
           <div className="portfolio-story-copy">
             <p className="home-eyebrow">02 · Portfolio builder</p>
-            <h2 id="portfolio-story-title">Tired of maintaining your web portfolio by yourself?</h2>
+            <h2 id="portfolio-story-title">Tired of maintaining a portfolio on your own?</h2>
             <p>
               Your profile collects projects, contributions, and the roles that actually happened.
               One link that grows every time something ships.
             </p>
             <ul>
-              <li><span>01</span> Project first personal portfolio</li>
-              <li><span>02</span> No need to deploy it by your self</li>
+              <li><span>01</span> A project-first personal portfolio</li>
+              <li><span>02</span> No deployment required</li>
               <li><span>03</span> Skills proven by shipped work</li>
             </ul>
             <a className="portfolio-story-link" href="https://ahsanproject.id/u/zikrul-ihsan">
@@ -181,15 +181,15 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">Complete your profile, recruiters are watching!</h2>
+            <h2 id="talent-story-title">Complete your profile so recruiters can find you.</h2>
             <p>
               Your profile is collected into the talent pool.
-              Recruiters, hiring manager, or founders all see the same evidence, but how?
+              Recruiters, hiring managers, and founders all see the same evidence. Here is how:
             </p>
             <ul>
-              <li><span>✓</span> Hiring manager can search by project topic</li>
-              <li><span>✓</span> Recruiters found you by relevan skill set and YoE</li>
-              <li><span>✓</span> Founders attracted by the depth of your project</li>
+              <li><span>✓</span> Hiring managers can search by project topic</li>
+              <li><span>✓</span> Recruiters can find you through relevant skills and experience</li>
+              <li><span>✓</span> Founders can see the depth of your project work</li>
             </ul>
             <Link className="talent-story-link" href="/people">Browse people <Arrow /></Link>
           </div>

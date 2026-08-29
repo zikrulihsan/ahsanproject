@@ -179,7 +179,7 @@ export function EditForm({ project }: { project: EditableProject }) {
             onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
           />
           <span>
-            <strong>Open for Contribute on GitHub</strong>
+            <strong>Open to GitHub contributions</strong>
             <small>Show a public badge and invite contributions through issues or pull requests.</small>
           </span>
         </label>

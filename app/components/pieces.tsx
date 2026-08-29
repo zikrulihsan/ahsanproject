@@ -30,7 +30,7 @@ export function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
       rel="noreferrer"
       title="This project is open to contributions through GitHub"
     >
-      Open for Contribute on GitHub <Arrow diagonal />
+      Open to GitHub contributions <Arrow diagonal />
     </a>
   );
 }

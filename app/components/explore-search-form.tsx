@@ -130,7 +130,7 @@ export function ExploreSearchForm({
         </div>
 
         {showSuggestions ? (
-          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label="Rekomendasi role terbuka">
+          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label="Open role suggestions">
             {matches.length > 0 ? (
               matches.map((suggestion, index) => (
                 <button
@@ -145,7 +145,7 @@ export function ExploreSearchForm({
                   onClick={() => choose(suggestion)}
                 >
                   <span>{suggestion.label}</span>
-                  <small>{suggestion.count} posisi</small>
+                  <small>{suggestion.count} open {suggestion.count === 1 ? "position" : "positions"}</small>
                 </button>
               ))
             ) : (

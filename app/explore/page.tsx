@@ -220,7 +220,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
       () => listProjects({ lane: "needs-help" }),
       [],
     ),
-    readPublicly("saran role terbuka", () => listOpenRoleSuggestions(), []),
+    readPublicly("open role suggestions", () => listOpenRoleSuggestions(), []),
     familiarPromise,
   ]);
 
@@ -233,7 +233,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
   const helpBoard = helpBoardResult.value;
   const roleSuggestions = roleSuggestionsResult.value;
   const seatsResult = await readPublicly<Map<number, Record<string, number>>>(
-    "jumlah role terbuka",
+    "open role count",
     () => openSeatsByRole(projects.map((project) => project.id)),
     new Map(),
   );
