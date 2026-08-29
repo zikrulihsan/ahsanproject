@@ -160,7 +160,7 @@ export function CreateForm() {
 
       <details className="optional-fields project-details" open={detailsHaveErrors}>
         <summary>
-          Add project details <span>optional</span>
+          Add project details<span>optional</span>
         </summary>
 
         <div className="project-details-body">

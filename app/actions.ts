@@ -565,8 +565,8 @@ export async function submitProposal(formData: FormData): Promise<void> {
   const taskId = Number(text(formData, "taskId"));
   const seatId = Number(text(formData, "seatId"));
   const pitch = text(formData, "pitch").slice(0, MAXIMUM.pitch);
-  const hasTask = Number.isInteger(taskId);
-  const hasSeat = Number.isInteger(seatId);
+  const hasTask = Number.isInteger(taskId) && taskId > 0;
+  const hasSeat = Number.isInteger(seatId) && seatId > 0;
   if (hasTask === hasSeat || !pitch) return;
 
   const supabase = await requireSupabase();
