@@ -11,6 +11,8 @@ import { getPortfolio, type ProjectSummary } from "../lib/data";
 import { nextSteps, remainingSteps, type NextStep } from "../lib/next-steps";
 import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
 /*
  * Allowed to block — same reason as /inbox. The whole page is one person's
@@ -19,11 +21,14 @@ import { signInPath } from "../lib/urls";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "Next steps — Ahsan Project",
-  description: "What remains to make your projects visible and your profile discoverable.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Langkah berikutnya — Ahsan Project", "Next steps — Ahsan Project"),
+    description: tx(locale, "Langkah yang tersisa agar proyekmu terlihat dan profilmu mudah ditemukan.", "What remains to make your projects visible and your profile discoverable."),
+    robots: { index: false },
+  };
+}
 
 /**
  * Where signing in lands, until there is nothing left to do here.
@@ -42,14 +47,14 @@ export default async function StartPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const viewer = await currentViewer();
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) redirect(signInPath("/get-started"));
 
   const query = (await searchParams) ?? {};
   const keepOpen = query.all === "1";
 
   const { owned, contributing } = await getPortfolio(viewer);
-  const steps = nextSteps({ person: viewer, owned, contributing });
+  const steps = nextSteps({ person: viewer, owned, contributing, locale });
   const remaining = remainingSteps(steps);
   if (remaining.length === 0 && !keepOpen) redirect("/");
 
@@ -62,29 +67,29 @@ export default async function StartPage({
 
       <main id="main-content" className="page-narrow start-page">
         <p className="eyebrow">
-          <span /> Next steps
+          <span /> {tx(locale, "Langkah berikutnya", "Next steps")}
         </p>
-        <h1>Hello, {firstName}.</h1>
+        <h1>{tx(locale, `Halo, ${firstName}.`, `Hello, ${firstName}.`)}</h1>
         <p className="lede">
           {remaining.length === 0
-            ? "You have completed all the steps. Use the options below to update them again."
-            : `${remaining.length} steps remain to make your projects visible and your profile discoverable. None are required right now.`}
+            ? tx(locale, "Kamu telah menyelesaikan semua langkah. Gunakan pilihan di bawah untuk memperbaruinya kembali.", "You have completed all the steps. Use the options below to update them again.")
+            : tx(locale, `${remaining.length} langkah tersisa agar proyekmu terlihat dan profilmu mudah ditemukan. Tidak ada yang wajib diselesaikan sekarang.`, `${remaining.length} steps remain to make your projects visible and your profile discoverable. None are required right now.`)}
         </p>
 
         <ol className="next-steps">
           {owed.map((step) => (
-            <StepRow key={step.id} step={step} />
+            <StepRow key={step.id} step={step} locale={locale} />
           ))}
         </ol>
 
         {extras.length > 0 ? (
           <section className="next-step-optional" aria-labelledby="optional-heading">
             <h2 id="optional-heading" className="section-title">
-              If you need it
+              {tx(locale, "Jika kamu membutuhkannya", "If you need it")}
             </h2>
             <ol className="next-steps">
               {extras.map((step) => (
-                <StepRow key={step.id} step={step} />
+                <StepRow key={step.id} step={step} locale={locale} />
               ))}
             </ol>
           </section>
@@ -92,24 +97,24 @@ export default async function StartPage({
 
         <section aria-labelledby="projects-heading">
           <h2 id="projects-heading" className="section-title">
-            Your projects
+            {tx(locale, "Proyekmu", "Your projects")}
           </h2>
 
           {owned.length === 0 ? (
             <p className="muted">
-              Nothing here yet. <Link href="/new">Show your first project</Link>—an idea is enough.
+              {tx(locale, "Belum ada apa pun di sini.", "Nothing here yet.")} <Link href="/new">{tx(locale, "Tampilkan proyek pertamamu", "Show your first project")}</Link>—{tx(locale, "sebuah ide saja sudah cukup.", "an idea is enough.")}
             </p>
           ) : (
             <ul className="start-project-list">
               {owned.map((project) => (
-                <StartProjectRow key={project.id} project={project} />
+                <StartProjectRow key={project.id} project={project} locale={locale} />
               ))}
             </ul>
           )}
         </section>
 
         <p className="start-skip">
-          <Link href="/">Skip for now and browse the board</Link>
+          <Link href="/">{tx(locale, "Lewati untuk sekarang dan jelajahi papan proyek", "Skip for now and browse the board")}</Link>
         </p>
       </main>
 
@@ -118,7 +123,7 @@ export default async function StartPage({
   );
 }
 
-function StepRow({ step }: { step: NextStep }) {
+function StepRow({ step, locale }: { step: NextStep; locale: Awaited<ReturnType<typeof currentLocale>> }) {
   return (
     <li className={`next-step ${step.done ? "is-done" : ""}`}>
       <span className="next-step-mark" aria-hidden="true">
@@ -127,12 +132,12 @@ function StepRow({ step }: { step: NextStep }) {
       <div className="next-step-copy">
         <h3>
           {step.title}
-          {step.done ? <span className="next-step-state"> · done</span> : null}
+          {step.done ? <span className="next-step-state"> · {tx(locale, "selesai", "done")}</span> : null}
         </h3>
         <p>{step.blurb}</p>
       </div>
       <Link className="next-step-cta" href={step.href}>
-        {step.done ? "Edit" : step.cta}
+        {step.done ? tx(locale, "Edit", "Edit") : step.cta}
       </Link>
     </li>
   );
@@ -146,7 +151,7 @@ function StepRow({ step }: { step: NextStep }) {
  * far enough away that the line people read for freshness is the one least
  * likely to be kept fresh. `setNow` is the same action that panel calls.
  */
-function StartProjectRow({ project }: { project: ProjectSummary }) {
+function StartProjectRow({ project, locale }: { project: ProjectSummary; locale: Awaited<ReturnType<typeof currentLocale>> }) {
   return (
     <li className="start-project-row">
       <div className="start-project-head">
@@ -158,13 +163,13 @@ function StartProjectRow({ project }: { project: ProjectSummary }) {
           <StageBadge stage={project.stage} />
         </div>
         <Link className="start-project-edit" href={`/projects/${project.slug}/edit`}>
-          Edit brief
+          {tx(locale, "Edit brief", "Edit brief")}
         </Link>
       </div>
 
       <form className="start-now-form" action={setNow}>
         <input type="hidden" name="slug" value={project.slug} />
-        <label htmlFor={`now-${project.slug}`}>Working on now…</label>
+        <label htmlFor={`now-${project.slug}`}>{tx(locale, "Sedang dikerjakan…", "Working on now…")}</label>
         <div className="start-now-row">
           <input
             id={`now-${project.slug}`}
@@ -172,18 +177,18 @@ function StartProjectRow({ project }: { project: ProjectSummary }) {
             type="text"
             maxLength={MAXIMUM.now}
             defaultValue={project.nowText}
-            placeholder="For example: Drafting the first safety materials."
+            placeholder={tx(locale, "Contoh: Menyusun draf materi keamanan pertama.", "For example: Drafting the first safety materials.")}
           />
-          <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+          <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
         </div>
       </form>
 
       <p className="start-project-seats">
         {project.openSeatCount > 0
-          ? `${project.openSeatCount} open roles.`
-          : "No open roles yet."}{" "}
+          ? tx(locale, `${project.openSeatCount} peran terbuka.`, `${project.openSeatCount} open roles.`)
+          : tx(locale, "Belum ada peran terbuka.", "No open roles yet.")}{" "}
         <Link href={`/projects/${project.slug}?tab=collaboration`}>
-          {project.openSeatCount > 0 ? "View collaboration" : "Open a role"}
+          {project.openSeatCount > 0 ? tx(locale, "Lihat kolaborasi", "View collaboration") : tx(locale, "Buka peran", "Open a role")}
         </Link>
       </p>
     </li>

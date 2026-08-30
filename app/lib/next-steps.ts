@@ -17,6 +17,8 @@
 
 export type NextStepId = "project" | "talent" | "contact" | "now" | "role";
 
+import { tx, type Locale } from "./locale";
+
 export type NextStep = {
   id: NextStepId;
   title: string;
@@ -53,37 +55,39 @@ export function nextSteps({
   person,
   owned,
   contributing,
+  locale = "en",
 }: {
   person: StepPerson;
   owned: StepProject[];
   contributing: unknown[];
+  locale?: Locale;
 }): NextStep[] {
   const steps: NextStep[] = [
     {
       id: "project",
-      title: "Show your first project",
+      title: tx(locale, "Tampilkan proyek pertamamu", "Show your first project"),
       blurb:
-        "An idea, a work in progress, or something people already use all count. This is where your portfolio and work trail begin.",
+        tx(locale, "Ide, pekerjaan yang masih berjalan, atau sesuatu yang sudah digunakan orang lain semuanya layak ditampilkan. Di sinilah portofolio dan rekam karyamu dimulai.", "An idea, a work in progress, or something people already use all count. This is where your portfolio and work trail begin."),
       href: "/new",
-      cta: "Show a project",
+      cta: tx(locale, "Tampilkan proyek", "Show a project"),
       done: owned.length > 0 || contributing.length > 0,
     },
     {
       id: "talent",
-      title: "Complete your talent-pool profile",
+      title: tx(locale, "Lengkapi profil talent pool", "Complete your talent-pool profile"),
       blurb:
-        "Your profession, skills, and a little about you. People use these details when searching /people.",
+        tx(locale, "Cantumkan profesi, keahlian, dan sedikit tentang dirimu. Detail ini digunakan saat orang mencari di /people.", "Your profession, skills, and a little about you. People use these details when searching /people."),
       href: "/account/profile",
-      cta: "Complete profile",
+      cta: tx(locale, "Lengkapi profil", "Complete profile"),
       done: profileReady(person),
     },
     {
       id: "contact",
-      title: "Add one way to contact you",
+      title: tx(locale, "Tambahkan satu cara untuk menghubungimu", "Add one way to contact you"),
       blurb:
-        "A public email, LinkedIn, GitHub, website, or résumé—one is enough. The email you use to sign in is never shown.",
+        tx(locale, "Email publik, LinkedIn, GitHub, situs web, atau résumé—satu saja cukup. Email yang kamu gunakan untuk masuk tidak pernah ditampilkan.", "A public email, LinkedIn, GitHub, website, or résumé—one is enough. The email you use to sign in is never shown."),
       href: "/account/profile#contact",
-      cta: "Add a link",
+      cta: tx(locale, "Tambah tautan", "Add a link"),
       done: hasContact(person),
     },
   ];
@@ -93,21 +97,21 @@ export function nextSteps({
     const quiet = owned.find((project) => !project.nowText) ?? owned[0];
     steps.push({
       id: "now",
-      title: "Describe what you are working on",
+      title: tx(locale, "Ceritakan apa yang sedang kamu kerjakan", "Describe what you are working on"),
       blurb:
-        "One sentence. This is what separates a living project from an abandoned idea list.",
+        tx(locale, "Cukup satu kalimat. Inilah yang membedakan proyek aktif dari daftar ide yang terbengkalai.", "One sentence. This is what separates a living project from an abandoned idea list."),
       href: `/projects/${quiet.slug}`,
-      cta: "Write the update",
+      cta: tx(locale, "Tulis kabar terbaru", "Write the update"),
       done: owned.some((project) => project.nowText !== ""),
     });
 
     const seatless = owned.find((project) => project.openSeatCount === 0) ?? owned[0];
     steps.push({
       id: "role",
-      title: "Open a role when you need help",
-      blurb: "Name the work and its estimated time commitment. This is optional—working alone does not make a project less valuable.",
+      title: tx(locale, "Buka peran saat kamu membutuhkan bantuan", "Open a role when you need help"),
+      blurb: tx(locale, "Jelaskan pekerjaannya dan perkiraan waktunya. Langkah ini opsional—bekerja sendiri tidak membuat proyekmu kurang bernilai.", "Name the work and its estimated time commitment. This is optional—working alone does not make a project less valuable."),
       href: `/projects/${seatless.slug}?tab=collaboration`,
-      cta: "Open a role",
+      cta: tx(locale, "Buka peran", "Open a role"),
       done: owned.some((project) => project.openSeatCount > 0),
       optional: true,
     });

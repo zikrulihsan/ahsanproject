@@ -1,4 +1,5 @@
 import { tagList } from "./stages";
+import { tx, type Locale } from "./locale";
 
 /**
  * The one thing a project must carry: a name, and a link to itself.
@@ -85,37 +86,54 @@ const CAPPED = [
  * "not said yet" — and only a value somebody actually typed is held to the
  * ceiling the database enforces.
  */
-export function validateBrief(input: BriefInput): FieldErrors {
+export function validateBrief(input: BriefInput, locale: Locale = "en"): FieldErrors {
   const errors: FieldErrors = {};
 
   const title = input.title.trim();
   if (!title) {
-    errors.title = "Enter the project name.";
+    errors.title = tx(locale, "Masukkan nama proyek.", "Enter the project name.");
   } else if (title.length < MINIMUM.title) {
-    errors.title = `${FIELD_LABELS.title} is too short—at least ${MINIMUM.title} characters.`;
+    errors.title = tx(locale, `Nama proyek terlalu pendek—minimal ${MINIMUM.title} karakter.`, `${FIELD_LABELS.title} is too short—at least ${MINIMUM.title} characters.`);
   }
 
   for (const field of CAPPED) {
     const value = input[field].trim();
     if (value.length > MAXIMUM[field]) {
-      errors[field] = `${FIELD_LABELS[field]} is too long—at most ${MAXIMUM[field]} characters.`;
+      errors[field] = tx(locale, `${fieldLabelId(field)} terlalu panjang—maksimal ${MAXIMUM[field]} karakter.`, `${FIELD_LABELS[field]} is too long—at most ${MAXIMUM[field]} characters.`);
     }
   }
 
   if (tagList(input.tags).length > 6) {
-    errors.tags = "Use no more than six tags.";
+    errors.tags = tx(locale, "Gunakan maksimal enam topik.", "Use no more than six tags.");
   }
 
   for (const field of ["docUrl", "repoUrl", "liveUrl", "logoUrl"] as const) {
     const value = input[field].trim();
     if (value && !isHttpUrl(value)) {
-      errors[field] = "Links must start with http:// or https://.";
+      errors[field] = tx(locale, "Tautan harus diawali http:// atau https://.", "Links must start with http:// or https://.");
     } else if (field === "logoUrl" && value.length > MAXIMUM.logoUrl) {
-      errors[field] = `The logo URL is too long—at most ${MAXIMUM.logoUrl} characters.`;
+      errors[field] = tx(locale, `URL logo terlalu panjang—maksimal ${MAXIMUM.logoUrl} karakter.`, `The logo URL is too long—at most ${MAXIMUM.logoUrl} characters.`);
     }
   }
 
   return errors;
+}
+
+function fieldLabelId(field: keyof BriefInput): string {
+  const labels: Record<keyof BriefInput, string> = {
+    title: "Nama proyek",
+    tagline: "Ringkasan singkat",
+    highlight: "Hal yang menarik dari proyek ini",
+    problem: "Masalah yang ingin diselesaikan",
+    solution: "Solusi yang diusulkan",
+    audience: "Sasaran pengguna",
+    tags: "Topik",
+    docUrl: "Tautan dokumen",
+    repoUrl: "Tautan repositori",
+    liveUrl: "Tautan proyek",
+    logoUrl: "Tautan logo",
+  };
+  return labels[field];
 }
 
 /**

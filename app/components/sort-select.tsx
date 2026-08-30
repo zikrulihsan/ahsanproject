@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useLanguage } from "./language-provider";
 
 export type SortOption = { value: string; label: string };
 
@@ -31,6 +32,7 @@ export function SortSelect({
   hidden?: Record<string, string>;
 }) {
   const form = useRef<HTMLFormElement>(null);
+  const { tx } = useLanguage();
   const controlId = `board-${name}`;
 
   return (
@@ -54,7 +56,7 @@ export function SortSelect({
         ))}
       </select>
       <noscript>
-        <button type="submit">Sort</button>
+        <button type="submit">{tx("Urutkan", "Sort")}</button>
       </noscript>
     </form>
   );

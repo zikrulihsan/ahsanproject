@@ -15,28 +15,48 @@ export const STAGES = ["idea", "building", "live", "resting"] as const;
 
 export type Stage = (typeof STAGES)[number];
 
-export const stageMeta: Record<Stage, { label: string; blurb: string; tone: string }> = {
+import { tx, type Locale } from "./locale";
+
+export const stageMeta: Record<Stage, { label: string; labelId: string; blurb: string; blurbId: string; tone: string }> = {
   idea: {
     label: "Idea",
+    labelId: "Ide",
     blurb: "Just an idea, but written down seriously and open for discussion.",
+    blurbId: "Baru berupa ide, tetapi sudah ditulis dengan serius dan terbuka untuk didiskusikan.",
     tone: "stage-idea",
   },
   building: {
     label: "Building",
+    labelId: "Dibangun",
     blurb: "Someone is working on it. Other people cannot use the result yet.",
+    blurbId: "Sedang dikerjakan. Hasilnya belum dapat digunakan orang lain.",
     tone: "stage-building",
   },
   live: {
     label: "Live",
+    labelId: "Berjalan",
     blurb: "Other people can use it today.",
+    blurbId: "Sudah dapat digunakan orang lain saat ini.",
     tone: "stage-live",
   },
   resting: {
     label: "Resting",
+    labelId: "Diistirahatkan",
     blurb: "It is not being worked on now. It can be continued or taken over.",
+    blurbId: "Sedang tidak dikerjakan. Proyek ini dapat dilanjutkan atau diambil alih.",
     tone: "stage-resting",
   },
 };
+
+export function stageLabel(stage: Stage, locale: Locale): string {
+  const meta = stageMeta[stage];
+  return tx(locale, meta.labelId, meta.label);
+}
+
+export function stageBlurb(stage: Stage, locale: Locale): string {
+  const meta = stageMeta[stage];
+  return tx(locale, meta.blurbId, meta.blurb);
+}
 
 export function isStage(value: string): value is Stage {
   return (STAGES as readonly string[]).includes(value);
@@ -72,21 +92,21 @@ export type Requirement = { label: string; met: boolean };
  * `idea` is the floor and asks for nothing; `resting` is a decision rather
  * than an achievement, so it carries no requirements either.
  */
-export function requirementsFor(stage: Stage, project: StageInput): Requirement[] {
+export function requirementsFor(stage: Stage, project: StageInput, locale: Locale = "en"): Requirement[] {
   switch (stage) {
     case "idea":
       return [];
     case "building":
       return [
         {
-          label: "Includes current work or a working link",
+          label: tx(locale, "Memuat pekerjaan terkini atau tautan yang dapat diakses", "Includes current work or a working link"),
           met: Boolean(project.nowText || project.repoUrl || project.docUrl || project.liveUrl),
         },
       ];
     case "live":
       return [
-        ...requirementsFor("building", project),
-        { label: "Includes a link other people can open", met: Boolean(project.liveUrl) },
+        ...requirementsFor("building", project, locale),
+        { label: tx(locale, "Memuat tautan yang dapat dibuka orang lain", "Includes a link other people can open"), met: Boolean(project.liveUrl) },
       ];
     case "resting":
       return [];

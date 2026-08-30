@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { PROJECT_TABS, isProjectTab, type ProjectTab } from "../lib/project-tabs";
+import { useLanguage } from "./language-provider";
 
 const ProjectTabContext = createContext<ProjectTab>("about");
 
@@ -20,6 +21,7 @@ export function ProjectTabSwitcher({
   initialTab: ProjectTab;
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const { locale, tx } = useLanguage();
 
   useEffect(() => {
     const handleHistoryChange = () => {
@@ -62,7 +64,11 @@ export function ProjectTabSwitcher({
 
   return (
     <ProjectTabContext.Provider value={activeTab}>
-      <nav className="project-tabs" aria-label="Project detail sections" role="tablist">
+      <nav
+        className="project-tabs"
+        aria-label={tx("Bagian detail proyek", "Project detail sections")}
+        role="tablist"
+      >
         {PROJECT_TABS.map((tab, index) => (
           <button
             key={tab.id}
@@ -76,7 +82,7 @@ export function ProjectTabSwitcher({
             onClick={() => selectTab(tab.id)}
             onKeyDown={(event) => handleKeyDown(event, index)}
           >
-            {tab.label}
+            {locale === "id" ? tab.labelId : tab.labelEn}
           </button>
         ))}
       </nav>

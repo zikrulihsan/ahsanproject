@@ -6,6 +6,8 @@ import { requireSupabase } from "./lib/supabase";
 import { safeNextPath, startPath } from "./lib/urls";
 import { tags } from "./lib/cache-tags";
 import { siteOrigin } from "./lib/origin";
+import { currentLocale } from "./lib/locale-server";
+import { tx, type Locale } from "./lib/locale";
 
 export type AuthState = {
   error?: string;
@@ -16,6 +18,7 @@ export type AuthState = {
 const MIN_PASSWORD = 8;
 
 export async function signUp(_state: AuthState, formData: FormData): Promise<AuthState> {
+  const locale = await currentLocale();
   const email = text(formData, "email").toLowerCase();
   const name = text(formData, "name");
   const password = raw(formData, "password");
@@ -23,12 +26,12 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   const next = safeNextPath(text(formData, "next"));
   const values = { email, name, next };
 
-  if (!email.includes("@")) return { error: "Enter a valid email address.", values };
-  if (name.length < 2) return { error: "Enter a name with at least two letters.", values };
+  if (!email.includes("@")) return { error: tx(locale, "Masukkan alamat email yang valid.", "Enter a valid email address."), values };
+  if (name.length < 2) return { error: tx(locale, "Masukkan nama yang terdiri dari minimal dua huruf.", "Enter a name with at least two letters."), values };
   if (password.length < MIN_PASSWORD) {
-    return { error: `Your password must be at least ${MIN_PASSWORD} characters.`, values };
+    return { error: tx(locale, `Kata sandi harus terdiri dari minimal ${MIN_PASSWORD} karakter.`, `Your password must be at least ${MIN_PASSWORD} characters.`), values };
   }
-  if (password !== confirm) return { error: "The password confirmation does not match.", values };
+  if (password !== confirm) return { error: tx(locale, "Konfirmasi kata sandi tidak cocok.", "The password confirmation does not match."), values };
 
   const supabase = await requireSupabase();
   const origin = await siteOrigin();
@@ -41,7 +44,7 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
     },
   });
 
-  if (error) return { error: translate(error.message), values };
+  if (error) return { error: translate(error.message, locale), values };
 
   // A trigger creates the public profile alongside the auth user, so the people
   // directory is now missing somebody. It is cached and shared, so it has to be
@@ -52,7 +55,7 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
   // has to open the link before they can do anything.
   if (!data.session) {
     return {
-      notice: `We sent a confirmation link to ${email}. Open it to finish creating your account.`,
+      notice: tx(locale, `Kami telah mengirim tautan konfirmasi ke ${email}. Buka tautan tersebut untuk menyelesaikan pembuatan akun.`, `We sent a confirmation link to ${email}. Open it to finish creating your account.`),
       values,
     };
   }
@@ -62,13 +65,14 @@ export async function signUp(_state: AuthState, formData: FormData): Promise<Aut
 }
 
 export async function signIn(_state: AuthState, formData: FormData): Promise<AuthState> {
+  const locale = await currentLocale();
   const email = text(formData, "email").toLowerCase();
   const password = raw(formData, "password");
   const next = safeNextPath(text(formData, "next"));
 
   const supabase = await requireSupabase();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: translate(error.message), values: { email, next } };
+  if (error) return { error: translate(error.message, locale), values: { email, next } };
 
   revalidatePath("/", "layout");
   redirect(startPath(next));
@@ -86,10 +90,11 @@ export async function requestPasswordReset(
   _state: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
+  const locale = await currentLocale();
   const email = text(formData, "email").toLowerCase();
   const values = { email };
 
-  if (!email.includes("@")) return { error: "Enter a valid email address.", values };
+  if (!email.includes("@")) return { error: tx(locale, "Masukkan alamat email yang valid.", "Enter a valid email address."), values };
 
   const supabase = await requireSupabase();
   const origin = await siteOrigin();
@@ -99,13 +104,14 @@ export async function requestPasswordReset(
   // A rate limit is worth saying out loud; anything else stays behind the
   // same neutral notice, so a failure cannot be read as "this email exists".
   if (error && /rate|limit|too many/i.test(error.message)) {
-    return { error: "Too many requests. Please wait a moment and try again.", values };
+    return { error: tx(locale, "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.", "Too many requests. Please wait a moment and try again."), values };
   }
 
   return {
-    notice:
-      `If ${email} is registered here, we have sent a password reset link. ` +
-      "The link expires soon, so please open it promptly.",
+    notice: tx(locale,
+      `Jika ${email} terdaftar di sini, kami telah mengirim tautan pengaturan ulang kata sandi. Tautan tersebut segera kedaluwarsa, jadi segera buka.`,
+      `If ${email} is registered here, we have sent a password reset link. The link expires soon, so please open it promptly.`,
+    ),
     values,
   };
 }
@@ -117,26 +123,27 @@ export async function requestPasswordReset(
  * guessing — an expired link should send somebody back to ask for a new one.
  */
 export async function updatePassword(_state: AuthState, formData: FormData): Promise<AuthState> {
+  const locale = await currentLocale();
   const password = raw(formData, "password");
   const confirm = raw(formData, "confirm");
 
   if (password.length < MIN_PASSWORD) {
-    return { error: `Your password must be at least ${MIN_PASSWORD} characters.`, values: {} };
+    return { error: tx(locale, `Kata sandi harus terdiri dari minimal ${MIN_PASSWORD} karakter.`, `Your password must be at least ${MIN_PASSWORD} characters.`), values: {} };
   }
-  if (password !== confirm) return { error: "The password confirmation does not match.", values: {} };
+  if (password !== confirm) return { error: tx(locale, "Konfirmasi kata sandi tidak cocok.", "The password confirmation does not match."), values: {} };
 
   const supabase = await requireSupabase();
   const { data: session } = await supabase.auth.getUser();
   if (!session.user) {
     return {
       error:
-        "This link has expired or has already been used. Request a new one through “Forgot password.”",
+        tx(locale, "Tautan ini telah kedaluwarsa atau sudah digunakan. Minta tautan baru melalui “Lupa kata sandi”.", "This link has expired or has already been used. Request a new one through “Forgot password.”"),
       values: {},
     };
   }
 
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { error: translate(error.message), values: {} };
+  if (error) return { error: translate(error.message, locale), values: {} };
 
   revalidatePath("/", "layout");
   redirect("/");
@@ -162,14 +169,17 @@ function raw(formData: FormData, key: string): string {
 }
 
 /** Supabase answers in English; these are the ones people actually hit. */
-function translate(message: string): string {
-  const known: Record<string, string> = {
-    "Invalid login credentials": "The email address or password is incorrect.",
-    "Email not confirmed": "Your email address has not been confirmed. Check your inbox first.",
-    "User already registered": "This email address is already registered. Try signing in instead.",
-    "New password should be different from the old password.":
-      "Your new password must be different from the old one.",
+function translate(message: string, locale: Locale): string {
+  const known: Record<string, { id: string; en: string }> = {
+    "Invalid login credentials": { id: "Alamat email atau kata sandi salah.", en: "The email address or password is incorrect." },
+    "Email not confirmed": { id: "Alamat email belum dikonfirmasi. Periksa kotak masukmu terlebih dahulu.", en: "Your email address has not been confirmed. Check your inbox first." },
+    "User already registered": { id: "Alamat email ini sudah terdaftar. Coba masuk ke akunmu.", en: "This email address is already registered. Try signing in instead." },
+    "New password should be different from the old password.": {
+      id: "Kata sandi baru harus berbeda dari kata sandi lama.",
+      en: "Your new password must be different from the old one.",
+    },
   };
 
-  return known[message] ?? message;
+  const copy = known[message];
+  return copy ? tx(locale, copy.id, copy.en) : message;
 }

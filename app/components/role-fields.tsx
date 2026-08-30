@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MAXIMUM } from "../lib/brief";
 import { RoleSelect } from "./role-select";
+import { useLanguage } from "./language-provider";
 
 /** A catalogue role plus a named escape hatch when the catalogue does not fit. */
 export function RoleFields({
@@ -23,10 +24,11 @@ export function RoleFields({
   roleTitleError?: string;
 }) {
   const [role, setRole] = useState(defaultRole);
+  const { tx } = useLanguage();
 
   return (
     <div className="role-fields">
-      <label htmlFor={id}>Open role</label>
+      <label htmlFor={id}>{tx("Peran yang dibuka", "Open role")}</label>
       <RoleSelect
         id={id}
         name={roleName}
@@ -34,7 +36,7 @@ export function RoleFields({
         onValueChange={setRole}
       />
       <p className="hint role-catalogue-hint">
-        Search the catalogue. If it is not there, choose “Other role”.
+        {tx("Cari di katalog. Jika tidak tersedia, pilih “Peran lainnya”.", "Search the catalogue. If it is not there, choose “Other role”.")}
       </p>
       {roleError ? <p className="field-error role-field-error" role="alert">{roleError}</p> : null}
 
@@ -42,7 +44,7 @@ export function RoleFields({
         className={roleTitleError ? "field has-error" : "field"}
         hidden={role !== "other"}
       >
-        <label htmlFor={`${id}-title`}>Other role name</label>
+        <label htmlFor={`${id}-title`}>{tx("Nama peran lainnya", "Other role name")}</label>
         <input
           id={`${id}-title`}
           name={roleTitleName}
@@ -52,7 +54,7 @@ export function RoleFields({
           required={role === "other"}
           disabled={role !== "other"}
           aria-invalid={roleTitleError ? true : undefined}
-          placeholder="For example: Videographer, Treasurer, Event coordinator"
+          placeholder={tx("Contoh: Videografer, Bendahara, Koordinator acara", "For example: Videographer, Treasurer, Event coordinator")}
         />
         {roleTitleError ? <p className="field-error" role="alert">{roleTitleError}</p> : null}
       </div>

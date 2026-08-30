@@ -3,13 +3,14 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { createProject, previewProjectLink, type CreateState, type LinkPreview } from "../actions";
 import { MAXIMUM } from "../lib/brief";
-import { STAGES, stageMeta, type Stage } from "../lib/stages";
+import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";
 import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
 import { ProjectTypePicker } from "./project-type-picker";
 import { RoleFields } from "./role-fields";
 import { TopicPicker } from "./topic-picker";
 import { GitHubImport } from "./github-import";
+import { useLanguage } from "./language-provider";
 
 const EMPTY: CreateState = { errors: {}, values: {} };
 
@@ -74,6 +75,7 @@ export function CreateForm() {
     values.openForGitHubContributions === "yes",
   );
   const detailsHaveErrors = DETAIL_FIELDS.some((field) => errors[field]);
+  const { locale, tx } = useLanguage();
 
   /*
    * Read the link while they are still looking at it.
@@ -123,7 +125,7 @@ export function CreateForm() {
 
       <section className="link-start">
         <div className={`field ${errors.link ? "has-error" : ""}`}>
-          <label htmlFor="link">Project link</label>
+          <label htmlFor="link">{tx("Tautan proyek", "Project link")}</label>
           <input
             id="link"
             name="link"
@@ -148,9 +150,9 @@ export function CreateForm() {
         <LinkReading reading={reading} preview={preview} error={previewError} />
 
         <Field
-          label="What is interesting about this project?"
+          label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
           name="highlight"
-          hint="Optional."
+          hint={tx("Opsional.", "Optional.")}
           error={errors.highlight}
           defaultValue={values.highlight}
           rows={3}
@@ -160,40 +162,40 @@ export function CreateForm() {
 
       <details className="optional-fields project-details" open={detailsHaveErrors}>
         <summary>
-          Add project details<span>optional</span>
+          {tx("Tambahkan detail proyek", "Add project details")}<span>{tx("opsional", "optional")}</span>
         </summary>
 
         <div className="project-details-body">
           <fieldset className="step">
-            <legend>The project</legend>
+            <legend>{tx("Proyek", "The project")}</legend>
 
             <Field
               key={`title-${prefillKey}`}
-              label="Project name"
+              label={tx("Nama proyek", "Project name")}
               name="title"
-              hint="Taken from the page when you leave it blank."
+              hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
               error={errors.title}
               defaultValue={values.title || preview?.title || ""}
               maxLength={MAXIMUM.title}
-              placeholder="For example: Stay Safe"
+              placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
             />
 
             <Field
               key={`tagline-${prefillKey}`}
-              label="One-line summary"
+              label={tx("Ringkasan satu kalimat", "One-line summary")}
               name="tagline"
-              hint="Its main benefit in plain language. Taken from the page when you leave it blank."
+              hint={tx("Manfaat utamanya dalam bahasa sederhana. Diambil dari halaman jika dikosongkan.", "Its main benefit in plain language. Taken from the page when you leave it blank.")}
               error={errors.tagline}
               defaultValue={values.tagline || preview?.tagline || ""}
               maxLength={MAXIMUM.tagline}
-              placeholder="For example: Digital safety materials for parents and children."
+              placeholder={tx("Contoh: Materi keamanan digital untuk orang tua dan anak.", "For example: Digital safety materials for parents and children.")}
             />
 
             <Field
               key={`logo-${prefillKey}`}
-              label="Icon or logo URL"
+              label={tx("URL ikon atau logo", "Icon or logo URL")}
               name="logoUrl"
-              hint="A direct link to a PNG, SVG, WebP, or ICO file. Taken from the page when you leave it blank."
+              hint={tx("Tautan langsung ke berkas PNG, SVG, WebP, atau ICO. Diambil dari halaman jika dikosongkan.", "A direct link to a PNG, SVG, WebP, or ICO file. Taken from the page when you leave it blank.")}
               error={errors.logoUrl}
               defaultValue={values.logoUrl || preview?.logoUrl || ""}
               maxLength={MAXIMUM.logoUrl}
@@ -206,16 +208,15 @@ export function CreateForm() {
           </fieldset>
 
           <fieldset className="step">
-            <legend>Short brief</legend>
+            <legend>{tx("Brief singkat", "Short brief")}</legend>
             <p className="step-intro">
-              This does not need to read like a proposal, and no part of it is required. One or two
-              concrete sentences per question are enough.
+              {tx("Tulisan ini tidak perlu seperti proposal dan tidak ada bagian yang wajib. Satu atau dua kalimat konkret untuk setiap pertanyaan sudah cukup.", "This does not need to read like a proposal, and no part of it is required. One or two concrete sentences per question are enough.")}
             </p>
 
             <Field
-              label="What problem are you solving?"
+              label={tx("Masalah apa yang ingin kamu selesaikan?", "What problem are you solving?")}
               name="problem"
-              hint="Who is struggling, in what situation, and why is the current approach not enough?"
+              hint={tx("Siapa yang mengalami kesulitan, dalam situasi apa, dan mengapa cara yang ada belum cukup?", "Who is struggling, in what situation, and why is the current approach not enough?")}
               error={errors.problem}
               defaultValue={values.problem}
               rows={4}
@@ -223,9 +224,9 @@ export function CreateForm() {
             />
 
             <Field
-              label="What are you making?"
+              label={tx("Apa yang sedang kamu buat?", "What are you making?")}
               name="solution"
-              hint="Describe the form of the solution and the direction you want to explore."
+              hint={tx("Jelaskan bentuk solusi dan arah yang ingin kamu jajaki.", "Describe the form of the solution and the direction you want to explore.")}
               error={errors.solution}
               defaultValue={values.solution}
               rows={4}
@@ -233,9 +234,9 @@ export function CreateForm() {
             />
 
             <Field
-              label="Who is it for?"
+              label={tx("Untuk siapa proyek ini?", "Who is it for?")}
               name="audience"
-              hint="Name the group of people it will help most specifically."
+              hint={tx("Sebutkan secara spesifik kelompok yang paling terbantu.", "Name the group of people it will help most specifically.")}
               error={errors.audience}
               defaultValue={values.audience}
               rows={2}
@@ -244,14 +245,13 @@ export function CreateForm() {
           </fieldset>
 
           <fieldset className="step">
-            <legend>Status and links</legend>
+            <legend>{tx("Status dan tautan", "Status and links")}</legend>
             <p className="step-intro">
-              Left alone, the status follows the link: something people can open is live, a
-              repository is being built.
+              {tx("Jika tidak dipilih, status mengikuti tautannya: sesuatu yang dapat dibuka orang dianggap berjalan, sedangkan repositori dianggap sedang dibangun.", "Left alone, the status follows the link: something people can open is live, a repository is being built.")}
             </p>
 
             <p className="type-picker-divider" id="stage-label">
-              Project status
+              {tx("Status proyek", "Project status")}
             </p>
             <ul className="stage-choice" role="radiogroup" aria-labelledby="stage-label">
               {STAGES.map((item) => (
@@ -266,8 +266,8 @@ export function CreateForm() {
                       onChange={() => setStage(item)}
                     />
                     <span>
-                      <strong>{stageMeta[item].label}</strong>
-                      <small>{stageMeta[item].blurb}</small>
+                      <strong>{stageLabel(item, locale)}</strong>
+                      <small>{stageBlurb(item, locale)}</small>
                     </span>
                   </label>
                 </li>
@@ -275,17 +275,17 @@ export function CreateForm() {
             </ul>
 
             <Field
-              label="What are you working on now?"
+              label={tx("Apa yang sedang kamu kerjakan?", "What are you working on now?")}
               name="now"
-              hint="One sentence is enough. You can update it any time from the project page."
+              hint={tx("Satu kalimat sudah cukup. Kamu dapat memperbaruinya kapan saja dari halaman proyek.", "One sentence is enough. You can update it any time from the project page.")}
               error={errors.now}
               defaultValue={values.now}
               maxLength={MAXIMUM.now}
-              placeholder="For example: Drafting the first safety materials."
+              placeholder={tx("Contoh: Menyusun draf materi keamanan pertama.", "For example: Drafting the first safety materials.")}
             />
 
             <Field
-              label="Document or research"
+              label={tx("Dokumen atau riset", "Document or research")}
               name="docUrl"
               error={errors.docUrl}
               defaultValue={values.docUrl}
@@ -294,9 +294,9 @@ export function CreateForm() {
             />
 
             <Field
-              label="Another link"
+              label={tx("Tautan lainnya", "Another link")}
               name="liveUrl"
-              hint="Only if the link at the top is not the project's own website."
+              hint={tx("Isi hanya jika tautan di bagian atas bukan situs web proyek.", "Only if the link at the top is not the project's own website.")}
               error={errors.liveUrl}
               defaultValue={values.liveUrl}
               type="url"
@@ -305,10 +305,9 @@ export function CreateForm() {
           </fieldset>
 
           <fieldset className="step">
-            <legend>Open contributions through GitHub</legend>
+            <legend>{tx("Buka kontribusi melalui GitHub", "Open contributions through GitHub")}</legend>
             <p className="step-intro">
-              Select this only if you welcome community issues and pull requests. We will show a
-              dedicated project badge and help prefill the draft from your public repository.
+              {tx("Pilih ini hanya jika kamu menerima issue dan pull request dari komunitas. Kami akan menampilkan lencana khusus dan membantu mengisi draf dari repositori publikmu.", "Select this only if you welcome community issues and pull requests. We will show a dedicated project badge and help prefill the draft from your public repository.")}
             </p>
 
             <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
@@ -318,8 +317,8 @@ export function CreateForm() {
                 onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
               />
               <span>
-                <strong>Open to GitHub contributions</strong>
-                <small>People can see that GitHub contributions are open for this project.</small>
+                <strong>{tx("Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")}</strong>
+                <small>{tx("Orang dapat melihat bahwa proyek ini terbuka untuk kontribusi GitHub.", "People can see that GitHub contributions are open for this project.")}</small>
               </span>
             </label>
             <input
@@ -331,9 +330,9 @@ export function CreateForm() {
             {openForGitHubContributions ? (
               <div className="progressive-panel">
                 <Field
-                  label="GitHub repository URL"
+                  label={tx("URL repositori GitHub", "GitHub repository URL")}
                   name="repoUrl"
-                  hint="Must be a public GitHub repository, for example https://github.com/organization/project. Leave blank if you already pasted it above."
+                  hint={tx("Harus berupa repositori GitHub publik, misalnya https://github.com/organization/project. Biarkan kosong jika sudah ditempel di atas.", "Must be a public GitHub repository, for example https://github.com/organization/project. Leave blank if you already pasted it above.")}
                   error={errors.repoUrl}
                   defaultValue={values.repoUrl}
                   type="url"
@@ -347,8 +346,8 @@ export function CreateForm() {
           </fieldset>
 
           <fieldset className="step">
-            <legend>Looking for help?</legend>
-            <p className="step-intro">You can also open a role later, from the project page.</p>
+            <legend>{tx("Mencari bantuan?", "Looking for help?")}</legend>
+            <p className="step-intro">{tx("Kamu juga dapat membuka peran nanti dari halaman proyek.", "You can also open a role later, from the project page.")}</p>
 
             <label className={`help-toggle ${wantsHelp ? "is-on" : ""}`}>
               <input
@@ -357,8 +356,8 @@ export function CreateForm() {
                 onChange={(event) => setWantsHelp(event.target.checked)}
               />
               <span>
-                <strong>Yes, I am looking for help</strong>
-                <small>Show the role, the work involved, and the estimated time.</small>
+                <strong>{tx("Ya, saya sedang mencari bantuan", "Yes, I am looking for help")}</strong>
+                <small>{tx("Tampilkan peran, pekerjaan yang terlibat, dan perkiraan waktunya.", "Show the role, the work involved, and the estimated time.")}</small>
               </span>
             </label>
 
@@ -376,7 +375,7 @@ export function CreateForm() {
                 />
 
                 <div className={errors.seatBrief ? "field has-error" : "field"}>
-                  <label htmlFor="seatBrief">What needs help</label>
+                  <label htmlFor="seatBrief">{tx("Bagian yang membutuhkan bantuan", "What needs help")}</label>
                   <textarea
                     id="seatBrief"
                     name="seatBrief"
@@ -385,7 +384,7 @@ export function CreateForm() {
                     defaultValue={values.seatBrief}
                     required
                     aria-invalid={errors.seatBrief ? true : undefined}
-                    placeholder="For example: Interview five potential users and summarize what you learn."
+                    placeholder={tx("Contoh: Wawancarai lima calon pengguna dan rangkum temuannya.", "For example: Interview five potential users and summarize what you learn.")}
                   />
                   {errors.seatBrief ? (
                     <p className="field-error" role="alert">
@@ -407,7 +406,7 @@ export function CreateForm() {
       </details>
 
       <button className="primary-button create-submit" type="submit" disabled={pending}>
-        {pending ? "Adding…" : "Add project"}
+        {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
       </button>
     </form>
   );
@@ -423,10 +422,11 @@ function LinkReading({
   preview: LinkPreview | null;
   error: string;
 }) {
+  const { tx } = useLanguage();
   if (reading) {
     return (
       <p className="link-reading" aria-live="polite">
-        Reading the page…
+        {tx("Membaca halaman…", "Reading the page…")}
       </p>
     );
   }
@@ -461,7 +461,7 @@ function LinkReading({
       {/* When the read worked, the card is the message. Only the case that
           needs explaining gets a sentence. */}
       {preview.fetched ? null : (
-        <p className="link-preview-note">That page would not let us read it, so we used its address.</p>
+        <p className="link-preview-note">{tx("Halaman tersebut tidak dapat kami baca, jadi kami menggunakan alamatnya.", "That page would not let us read it, so we used its address.")}</p>
       )}
     </div>
   );

@@ -11,6 +11,7 @@
  */
 
 import { isHttpUrl } from "./brief";
+import { tx, type Locale } from "./locale";
 
 export const PROFILE_MAXIMUM = {
   name: 80,
@@ -80,19 +81,19 @@ const TEXT_CEILINGS = {
  * away instead: a link with no scheme, an address that is not an address, a
  * bio past the column's ceiling.
  */
-export function validateProfile(input: ProfileInput): ProfileFieldErrors {
+export function validateProfile(input: ProfileInput, locale: Locale = "en"): ProfileFieldErrors {
   const errors: ProfileFieldErrors = {};
 
   const name = input.name.trim();
   if (!name) {
-    errors.name = "Enter your name.";
+    errors.name = tx(locale, "Masukkan namamu.", "Enter your name.");
   } else if (name.length > PROFILE_MAXIMUM.name) {
-    errors.name = tooLong("name", PROFILE_MAXIMUM.name);
+    errors.name = tooLong("name", PROFILE_MAXIMUM.name, locale);
   }
 
   for (const field of ["profession", "headline", "bio"] as const) {
     if (input[field].trim().length > TEXT_CEILINGS[field]) {
-      errors[field] = tooLong(field, TEXT_CEILINGS[field]);
+      errors[field] = tooLong(field, TEXT_CEILINGS[field], locale);
     }
   }
 
@@ -100,7 +101,7 @@ export function validateProfile(input: ProfileInput): ProfileFieldErrors {
   if (experience) {
     const years = Number(experience);
     if (!Number.isInteger(years) || years < 0 || years > PROFILE_LIMITS.yearsExperience) {
-      errors.yearsExperience = `Enter a whole number from 0 to ${PROFILE_LIMITS.yearsExperience}, or leave this blank.`;
+      errors.yearsExperience = tx(locale, `Masukkan bilangan bulat dari 0 hingga ${PROFILE_LIMITS.yearsExperience}, atau biarkan kosong.`, `Enter a whole number from 0 to ${PROFILE_LIMITS.yearsExperience}, or leave this blank.`);
     }
   }
 
@@ -108,17 +109,17 @@ export function validateProfile(input: ProfileInput): ProfileFieldErrors {
     const value = input[field].trim();
     if (!value) continue;
     if (!isHttpUrl(value)) {
-      errors[field] = `${LABELS[field]} must start with http:// or https://.`;
+      errors[field] = tx(locale, `${labelId(field)} harus diawali http:// atau https://.`, `${LABELS[field]} must start with http:// or https://.`);
     } else if (value.length > PROFILE_MAXIMUM.link) {
-      errors[field] = tooLong(field, PROFILE_MAXIMUM.link);
+      errors[field] = tooLong(field, PROFILE_MAXIMUM.link, locale);
     }
   }
 
   const email = input.publicEmail.trim();
   if (email && !isEmail(email)) {
-    errors.publicEmail = "Enter a valid public email address.";
+    errors.publicEmail = tx(locale, "Masukkan alamat email publik yang valid.", "Enter a valid public email address.");
   } else if (email.length > PROFILE_MAXIMUM.publicEmail) {
-    errors.publicEmail = tooLong("publicEmail", PROFILE_MAXIMUM.publicEmail);
+    errors.publicEmail = tooLong("publicEmail", PROFILE_MAXIMUM.publicEmail, locale);
   }
 
   return errors;
@@ -128,6 +129,25 @@ export function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function tooLong(field: keyof ProfileInput, ceiling: number): string {
-  return `${LABELS[field]} is too long—at most ${ceiling} characters.`;
+function tooLong(field: keyof ProfileInput, ceiling: number, locale: Locale): string {
+  return tx(locale, `${labelId(field)} terlalu panjang—maksimal ${ceiling} karakter.`, `${LABELS[field]} is too long—at most ${ceiling} characters.`);
+}
+
+function labelId(field: keyof ProfileInput): string {
+  const labels: Record<keyof ProfileInput, string> = {
+    name: "Nama",
+    profession: "Profesi",
+    headline: "Perkenalan singkat",
+    bio: "Bio singkat",
+    skills: "Keahlian",
+    yearsExperience: "Lama pengalaman",
+    fields: "Bidang keahlian",
+    website: "Situs web",
+    publicEmail: "Email publik",
+    github: "GitHub",
+    linkedin: "LinkedIn",
+    x: "X / Twitter",
+    resume: "Tautan résumé",
+  };
+  return labels[field];
 }

@@ -1,9 +1,9 @@
 export const PROJECT_TABS = [
-  { id: "about", label: "About" },
-  { id: "collaboration", label: "Collaboration" },
-  { id: "journey", label: "Journey" },
-  { id: "tasks", label: "Tasks" },
-  { id: "discussion", label: "Discussion" },
+  { id: "about", labelId: "Tentang", labelEn: "About" },
+  { id: "collaboration", labelId: "Kolaborasi", labelEn: "Collaboration" },
+  { id: "journey", labelId: "Perjalanan", labelEn: "Journey" },
+  { id: "tasks", labelId: "Tugas", labelEn: "Tasks" },
+  { id: "discussion", labelId: "Diskusi", labelEn: "Discussion" },
 ] as const;
 
 export type ProjectTab = (typeof PROJECT_TABS)[number]["id"];

@@ -1,23 +1,26 @@
 import Link from "next/link";
-import { projectTypeLabel, projectTypeMeta, projectTypeTone, isProjectType } from "../lib/project-types";
+import { projectTypeBlurb, projectTypeLabel, projectTypeTone, isProjectType } from "../lib/project-types";
 import { projectBlurb } from "../lib/brief";
 import { roleLabel } from "../lib/roles";
-import { RUNGS, rungIndex, stageMeta, type Stage } from "../lib/stages";
+import { RUNGS, rungIndex, stageBlurb, stageLabel, stageMeta, type Stage } from "../lib/stages";
 import type { ActivityEvent, ProjectSummary, UpdateView } from "../lib/data";
 import { activityParts } from "../lib/activity";
 import { journeyDate } from "../lib/updates";
 import { Arrow } from "./shell";
 import { ProjectLogo } from "./project-logo";
 import { LinkIcon } from "./link-icons";
+import { currentLocale } from "../lib/locale-server";
+import { tx, type Locale } from "../lib/locale";
 
 const PROFILE_DESCRIPTION_LIMIT = 150;
 
-export function StageBadge({ stage }: { stage: Stage }) {
+export async function StageBadge({ stage }: { stage: Stage }) {
+  const locale = await currentLocale();
   const meta = stageMeta[stage] ?? stageMeta.idea;
   return (
-    <span className={`stage-badge ${meta.tone}`} title={meta.blurb}>
+    <span className={`stage-badge ${meta.tone}`} title={stageBlurb(stage, locale)}>
       <i aria-hidden="true" />
-      {meta.label}
+      {stageLabel(stage, locale)}
     </span>
   );
 }
@@ -29,27 +32,29 @@ export function StageBadge({ stage }: { stage: Stage }) {
  * chip on every older card would be noise standing in for an answer, and the
  * board already reads as "no badge means nothing was claimed".
  */
-export function TypeBadge({ type }: { type: string }) {
+export async function TypeBadge({ type }: { type: string }) {
   if (!isProjectType(type)) return null;
+  const locale = await currentLocale();
 
   return (
-    <span className={`type-badge ${projectTypeTone(type)}`} title={projectTypeMeta[type].blurb}>
-      {projectTypeMeta[type].label}
+    <span className={`type-badge ${projectTypeTone(type)}`} title={projectTypeBlurb(type, locale)}>
+      {projectTypeLabel(type, locale)}
     </span>
   );
 }
 
 /** A maintainer's explicit invitation, kept visually distinct from a stage. */
-export function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
+export async function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
+  const locale = await currentLocale();
   return (
     <a
       className="github-contribute-badge"
       href={repoUrl}
       target="_blank"
       rel="noreferrer"
-      title="This project is open to contributions through GitHub"
+      title={tx(locale, "Proyek ini terbuka untuk kontribusi melalui GitHub", "This project is open to contributions through GitHub")}
     >
-      Open to GitHub contributions <Arrow diagonal />
+      {tx(locale, "Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")} <Arrow diagonal />
     </a>
   );
 }
@@ -81,7 +86,8 @@ export function TagRow({ tags, linked = true }: { tags: string[]; linked?: boole
  * task tallies, how many stages of four — is either further down or gone.
  * There is no rank number: the board is a place to look around, not a chart.
  */
-export function ProjectRow({ project }: { project: ProjectSummary }) {
+export async function ProjectRow({ project }: { project: ProjectSummary }) {
+  const locale = await currentLocale();
   const helpers = project.activeMemberCount;
 
   return (
@@ -114,7 +120,7 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
         {project.openRoles.length > 0 ? (
           <div className="open-call">
             <p className="open-call-head">
-              <span className="dot" aria-hidden="true" /> Open to contributions
+              <span className="dot" aria-hidden="true" /> {tx(locale, "Terbuka untuk kontribusi", "Open to contributions")}
             </p>
             <SeatChips roles={project.openRoles} />
           </div>
@@ -127,14 +133,14 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
             </span>
             <small>
               {project.owner.name}
-              {helpers > 0 ? ` + ${helpers} people` : ""}
+              {helpers > 0 ? tx(locale, ` + ${helpers} orang`, ` + ${helpers} people`) : ""}
             </small>
           </Link>
 
-          <span className="row-freshness">{freshness(project)}</span>
+          <span className="row-freshness">{freshness(project, locale)}</span>
 
           <Link className="detail-link" href={`/projects/${project.slug}`}>
-            View <Arrow />
+            {tx(locale, "Lihat", "View")} <Arrow />
           </Link>
         </div>
       </article>
@@ -149,21 +155,22 @@ export function ProjectRow({ project }: { project: ProjectSummary }) {
  * last week and untouched since is not. Neither of those is something a
  * "created 1 year ago" line can tell you, which is why that line is gone.
  */
-export function NowLine({ project }: { project: ProjectSummary }) {
+export async function NowLine({ project }: { project: ProjectSummary }) {
   if (!project.nowText) return null;
+  const locale = await currentLocale();
 
   return (
     <div className="now-line">
-      <p className="now-label">Now</p>
+      <p className="now-label">{tx(locale, "Sekarang", "Now")}</p>
       <p className="now-text">{project.nowText}</p>
     </div>
   );
 }
 
 /** "Aktif 3 hari lalu" — freshness, which beats any percentage of done. */
-export function freshness(project: ProjectSummary): string {
-  const when = timeAgo(project.lastActivityAt || project.createdAt);
-  return when ? `Last Update ${when}` : "";
+export function freshness(project: ProjectSummary, locale: Locale = "en"): string {
+  const when = timeAgo(project.lastActivityAt || project.createdAt, locale);
+  return when ? tx(locale, `Pembaruan terakhir ${when}`, `Last update ${when}`) : "";
 }
 
 /**
@@ -174,15 +181,16 @@ export function freshness(project: ProjectSummary): string {
  * decision rather than a rung, so it says so in words instead of pretending to
  * be a fourth dot.
  */
-export function RungRail({ stage }: { stage: Stage }) {
+export async function RungRail({ stage }: { stage: Stage }) {
+  const locale = await currentLocale();
   const here = rungIndex(stage);
 
   if (here < 0) {
-    return <p className="rung-resting">{stageMeta[stage].blurb}</p>;
+    return <p className="rung-resting">{stageBlurb(stage, locale)}</p>;
   }
 
   return (
-    <ol className="rung-rail" aria-label="Project journey">
+    <ol className="rung-rail" aria-label={tx(locale, "Perjalanan proyek", "Project journey")}>
       {RUNGS.map((rung, index) => (
         <li
           key={rung}
@@ -190,14 +198,14 @@ export function RungRail({ stage }: { stage: Stage }) {
           aria-current={index === here ? "step" : undefined}
         >
           <span className="rung-dot" aria-hidden="true" />
-          <span>{stageMeta[rung].label}</span>
+          <span>{stageLabel(rung, locale)}</span>
         </li>
       ))}
     </ol>
   );
 }
 
-export function ProjectCard({
+export async function ProjectCard({
   project,
   categoryPosition = "top",
   roleCounts,
@@ -208,7 +216,8 @@ export function ProjectCard({
   roleCounts?: Record<string, number>;
   className?: string;
 }) {
-  const category = project.tags[0] || stageMeta[project.stage].label;
+  const locale = await currentLocale();
+  const category = project.tags[0] || stageLabel(project.stage, locale);
 
   return (
     <article className={`profile-project-card${className ? ` ${className}` : ""}`}>
@@ -238,7 +247,7 @@ export function ProjectCard({
       </div>
 
       <div className="profile-project-description">
-        <span>Short description</span>
+        <span>{tx(locale, "Deskripsi singkat", "Short description")}</span>
         <p>{shortText(project.problem, PROFILE_DESCRIPTION_LIMIT)}</p>
       </div>
 
@@ -246,31 +255,31 @@ export function ProjectCard({
 
       {project.nowText ? (
         <div className="profile-project-now">
-          <span>Now</span>
+          <span>{tx(locale, "Sekarang", "Now")}</span>
           <p>{project.nowText}</p>
         </div>
       ) : null}
 
       <div className={`profile-project-roles${project.openRoles.length === 0 ? " profile-project-roles-empty" : ""}`}>
-        <small>Looking for</small>
+        <small>{tx(locale, "Mencari", "Looking for")}</small>
         {project.openRoles.length > 0 ? (
           <SeatChips roles={project.openRoles} counts={roleCounts} maxVisible={2} />
         ) : (
-          <span className="profile-project-roles-none">No open roles yet</span>
+          <span className="profile-project-roles-none">{tx(locale, "Belum ada peran terbuka", "No open roles yet")}</span>
         )}
       </div>
 
       <div className="profile-project-footer">
-        <span>{freshness(project) || "Baru ditampilkan"}</span>
-        <nav className="profile-project-actions" aria-label={`${project.title} links`}>
+        <span>{freshness(project, locale) || tx(locale, "Baru ditampilkan", "Recently listed")}</span>
+        <nav className="profile-project-actions" aria-label={tx(locale, `Tautan ${project.title}`, `${project.title} links`)}>
           {project.liveUrl ? (
-            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} website`}>
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={tx(locale, `Buka situs web ${project.title}`, `Open ${project.title} website`)}>
               <LinkIcon kind="website" />
-              <span>Website</span>
+              <span>{tx(locale, "Situs web", "Website")}</span>
             </a>
           ) : null}
           {project.repoUrl ? (
-            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} on GitHub`}>
+            <a href={project.repoUrl} target="_blank" rel="noreferrer" aria-label={tx(locale, `Buka ${project.title} di GitHub`, `Open ${project.title} on GitHub`)}>
               <LinkIcon kind="github" />
               <span>GitHub</span>
             </a>
@@ -285,10 +294,11 @@ export function ProjectCard({
 }
 
 /** A project logo is enough evidence here; its page carries the full context. */
-export function ProjectIconLink({ project }: { project: ProjectSummary }) {
+export async function ProjectIconLink({ project }: { project: ProjectSummary }) {
+  const locale = await currentLocale();
   return (
     <li>
-      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={`Open ${project.title}`}>
+      <Link className="profile-project-icon-link" href={`/projects/${project.slug}`} aria-label={tx(locale, `Buka ${project.title}`, `Open ${project.title}`)}>
         <ProjectLogo
           title={project.title}
           website={project.liveUrl}
@@ -300,7 +310,7 @@ export function ProjectIconLink({ project }: { project: ProjectSummary }) {
   );
 }
 
-export function SeatChips({
+export async function SeatChips({
   roles,
   linked = true,
   counts,
@@ -314,16 +324,17 @@ export function SeatChips({
   maxVisible?: number;
 }) {
   if (roles.length === 0) return null;
+  const locale = await currentLocale();
   const shownRoles = maxVisible ? roles.slice(0, maxVisible) : roles;
   const remaining = roles.length - shownRoles.length;
 
   return (
-    <ul className="seat-chips" aria-label="Help needed">
+    <ul className="seat-chips" aria-label={tx(locale, "Bantuan yang dibutuhkan", "Help needed")}>
       {shownRoles.map((role, index) => {
         const many = counts?.[role] ?? 0;
         const label = (
           <>
-            {roleLabel(role)}
+            {roleLabel(role, "", locale)}
             {many > 0 ? <b> · {many}</b> : null}
           </>
         );
@@ -331,7 +342,7 @@ export function SeatChips({
         return (
           <li key={`${role}-${index}`}>
             {linked ? (
-              <Link className="seat-chip" href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
+              <Link className="seat-chip" href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role, "", locale))}`}>
                 {label}
               </Link>
             ) : (
@@ -342,7 +353,7 @@ export function SeatChips({
       })}
       {remaining > 0 ? (
         <li>
-          <span className="seat-chip seat-chip-more" aria-label={`${remaining} more roles available`}>+{remaining}</span>
+          <span className="seat-chip seat-chip-more" aria-label={tx(locale, `${remaining} peran lainnya tersedia`, `${remaining} more roles available`)}>+{remaining}</span>
         </li>
       ) : null}
     </ul>
@@ -365,7 +376,7 @@ function shortText(text: string, limit: number): string {
  * what is it about, and — under a rule of its own, because it is the reason
  * most people are here — which hands it is short of.
  */
-export function BoardCard({
+export async function BoardCard({
   project,
   roleCounts,
   appearance = "board",
@@ -374,6 +385,7 @@ export function BoardCard({
   roleCounts?: Record<string, number>;
   appearance?: "board" | "profile";
 }) {
+  const locale = await currentLocale();
   if (appearance === "profile") {
     return (
       <li className="project-list-entry home-profile-project-entry">
@@ -407,16 +419,16 @@ export function BoardCard({
                 </h3>
                 <p className="home-project-tagline">{projectBlurb(project)}</p>
                 <p className="home-project-meta">
-                  <span>{stageMeta[project.stage].label}</span>
-                  {projectTypeLabel(project.projectType) ? (
-                    <span className="home-project-type">{projectTypeLabel(project.projectType)}</span>
+                  <span>{stageLabel(project.stage, locale)}</span>
+                  {projectTypeLabel(project.projectType, locale) ? (
+                    <span className="home-project-type">{projectTypeLabel(project.projectType, locale)}</span>
                   ) : null}
-                  <span>{freshness(project) || "Recently listed"}</span>
-                  <span>{project.commentCount} discussions</span>
+                  <span>{freshness(project, locale) || tx(locale, "Baru ditampilkan", "Recently listed")}</span>
+                  <span>{tx(locale, `${project.commentCount} diskusi`, `${project.commentCount} discussions`)}</span>
                 </p>
               </div>
             </div>
-            <div className="home-project-vote" aria-label={`${project.boostCount} supports`}>
+            <div className="home-project-vote" aria-label={tx(locale, `${project.boostCount} dukungan`, `${project.boostCount} supports`)}>
               <span aria-hidden="true">▲</span>
               <strong>{project.boostCount}</strong>
             </div>
@@ -425,14 +437,14 @@ export function BoardCard({
           {project.openRoles.length > 0 ? (
             <div className="home-open-call">
               <div className="home-open-label">
-                <p><PeopleIcon /> Roles needed</p>
-                <small>{project.openSeatCount} open positions</small>
+                <p><PeopleIcon /> {tx(locale, "Peran yang dibutuhkan", "Roles needed")}</p>
+                <small>{tx(locale, `${project.openSeatCount} posisi terbuka`, `${project.openSeatCount} open positions`)}</small>
               </div>
-              <ul className="home-role-chips" aria-label="Open roles">
+              <ul className="home-role-chips" aria-label={tx(locale, "Peran terbuka", "Open roles")}>
                 {roleEntries.slice(0, 3).map(({ role, count }) => (
                   <li key={role}>
-                    <Link href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role))}`}>
-                      {roleLabel(role)} · {count}
+                    <Link href={`/explore?searchBy=role&q=${encodeURIComponent(roleLabel(role, "", locale))}`}>
+                      {roleLabel(role, "", locale)} · {count}
                     </Link>
                   </li>
                 ))}
@@ -441,15 +453,15 @@ export function BoardCard({
           ) : (
             <div className="home-open-call home-open-call-empty">
               <div className="home-open-label">
-                <p><PeopleIcon /> Roles needed</p>
-                <small>No roles</small>
+                <p><PeopleIcon /> {tx(locale, "Peran yang dibutuhkan", "Roles needed")}</p>
+                <small>{tx(locale, "Tidak ada peran", "No roles")}</small>
               </div>
-              <p>No contribution roles open yet</p>
+              <p>{tx(locale, "Belum ada peran kontribusi yang dibuka", "No contribution roles open yet")}</p>
             </div>
           )}
 
           {project.tags.length > 0 ? (
-            <ul className="home-category-chips" aria-label="Project categories">
+            <ul className="home-category-chips" aria-label={tx(locale, "Kategori proyek", "Project categories")}>
               {project.tags.map((tag) => (
                 <li key={tag}>
                   <Link href={`/explore?tag=${encodeURIComponent(tag)}`}>{tag}</Link>
@@ -463,10 +475,10 @@ export function BoardCard({
               <span className="avatar" aria-hidden="true">
                 {initials(project.owner.name)}
               </span>
-              <small>Started by <strong>{project.owner.name}</strong></small>
+              <small>{tx(locale, "Dimulai oleh", "Started by")} <strong>{project.owner.name}</strong></small>
             </Link>
             <Link className="home-project-link" href={`/projects/${project.slug}`}>
-              View project <Arrow />
+              {tx(locale, "Lihat proyek", "View project")} <Arrow />
             </Link>
           </div>
         </div>
@@ -492,7 +504,7 @@ function PeopleIcon() {
  * than stored, because "this began" is true of every project and nobody should
  * have to type it.
  */
-export function JourneyList({
+export async function JourneyList({
   updates,
   startedAt,
   slug,
@@ -504,11 +516,12 @@ export function JourneyList({
   /** Rendered under each entry when the viewer may remove it. */
   onDelete?: (update: UpdateView) => React.ReactNode;
 }) {
+  const locale = await currentLocale();
   return (
     <ol className="journey">
       {updates.map((update) => (
         <li key={update.id}>
-          <p className="journey-when">{journeyDate(update.createdAt)}</p>
+          <p className="journey-when">{journeyDate(update.createdAt, locale)}</p>
           <div>
             <h3>{update.title}</h3>
             {update.body ? <p>{update.body}</p> : null}
@@ -516,20 +529,20 @@ export function JourneyList({
               {update.author ? (
                 <Link href={`/u/${update.author.username}`}>{update.author.name}</Link>
               ) : (
-                "Someone"
+                tx(locale, "Seseorang", "Someone")
               )}{" "}
-              · {timeAgo(update.createdAt)}
+              · {timeAgo(update.createdAt, locale)}
             </p>
             {onDelete?.(update)}
           </div>
         </li>
       ))}
       <li className="journey-start">
-        <p className="journey-when">{journeyDate(startedAt)}</p>
+        <p className="journey-when">{journeyDate(startedAt, locale)}</p>
         <div>
-          <h3>Project started</h3>
+          <h3>{tx(locale, "Proyek dimulai", "Project started")}</h3>
           <p>
-            <Link href={`/projects/${slug}`}>Shown here</Link> {timeAgo(startedAt)}.
+            <Link href={`/projects/${slug}`}>{tx(locale, "Ditampilkan di sini", "Shown here")}</Link> {timeAgo(startedAt, locale)}.
           </p>
         </div>
       </li>
@@ -547,21 +560,21 @@ export function initials(name: string): string {
 }
 
 /** "Mar 2025" — for "aktif sejak" on a profile. */
-export function monthYear(value: string): string {
+export function monthYear(value: string, locale: Locale = "en"): string {
   const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
   if (Number.isNaN(then)) return "";
-  return new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(then);
+  return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", { month: "short", year: "numeric" }).format(then);
 }
 
-export function timeAgo(value: string): string {
+export function timeAgo(value: string, locale: Locale = "en"): string {
   const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
   if (Number.isNaN(then)) return "";
 
   const days = Math.floor((Date.now() - then) / 86_400_000);
-  if (days < 1) return "today";
-  if (days < 30) return `${days} days ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
-  return `${Math.floor(days / 365)} years ago`;
+  if (days < 1) return tx(locale, "hari ini", "today");
+  if (days < 30) return tx(locale, `${days} hari lalu`, `${days} days ago`);
+  if (days < 365) return tx(locale, `${Math.floor(days / 30)} bulan lalu`, `${Math.floor(days / 30)} months ago`);
+  return tx(locale, `${Math.floor(days / 365)} tahun lalu`, `${Math.floor(days / 365)} years ago`);
 }
 
 /**
@@ -571,7 +584,7 @@ export function timeAgo(value: string): string {
  * the SELECT policy on `events` shows them their hidden entries and nobody
  * else's, so this marks them rather than dropping them.
  */
-export function ActivityList({
+export async function ActivityList({
   events,
   hidden = [],
   showActor = false,
@@ -580,10 +593,11 @@ export function ActivityList({
   hidden?: string[];
   showActor?: boolean;
 }) {
+  const locale = await currentLocale();
   return (
     <ol className="activity-list">
       {events.map((event) => {
-        const { lead, trail } = activityParts(event);
+        const { lead, trail } = activityParts(event, locale);
         const isHidden = hidden.includes(event.kind);
         const gone = event.projectId === null || !event.projectSlug;
 
@@ -604,9 +618,9 @@ export function ActivityList({
               {trail}
             </p>
             <small>
-              {timeAgo(event.createdAt)}
-              {gone ? " · project deleted" : ""}
-              {isHidden ? " · only visible to you" : ""}
+              {timeAgo(event.createdAt, locale)}
+              {gone ? tx(locale, " · proyek dihapus", " · project deleted") : ""}
+              {isHidden ? tx(locale, " · hanya terlihat olehmu", " · only visible to you") : ""}
             </small>
           </li>
         );

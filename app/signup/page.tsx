@@ -6,6 +6,8 @@ import { SignUpForm } from "../components/auth-forms";
 import { viewerId } from "../lib/session";
 import { safeNextPath } from "../lib/urls";
 import { supabaseConfigured } from "../lib/supabase";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
 /*
  * Allowed to block.
@@ -18,17 +20,21 @@ import { supabaseConfigured } from "../lib/supabase";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "Create an account — Ahsan Project",
-  description: "Create an account to show what you are building and help with other projects.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Buat akun — Ahsan Project", "Create an account — Ahsan Project"),
+    description: tx(locale, "Buat akun untuk menampilkan apa yang kamu bangun dan membantu proyek lain.", "Create an account to show what you are building and help with other projects."),
+    robots: { index: false },
+  };
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function SignUpPage({ searchParams }: { searchParams?: SearchParams }) {
   const params = (await searchParams) ?? {};
   const next = safeNextPath(typeof params.next === "string" ? params.next : "/");
+  const locale = await currentLocale();
 
   // Only whether there is a session, not who it belongs to: this page either
   // bounces them or shows the form, and neither needs a profile.
@@ -40,27 +46,26 @@ export default async function SignUpPage({ searchParams }: { searchParams?: Sear
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Create an account
+          <span /> {tx(locale, "Buat akun", "Create an account")}
         </p>
-        <h1>Start with an account.</h1>
+        <h1>{tx(locale, "Mulai dengan sebuah akun.", "Start with an account.")}</h1>
         <p className="lede">
-          With an account, you can show projects, name the help you need, and contribute to other
-          projects. Your profile page doubles as a portfolio.
+          {tx(locale, "Dengan akun, kamu dapat menampilkan proyek, menjelaskan bantuan yang dibutuhkan, dan berkontribusi pada proyek lain. Halaman profilmu sekaligus menjadi portofolio.", "With an account, you can show projects, name the help you need, and contribute to other projects. Your profile page doubles as a portfolio.")}
         </p>
 
         {supabaseConfigured() ? (
           <SignUpForm next={next} />
         ) : (
           <p className="form-error">
-            This site is not connected to Supabase yet, so registration is unavailable.
+            {tx(locale, "Situs ini belum terhubung ke Supabase sehingga pendaftaran belum tersedia.", "This site is not connected to Supabase yet, so registration is unavailable.")}
           </p>
         )}
 
         <p className="auth-switch">
-          Already have an account? <Link href={`/signin?next=${encodeURIComponent(next)}`}>Sign in</Link>.
+          {tx(locale, "Sudah punya akun?", "Already have an account?")} <Link href={`/signin?next=${encodeURIComponent(next)}`}>{tx(locale, "Masuk", "Sign in")}</Link>.
         </p>
         <p className="auth-privacy-note">
-          By creating an account, you agree to our <Link href="/privacy">Privacy Policy</Link>.
+          {tx(locale, "Dengan membuat akun, kamu menyetujui", "By creating an account, you agree to our")} <Link href="/privacy">{tx(locale, "Kebijakan Privasi", "Privacy Policy")}</Link>.
         </p>
       </main>
 

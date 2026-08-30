@@ -3,6 +3,7 @@
 import { useState, useTransition, type RefObject } from "react";
 import { importGitHubReadme } from "../actions";
 import type { GitHubProjectDraft } from "../lib/github";
+import { useLanguage } from "./language-provider";
 
 type ImportMessage = { tone: "success" | "error"; text: string } | null;
 
@@ -14,12 +15,13 @@ type ImportMessage = { tone: "success" | "error"; text: string } | null;
 export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement | null> }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<ImportMessage>(null);
+  const { tx } = useLanguage();
 
   function startImport() {
     const form = formRef.current;
     const repoUrl = valueOf(form, "repoUrl");
     if (!repoUrl) {
-      setMessage({ tone: "error", text: "Paste a GitHub repository URL first." });
+      setMessage({ tone: "error", text: tx("Tempel URL repositori GitHub terlebih dahulu.", "Paste a GitHub repository URL first.") });
       return;
     }
 
@@ -31,12 +33,14 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
       }
 
       const changed = applyDraft(form, result.draft);
-      const readmeNote = result.draft.readmeFound ? "The README has been read." : "No README was found; available repository data is still being used.";
+      const readmeNote = result.draft.readmeFound
+        ? tx("README berhasil dibaca.", "The README has been read.")
+        : tx("README tidak ditemukan; data repositori yang tersedia tetap digunakan.", "No README was found; available repository data is still being used.");
       setMessage({
         tone: "success",
         text: changed.length
-          ? `${readmeNote} Filled in ${changed.join(", ")}; review it before saving.`
-          : `${readmeNote} Relevant fields are already filled in, so none of your writing was overwritten.`,
+          ? tx(`${readmeNote} Bagian ${changed.map((label) => draftFieldLabel(label)).join(", ")} telah diisi; periksa sebelum menyimpan.`, `${readmeNote} Filled in ${changed.join(", ")}; review it before saving.`)
+          : tx(`${readmeNote} Kolom yang relevan sudah terisi, jadi tidak ada tulisanmu yang ditimpa.`, `${readmeNote} Relevant fields are already filled in, so none of your writing was overwritten.`),
       });
     });
   }
@@ -44,11 +48,10 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
   return (
     <div className="github-import">
       <p>
-        We will read the README and public repository details to fill in blank fields.
-        Nothing is saved until you publish the project.
+        {tx("Kami akan membaca README dan detail repositori publik untuk mengisi kolom yang kosong. Tidak ada yang disimpan sampai kamu menerbitkan proyek.", "We will read the README and public repository details to fill in blank fields. Nothing is saved until you publish the project.")}
       </p>
       <button className="quiet" type="button" onClick={startImport} disabled={pending}>
-        {pending ? "Reading GitHub…" : "Fill draft from GitHub README"}
+        {pending ? tx("Membaca GitHub…", "Reading GitHub…") : tx("Isi draf dari README GitHub", "Fill draft from GitHub README")}
       </button>
       {message ? (
         <p className={`github-import-message is-${message.tone}`} role={message.tone === "error" ? "alert" : undefined} aria-live="polite">
@@ -57,6 +60,20 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
       ) : null}
     </div>
   );
+}
+
+function draftFieldLabel(label: string): string {
+  const labels: Record<string, string> = {
+    "project name": "nama proyek",
+    summary: "ringkasan",
+    problem: "masalah",
+    solution: "solusi",
+    "target audience": "sasaran pengguna",
+    "current work": "pekerjaan terkini",
+    website: "situs web",
+    topics: "topik",
+  };
+  return labels[label] ?? label;
 }
 
 function valueOf(form: HTMLFormElement | null, name: string): string {

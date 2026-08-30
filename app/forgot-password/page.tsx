@@ -3,37 +3,43 @@ import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { ForgotPasswordForm } from "../components/auth-forms";
 import { supabaseConfigured } from "../lib/supabase";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
-export const metadata: Metadata = {
-  title: "Forgot password — Ahsan Project",
-  description: "Request a link to reset your Ahsan Project account password.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Lupa kata sandi — Ahsan Project", "Forgot password — Ahsan Project"),
+    description: tx(locale, "Minta tautan untuk mengatur ulang kata sandi akun Ahsan Project.", "Request a link to reset your Ahsan Project account password."),
+    robots: { index: false },
+  };
+}
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  const locale = await currentLocale();
   return (
     <>
       <SiteHeader returnTo="/forgot-password" />
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Forgot password
+          <span /> {tx(locale, "Lupa kata sandi", "Forgot password")}
         </p>
-        <h1>No problem.</h1>
+        <h1>{tx(locale, "Tidak masalah.", "No problem.")}</h1>
         <p className="lede">
-          Enter your email address and we will send you a link to set a new password.
+          {tx(locale, "Masukkan alamat emailmu dan kami akan mengirim tautan untuk membuat kata sandi baru.", "Enter your email address and we will send you a link to set a new password.")}
         </p>
 
         {supabaseConfigured() ? (
           <ForgotPasswordForm />
         ) : (
           <p className="form-error">
-            This site is not connected to Supabase yet, so passwords cannot be reset.
+            {tx(locale, "Situs ini belum terhubung ke Supabase sehingga kata sandi belum dapat diatur ulang.", "This site is not connected to Supabase yet, so passwords cannot be reset.")}
           </p>
         )}
 
         <p className="auth-switch">
-          Remembered it? <Link href="/signin">Sign in</Link>.
+          {tx(locale, "Sudah ingat?", "Remembered it?")} <Link href="/signin">{tx(locale, "Masuk", "Sign in")}</Link>.
         </p>
       </main>
 

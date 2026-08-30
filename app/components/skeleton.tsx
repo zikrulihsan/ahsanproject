@@ -32,6 +32,9 @@ export function Skeleton({
 }
 
 /** What a screen reader hears while the bars are on show. */
-export function LoadingNote() {
-  return <p className="sr-only">Loading…</p>;
+export async function LoadingNote() {
+  const locale = await currentLocale();
+  return <p className="sr-only">{tx(locale, "Memuat…", "Loading…")}</p>;
 }
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";

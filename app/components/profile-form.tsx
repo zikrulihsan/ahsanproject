@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { updateProfile, type ProfileState } from "../actions";
 import { PROFILE_LIMITS, PROFILE_MAXIMUM } from "../lib/profile";
 import { Field } from "./field";
+import { useLanguage } from "./language-provider";
 
 export type EditableProfile = ProfileState["values"];
 
@@ -32,6 +33,7 @@ export function ProfileForm({
     values: profile,
   } satisfies ProfileState);
   const { errors, values } = state;
+  const { tx } = useLanguage();
 
   return (
     <form className="create-form" action={formAction}>
@@ -44,11 +46,11 @@ export function ProfileForm({
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">1</span> About you
+          <span className="step-number">1</span> {tx("Tentang dirimu", "About you")}
         </legend>
 
         <Field
-          label="Name"
+          label={tx("Nama", "Name")}
           name="name"
           error={errors.name}
           defaultValue={values.name}
@@ -57,28 +59,28 @@ export function ProfileForm({
         />
 
         <Field
-          label="Profession or primary role"
+          label={tx("Profesi atau peran utama", "Profession or primary role")}
           name="profession"
-          hint="The title you use for yourself. This is what people most often search for in the People directory."
+          hint={tx("Sebutan yang kamu gunakan untuk dirimu. Ini yang paling sering dicari orang di direktori Orang.", "The title you use for yourself. This is what people most often search for in the People directory.")}
           error={errors.profession}
           defaultValue={values.profession}
           maxLength={PROFILE_MAXIMUM.profession}
-          placeholder="For example: Frontend Developer"
+          placeholder={tx("Contoh: Pengembang Frontend", "For example: Frontend Developer")}
         />
 
         <Field
-          label="Your one-line introduction"
+          label={tx("Perkenalan satu kalimat", "Your one-line introduction")}
           name="headline"
-          hint="It appears directly beneath your name and is used when your profile is shared."
+          hint={tx("Tampil tepat di bawah namamu dan digunakan saat profilmu dibagikan.", "It appears directly beneath your name and is used when your profile is shared.")}
           error={errors.headline}
           defaultValue={values.headline}
           maxLength={PROFILE_MAXIMUM.headline}
         />
 
         <Field
-          label="Short bio"
+          label={tx("Bio singkat", "Short bio")}
           name="bio"
-          hint="What you usually work on and what you are exploring now."
+          hint={tx("Apa yang biasanya kamu kerjakan dan sedang kamu pelajari sekarang.", "What you usually work on and what you are exploring now.")}
           error={errors.bio}
           defaultValue={values.bio}
           rows={5}
@@ -88,27 +90,26 @@ export function ProfileForm({
 
       <fieldset className="step">
         <legend>
-          <span className="step-number">2</span> Be discoverable in the talent pool
+          <span className="step-number">2</span> {tx("Tampil di talent pool", "Be discoverable in the talent pool")}
         </legend>
         <p className="step-intro">
-          These details power the filters in the <strong>People</strong> directory. Your projects
-          remain the proof of your work—this just helps people find them.
+          {tx("Detail ini digunakan oleh filter di direktori ", "These details power the filters in the ")}<strong>{tx("Orang", "People")}</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya.", " directory. Your projects remain the proof of your work—this just helps people find them.")}
         </p>
 
         <Field
-          label="Skills"
+          label={tx("Keahlian", "Skills")}
           name="skills"
-          hint={`Separate with commas, up to ${PROFILE_LIMITS.skills}. Use suggested terms when they fit so people can find you using the same words.`}
+          hint={tx(`Pisahkan dengan koma, maksimal ${PROFILE_LIMITS.skills}. Gunakan istilah yang disarankan jika sesuai agar orang dapat menemukanmu dengan kata yang sama.`, `Separate with commas, up to ${PROFILE_LIMITS.skills}. Use suggested terms when they fit so people can find you using the same words.`)}
           error={errors.skills}
           defaultValue={values.skills}
           list="skill-suggestions"
-          placeholder="Next.js, Figma, User Research"
+          placeholder={tx("Next.js, Figma, Riset Pengguna", "Next.js, Figma, User Research")}
         />
 
         <Field
-          label="Years of experience"
+          label={tx("Lama pengalaman", "Years of experience")}
           name="yearsExperience"
-          hint="Optional."
+          hint={tx("Opsional.", "Optional.")}
           error={errors.yearsExperience}
           defaultValue={values.yearsExperience}
           type="number"
@@ -117,13 +118,13 @@ export function ProfileForm({
         />
 
         <Field
-          label="Fields of expertise"
+          label={tx("Bidang keahlian", "Fields of expertise")}
           name="fields"
-          hint={`Separate with commas, up to ${PROFILE_LIMITS.fields}.`}
+          hint={tx(`Pisahkan dengan koma, maksimal ${PROFILE_LIMITS.fields}.`, `Separate with commas, up to ${PROFILE_LIMITS.fields}.`)}
           error={errors.fields}
           defaultValue={values.fields}
           list="field-suggestions"
-          placeholder="Fintech, Education, Civic Tech"
+          placeholder={tx("Fintech, Pendidikan, Teknologi Sipil", "Fintech, Education, Civic Tech")}
         />
 
         <datalist id="skill-suggestions">
@@ -140,15 +141,14 @@ export function ProfileForm({
 
       <fieldset className="step" id="contact">
         <legend>
-          <span className="step-number">3</span> How people can reach you
+          <span className="step-number">3</span> {tx("Cara orang dapat menghubungimu", "How people can reach you")}
         </legend>
         <p className="step-intro">
-          All links below are public and only appear when filled in. The email address you use to
-          sign in is never shown—add a <strong>Public email</strong> if you want to be contacted by email.
+          {tx("Semua tautan di bawah bersifat publik dan hanya tampil jika diisi. Alamat email yang kamu gunakan untuk masuk tidak pernah ditampilkan—tambahkan ", "All links below are public and only appear when filled in. The email address you use to sign in is never shown—add a ")}<strong>{tx("Email publik", "Public email")}</strong>{tx(" jika kamu ingin dihubungi melalui email.", " if you want to be contacted by email.")}
         </p>
 
         <Field
-          label="Public email"
+          label={tx("Email publik", "Public email")}
           name="publicEmail"
           error={errors.publicEmail}
           defaultValue={values.publicEmail}
@@ -157,7 +157,7 @@ export function ProfileForm({
           placeholder="name@example.com"
         />
         <Field
-          label="Website"
+          label={tx("Situs web", "Website")}
           name="website"
           error={errors.website}
           defaultValue={values.website}
@@ -193,9 +193,9 @@ export function ProfileForm({
           placeholder="https://x.com/"
         />
         <Field
-          label="Résumé link"
+          label={tx("Tautan résumé", "Résumé link")}
           name="resume"
-          hint="A link to a résumé file that anyone can open."
+          hint={tx("Tautan ke berkas résumé yang dapat dibuka siapa saja.", "A link to a résumé file that anyone can open.")}
           error={errors.resume}
           defaultValue={values.resume}
           type="url"
@@ -205,7 +205,7 @@ export function ProfileForm({
       </fieldset>
 
       <button className="primary-button create-submit" type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save profile"}
+        {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan profil", "Save profile")}
       </button>
     </form>
   );

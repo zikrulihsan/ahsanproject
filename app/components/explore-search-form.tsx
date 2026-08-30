@@ -2,6 +2,7 @@
 
 import { useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import type { OpenRoleSuggestion } from "../lib/data";
+import { useLanguage } from "./language-provider";
 
 type SearchMode = "project" | "role";
 
@@ -24,6 +25,7 @@ export function ExploreSearchForm({
   const [query, setQuery] = useState(q);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { tx } = useLanguage();
 
   const matches = useMemo(() => {
     const needle = searchable(query);
@@ -76,10 +78,10 @@ export function ExploreSearchForm({
       )}
 
       <div className="collaboration-search-mode" role="radiogroup" aria-labelledby={labelId}>
-        <span id={labelId}>Search by</span>
+        <span id={labelId}>{tx("Cari berdasarkan", "Search by")}</span>
         {([
-          ["project", "Project"],
-          ["role", "Open role"],
+          ["project", tx("Proyek", "Project")],
+          ["role", tx("Peran terbuka", "Open role")],
         ] as const).map(([value, label]) => (
           <label key={value}>
             <input
@@ -111,8 +113,8 @@ export function ExploreSearchForm({
             type="search"
             name="q"
             value={query}
-            placeholder={searchMode === "role" ? "Enter a role name…" : "Enter a project name…"}
-            aria-label={searchMode === "role" ? "Enter a role name" : "Enter a project name"}
+            placeholder={searchMode === "role" ? tx("Masukkan nama peran…", "Enter a role name…") : tx("Masukkan nama proyek…", "Enter a project name…")}
+            aria-label={searchMode === "role" ? tx("Masukkan nama peran", "Enter a role name") : tx("Masukkan nama proyek", "Enter a project name")}
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showSuggestions}
@@ -130,7 +132,7 @@ export function ExploreSearchForm({
         </div>
 
         {showSuggestions ? (
-          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label="Open role suggestions">
+          <div className="explore-role-suggestions" id={listId} role="listbox" aria-label={tx("Saran peran terbuka", "Open role suggestions")}>
             {matches.length > 0 ? (
               matches.map((suggestion, index) => (
                 <button
@@ -145,17 +147,17 @@ export function ExploreSearchForm({
                   onClick={() => choose(suggestion)}
                 >
                   <span>{suggestion.label}</span>
-                  <small>{suggestion.count} open {suggestion.count === 1 ? "position" : "positions"}</small>
+                  <small>{tx(`${suggestion.count} posisi terbuka`, `${suggestion.count} open ${suggestion.count === 1 ? "position" : "positions"}`)}</small>
                 </button>
               ))
             ) : (
-              <p>That role is not open right now.</p>
+              <p>{tx("Peran tersebut sedang tidak dibuka.", "That role is not open right now.")}</p>
             )}
           </div>
         ) : null}
       </div>
 
-      <button type="submit">Search</button>
+      <button type="submit">{tx("Cari", "Search")}</button>
     </form>
   );
 }

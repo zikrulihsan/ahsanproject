@@ -2,178 +2,107 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { shareCard } from "../content";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
-const title = "Privacy Policy — Ahsan Project";
-const description =
-  "What Ahsan Project collects, what's public, and how your data is used and protected.";
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  const title = tx(locale, "Kebijakan Privasi — Ahsan Project", "Privacy Policy — Ahsan Project");
+  const description = tx(locale, "Data yang dikumpulkan Ahsan Project, informasi yang tampil secara publik, serta cara data digunakan dan dilindungi.", "What Ahsan Project collects, what's public, and how your data is used and protected.");
+  return {
+    title,
+    description,
+    alternates: { canonical: "/privacy" },
+    openGraph: shareCard({ title, description, url: "/privacy" }),
+  };
+}
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: "/privacy" },
-  openGraph: shareCard({ title, description, url: "/privacy" }),
-};
+export default async function PrivacyPage() {
+  const locale = await currentLocale();
 
-const LAST_UPDATED = "August 29, 2026";
-
-export default function PrivacyPage() {
   return (
     <>
       <SiteHeader returnTo="/privacy" />
 
       <main id="main-content" className="page-narrow legal-content">
-        <p className="eyebrow">
-          <span /> Privacy Policy
-        </p>
-        <h1>Your data, and who gets to see it.</h1>
+        <p className="eyebrow"><span /> {tx(locale, "Kebijakan Privasi", "Privacy Policy")}</p>
+        <h1>{tx(locale, "Datamu, dan siapa yang dapat melihatnya.", "Your data, and who gets to see it.")}</h1>
         <p className="lede">
-          Ahsan Project is both a collaboration board and a portfolio: people post project ideas,
-          open roles, and work on them together, while each profile at <code>/u/username</code>{" "}
-          shows that work to the public. Because visibility is the whole point of the product, this
-          page says plainly what is public, what stays private, and where your data goes — not
-          boilerplate legal language.
+          {tx(locale, "Ahsan Project adalah papan kolaborasi sekaligus portofolio. Karena visibilitas karya merupakan inti layanan ini, kami menjelaskan secara langsung apa yang bersifat publik, apa yang tetap privat, dan ke mana datamu dikirim.", "Ahsan Project is both a collaboration board and a portfolio. Because making work visible is central to the service, this page plainly explains what is public, what stays private, and where your data goes.")}
         </p>
 
-        <h2>1. What we collect</h2>
+        <h2>{tx(locale, "1. Data yang kami kumpulkan", "1. What we collect")}</h2>
 
-        <h3>Account</h3>
+        <h3>{tx(locale, "Akun", "Account")}</h3>
         <p>
-          You sign up with email and password, or with Google. Authentication is handled entirely by
-          Supabase Auth — this app never stores your password in plain text, and if you sign in with
-          Google, all we receive is your name, email, and Google account ID, under whatever
-          permissions you grant at that moment (see section 4). Your account email is used for
-          sign-in and system notices — it is never shown publicly unless you separately add it as a{" "}
-          <em>public email</em> on your profile.
+          {tx(locale, "Kamu dapat mendaftar dengan email dan kata sandi atau dengan Google. Autentikasi ditangani oleh Supabase Auth; aplikasi ini tidak menyimpan kata sandi dalam bentuk teks biasa. Saat menggunakan Google, kami hanya menerima nama, email, dan ID akun Google sesuai izin yang kamu berikan. Email akun digunakan untuk masuk dan pemberitahuan sistem, serta tidak ditampilkan secara publik kecuali kamu menambahkannya secara terpisah sebagai email publik.", "You can sign up with email and password or with Google. Authentication is handled by Supabase Auth; this app never stores your password in plain text. When you use Google, we only receive your name, email, and Google account ID under the permissions you grant. Your account email is used for sign-in and system notices and is never public unless you separately add it as a public email.")}
         </p>
 
-        <h3>Profile (public, and optional)</h3>
+        <h3>{tx(locale, "Profil (publik dan opsional)", "Profile (public and optional)")}</h3>
         <p>
-          Every field on <Link href="/account/profile">/account/profile</Link> besides your name is
-          yours to fill in or skip: profession, one-line intro, short bio, skills, fields of
-          expertise, years of experience, and links (website, GitHub, LinkedIn, X, résumé, public
-          email). Once filled in, these show on your public profile page and can be found through the{" "}
-          <Link href="/people">People</Link> directory.
+          {tx(locale, "Selain nama, setiap kolom di", "Other than your name, every field on")} <Link href="/account/profile">/account/profile</Link>{" "}
+          {tx(locale, "boleh diisi atau dilewati: profesi, perkenalan singkat, bio, keahlian, bidang, pengalaman, serta tautan kontak. Kolom yang diisi akan muncul di profil publik dan dapat ditemukan melalui direktori", "can be filled in or skipped: profession, introduction, bio, skills, fields, experience, and contact links. Filled fields appear on your public profile and can be found through the")} <Link href="/people">{tx(locale, "Orang", "People")}</Link>.
         </p>
 
-        <h3>Projects</h3>
+        <h3>{tx(locale, "Proyek dan kolaborasi", "Projects and collaboration")}</h3>
         <p>
-          The link you paste and what your page says about itself (its name, description and icon,
-          which we read once when you add it), what you say is interesting about the project,
-          tagline, brief (problem, solution, audience), tags, stage, what you are working on right
-          now, the journey you post, open roles, and a logo — all of this is public the moment a
-          project is created, because the product exists to make work visible. Do not put anything
-          here you would not want public.
+          {tx(locale, "Tautan proyek, nama, deskripsi, ikon, ringkasan, masalah, solusi, sasaran, topik, tahap, pekerjaan terkini, perjalanan, peran terbuka, logo, komentar, dukungan, dan pengikut bersifat publik. Pengajuan peran serta tugas yang diambil dan diselesaikan juga dicatat agar kolaborasi dapat berlangsung. Jangan memasukkan informasi yang tidak ingin kamu tampilkan kepada publik.", "Project links, names, descriptions, icons, highlights, problems, solutions, audiences, topics, stages, current work, journeys, open roles, logos, comments, boosts, and follows are public. Role applications and tasks taken or completed are also recorded so collaboration can work. Do not enter anything you would not want to be public.")}
         </p>
 
-        <h3>Collaboration</h3>
+        <h3>{tx(locale, "Jejak aktivitas", "Activity trail")}</h3>
         <p>
-          Role applications (seats), tasks taken and completed, comments on project pages, boosts of
-          support, and follows are all recorded so collaboration can actually happen and be seen by
-          others.
+          {tx(locale, "Peristiwa tertentu dicatat otomatis saat terjadi—misalnya proyek dibuat, tahap berubah, peran dibuka atau diisi, tugas selesai, komentar dibuat, dukungan diberikan, atau kabar terbaru dikirim. Kamu dapat menyembunyikan jenis aktivitas tertentu dari profil publik; menyembunyikannya tidak menghapus catatan.", "Certain events are recorded automatically as they happen—for example, a project created, a stage changed, a role opened or filled, a task completed, a comment posted, a boost given, or an update posted. You can hide specific activity kinds from your public profile; hiding them does not delete the record.")}
         </p>
 
-        <h3>Activity trail</h3>
+        <h3>{tx(locale, "Kotak masuk dan impor GitHub", "Inbox and GitHub import")}</h3>
         <p>
-          Certain events are recorded automatically by the system as they happen — a project created,
-          a stage changed, a role opened or filled, a task completed, a comment, a boost, an update
-          posted — and shown as a trail on your profile. This is what sets the portfolio here apart:
-          the claims are not typed in by you, they are logged by the system as they occur. You can
-          hide specific kinds of events from your public trail in your profile settings; hiding one
-          does not delete the record, it only keeps it from other visitors.
+          {tx(locale, "Keputusan atas pengajuan dikirim sebagai pemberitahuan privat ke", "Application decisions are sent as private notices to")} <Link href="/inbox">/inbox</Link>.{" "}
+          {tx(locale, "Saat kamu mengimpor repositori publik, kami membaca metadata dan README publik dari GitHub untuk mengisi formulir. Tidak ada data privat yang diakses dan hasilnya tidak disimpan sebelum kamu menyimpan proyek.", "When you import a public repository, we read its public metadata and README from GitHub to prefill the form. No private data is accessed, and the result is not stored until you save the project.")}
         </p>
 
-        <h3>Inbox</h3>
+        <h3>{tx(locale, "Data teknis", "Technical data")}</h3>
         <p>
-          When your application is accepted or declined, one private notice is sent to your inbox at{" "}
-          <Link href="/inbox">/inbox</Link> — only you can see it, and it is marked read when you
-          open it with the button there, never automatically.
+          {tx(locale, "Sesi disimpan melalui cookie yang dikelola Supabase Auth, ditambah cookie PKCE berumur pendek saat masuk dengan Google. Situs ini juga menyimpan pilihan bahasa ID/EN. Kami tidak menggunakan cookie iklan atau analitik pihak ketiga.", "Your session is stored through cookies managed by Supabase Auth, plus a short-lived PKCE cookie during Google sign-in. This site also stores your ID/EN language choice. We do not use advertising or third-party analytics cookies.")}
         </p>
 
-        <h3>GitHub import</h3>
-        <p>
-          If you paste a public repository URL while creating a project, we read that repository&rsquo;s
-          public metadata directly from GitHub — its name, description, topics, and README — to
-          prefill the form. This does not require you to sign in with GitHub, does not touch anything
-          private, and is not stored on our servers unless you save the result as a project.
-        </p>
-
-        <h3>Technical data</h3>
-        <p>
-          Your session is kept with a cookie managed by Supabase Auth, plus one short-lived cookie
-          (the PKCE verifier) during Google sign-in. This site sets no advertising or third-party
-          analytics cookies.
-        </p>
-
-        <h2>2. Public vs. private, at a glance</h2>
+        <h2>{tx(locale, "2. Informasi publik dan privat", "2. Public and private information")}</h2>
         <ul>
-          <li>
-            <strong>Always public:</strong> projects and their content, whichever profile fields you
-            fill in, your activity trail (except kinds you hide), comments, and follows.
-          </li>
-          <li>
-            <strong>Always private:</strong> your account email (unless you choose to show it as a
-            public email), your password, and the contents of your inbox.
-          </li>
+          <li><strong>{tx(locale, "Selalu publik:", "Always public:")}</strong> {tx(locale, "proyek dan isinya, kolom profil yang kamu isi, jejak aktivitas selain jenis yang kamu sembunyikan, komentar, dan pengikut.", "projects and their content, profile fields you fill in, your activity trail except kinds you hide, comments, and follows.")}</li>
+          <li><strong>{tx(locale, "Selalu privat:", "Always private:")}</strong> {tx(locale, "email akun (kecuali ditambahkan sebagai email publik), kata sandi, isi kotak masuk, dan isi proposal sebelum keputusan dibuat.", "your account email unless added as a public email, your password, inbox contents, and proposal contents before a decision is made.")}</li>
         </ul>
 
-        <h2>3. What this data is used for</h2>
+        <h2>{tx(locale, "3. Penggunaan data", "3. How data is used")}</h2>
         <p>
-          Running the product features you already see: showing projects and profiles, matching
-          people to roles, sending application notices, and building your activity trail. It is not
-          sold, and it is not used for targeted advertising.
+          {tx(locale, "Data digunakan untuk menjalankan fitur yang kamu lihat: menampilkan proyek dan profil, mempertemukan orang dengan peran, mengirim pemberitahuan pengajuan, serta membangun jejak aktivitas. Data tidak dijual dan tidak digunakan untuk iklan bertarget.", "Data is used to run the features you see: showing projects and profiles, matching people to roles, sending application notices, and building activity trails. It is not sold or used for targeted advertising.")}
         </p>
 
-        <h2>4. Who we share it with</h2>
-        <p>Only the providers that run this site, nothing more:</p>
+        <h2>{tx(locale, "4. Penyedia layanan", "4. Service providers")}</h2>
+        <p>{tx(locale, "Data hanya dibagikan dengan penyedia yang menjalankan situs ini:", "Data is only shared with providers that run this site:")}</p>
         <ul>
-          <li>
-            <strong>Supabase</strong> — the database and authentication, including password storage
-            and sessions.
-          </li>
-          <li>
-            <strong>Google</strong> — only if you choose to sign in with a Google account.
-          </li>
-          <li>
-            <strong>Netlify</strong> — hosting for this app.
-          </li>
-          <li>
-            <strong>GitHub API</strong> — only when you use the repository import feature, to read
-            the public metadata of the repository you point it at.
-          </li>
+          <li><strong>Supabase</strong> — {tx(locale, "basis data dan autentikasi, termasuk penyimpanan kata sandi dan sesi.", "database and authentication, including password storage and sessions.")}</li>
+          <li><strong>Google</strong> — {tx(locale, "hanya jika kamu memilih masuk dengan akun Google.", "only if you choose to sign in with a Google account.")}</li>
+          <li><strong>Netlify</strong> — {tx(locale, "hosting aplikasi.", "application hosting.")}</li>
+          <li><strong>GitHub API</strong> — {tx(locale, "hanya saat kamu menggunakan fitur impor repositori publik.", "only when you use the public repository import feature.")}</li>
         </ul>
 
-        <h2>5. Security</h2>
+        <h2>{tx(locale, "5. Keamanan", "5. Security")}</h2>
         <p>
-          Access to data is filtered directly in the database with Postgres row level security, not
-          only in application code — who may read and write which rows is decided by Supabase, and
-          the code on top of it only turns a refusal into a readable sentence. Sensitive actions like
-          deciding an application or moving a task go through restricted database functions rather
-          than a plain update.
+          {tx(locale, "Akses data dibatasi langsung di basis data melalui row level security Postgres. Tindakan sensitif, seperti memutuskan pengajuan atau memindahkan tugas, dijalankan melalui fungsi basis data yang dibatasi.", "Data access is restricted directly in the database through Postgres row level security. Sensitive actions, such as deciding an application or moving a task, run through restricted database functions.")}
         </p>
 
-        <h2>6. Your controls</h2>
+        <h2>{tx(locale, "6. Kendali yang kamu miliki", "6. Your controls")}</h2>
         <p>
-          You can edit or clear your profile fields at any time, hide specific kinds of activity from
-          your trail, delete a project you own, and sign out. Deleting your account entirely is not
-          yet self-service on this site — to request it, or for any other question about your data,
-          reach us on Email (zikrulihsanmd@gmail.com)
-          .
+          {tx(locale, "Kamu dapat mengedit atau mengosongkan kolom profil, menyembunyikan jenis aktivitas tertentu, menghapus proyek milikmu, dan keluar dari akun. Penghapusan akun belum tersedia secara mandiri; untuk meminta penghapusan atau menanyakan data, kirim email ke zikrulihsanmd@gmail.com.", "You can edit or clear profile fields, hide specific activity kinds, delete projects you own, and sign out. Account deletion is not yet self-service; to request deletion or ask about your data, email zikrulihsanmd@gmail.com.")}
         </p>
 
-        <h2>7. Children</h2>
-        <p>
-          This site is not directed at children under 13, and we do not knowingly collect data from
-          them.
-        </p>
+        <h2>{tx(locale, "7. Anak-anak", "7. Children")}</h2>
+        <p>{tx(locale, "Situs ini tidak ditujukan untuk anak di bawah 13 tahun dan kami tidak dengan sengaja mengumpulkan data mereka.", "This site is not directed at children under 13, and we do not knowingly collect their data.")}</p>
 
-        <h2>8. Changes to this policy</h2>
-        <p>
-          Ahsan Project is under active development, so this page will change as features do. The
-          date below always reflects the latest version.
-        </p>
+        <h2>{tx(locale, "8. Perubahan kebijakan", "8. Changes to this policy")}</h2>
+        <p>{tx(locale, "Ahsan Project masih aktif dikembangkan, sehingga kebijakan ini dapat berubah mengikuti fitur. Tanggal di bawah menunjukkan versi terbaru.", "Ahsan Project is under active development, so this policy may change with its features. The date below reflects the latest version.")}</p>
 
         <p className="muted" style={{ marginTop: 40 }}>
-          Last updated: {LAST_UPDATED}.
+          {tx(locale, "Terakhir diperbarui: 29 Agustus 2026.", "Last updated: August 29, 2026.")}
         </p>
       </main>
 

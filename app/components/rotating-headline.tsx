@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "./language-provider";
 
-const PHRASES = [
-  "Recruiters",
-  "Partners",
-  "Contributors",
-] as const;
+const PHRASES = {
+  id: ["Perekrut", "Mitra", "Kontributor"],
+  en: ["Recruiters", "Partners", "Contributors"],
+} as const;
 
 export function RotatingHeadline() {
+  const { locale, tx } = useLanguage();
+  const phrases = PHRASES[locale];
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [characterCount, setCharacterCount] = useState(PHRASES[0].length);
+  const [characterCount, setCharacterCount] = useState(phrases[0].length);
   const [isDeleting, setIsDeleting] = useState(false);
-  const phrase = PHRASES[phraseIndex];
+  const phrase = phrases[phraseIndex];
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -30,7 +32,7 @@ export function RotatingHeadline() {
       } else if (characterCount > 0) {
         setCharacterCount((count) => count - 1);
       } else {
-        const nextIndex = (phraseIndex + 1) % PHRASES.length;
+        const nextIndex = (phraseIndex + 1) % phrases.length;
         setPhraseIndex(nextIndex);
         setCharacterCount(0);
         setIsDeleting(false);
@@ -38,14 +40,14 @@ export function RotatingHeadline() {
     }, delay);
 
     return () => window.clearTimeout(timeout);
-  }, [characterCount, isDeleting, phrase, phraseIndex]);
+  }, [characterCount, isDeleting, phrase, phraseIndex, phrases.length]);
 
   return (
-    <h1 id="landing-title" aria-label="Show your work. Find collaborators. Build an impactful portfolio. Get discovered.">
-      <span>Show <span className="text-gray-500">your work</span> &</span>
-      <span>get <span className="text-gray-500">discover</span>ed by:</span>
+    <h1 id="landing-title" aria-label={tx("Tampilkan karyamu. Temukan kolaborator. Bangun portofolio yang berdampak. Jadilah lebih mudah ditemukan.", "Show your work. Find collaborators. Build an impactful portfolio. Get discovered.")}>
+      <span>{tx("Tampilkan ", "Show ")}<span className="text-gray-500">{tx("karyamu", "your work")}</span> &amp;</span>
+      <span>{tx("buat dirimu ", "get ")}<span className="text-gray-500">{tx("ditemukan", "discover")}</span>{tx(" oleh:", "ed by:")}</span>
       <span className="typing-line" aria-hidden="true">
-        <span className="typing-sizer">Contributors</span>
+        <span className="typing-sizer">{tx("Kontributor", "Contributors")}</span>
         <span className="typing-text">{phrase.slice(0, characterCount)}</span>
       </span>
     </h1>

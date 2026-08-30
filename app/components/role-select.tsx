@@ -1,6 +1,7 @@
 "use client";
 
-import { ROLE_GROUPS, ROLES, roleMeta, type Role } from "../lib/roles";
+import { ROLE_GROUPS, ROLES, roleBlurb, roleGroupLabel, roleLabel, roleMeta, type Role } from "../lib/roles";
+import { useLanguage } from "./language-provider";
 
 /** One shared picker so every project opens positions from the same catalogue. */
 export function RoleSelect({
@@ -14,6 +15,7 @@ export function RoleSelect({
   defaultValue?: string;
   onValueChange?: (value: string) => void;
 }) {
+  const { locale, tx } = useLanguage();
   return (
     <select
       id={id}
@@ -22,12 +24,12 @@ export function RoleSelect({
       required
       onChange={(event) => onValueChange?.(event.target.value)}
     >
-      <option value="" disabled>Choose a role…</option>
+      <option value="" disabled>{tx("Pilih peran…", "Choose a role…")}</option>
       {ROLE_GROUPS.map((group) => (
-        <optgroup key={group} label={group}>
+        <optgroup key={group} label={roleGroupLabel(group, locale)}>
           {ROLES.filter((role) => roleMeta[role].group === group).map((role) => (
             <option key={role} value={role}>
-              {roleMeta[role].label} — {roleMeta[role].blurb}
+              {roleLabel(role, "", locale)} — {roleBlurb(role, locale)}
             </option>
           ))}
         </optgroup>

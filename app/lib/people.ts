@@ -1,5 +1,7 @@
 import type { PersonAtWork } from "./data";
 import { profileReady } from "./next-steps";
+import { tx, type Locale } from "./locale";
+import { localizeRoleLabel } from "./roles";
 
 export const PEOPLE_PAGE_SIZE = 12;
 
@@ -12,6 +14,10 @@ export const experienceBandLabel: Record<ExperienceBand, string> = {
   "6-10": "6–10 tahun",
   "10+": "10+ tahun",
 };
+
+export function experienceBandName(band: ExperienceBand, locale: Locale): string {
+  return tx(locale, experienceBandLabel[band], experienceBandLabel[band].replace("tahun", "years"));
+}
 
 export type PeopleFilters = {
   q: string;
@@ -35,12 +41,12 @@ export type PeopleFacets = {
  * 0013 can state a profession explicitly. A role held on a project is the last
  * fallback because it is verifiable, even when the profile is still sparse.
  */
-export function primaryProfession(entry: PersonAtWork): string {
+export function primaryProfession(entry: PersonAtWork, locale: Locale = "en"): string {
   return (
     entry.person.profession.trim() ||
     entry.person.headline.trim() ||
-    entry.roles[0] ||
-    (entry.building.length > 0 ? "Project Builder" : "")
+    localizeRoleLabel(entry.roles[0] ?? "", locale) ||
+    (entry.building.length > 0 ? tx(locale, "Pengembang Proyek", "Project Builder") : "")
   );
 }
 

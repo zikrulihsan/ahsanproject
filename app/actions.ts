@@ -30,6 +30,8 @@ import {
   type ProfileInput,
 } from "./lib/profile";
 import { tags } from "./lib/cache-tags";
+import { currentLocale } from "./lib/locale-server";
+import { tx, type Locale } from "./lib/locale";
 
 export type CreateState = {
   errors: FieldErrors & {
@@ -132,13 +134,13 @@ function trailChanged(personId: string | null | undefined, slug?: string): void 
 
 /** Reads public GitHub copy into a browser draft; it never writes a project. */
 export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportResult> {
-  const viewer = await currentViewer();
-  if (!viewer) return { ok: false, error: "Sign in before importing a README." };
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  if (!viewer) return { ok: false, error: tx(locale, "Masuk sebelum mengimpor README.", "Sign in before importing a README.") };
 
   try {
     return { ok: true, draft: await getGitHubProjectDraft(repoUrl) };
   } catch (error) {
-    return { ok: false, error: messageOf(error) };
+    return { ok: false, error: messageOf(error, locale) };
   }
 }
 
@@ -150,11 +152,11 @@ export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportR
  * not punished for being quick.
  */
 export async function previewProjectLink(rawLink: string): Promise<LinkPreviewResult> {
-  const viewer = await currentViewer();
-  if (!viewer) return { ok: false, error: "Sign in before adding a project." };
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  if (!viewer) return { ok: false, error: tx(locale, "Masuk sebelum menambahkan proyek.", "Sign in before adding a project.") };
 
   const link = normaliseLink(rawLink);
-  if (!link) return { ok: false, error: "That does not look like a link yet." };
+  if (!link) return { ok: false, error: tx(locale, "Teks itu belum terlihat seperti tautan.", "That does not look like a link yet.") };
 
   const metadata = await fetchLinkMetadata(link);
   return {
@@ -212,13 +214,13 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
-  const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Sign in before showing a project here." }, values };
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  if (!viewer) return { errors: { form: tx(locale, "Masuk sebelum menampilkan proyek di sini.", "Sign in before showing a project here.") }, values };
 
   const link = normaliseLink(values.link);
   if (!link) {
     return {
-      errors: { link: "Paste the project link — a website, an app listing, or a repository." },
+      errors: { link: tx(locale, "Tempel tautan proyek—situs web, halaman aplikasi, atau repositori.", "Paste the project link — a website, an app listing, or a repository.") },
       values,
     };
   }
@@ -251,22 +253,22 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     liveUrl,
     logoUrl,
   };
-  const errors: CreateState["errors"] = validateBrief(brief);
+  const errors: CreateState["errors"] = validateBrief(brief, locale);
   if (values.openSeat === "yes") {
-    if (!isRole(values.seatRole)) errors.seatRole = "Choose the role you are looking for.";
+    if (!isRole(values.seatRole)) errors.seatRole = tx(locale, "Pilih peran yang sedang kamu cari.", "Choose the role you are looking for.");
     if (values.seatRole === "other" && !values.seatRoleTitle) {
-      errors.seatRoleTitle = "Write the name of a role that is not in the catalogue.";
+      errors.seatRoleTitle = tx(locale, "Tuliskan nama peran yang tidak tersedia di katalog.", "Write the name of a role that is not in the catalogue.");
     }
-    if (!values.seatBrief) errors.seatBrief = "Describe the specific work you need help with.";
+    if (!values.seatBrief) errors.seatBrief = tx(locale, "Jelaskan pekerjaan spesifik yang membutuhkan bantuan.", "Describe the specific work you need help with.");
     if (!values.seatCommitment) {
-      errors.seatCommitment = "Provide a time estimate so people know whether they can join.";
+      errors.seatCommitment = tx(locale, "Berikan perkiraan waktu agar orang tahu apakah mereka dapat bergabung.", "Provide a time estimate so people know whether they can join.");
     }
   }
   if (values.projectType && !isProjectType(values.projectType)) {
-    errors.projectType = "Choose one of the available project kinds.";
+    errors.projectType = tx(locale, "Pilih salah satu jenis proyek yang tersedia.", "Choose one of the available project kinds.");
   }
   if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(repoUrl)) {
-    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
+    errors.repoUrl = tx(locale, "Untuk membuka kontribusi GitHub, masukkan URL repositori GitHub publik yang valid.", "To open GitHub contributions, enter a valid public GitHub repository URL.");
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -334,7 +336,7 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
       if (seatError) throw new Error(seatError.message);
     }
   } catch (error) {
-    return { errors: { form: messageOf(error) }, values };
+    return { errors: { form: messageOf(error, locale) }, values };
   }
 
   seatsChanged(slug);
@@ -383,19 +385,19 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     openForGitHubContributions: text(formData, "openForGitHubContributions"),
   };
 
-  const viewer = await currentViewer();
-  if (!viewer) return { errors: { form: "Sign in to edit this project." }, values };
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  if (!viewer) return { errors: { form: tx(locale, "Masuk untuk mengedit proyek ini.", "Sign in to edit this project.") }, values };
 
-  const errors: EditState["errors"] = validateBrief(values);
+  const errors: EditState["errors"] = validateBrief(values, locale);
   // Empty stays allowed here for the same reason it is allowed in the column:
   // an owner filling in the rest of a link-first project should not be stopped
   // at a question they have no answer for yet.
   if (values.projectType && !isProjectType(values.projectType)) {
-    errors.projectType = "Choose one of the available project kinds.";
+    errors.projectType = tx(locale, "Pilih salah satu jenis proyek yang tersedia.", "Choose one of the available project kinds.");
   }
   const requestedStage = isStage(values.stage) ? values.stage : null;
   if (!requestedStage) {
-    errors.stage = "Choose an available project status.";
+    errors.stage = tx(locale, "Pilih status proyek yang tersedia.", "Choose an available project status.");
   } else if (
     requestedStage === "building" &&
     !values.now &&
@@ -403,12 +405,12 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     !values.repoUrl &&
     !values.liveUrl
   ) {
-    errors.now = "Describe the work in progress, or add a working link.";
+    errors.now = tx(locale, "Jelaskan pekerjaan yang sedang berjalan atau tambahkan tautan yang dapat diakses.", "Describe the work in progress, or add a working link.");
   } else if (requestedStage === "live" && !values.liveUrl) {
-    errors.liveUrl = "A live project needs a link other people can open.";
+    errors.liveUrl = tx(locale, "Proyek yang sudah berjalan memerlukan tautan yang dapat dibuka orang lain.", "A live project needs a link other people can open.");
   }
   if (values.openForGitHubContributions === "yes" && !isGitHubRepositoryUrl(values.repoUrl)) {
-    errors.repoUrl = "To open GitHub contributions, enter a valid public GitHub repository URL.";
+    errors.repoUrl = tx(locale, "Untuk membuka kontribusi GitHub, masukkan URL repositori GitHub publik yang valid.", "To open GitHub contributions, enter a valid public GitHub repository URL.");
   }
   if (Object.keys(errors).length > 0) return { errors, values };
 
@@ -420,9 +422,9 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!project) return { errors: { form: "Project not found." }, values };
+    if (!project) return { errors: { form: tx(locale, "Proyek tidak ditemukan.", "Project not found.") }, values };
     if (project.owner_id !== viewer.id) {
-      return { errors: { form: "Only the project owner can edit it." }, values };
+      return { errors: { form: tx(locale, "Hanya pemilik proyek yang dapat mengeditnya.", "Only the project owner can edit it.") }, values };
     }
 
     const tags = normaliseTags(values.tags);
@@ -451,12 +453,12 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
     if (updateError) throw new Error(updateError.message);
     if (!updatedProject) {
       return {
-        errors: { form: "The project could not be saved. Refresh the page and try again." },
+        errors: { form: tx(locale, "Proyek tidak dapat disimpan. Muat ulang halaman lalu coba lagi.", "The project could not be saved. Refresh the page and try again.") },
         values,
       };
     }
   } catch (error) {
-    return { errors: { form: messageOf(error) }, values };
+    return { errors: { form: messageOf(error, locale) }, values };
   }
 
   projectChanged(slug);
@@ -655,7 +657,7 @@ export async function postUpdate(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
   const title = text(formData, "title").slice(0, UPDATE_LIMITS.title.max);
   const body = text(formData, "body").slice(0, UPDATE_LIMITS.body.max);
-  if (Object.keys(validateUpdate({ title, body })).length > 0) return;
+  if (Object.keys(validateUpdate({ title, body }, await currentLocale())).length > 0) return;
 
   const viewer = await currentViewer();
   if (!viewer) return;
@@ -748,7 +750,7 @@ export async function createTask(formData: FormData): Promise<void> {
   const rawSeatId = text(formData, "seatId");
   const seatId = rawSeatId ? Number(rawSeatId) : null;
   if (rawSeatId && !Number.isInteger(seatId)) return;
-  if (Object.keys(validateTask({ title, detail })).length > 0) return;
+  if (Object.keys(validateTask({ title, detail }, await currentLocale())).length > 0) return;
 
   const viewer = await currentViewer();
   if (!viewer) return;
@@ -1024,12 +1026,12 @@ export async function updateProfile(
     resume: text(formData, "resume"),
   };
 
-  const viewer = await currentViewer();
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) {
-    return { errors: { form: "You are no longer signed in. Sign in again, then save once more." }, values };
+    return { errors: { form: tx(locale, "Sesi kamu telah berakhir. Masuk kembali, lalu simpan sekali lagi.", "You are no longer signed in. Sign in again, then save once more.") }, values };
   }
 
-  const errors = validateProfile(values);
+  const errors = validateProfile(values, locale);
   if (Object.keys(errors).length > 0) return { errors, values };
 
   const rawExperience = values.yearsExperience;
@@ -1143,6 +1145,20 @@ function pick<T>(options: readonly T[], seed: string): T {
   return options[hash % options.length];
 }
 
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong while saving. Please try again shortly.";
+function messageOf(error: unknown, locale: Locale): string {
+  if (error instanceof Error) {
+    if (locale === "en") return error.message;
+    const known: Record<string, string> = {
+      "Only http and https links can be read.": "Hanya tautan http dan https yang dapat dibaca.",
+      "A link cannot carry credentials.": "Tautan tidak boleh memuat kredensial.",
+      "That address is not publicly reachable.": "Alamat tersebut tidak dapat diakses secara publik.",
+      "Use a public GitHub repository URL, for example https://github.com/organization/project.": "Gunakan URL repositori GitHub publik, misalnya https://github.com/organization/project.",
+      "That GitHub repository was not found or is not public.": "Repositori GitHub tersebut tidak ditemukan atau tidak bersifat publik.",
+      "GitHub is limiting requests. Please try again shortly.": "GitHub sedang membatasi permintaan. Coba lagi sebentar lagi.",
+      "GitHub repository data could not be read. Please try again shortly.": "Data repositori GitHub tidak dapat dibaca. Coba lagi sebentar lagi.",
+      "The GitHub README could not be read. Please try again shortly.": "README GitHub tidak dapat dibaca. Coba lagi sebentar lagi.",
+    };
+    return known[error.message] ?? tx(locale, "Terjadi masalah saat menyimpan. Coba lagi sebentar lagi.", error.message);
+  }
+  return tx(locale, "Terjadi masalah saat menyimpan. Coba lagi sebentar lagi.", "Something went wrong while saving. Please try again shortly.");
 }

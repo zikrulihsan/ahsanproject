@@ -8,6 +8,8 @@ import { termSuggestions } from "../../lib/people";
 import { readPublicly } from "../../lib/public-read";
 import { currentViewer, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
 
 /*
  * Allowed to block — same reason as the rest of /account. Nothing here is
@@ -16,18 +18,21 @@ import { signInPath } from "../../lib/urls";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "Edit profile — Ahsan Project",
-  description: "Edit your profile, skills, and contact links on Ahsan Project.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Edit profil — Ahsan Project", "Edit profile — Ahsan Project"),
+    description: tx(locale, "Edit profil, keahlian, dan tautan kontakmu di Ahsan Project.", "Edit your profile, skills, and contact links on Ahsan Project."),
+    robots: { index: false },
+  };
+}
 
 export default async function EditProfilePage({
   searchParams,
 }: {
   searchParams: Promise<{ returnTo?: string | string[] }>;
 }) {
-  const viewer = await currentViewer();
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) redirect(signInPath("/account/profile"));
   const query = await searchParams;
   const requestedReturnTo = Array.isArray(query.returnTo) ? query.returnTo[0] : query.returnTo;
@@ -45,13 +50,12 @@ export default async function EditProfilePage({
 
       <main id="main-content" className="page-narrow">
         <p className="eyebrow">
-          <span /> Profile
+          <span /> {tx(locale, "Profil", "Profile")}
         </p>
-        <h1>Complete your profile.</h1>
+        <h1>{tx(locale, "Lengkapi profilmu.", "Complete your profile.")}</h1>
         <p className="lede">
-          This is what people see on <Link href={`/u/${viewer.username}`}>your portfolio page</Link>{" "}
-          and use to find you in the <Link href="/people">talent pool</Link>. You can update it at
-          any time.
+          {tx(locale, "Inilah yang dilihat orang di ", "This is what people see on ")}<Link href={`/u/${viewer.username}`}>{tx(locale, "halaman portofoliomu", "your portfolio page")}</Link>{" "}
+          {tx(locale, "dan digunakan untuk menemukanmu di ", "and use to find you in the ")}<Link href="/people">talent pool</Link>{tx(locale, ". Kamu dapat memperbaruinya kapan saja.", ". You can update it at any time.")}
         </p>
 
         <ProfileForm
@@ -62,8 +66,7 @@ export default async function EditProfilePage({
         />
 
         <p className="hint">
-          Your profile URL—<code>/u/{viewer.username}</code>—is created by the system and cannot be
-          changed here. Change your password on the <Link href="/account/password">password page</Link>.
+          {tx(locale, "URL profilmu—", "Your profile URL—")}<code>/u/{viewer.username}</code>{tx(locale, "—dibuat oleh sistem dan tidak dapat diubah di sini. Ubah kata sandimu di ", "—is created by the system and cannot be changed here. Change your password on the ")}<Link href="/account/password">{tx(locale, "halaman kata sandi", "password page")}</Link>.
         </p>
       </main>
 

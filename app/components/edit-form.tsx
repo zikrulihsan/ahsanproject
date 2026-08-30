@@ -3,11 +3,12 @@
 import { useActionState, useRef, useState } from "react";
 import { updateProject, type EditState } from "../actions";
 import { MAXIMUM } from "../lib/brief";
-import { STAGES, stageMeta, type Stage } from "../lib/stages";
+import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";
 import { Field } from "./field";
 import { ProjectTypePicker } from "./project-type-picker";
 import { TopicPicker } from "./topic-picker";
 import { GitHubImport } from "./github-import";
+import { useLanguage } from "./language-provider";
 
 export type EditableProject = {
   slug: string;
@@ -48,6 +49,7 @@ export function EditForm({ project }: { project: EditableProject }) {
   };
   const [state, formAction, pending] = useActionState(updateProject, initial);
   const { errors, values } = state;
+  const { locale, tx } = useLanguage();
 
   return (
     <form className="create-form" action={formAction} ref={formRef}>
@@ -59,12 +61,12 @@ export function EditForm({ project }: { project: EditableProject }) {
 
       <input type="hidden" name="slug" value={project.slug} />
 
-      <Field label="Project name" name="title" error={errors.title} defaultValue={values.title} required />
+      <Field label={tx("Nama proyek", "Project name")} name="title" error={errors.title} defaultValue={values.title} required />
 
       <Field
-        label="Project website"
+        label={tx("Situs web proyek", "Project website")}
         name="liveUrl"
-        hint="The website favicon is used when no logo URL is provided. Leave blank if your project does not have a website yet."
+        hint={tx("Favicon situs digunakan jika URL logo tidak diisi. Biarkan kosong jika proyekmu belum memiliki situs web.", "The website favicon is used when no logo URL is provided. Leave blank if your project does not have a website yet.")}
         error={errors.liveUrl}
         defaultValue={values.liveUrl}
         type="url"
@@ -72,9 +74,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Icon or logo URL"
+        label={tx("URL ikon atau logo", "Icon or logo URL")}
         name="logoUrl"
-        hint="Optional. Link directly to a PNG, SVG, WebP, or ICO file."
+        hint={tx("Opsional. Tautkan langsung ke berkas PNG, SVG, WebP, atau ICO.", "Optional. Link directly to a PNG, SVG, WebP, or ICO file.")}
         error={errors.logoUrl}
         defaultValue={values.logoUrl}
         maxLength={MAXIMUM.logoUrl}
@@ -83,18 +85,18 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="One-line summary"
+        label={tx("Ringkasan satu kalimat", "One-line summary")}
         name="tagline"
-        hint="Explain its main benefit in plain language."
+        hint={tx("Jelaskan manfaat utamanya dengan bahasa yang sederhana.", "Explain its main benefit in plain language.")}
         error={errors.tagline}
         defaultValue={values.tagline}
         maxLength={MAXIMUM.tagline}
       />
 
       <Field
-        label="What is interesting about this project?"
+        label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
         name="highlight"
-        hint="A sentence or two in your own words. This is what people read first."
+        hint={tx("Satu atau dua kalimat dengan kata-katamu sendiri. Ini yang pertama dibaca orang.", "A sentence or two in your own words. This is what people read first.")}
         error={errors.highlight}
         defaultValue={values.highlight}
         rows={3}
@@ -102,14 +104,13 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <p className="step-intro">
-        Nothing below is required. A project can sit here as a link and a highlight, and the brief
-        can be written whenever you have something to say.
+        {tx("Semua bagian di bawah bersifat opsional. Proyek dapat ditampilkan hanya dengan tautan dan sorotan; brief dapat ditulis kapan pun kamu punya sesuatu untuk diceritakan.", "Nothing below is required. A project can sit here as a link and a highlight, and the brief can be written whenever you have something to say.")}
       </p>
 
       <Field
-        label="Problem to solve"
+        label={tx("Masalah yang ingin diselesaikan", "Problem to solve")}
         name="problem"
-        hint="One or two concrete sentences are enough."
+        hint={tx("Satu atau dua kalimat konkret sudah cukup.", "One or two concrete sentences are enough.")}
         error={errors.problem}
         defaultValue={values.problem}
         rows={6}
@@ -117,9 +118,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="What you are making"
+        label={tx("Apa yang sedang kamu buat", "What you are making")}
         name="solution"
-        hint="Describe the form of the solution and the direction you want to explore."
+        hint={tx("Jelaskan bentuk solusi dan arah yang ingin kamu jajaki.", "Describe the form of the solution and the direction you want to explore.")}
         error={errors.solution}
         defaultValue={values.solution}
         rows={6}
@@ -127,9 +128,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Who it is for"
+        label={tx("Untuk siapa proyek ini", "Who it is for")}
         name="audience"
-        hint="Name the group of people it will help most specifically."
+        hint={tx("Sebutkan secara spesifik kelompok yang paling terbantu.", "Name the group of people it will help most specifically.")}
         error={errors.audience}
         defaultValue={values.audience}
         rows={3}
@@ -137,16 +138,16 @@ export function EditForm({ project }: { project: EditableProject }) {
       />
 
       <Field
-        label="Working on now…"
+        label={tx("Sedang dikerjakan…", "Working on now…")}
         name="now"
-        hint={`One sentence about the current work. Up to ${MAXIMUM.now} characters—you can also update it directly from the project page.`}
+        hint={tx(`Satu kalimat tentang pekerjaan terkini. Maksimal ${MAXIMUM.now} karakter—kamu juga dapat memperbaruinya langsung dari halaman proyek.`, `One sentence about the current work. Up to ${MAXIMUM.now} characters—you can also update it directly from the project page.`)}
         defaultValue={values.now}
       />
 
       <fieldset>
-        <legend>Project status</legend>
+        <legend>{tx("Status proyek", "Project status")}</legend>
         <p className="hint">
-          Choose the project’s current status. The selected status is saved with your other changes.
+          {tx("Pilih status proyek saat ini. Status tersebut disimpan bersama perubahan lainnya.", "Choose the project’s current status. The selected status is saved with your other changes.")}
         </p>
         <ul className="stage-choice">
           {STAGES.map((item) => (
@@ -161,8 +162,8 @@ export function EditForm({ project }: { project: EditableProject }) {
                   onChange={() => setStage(item)}
                 />
                 <span>
-                  <strong>{stageMeta[item].label}</strong>
-                  <small>{stageMeta[item].blurb}</small>
+                  <strong>{stageLabel(item, locale)}</strong>
+                  <small>{stageBlurb(item, locale)}</small>
                 </span>
               </label>
             </li>
@@ -180,10 +181,9 @@ export function EditForm({ project }: { project: EditableProject }) {
       <ProjectTypePicker defaultValue={values.projectType} error={errors.projectType} />
 
       <fieldset>
-        <legend>Links</legend>
+        <legend>{tx("Tautan", "Links")}</legend>
         <p className="hint">
-          These links support the project status. “Building” needs a working link or a current-work
-          description; “Live” needs a project website.
+          {tx("Tautan ini mendukung status proyek. “Dibangun” memerlukan tautan aktif atau deskripsi pekerjaan terkini; “Berjalan” memerlukan situs web proyek.", "These links support the project status. “Building” needs a working link or a current-work description; “Live” needs a project website.")}
         </p>
         <Field label="Dokumen" name="docUrl" error={errors.docUrl} defaultValue={values.docUrl} type="url" />
         <label className={`help-toggle ${openForGitHubContributions ? "is-on" : ""}`}>
@@ -193,8 +193,8 @@ export function EditForm({ project }: { project: EditableProject }) {
             onChange={(event) => setOpenForGitHubContributions(event.target.checked)}
           />
           <span>
-            <strong>Open to GitHub contributions</strong>
-            <small>Show a public badge and invite contributions through issues or pull requests.</small>
+            <strong>{tx("Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")}</strong>
+            <small>{tx("Tampilkan lencana publik dan undang kontribusi melalui issue atau pull request.", "Show a public badge and invite contributions through issues or pull requests.")}</small>
           </span>
         </label>
         <input
@@ -205,9 +205,9 @@ export function EditForm({ project }: { project: EditableProject }) {
         {openForGitHubContributions ? (
           <div className="progressive-panel">
             <Field
-              label="Repository GitHub"
+              label={tx("Repositori GitHub", "GitHub repository")}
               name="repoUrl"
-              hint="A public GitHub repository is required. Use the README import to fill in any empty project fields."
+              hint={tx("Repositori GitHub publik diperlukan. Gunakan impor README untuk mengisi kolom proyek yang masih kosong.", "A public GitHub repository is required. Use the README import to fill in any empty project fields.")}
               error={errors.repoUrl}
               defaultValue={values.repoUrl}
               type="url"
@@ -218,10 +218,10 @@ export function EditForm({ project }: { project: EditableProject }) {
           </div>
         ) : (
           <details className="optional-fields" open={Boolean(values.repoUrl)}>
-            <summary>Other repository <span>optional</span></summary>
+            <summary>{tx("Repositori lainnya", "Other repository")} <span>{tx("opsional", "optional")}</span></summary>
             <div className="optional-fields-body">
               <Field
-                label="GitHub or other repository"
+                label={tx("GitHub atau repositori lain", "GitHub or other repository")}
                 name="repoUrl"
                 error={errors.repoUrl}
                 defaultValue={values.repoUrl}
@@ -233,7 +233,7 @@ export function EditForm({ project }: { project: EditableProject }) {
       </fieldset>
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save changes"}
+        {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan perubahan", "Save changes")}
       </button>
     </form>
   );
