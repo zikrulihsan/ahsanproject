@@ -17,7 +17,7 @@ import { tx, type Locale } from "../lib/locale";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = tx(locale, "Ahsan Project — Tampilkan Karyamu dan Bangun Portofolio yang Berdampak", "Ahsan Project — Show Your Work and Build a Portfolio That Matters");
-  const description = tx(locale, "Ruang publik untuk mencantumkan proyek, menampilkan karya nyata, membangun portofolio, dan membuatmu lebih mudah ditemukan.", "A public place to list projects, show real work, build a portfolio, and become easier to discover.");
+  const description = tx(locale, "Ruang publik untuk menampilkan karyamu, menunjukkan karya nyata, dan membuatmu lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, show real work, and get discovered by the right team.");
   return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
 
@@ -31,9 +31,9 @@ const USE_CASES = [
 const WORKFLOW = [
   ["Cantumkan proyek", "List a project", "Tuliskan masalahnya, sasarannya, dan sudah sejauh apa pekerjaannya.", "Write down the problem, who it is for, and where the work stands."],
   ["Pilih cara proyek berjalan", "Choose how it lives", "Buka peran atau jadikan proyek sebagai catatan pengembangan publik.", "Open a role, or leave the project as a public build log."],
-  ["Biarkan orang menemukan karyamu", "Let people find the work", "Temui kolaborator melalui proyek—atau temukan orang yang kamu butuhkan.", "Meet collaborators through the project—or find the people you need."],
+  ["Kolaborasi di proyek nyata", "Collaborate on real projects", "Ambil peran, kerjakan kontribusi nyata, dan bangun pengalaman yang dapat dibuktikan.", "Take a role, make a real contribution, and build experience you can prove."],
   ["Rilis dan simpan buktinya", "Ship and keep the proof", "Karya selesai dan kontribusi nyata masuk ke portofoliomu.", "Finished work and real contributions land on your portfolio."],
-  ["Jadilah lebih mudah ditemukan", "Become discoverable", "Profilmu masuk ke talent pool dengan bukti yang menyertainya.", "Your profile enters the talent pool with evidence attached."],
+  ["Ditemukan oleh tim tech", "Get discovered by tech teams", "Profilmu masuk ke Talent Pool agar recruiter, hiring manager, dan tim tech dapat melihat buktinya.", "Your profile enters the Talent Pool so recruiters, hiring managers, and tech teams can see the evidence."],
 ] as const;
 
 export default async function Home() {
@@ -56,7 +56,7 @@ export default async function Home() {
           <div className="landing-hero-copy">
             <RotatingHeadline />
             <p className="landing-hero-lead">
-              {tx(locale, "Ruang publik untuk mencantumkan proyek dalam berbagai kebutuhan—membangun secara terbuka, mencari bantuan, membuktikan keahlian, atau membuatmu lebih mudah ditemukan.", "A public place to list projects for any use case—building in public, finding help, proving skill, or getting discovered.")}
+              {tx(locale, "Ruang publik untuk menampilkan karyamu, menunjukkan keahlian, dan lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, prove your skills, and get discovered by everyone.")}
             </p>
 
             <div className="home-hero-actions" aria-label={tx(locale, "Mulai menggunakan Ahsan Project", "Get started with Ahsan Project")}>
@@ -93,8 +93,8 @@ export default async function Home() {
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
-            <p className="home-eyebrow">{tx(locale, "Mengapa proyekmu perlu dibagikan?", "Why share your project?")}</p>
-            <h2 id="use-cases-title">{tx(locale, "Tempatkan proyekmu agar dapat dilihat.", "Put your project where it can be seen.")}</h2>
+            <p className="home-eyebrow">{tx(locale, "Mengapa upload karyamu di sini?", "Why share your project here?")}</p>
+            <h2 id="use-cases-title">{tx(locale, "Bagikan proyekmu agar dilihat semua.", "Put your project, so everyone can see.")}</h2>
             <p className="landing-section-lead">{tx(locale, "Setelah dibagikan, kamu dapat:", "Once you share it, you can:")}</p>
           </div>
 
@@ -137,7 +137,7 @@ export default async function Home() {
         <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
           <div className="portfolio-story-copy">
             <p className="home-eyebrow">02 · {tx(locale, "Pembuat portofolio", "Portfolio builder")}</p>
-            <h2 id="portfolio-story-title">{tx(locale, "Lelah mengelola portofolio sendirian?", "Tired of maintaining a portfolio on your own?")}</h2>
+            <h2 id="portfolio-story-title">{tx(locale, "Capek ngurus web portofolio sendirian?", "Tired of maintaining a portfolio on your own?")}</h2>
             <p>
               {tx(locale, "Profilmu mengumpulkan proyek, kontribusi, dan peran yang benar-benar dijalani. Satu tautan yang terus berkembang setiap kali sesuatu dirilis.", "Your profile collects projects, contributions, and the roles that actually happened. One link that grows every time something ships.")}
             </p>
@@ -184,21 +184,21 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">{tx(locale, "Lengkapi profilmu agar perekrut dapat menemukanmu.", "Complete your profile so recruiters can find you.")}</h2>
+            <h2 id="talent-story-title">{tx(locale, "Lengkapi profil profesionalmu agar ditemukan oleh recruiters", "Complete your professional profile, then get discovered by recruiters")}</h2>
             <p>
-              {tx(locale, "Profilmu akan masuk ke talent pool. Perekrut, manajer perekrutan, dan pendiri melihat bukti yang sama. Begini caranya:", "Your profile is collected into the talent pool. Recruiters, hiring managers, and founders all see the same evidence. Here is how:")}
+              {tx(locale, "Kolaborasi di proyek tech membangun pengalaman nyata. Talent Pool menghubungkanmu dengan recruiter, hiring manager, dan tim tech.", "Collaborating on tech projects builds real experience. Talent Pool connects you with recruiters, hiring managers, and tech teams.")}
             </p>
             <ul>
-              <li><span>✓</span> {tx(locale, "Manajer perekrutan dapat mencari berdasarkan topik proyek", "Hiring managers can search by project topic")}</li>
-              <li><span>✓</span> {tx(locale, "Perekrut dapat menemukanmu melalui keahlian dan pengalaman yang relevan", "Recruiters can find you through relevant skills and experience")}</li>
-              <li><span>✓</span> {tx(locale, "Pendiri dapat melihat kedalaman pekerjaan proyekmu", "Founders can see the depth of your project work")}</li>
+              <li><span>✓</span> {tx(locale, "Recruiter dapat menemukan tech talent melalui peran, keahlian, dan status peluang", "Recruiters can find tech talent through role, skills, and opportunity status")}</li>
+              <li><span>✓</span> {tx(locale, "Hiring manager dapat menilai keahlianmu dari proyek yang kamu kerjakan", "Hiring managers can assess your skills through the projects you worked on")}</li>
+              <li><span>✓</span> {tx(locale, "Tim tech dapat menemukan rekan yang tepat untuk diajak bekerja bersama", "Tech teams can find the right people to work with")}</li>
             </ul>
-            <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi orang", "Browse people")} <Arrow /></Link>
+            <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi tech talent", "Browse tech talent")} <Arrow /></Link>
           </div>
 
-          <div className="talent-preview" aria-label={tx(locale, "Orang di Ahsan Project", "People on Ahsan Project")}>
+          <div className="talent-preview" aria-label={tx(locale, "Tech talent di Ahsan Project", "Tech talent on Ahsan Project")}>
             <div className="talent-preview-head">
-              <span>{tx(locale, "Orang dengan karya yang terlihat", "People with visible work")}</span>
+              <span>{tx(locale, "Tech talent dengan karya yang terlihat", "Tech talent with visible work")}</span>
               <Link href="/people">{tx(locale, "Lihat semua", "View all")}</Link>
             </div>
             {people.length > 0 ? (

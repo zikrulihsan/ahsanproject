@@ -11,6 +11,7 @@ const blank = {
   skills: "",
   yearsExperience: "",
   fields: "",
+  availability: "open_to_collaboration",
   website: "",
   publicEmail: "",
   github: "",
@@ -62,4 +63,9 @@ test("years of experience is a whole number, or nothing at all", () => {
   assert.ok(validateProfile({ ...named, yearsExperience: "-1" }).yearsExperience);
   assert.ok(validateProfile({ ...named, yearsExperience: "80" }).yearsExperience);
   assert.ok(validateProfile({ ...named, yearsExperience: "2.5" }).yearsExperience);
+});
+
+test("availability only accepts the public statuses offered by the form", () => {
+  assert.deepEqual(validateProfile({ ...named, availability: "open_to_both" }), {});
+  assert.ok(validateProfile({ ...named, availability: "surprise_me" }).availability);
 });

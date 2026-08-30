@@ -7,6 +7,7 @@ import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../com
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
+import { AvailabilityBadges } from "../../components/availability-badges";
 import { SubmitButton } from "../../components/submit-button";
 import {
   getPerson,
@@ -147,6 +148,12 @@ export default async function ProfilePage({
               <h1>{person.name}</h1>
               {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
               {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
+              <AvailabilityBadges
+                status={person.availability}
+                fields={person.fields}
+                skills={person.skills}
+                locale={locale}
+              />
 
               {contacts.length > 0 ? (
                 <ul className="profile-contact-list" aria-label={tx(locale, `Tautan ${person.name}`, `${person.name}'s links`)}>
