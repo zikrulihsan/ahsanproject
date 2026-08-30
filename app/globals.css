@@ -3340,7 +3340,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   letter-spacing: .04em;
 }
 
-.language-switcher button {
+.language-switcher a {
   background: transparent;
   border: 0;
   color: inherit;
@@ -3348,9 +3348,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   font: inherit;
   opacity: .55;
   padding: 7px 3px;
+  text-decoration: none;
 }
 
-.language-switcher button.is-active {
+.language-switcher a.is-active {
   color: var(--ink);
   opacity: 1;
   text-decoration: underline;
