@@ -175,22 +175,18 @@ export async function previewProjectLink(rawLink: string): Promise<LinkPreviewRe
 }
 
 /**
- * Adds a project from a link.
+ * Adds a project from either an existing link or the owner's description.
  *
- * Everything except the link is optional, and the two ways a person can reach
- * this differ only in how much they chose to fill in:
- *
- *   - paste a link and press the button, in which case the page's own title,
- *     description and icon are recorded and the project exists in one step;
- *   - open "Add project details" first and write as much as they want, in
- *     which case what they wrote wins over anything the page said about itself.
- *
- * Nothing the upstream page does can stop the save. A site that is slow, down
- * or hostile to robots costs the project its description, not its existence —
- * the address itself still yields a name.
+ * A link submission reads the page's title, description and icon when those
+ * fields were left empty. A description submission asks for a name and a short
+ * explanation instead, so an idea does not need to invent a website before it
+ * can exist here. It starts at the Idea stage unless its owner explicitly
+ * chooses another stage and supplies the evidence that stage requires.
  */
 export async function createProject(_state: CreateState, formData: FormData): Promise<CreateState> {
+  const entryMethod = text(formData, "entryMethod") === "description" ? "description" : "link";
   const values = {
+    entryMethod,
     link: text(formData, "link"),
     highlight: text(formData, "highlight").slice(0, MAXIMUM.highlight),
     title: text(formData, "title"),
@@ -217,14 +213,13 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) return { errors: { form: tx(locale, "Masuk sebelum menampilkan proyek di sini.", "Sign in before showing a project here.") }, values };
 
-  const link = normaliseLink(values.link);
-  if (!link) {
+  const link = entryMethod === "link" ? normaliseLink(values.link) : "";
+  if (entryMethod === "link" && !link) {
     return {
       errors: { link: tx(locale, "Tempel tautan proyek—situs web, halaman aplikasi, atau repositori.", "Paste the project link — a website, an app listing, or a repository.") },
       values,
     };
   }
-
   /*
    * Where the link belongs on the project.
    *
@@ -232,16 +227,16 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
    * `live_url` would badge a pile of source code as something other people can
    * use today. Anything else is treated as the thing itself.
    */
-  const repoLink = isGitHubRepositoryUrl(link);
+  const repoLink = Boolean(link && isGitHubRepositoryUrl(link));
   const repoUrl = values.repoUrl || (repoLink ? link : "");
-  const liveUrl = values.liveUrl || (repoLink ? "" : link);
+  const liveUrl = values.liveUrl || (link && !repoLink ? link : "");
 
   // Only read the page when the person has not already named the project — for
   // anybody who filled the details in themselves there is nothing left to find.
-  const metadata = values.title && values.tagline && values.logoUrl
+  const metadata = !link || (values.title && values.tagline && values.logoUrl)
     ? null
     : await fetchLinkMetadata(link);
-  const title = values.title || metadata?.title || titleFromLink(link);
+  const title = values.title || metadata?.title || (link ? titleFromLink(link) : "");
   const tagline = values.tagline || (metadata?.description ?? "");
   const logoUrl = values.logoUrl || usableLogo(metadata?.iconUrl, metadata?.imageUrl);
 
@@ -254,6 +249,9 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     logoUrl,
   };
   const errors: CreateState["errors"] = validateBrief(brief, locale);
+  if (entryMethod === "description" && !values.highlight.trim()) {
+    errors.highlight = tx(locale, "Tuliskan deskripsi singkat agar orang memahami idenya.", "Write a short description so people can understand the idea.");
+  }
   if (values.openSeat === "yes") {
     if (!isRole(values.seatRole)) errors.seatRole = tx(locale, "Pilih peran yang sedang kamu cari.", "Choose the role you are looking for.");
     if (values.seatRole === "other" && !values.seatRoleTitle) {
@@ -273,17 +271,22 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   if (Object.keys(errors).length > 0) return { errors, values };
 
   /*
-   * The stage nobody was asked for.
+   * The stage nobody explicitly selected.
    *
-   * Guessing an answer on somebody's behalf is what this board refuses to do —
-   * but this is not a guess. A link that opens is evidence a stranger can use
-   * the thing today, and a repository is evidence work is happening; both are
-   * observable from the row itself, which is exactly what every stage rule
-   * asks for. Anyone who picked a stage in the details keeps it, and
-   * `settleStage` still drops a claim the links do not support.
+   * A description-first entry begins as an Idea. For a link entry, a page that
+   * opens is evidence a stranger can use the thing today, while a repository
+   * is evidence work is happening. Anyone who picked a stage in the details
+   * keeps it, and `settleStage` still drops a claim the saved evidence does not
+   * support.
    */
   const tags = normaliseTags(values.tags);
-  const requestedStage = isStage(values.stage) ? values.stage : repoLink ? "building" : "live";
+  const requestedStage = isStage(values.stage)
+    ? values.stage
+    : entryMethod === "description"
+      ? "idea"
+      : repoLink
+        ? "building"
+        : "live";
   const stage = settleStage(requestedStage, {
     nowText: values.now,
     docUrl: values.docUrl,

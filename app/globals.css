@@ -961,17 +961,34 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .github-start .github-import { border-top: 0; margin-bottom: 0; padding-top: 0; }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
 
-/* ------------------------------------------------- adding a project by link
+/* ----------------------------------------- adding a project from a starting point
 
-   The page is short, not styled differently: the eyebrow, the labelled fields
-   and the pill disclosure are the same ones every other form here uses. The
-   only thing that departs from the rest is the size of the link box, because
-   it is the one thing the page is asking for. */
+   A project can begin with a page we can read or with a short description from
+   its owner. Both routes join the same optional brief below. */
 
 .link-form { padding-bottom: 26px; }
 .link-start input { font-size: 16px; min-height: 54px; padding: 14px 16px; }
 .link-start .field-error { margin: 10px 0 0; }
-.link-start .field:first-child { margin-bottom: 20px; }
+
+.entry-method { border: 0; margin: 0 0 24px; padding: 0; }
+.entry-method > legend { font-size: 13px; font-weight: 680; margin-bottom: 9px; padding: 0; }
+.entry-method-options { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.entry-method-options label {
+  align-items: flex-start; background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  cursor: pointer; display: flex; gap: 11px; margin: 0; padding: 14px; transition: border-color .15s ease, background .15s ease;
+}
+.entry-method-options label:hover { border-color: #aab9b0; }
+.entry-method-options label.is-selected { background: #fff; border-color: var(--ink); }
+.entry-method-options input { flex: none; font-size: inherit; min-height: 0; padding: 0; }
+.entry-method-options span { display: flex; flex-direction: column; gap: 4px; }
+.entry-method-options strong { font-size: 14px; }
+.entry-method-options small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.idea-entry-note {
+  align-items: flex-start; background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 13px;
+  display: flex; flex-direction: column; gap: 3px; margin: -4px 0 20px; padding: 12px 14px;
+}
+.idea-entry-note strong { font-size: 13px; }
+.idea-entry-note span { color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .link-reading { color: var(--muted); font-size: 13px; margin: -8px 0 20px; }
 .link-reading.is-quiet { color: var(--ink-soft); }
@@ -1803,6 +1820,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .person-head { flex-direction: column; align-items: flex-start; gap: 10px; }
   .sidebar { grid-template-columns: 1fr; }
   .project-page, .profile-page, .page-narrow { padding: 18px 20px 70px; }
+  .entry-method-options { grid-template-columns: 1fr; }
   .project-hero { padding: 24px; }
   .project-main > section { padding: 22px; }
   .seat-list li, .task-list li { grid-template-columns: 1fr; }

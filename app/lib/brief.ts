@@ -2,17 +2,18 @@ import { tagList } from "./stages";
 import { tx, type Locale } from "./locale";
 
 /**
- * The one thing a project must carry: a name, and a link to itself.
+ * The one thing every project must carry: a name.
  *
  * It used to be more. A project could not exist here until its owner had
  * written a problem, a solution and an audience at length, which read as a
  * standard and worked as a wall — the people whose projects this board most
  * wanted were the ones who met six required paragraphs and closed the tab.
  *
- * The brief did not go anywhere; it moved. Adding a project takes a link, and
- * everything below is filled in afterwards, by the owner, from the project page
- * itself. `MINIMUM` is what is left of the old floor: a real name, because a
- * row nobody can name is a row nobody can find.
+ * The brief did not go anywhere; it moved. A finished project can arrive from
+ * a link, while an idea can arrive from its owner's short description; the rest
+ * can be filled in afterwards from the project page. `MINIMUM` is what is left
+ * of the old floor: a real name, because a row nobody can name is a row nobody
+ * can find.
  */
 export const MINIMUM = {
   title: 3,
@@ -139,9 +140,9 @@ function fieldLabelId(field: keyof BriefInput): string {
 /**
  * The line a card shows under the project name.
  *
- * A link-first project may have no summary of its own yet, in which case the
- * owner's highlight is the closest thing to one, and the domain is better than
- * an empty row.
+ * A project may have no one-line summary yet, in which case the owner's
+ * highlight is the closest thing to one. For a link-only submission, the
+ * domain is still better than an empty row.
  */
 export function projectBlurb(project: {
   tagline: string;

@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
     title: tx(locale, "Tambahkan proyekmu — Ahsan Project", "Add your project — Ahsan Project"),
-    description: tx(locale, "Tempel tautannya. Kami membaca nama, deskripsi, dan ikon dari halaman tersebut. Bagian lain bersifat opsional dan dapat diisi nanti.", "Paste the link. We read the name, description and icon from the page itself. Everything else is optional and can wait."),
+    description: tx(locale, "Mulai dari tautan yang sudah ada, atau tulis deskripsi singkat jika proyekmu masih berupa ide.", "Start from an existing link, or write a short description if your project is still an idea."),
     alternates: { canonical: "/new" },
   };
 }
@@ -38,9 +38,8 @@ export default async function NewProject() {
         <p className="eyebrow">
           <span /> {tx(locale, "Tambahkan proyekmu", "Add your project")}
         </p>
-        <h1>{tx(locale, "Tampilkan apa yang kamu bangun.", "Show what you built.")}</h1>
-        {/* One line, because the field below says the rest. */}
-        <p className="lede">{tx(locale, "Tempel tautannya. Bagian lain bersifat opsional.", "Paste the link. Everything else is optional.")}</p>
+        <h1>{tx(locale, "Tampilkan proyek atau idemu.", "Show your project or idea.")}</h1>
+        <p className="lede">{tx(locale, "Mulai dari tautan, atau ceritakan idenya jika belum punya tautan.", "Start from a link, or describe the idea if it does not have one yet.")}</p>
 
         {viewer ? (
           <CreateForm />

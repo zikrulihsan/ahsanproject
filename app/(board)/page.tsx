@@ -56,7 +56,7 @@ export default async function Home() {
           <div className="landing-hero-copy">
             <RotatingHeadline />
             <p className="landing-hero-lead">
-              {tx(locale, "Ruang publik untuk membangun proyek tech, membuktikan keahlian, dan lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, prove your skills, and get discovered by the right team.")}
+              {tx(locale, "Ruang publik untuk membangun proyek tech, membuktikan keahlian, dan lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, prove your skills, and get discovered by everyone.")}
             </p>
 
             <div className="home-hero-actions" aria-label={tx(locale, "Mulai menggunakan Ahsan Project", "Get started with Ahsan Project")}>
