@@ -3361,3 +3361,22 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .language-option-code { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
 .language-option.is-active .language-option-code { color: var(--muted); }
 .language-option-check { color: var(--ink); font-weight: 700; }
+
+/*
+ * Fixed-size and delayed on purpose: most clicks resolve from the prefetch
+ * before 100ms, so the spinner never gets to appear for those. It only shows
+ * up for the click that actually has to wait, which is the one that needed it.
+ */
+.language-option-spinner {
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  border-top-color: var(--ink);
+  height: 14px;
+  width: 14px;
+  animation: language-option-spin .6s linear infinite, language-option-appear .15s ease forwards;
+  animation-delay: 0s, 100ms;
+  opacity: 0;
+}
+
+@keyframes language-option-spin { to { transform: rotate(360deg); } }
+@keyframes language-option-appear { to { opacity: 1; } }
