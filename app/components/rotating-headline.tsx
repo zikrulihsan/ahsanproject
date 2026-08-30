@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "./language-provider";
 
 const PHRASES = {
-  id: ["Perekrut tech", "Hiring manager", "Tim tech"],
+  id: ["Tech recruiters", "Hiring manager", "Tim tech"],
   en: ["Tech recruiters", "Hiring managers", "Tech teams"],
 } as const;
 
@@ -44,7 +44,7 @@ export function RotatingHeadline() {
 
   return (
     <h1 id="landing-title" aria-label={tx("Tampilkan karya techmu. Bangun pengalaman nyata. Jadilah lebih mudah ditemukan.", "Show your tech work. Build real experience. Get discovered.")}>
-      <span>{tx("Tampilkan ", "Show ")}<span className="text-gray-500">{tx("karya techmu", "your tech work")}</span> &amp;</span>
+      <span>{tx("Tampilkan ", "Show ")}<span className="text-gray-500">{tx("karyamu", "your work")}</span> &amp;</span>
       <span>{tx("buat dirimu ", "get ")}<span className="text-gray-500">{tx("ditemukan", "discover")}</span>{tx(" oleh:", "ed by:")}</span>
       <span className="typing-line" aria-hidden="true">
         <span className="typing-sizer">{tx("Hiring manager", "Tech recruiters")}</span>

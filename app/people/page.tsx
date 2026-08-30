@@ -74,7 +74,7 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
           <div className="people-directory-copy">
             <p className="people-directory-kicker">Talent Pool</p>
             <h1>{tx(locale, "Temukan tech talent untuk timmu.", "Find tech talent for your team.")}</h1>
-            <p>{tx(locale, "Untuk engineering, design, product, data, dan research. Lihat keahlian, pengalaman proyek, dan status peluangnya.", "For engineering, design, product, data, and research. See skills, project experience, and opportunity status.")}</p>
+            <p>{tx(locale, "Untuk engineering, design, product, data, dan research. Lihat keahlian, pengalaman dan karyanya.", "For engineering, design, product, data, and research. See skills, experience and their project experiences.")}</p>
           </div>
           <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
             <TalentPoolCta locale={locale} />
