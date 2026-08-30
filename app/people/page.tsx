@@ -73,8 +73,8 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
         <header className="people-directory-head">
           <div className="people-directory-copy">
             <p className="people-directory-kicker">Talent Pool · Ahsan Project</p>
-            <h1>{tx(locale, "Temukan talent dengan pengalaman proyek nyata untuk timmu.", "Find talent with real project experience for your team.")}</h1>
-            <p>{tx(locale, "Talent Pool mempertemukan orang yang mencari peluang kerja dengan recruiter, hiring manager, dan orang yang sedang membangun tim—berdasarkan keahlian, status peluang, serta bukti kontribusi nyata.", "Talent Pool connects people seeking work with recruiters, hiring managers, and team builders through skills, opportunity status, and proof of real contribution.")}</p>
+            <h1>{tx(locale, "Temukan talent yang tepat untuk timmu.", "Find the right talent for your team.")}</h1>
+            <p>{tx(locale, "Cari berdasarkan keahlian, pengalaman proyek, dan status peluang.", "Search by skills, project experience, and opportunity status.")}</p>
           </div>
           <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
             <TalentPoolCta locale={locale} />
@@ -101,8 +101,8 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
     <div className="people-directory-join">
       <p>
         {ready
-          ? tx(locale, "Profilmu siap ditemukan recruiter, hiring manager, dan orang yang sedang membangun tim. Pastikan status peluangmu tetap relevan.", "Your profile is ready to be found by recruiters, hiring managers, and team builders. Keep your opportunity status up to date.")
-          : tx(locale, "Lengkapi profil untuk menampilkan keahlian, pengalaman proyek nyata, dan peluang kerja yang kamu cari.", "Complete your profile to show your skills, real project experience, and the work opportunities you want.")}
+          ? tx(locale, "Profilmu sudah tampil. Pastikan status peluangmu tetap relevan.", "Your profile is live. Keep your opportunity status up to date.")
+          : tx(locale, "Lengkapi profil agar recruiter dapat melihat keahlian dan pengalamanmu.", "Complete your profile so recruiters can see your skills and experience.")}
       </p>
       <Link href="/account/profile">
         {ready ? tx(locale, "Perbarui status & profil", "Update status & profile") : tx(locale, "Lengkapi profil", "Complete your profile")}
@@ -115,7 +115,7 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
 function TalentPoolCtaFallback({ locale }: { locale: Locale }) {
   return (
     <div className="people-directory-join">
-      <p>{tx(locale, "Bangun pengalaman lewat proyek nyata, tampilkan buktinya, lalu biarkan recruiter, hiring manager, dan pembangun tim menemukanmu.", "Build experience through real projects, show the proof, then let recruiters, hiring managers, and team builders find you.")}</p>
+      <p>{tx(locale, "Ingin ditemukan recruiter? Tampilkan keahlian dan pengalaman proyekmu.", "Want recruiters to find you? Show your skills and project experience.")}</p>
       <Link href="/signup?next=%2Faccount%2Fprofile">
         {tx(locale, "Daftar sebagai talent", "Join as talent")} <span aria-hidden="true">→</span>
       </Link>
@@ -226,7 +226,7 @@ async function Directory({ query }: { query: SearchParams }) {
                 name="q"
                 maxLength={100}
                 defaultValue={filters.q}
-                placeholder={tx(locale, "Cari nama, profesi, keahlian, atau proyek…", "Search name, profession, skill, or project…")}
+                placeholder={tx(locale, "Cari nama, profesi, atau keahlian…", "Search by name, profession, or skill…")}
               />
             </label>
             <button type="submit">{tx(locale, "Cari", "Search")}</button>
@@ -234,7 +234,7 @@ async function Directory({ query }: { query: SearchParams }) {
 
           <details className="collaboration-filter-panel">
             <summary className="collaboration-filter-summary">
-              <span><FilterIcon /> {tx(locale, "Saring talent", "Filter talent")}</span>
+              <span><FilterIcon /> {tx(locale, "Filter", "Filters")}</span>
               <span>
                 {activeControlCount > 0 ? tx(locale, `${activeControlCount} aktif`, `${activeControlCount} active`) : tx(locale, "Opsional", "Optional")}
                 <i aria-hidden="true" />
@@ -281,12 +281,12 @@ async function Directory({ query }: { query: SearchParams }) {
               </div>
 
               <div className="collaboration-control">
-                <span>{tx(locale, "Pengalaman", "Experience")}</span>
+                <span>{tx(locale, "Pengalaman kerja", "Work experience")}</span>
                 <SortSelect
                   action="/people"
                   name="experience"
                   value={filters.experience}
-                  label={tx(locale, "Saring pengalaman", "Filter experience")}
+                  label={tx(locale, "Saring pengalaman kerja", "Filter work experience")}
                   options={[
                     { value: "", label: tx(locale, "Semua tingkat pengalaman", "All experience levels") },
                     ...EXPERIENCE_BANDS.map((band) => ({ value: band, label: experienceBandName(band, locale) })),
@@ -322,7 +322,7 @@ async function Directory({ query }: { query: SearchParams }) {
                   value={filters.involvement}
                   label={tx(locale, "Saring pengalaman proyek", "Filter project experience")}
                   options={[
-                    { value: "", label: tx(locale, "Semua pengalaman", "Any experience") },
+                    { value: "", label: tx(locale, "Semua", "Any") },
                     { value: "building", label: tx(locale, "Membangun proyek", "Building projects") },
                     { value: "helping", label: tx(locale, "Berkontribusi di proyek", "Contributing to projects") },
                   ]}
@@ -347,7 +347,7 @@ async function Directory({ query }: { query: SearchParams }) {
               ) : null}
               {filters.experience ? (
                 <ActiveFilter
-                  label={tx(locale, "Pengalaman", "Experience")}
+                  label={tx(locale, "Pengalaman kerja", "Work experience")}
                   value={experienceBandName(filters.experience, locale)}
                   href={directoryHref({ experience: null, page: null })}
                   locale={locale}
@@ -358,8 +358,8 @@ async function Directory({ query }: { query: SearchParams }) {
               ) : null}
               {filters.involvement ? (
                 <ActiveFilter
-                  label={tx(locale, "Keterlibatan", "Involvement")}
-                  value={filters.involvement === "building" ? tx(locale, "Membangun", "Building") : tx(locale, "Membantu", "Helping")}
+                  label={tx(locale, "Pengalaman proyek", "Project experience")}
+                  value={filters.involvement === "building" ? tx(locale, "Membangun proyek", "Building projects") : tx(locale, "Berkontribusi", "Contributing")}
                   href={directoryHref({ involvement: null, page: null })}
                   locale={locale}
                 />

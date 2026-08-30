@@ -3065,7 +3065,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: #fff; border: 1px solid #dbe2de; border-radius: 17px; box-shadow: 0 13px 36px rgba(19, 54, 44, .055);
   padding: 18px;
 }
-.people-search-panel .collaboration-filter-controls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.people-search-panel .collaboration-filter-controls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 .people-results { padding-top: 30px; }
 .people-results-layout {
@@ -3279,6 +3279,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 
 @media (max-width: 960px) {
   .people-page { padding-left: 34px; padding-right: 34px; }
+  .people-search-panel .collaboration-filter-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {
@@ -3317,6 +3318,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .people-pagination { grid-template-columns: 1fr 1fr; }
   .people-pagination > div { grid-column: 1 / -1; grid-row: 1; justify-content: center; }
   .people-pagination .pagination-direction { grid-row: 2; }
+}
+
+@media (max-width: 520px) {
+  .people-search-panel .collaboration-filter-controls { grid-template-columns: 1fr; }
 }
 /* The two cards on /account/language. */
 .language-picker {
