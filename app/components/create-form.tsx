@@ -18,34 +18,24 @@ const EMPTY: CreateState = { errors: {}, values: {} };
 const PREVIEW_DELAY_MS = 700;
 
 type EntryMethod = "link" | "description";
+type Step = 1 | 2;
 
-/** Errors that can only have come from the collapsed half of the form. */
-const DETAIL_FIELDS = [
-  "title",
-  "tagline",
-  "problem",
-  "solution",
-  "audience",
-  "tags",
-  "projectType",
-  "now",
-  "docUrl",
-  "repoUrl",
-  "logoUrl",
-  "seatRole",
-  "seatRoleTitle",
-  "seatBrief",
-  "seatCommitment",
-] as const;
+/** What the first step asks for, per route. Everything else belongs to step two. */
+const STEP_ONE_FIELDS: Record<EntryMethod, readonly string[]> = {
+  link: ["link"],
+  description: ["title", "highlight"],
+};
 
 /**
- * Adding a project starts from whichever evidence already exists.
+ * Adding a project is two steps, because the first one is the only one that
+ * has to be answered.
  *
- * A project with a public page needs only its link; the page supplies the name,
- * summary and icon. An idea without a page needs its owner's name and short
- * description instead. Both routes meet at the same optional brief, so choosing
- * the easier starting point never removes the richer fields or the chance to
- * open a role.
+ * Step one takes whichever evidence already exists: a link, whose page supplies
+ * the name, summary and icon, or a short description for an idea that has no
+ * page yet. Step two is the fuller brief, and its weight follows what step one
+ * gave us — a link can carry a project on its own, so the details are optional
+ * and skippable, while a description-only idea has nothing else to be read
+ * from and is asked to finish the brief.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
@@ -55,10 +45,13 @@ export function CreateForm() {
   const [entryMethod, setEntryMethod] = useState<EntryMethod>(
     values.entryMethod === "description" ? "description" : "link",
   );
+  const [step, setStep] = useState<Step>(1);
   const [link, setLink] = useState(values.link ?? "");
   const [preview, setPreview] = useState<LinkPreview | null>(null);
   const [previewError, setPreviewError] = useState("");
   const [reading, startReading] = useTransition();
+  /** What the first step itself objected to, before the server saw anything. */
+  const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
 
   const initialStage = STAGES.includes(values.stage as Stage) ? (values.stage as Stage) : null;
   const [stage, setStage] = useState<Stage | null>(initialStage);
@@ -66,10 +59,11 @@ export function CreateForm() {
   const [openForGitHubContributions, setOpenForGitHubContributions] = useState(
     values.openForGitHubContributions === "yes",
   );
-  const detailsHaveErrors = DETAIL_FIELDS.some(
-    (field) => errors[field] && !(entryMethod === "description" && field === "title"),
-  );
   const { locale, tx } = useLanguage();
+
+  /* A description-only idea has no page to be read from, so its brief is the
+     project; a link can stand on its own, so its details stay optional. */
+  const detailsRequired = entryMethod === "description";
 
   /*
    * Read the link while they are still looking at it.
@@ -83,6 +77,7 @@ export function CreateForm() {
     setLink(value);
     if (preview && preview.requested !== value.trim()) setPreview(null);
     if (previewError) setPreviewError("");
+    if (stepErrors.link) setStepErrors((current) => omit(current, "link"));
   }
 
   useEffect(() => {
@@ -104,7 +99,64 @@ export function CreateForm() {
     return () => clearTimeout(timer);
   }, [entryMethod, link, preview?.requested]);
 
-  // Remounts the detail inputs when a new page has been read, so opening the
+  /*
+   * Send them back to the step that holds the problem.
+   *
+   * A rejected submission was posted from step two, so an error on a step one
+   * field would otherwise be reported on a screen nobody is looking at. This
+   * reacts to a new result from the action rather than to a render, so it is
+   * an adjustment during rendering and not an effect.
+   */
+  const [answered, setAnswered] = useState(state);
+  if (answered !== state) {
+    setAnswered(state);
+    const named = Object.keys(errors).filter((field) => field !== "form");
+    if (named.length > 0) {
+      const first = STEP_ONE_FIELDS[values.entryMethod === "description" ? "description" : "link"];
+      setStep(named.some((field) => first.includes(field)) ? 1 : 2);
+    }
+  }
+
+  /** The first step, checked here so nobody pays a round trip to be told. */
+  function continueToDetails() {
+    const form = formRef.current;
+    const found: Record<string, string> = {};
+
+    if (entryMethod === "link") {
+      if (!looksLikeLink(link.trim())) {
+        found.link = tx(
+          "Tempel tautan proyek—situs web, halaman aplikasi, atau repositori.",
+          "Paste the project link — a website, an app listing, or a repository.",
+        );
+      }
+    } else {
+      const title = fieldValue(form, "title");
+      const highlight = fieldValue(form, "highlight");
+      if (title.length < MINIMUM.title) {
+        found.title = tx(
+          `Tuliskan nama proyek atau ide—minimal ${MINIMUM.title} karakter.`,
+          `Write the project or idea name — at least ${MINIMUM.title} characters.`,
+        );
+      }
+      if (!highlight) {
+        found.highlight = tx(
+          "Tuliskan deskripsi singkat agar orang memahami idenya.",
+          "Write a short description so people can understand the idea.",
+        );
+      }
+    }
+
+    setStepErrors(found);
+    if (Object.keys(found).length > 0) return;
+    goToStep(2);
+  }
+
+  function goToStep(next: Step) {
+    setStep(next);
+    formRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  // Remounts the detail inputs when a new page has been read, so reaching the
   // details afterwards shows what was found instead of an empty form. Anything
   // typed there stays typed: their value is what gets posted either way.
   const prefillKey = preview?.url ?? "no-preview";
@@ -117,7 +169,15 @@ export function CreateForm() {
         </p>
       ) : null}
 
-      <section className="link-start">
+      <p className="step-indicator">
+        {step === 1
+          ? tx("Langkah 1 dari 2 · Titik awal", "Step 1 of 2 · Starting point")
+          : tx("Langkah 2 dari 2 · Detail proyek", "Step 2 of 2 · Project details")}
+      </p>
+
+      {/* Both steps stay mounted: the first one still has to post its answers
+          with the second one, and going back must not empty what was typed. */}
+      <section className="link-start" hidden={step !== 1}>
         <fieldset className="entry-method">
           <legend>{tx("Mau mulai dari mana?", "How would you like to start?")}</legend>
           <div className="entry-method-options">
@@ -127,7 +187,10 @@ export function CreateForm() {
                 name="entryMethod"
                 value="link"
                 checked={entryMethod === "link"}
-                onChange={() => setEntryMethod("link")}
+                onChange={() => {
+                  setEntryMethod("link");
+                  setStepErrors({});
+                }}
               />
               <span>
                 <strong>{tx("Pakai tautan", "Use a link")}</strong>
@@ -140,7 +203,10 @@ export function CreateForm() {
                 name="entryMethod"
                 value="description"
                 checked={entryMethod === "description"}
-                onChange={() => setEntryMethod("description")}
+                onChange={() => {
+                  setEntryMethod("description");
+                  setStepErrors({});
+                }}
               />
               <span>
                 <strong>{tx("Tulis deskripsi", "Write a description")}</strong>
@@ -152,8 +218,11 @@ export function CreateForm() {
 
         {entryMethod === "link" ? (
           <>
-            <div className={`field ${errors.link ? "has-error" : ""}`}>
+            <div className={`field ${stepErrors.link || errors.link ? "has-error" : ""}`}>
               <label htmlFor="link">{tx("Tautan proyek", "Project link")}</label>
+              <p className="hint" id="link-hint">
+                {tx("Nama dan deskripsi proyek diambil dari halaman ini.", "The project name and description are read from this page.")}
+              </p>
               <input
                 id="link"
                 name="link"
@@ -165,12 +234,12 @@ export function CreateForm() {
                 placeholder="https://"
                 value={link}
                 onChange={(event) => changeLink(event.target.value)}
-                aria-invalid={errors.link ? true : undefined}
-                required
+                aria-describedby="link-hint"
+                aria-invalid={stepErrors.link || errors.link ? true : undefined}
               />
-              {errors.link ? (
+              {stepErrors.link || errors.link ? (
                 <p className="field-error" role="alert">
-                  {errors.link}
+                  {stepErrors.link || errors.link}
                 </p>
               ) : null}
             </div>
@@ -182,12 +251,19 @@ export function CreateForm() {
             <Field
               label={tx("Nama proyek atau ide", "Project or idea name")}
               name="title"
-              error={errors.title}
+              error={stepErrors.title || errors.title}
               defaultValue={values.title}
-              required
-              minLength={MINIMUM.title}
               maxLength={MAXIMUM.title}
               placeholder={tx("Contoh: Teman Belajar", "For example: Study Buddy")}
+            />
+            <Field
+              label={tx("Deskripsikan ide atau proyekmu", "Describe your idea or project")}
+              name="highlight"
+              hint={tx("Ceritakan apa yang ingin dibuat, masalah yang ingin dijawab, atau siapa yang akan terbantu. Satu sampai tiga kalimat sudah cukup.", "Tell people what you want to make, the problem it addresses, or who it could help. One to three sentences is enough.")}
+              error={stepErrors.highlight || errors.highlight}
+              defaultValue={values.highlight}
+              rows={3}
+              maxLength={MAXIMUM.highlight}
             />
             <p className="idea-entry-note">
               <strong>{tx("Status awal: Ide", "Starting stage: Idea")}</strong>
@@ -196,52 +272,65 @@ export function CreateForm() {
           </>
         )}
 
-        <Field
-          label={entryMethod === "description"
-            ? tx("Deskripsikan ide atau proyekmu", "Describe your idea or project")
-            : tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
-          name="highlight"
-          hint={entryMethod === "description"
-            ? tx("Ceritakan apa yang ingin dibuat, masalah yang ingin dijawab, atau siapa yang akan terbantu. Satu sampai tiga kalimat sudah cukup.", "Tell people what you want to make, the problem it addresses, or who it could help. One to three sentences is enough.")
-            : tx("Opsional.", "Optional.")}
-          error={errors.highlight}
-          defaultValue={values.highlight}
-          rows={3}
-          required={entryMethod === "description"}
-          maxLength={MAXIMUM.highlight}
-        />
+        <button className="primary-button create-submit" type="button" onClick={continueToDetails}>
+          {tx("Lanjut", "Continue")}
+        </button>
       </section>
 
-      <details className="optional-fields project-details" open={detailsHaveErrors}>
-        <summary>
-          {tx("Tambahkan detail proyek", "Add project details")}<span>{tx("opsional", "optional")}</span>
-        </summary>
+      <section className="project-details" hidden={step !== 2}>
+        <div className="step-head">
+          <h2>
+            {detailsRequired
+              ? tx("Lengkapi detail idemu", "Complete your idea's details")
+              : tx("Detail proyek", "Project details")}
+          </h2>
+          <p>
+            {detailsRequired
+              ? tx("Idemu belum punya halaman yang bisa dibaca, jadi bagian ini yang menjelaskannya kepada orang lain.", "Your idea has no page for us to read, so this is what explains it to other people.")
+              : tx("Semuanya opsional—nama, ringkasan, dan ikon sudah diambil dari halaman tautanmu. Kamu juga bisa melengkapinya nanti dari halaman proyek.", "All optional — the name, summary, and icon already come from your link's page. You can also fill this in later from the project page.")}
+          </p>
+        </div>
 
         <div className="project-details-body">
           <fieldset className="step">
             <legend>{tx("Proyek", "The project")}</legend>
 
             {entryMethod === "link" ? (
-              <Field
-                key={`title-${prefillKey}`}
-                label={tx("Nama proyek", "Project name")}
-                name="title"
-                hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
-                error={errors.title}
-                defaultValue={values.title || preview?.title || ""}
-                maxLength={MAXIMUM.title}
-                placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
-              />
+              <>
+                <Field
+                  key={`title-${prefillKey}`}
+                  label={tx("Nama proyek", "Project name")}
+                  name="title"
+                  hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
+                  error={errors.title}
+                  defaultValue={values.title || preview?.title || ""}
+                  maxLength={MAXIMUM.title}
+                  placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
+                />
+
+                <Field
+                  label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
+                  name="highlight"
+                  hint={tx("Opsional.", "Optional.")}
+                  error={errors.highlight}
+                  defaultValue={values.highlight}
+                  rows={3}
+                  maxLength={MAXIMUM.highlight}
+                />
+              </>
             ) : null}
 
             <Field
               key={`tagline-${prefillKey}`}
               label={tx("Ringkasan satu kalimat", "One-line summary")}
               name="tagline"
-              hint={tx("Manfaat utamanya dalam bahasa sederhana. Diambil dari halaman jika dikosongkan.", "Its main benefit in plain language. Taken from the page when you leave it blank.")}
+              hint={detailsRequired
+                ? tx("Manfaat utamanya dalam bahasa sederhana.", "Its main benefit in plain language.")
+                : tx("Manfaat utamanya dalam bahasa sederhana. Diambil dari halaman jika dikosongkan.", "Its main benefit in plain language. Taken from the page when you leave it blank.")}
               error={errors.tagline}
               defaultValue={values.tagline || preview?.tagline || ""}
               maxLength={MAXIMUM.tagline}
+              required={detailsRequired && step === 2}
               placeholder={tx("Contoh: Materi keamanan digital untuk orang tua dan anak.", "For example: Digital safety materials for parents and children.")}
             />
 
@@ -264,7 +353,9 @@ export function CreateForm() {
           <fieldset className="step">
             <legend>{tx("Brief singkat", "Short brief")}</legend>
             <p className="step-intro">
-              {tx("Tulisan ini tidak perlu seperti proposal dan tidak ada bagian yang wajib. Satu atau dua kalimat konkret untuk setiap pertanyaan sudah cukup.", "This does not need to read like a proposal, and no part of it is required. One or two concrete sentences per question are enough.")}
+              {detailsRequired
+                ? tx("Tulisan ini tidak perlu seperti proposal. Satu atau dua kalimat konkret untuk setiap pertanyaan sudah cukup.", "This does not need to read like a proposal. One or two concrete sentences per question are enough.")
+                : tx("Tulisan ini tidak perlu seperti proposal dan tidak ada bagian yang wajib. Satu atau dua kalimat konkret untuk setiap pertanyaan sudah cukup.", "This does not need to read like a proposal, and no part of it is required. One or two concrete sentences per question are enough.")}
             </p>
 
             <Field
@@ -274,6 +365,7 @@ export function CreateForm() {
               error={errors.problem}
               defaultValue={values.problem}
               rows={4}
+              required={detailsRequired && step === 2}
               maxLength={MAXIMUM.problem}
             />
 
@@ -284,6 +376,7 @@ export function CreateForm() {
               error={errors.solution}
               defaultValue={values.solution}
               rows={4}
+              required={detailsRequired && step === 2}
               maxLength={MAXIMUM.solution}
             />
 
@@ -294,6 +387,7 @@ export function CreateForm() {
               error={errors.audience}
               defaultValue={values.audience}
               rows={2}
+              required={detailsRequired && step === 2}
               maxLength={MAXIMUM.audience}
             />
           </fieldset>
@@ -461,13 +555,37 @@ export function CreateForm() {
             ) : null}
           </fieldset>
         </div>
-      </details>
 
-      <button className="primary-button create-submit" type="submit" disabled={pending}>
-        {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
-      </button>
+        <div className="step-actions">
+          <button className="ghost-button" type="button" onClick={() => goToStep(1)} disabled={pending}>
+            {tx("Kembali", "Back")}
+          </button>
+          {detailsRequired ? null : (
+            <button className="ghost-button" type="submit" disabled={pending}>
+              {tx("Lewati", "Skip")}
+            </button>
+          )}
+          <button className="primary-button" type="submit" disabled={pending}>
+            {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
+          </button>
+        </div>
+      </section>
     </form>
   );
+}
+
+/** The same record without one key, for clearing a single resolved complaint. */
+function omit(errors: Record<string, string>, key: string): Record<string, string> {
+  const rest = { ...errors };
+  delete rest[key];
+  return rest;
+}
+
+/** The value a named control currently holds, trimmed, or an empty string. */
+function fieldValue(form: HTMLFormElement | null, name: string): string {
+  const control = form?.elements.namedItem(name);
+  if (!control || !("value" in control) || typeof control.value !== "string") return "";
+  return control.value.trim();
 }
 
 /** What we found behind the link, or an honest note that we found nothing. */
