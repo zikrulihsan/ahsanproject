@@ -34,6 +34,12 @@ export function ProfileForm({
   } satisfies ProfileState);
   const { errors, values } = state;
   const { tx } = useLanguage();
+  const availabilityChoices = [
+    { value: "open_to_both", label: tx("Terbuka untuk kerja & kolaborasi", "Open to work & collaboration") },
+    { value: "open_to_work", label: tx("Terbuka untuk peluang kerja", "Open to work") },
+    { value: "open_to_collaboration", label: tx("Terbuka untuk kolaborasi", "Open to collaboration") },
+    { value: "not_open", label: tx("Belum terbuka untuk peluang", "Not open to opportunities") },
+  ];
 
   return (
     <form className="create-form" action={formAction}>
@@ -61,7 +67,7 @@ export function ProfileForm({
         <Field
           label={tx("Profesi atau peran utama", "Profession or primary role")}
           name="profession"
-          hint={tx("Sebutan yang kamu gunakan untuk dirimu. Ini yang paling sering dicari orang di direktori Orang.", "The title you use for yourself. This is what people most often search for in the People directory.")}
+          hint={tx("Sebutan yang kamu gunakan untuk dirimu. Ini yang paling sering dicari orang di Talent Pool.", "The title you use for yourself. This is what people most often search for in the Talent Pool.")}
           error={errors.profession}
           defaultValue={values.profession}
           maxLength={PROFILE_MAXIMUM.profession}
@@ -93,7 +99,7 @@ export function ProfileForm({
           <span className="step-number">2</span> {tx("Tampil di talent pool", "Be discoverable in the talent pool")}
         </legend>
         <p className="step-intro">
-          {tx("Detail ini digunakan oleh filter di direktori ", "These details power the filters in the ")}<strong>{tx("Orang", "People")}</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya.", " directory. Your projects remain the proof of your work—this just helps people find them.")}
+          {tx("Detail ini digunakan oleh filter di ", "These details power the filters in the ")}<strong>Talent Pool</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya.", ". Your projects remain the proof of your work—this just helps people find them.")}
         </p>
 
         <Field
@@ -126,6 +132,27 @@ export function ProfileForm({
           list="field-suggestions"
           placeholder={tx("Fintech, Pendidikan, Teknologi Sipil", "Fintech, Education, Civic Tech")}
         />
+
+        <div className={`field ${errors.availability ? "has-error" : ""}`}>
+          <label htmlFor="availability">{tx("Status peluang", "Opportunity status")}</label>
+          <p className="hint" id="availability-hint">
+            {tx("Tampilkan jenis peluang yang boleh ditawarkan kepadamu di talent pool.", "Show which opportunities people may approach you about in the talent pool.")}
+          </p>
+          <select
+            id="availability"
+            name="availability"
+            defaultValue={values.availability}
+            aria-describedby={`availability-hint${errors.availability ? " availability-error" : ""}`}
+            aria-invalid={errors.availability ? true : undefined}
+          >
+            {availabilityChoices.map((choice) => (
+              <option key={choice.value} value={choice.value}>{choice.label}</option>
+            ))}
+          </select>
+          {errors.availability ? (
+            <p className="field-error" id="availability-error" role="alert">{errors.availability}</p>
+          ) : null}
+        </div>
 
         <datalist id="skill-suggestions">
           {skillSuggestions.map((skill) => (

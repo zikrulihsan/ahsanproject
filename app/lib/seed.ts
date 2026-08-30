@@ -15,6 +15,7 @@ export type SeedUser = {
   skills: string[];
   yearsExperience: number | null;
   fields: string[];
+  availability: "open_to_work" | "open_to_collaboration" | "open_to_both" | "not_open";
   website: string;
   publicEmail: string;
   github: string;
@@ -102,6 +103,7 @@ export const seedUsers: SeedUser[] = [
     skills: ["Product Strategy", "Next.js", "Prototyping"],
     yearsExperience: 6,
     fields: ["Civic Tech", "Productivity"],
+    availability: "open_to_both",
     website: "https://ahsanproject-id.netlify.app",
     publicEmail: "",
     github: "https://github.com/zikrulihsan",

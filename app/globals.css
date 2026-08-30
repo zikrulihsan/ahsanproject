@@ -943,7 +943,7 @@ form button.quiet:hover { background: var(--paper); }
 fieldset { border: 1px solid var(--line-soft); border-radius: var(--radius); margin: 0 0 24px; padding: 24px; }
 legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .hint { color: var(--muted); font-size: 13px; line-height: 1.6; margin: -2px 0 10px; }
-.field.has-error input, .field.has-error textarea { border-color: var(--coral); }
+.field.has-error input, .field.has-error textarea, .field.has-error select { border-color: var(--coral); }
 .field-error, .form-error { color: #b23c14; font-size: 13px; margin: -12px 0 18px; }
 .form-error { background: rgba(238, 106, 59, .12); border-radius: 12px; margin: 0 0 22px; padding: 14px 16px; }
 .create-form, .auth-form {
@@ -3032,11 +3032,34 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .people-page {
   background: #fbfcfb; margin: 0 auto; max-width: 1260px; padding: 0 54px 94px; width: 100%;
 }
-.people-directory-head { padding: 34px 1px 21px; }
-.people-directory-head h1 {
-  color: #152a24; font-size: 31px; font-weight: 690; letter-spacing: -.05em; line-height: 1.05; margin: 0;
+.people-directory-head {
+  align-items: end; display: grid; gap: clamp(34px, 6vw, 76px); grid-template-columns: minmax(0, 1fr) 310px;
+  padding: 52px 1px 30px;
 }
-.people-directory-head p { color: #75837d; font-size: 13px; line-height: 1.6; margin: 8px 0 0; }
+.people-directory-copy { max-width: 760px; }
+.people-directory-head .people-directory-kicker {
+  color: #4d7567; font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 800;
+  letter-spacing: .13em; margin: 0 0 13px; text-transform: uppercase;
+}
+.people-directory-head h1 {
+  color: #152a24; font-size: clamp(38px, 4.7vw, 60px); font-weight: 650; letter-spacing: -.06em;
+  line-height: .98; margin: 0;
+}
+.people-directory-copy > p:last-child {
+  color: #6e7e77; font-size: 14px; line-height: 1.65; margin: 16px 0 0; max-width: 680px;
+}
+.people-directory-join {
+  background: #173e33; border-radius: 16px; box-shadow: 0 14px 36px rgba(21, 57, 47, .12); color: #fff;
+  padding: 20px 20px 18px;
+}
+.people-directory-join p { color: #c9d8d2; font-size: 11.5px; line-height: 1.6; margin: 0 0 15px; }
+.people-directory-join a {
+  align-items: center; color: #efff97; display: flex; font-size: 11px; font-weight: 780; gap: 8px;
+  justify-content: space-between;
+}
+.people-directory-join a:hover { color: #fff; }
+.people-directory-join a span { font-size: 15px; transition: transform .18s ease; }
+.people-directory-join a:hover span { transform: translateX(3px); }
 
 .people-search-panel {
   background: #fff; border: 1px solid #dbe2de; border-radius: 17px; box-shadow: 0 13px 36px rgba(19, 54, 44, .055);
@@ -3127,6 +3150,23 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .people-profession { color: #173e33; font-size: 14px; font-weight: 660; letter-spacing: -.015em; margin: 0; }
 .people-profession.is-empty { color: #97a39d; font-weight: 560; }
 .people-headline { color: #78867f; font-size: 11px; line-height: 1.5; margin: 3px 0 0; }
+.availability { align-items: center; display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; }
+.availability-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+.availability-badge {
+  align-items: center; border: 1px solid transparent; border-radius: 99px; display: inline-flex; font-size: 8.5px;
+  font-weight: 760; gap: 6px; padding: 5px 8px; white-space: nowrap;
+}
+.availability-badge i { background: currentColor; border-radius: 50%; height: 5px; width: 5px; }
+.availability-work { background: #e6f3ea; border-color: #cce5d5; color: #23613f; }
+.availability-collaboration { background: #fff0e9; border-color: #f2d9cc; color: #985136; }
+.availability-closed { background: #f1f3f2; border-color: #e0e5e2; color: #78837e; }
+.availability-focus { color: #7c8983; font-size: 8.5px; line-height: 1.45; margin: 0; }
+.profile-band .availability { margin-top: 18px; }
+.profile-band .availability-badge { font-size: 10px; padding: 6px 10px; }
+.profile-band .availability-work { background: rgba(129, 207, 158, .12); border-color: rgba(143, 217, 170, .3); color: #a5dfb9; }
+.profile-band .availability-collaboration { background: rgba(240, 147, 106, .12); border-color: rgba(240, 147, 106, .35); color: #ffc0a3; }
+.profile-band .availability-closed { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .16); color: #c1ccc7; }
+.profile-band .availability-focus { color: #aabdb5; font-size: 10px; }
 .people-meta { display: flex; flex-wrap: wrap; gap: 5px 13px; list-style: none; margin: 7px 0 0; padding: 0; }
 .people-meta li { color: #7d8a84; font-size: 9px; }
 .people-meta li + li::before { color: #c0c8c4; content: "•"; margin-right: 12px; }
@@ -3290,6 +3330,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 }
 
 @media (max-width: 900px) {
+  .people-directory-head { gap: 28px; grid-template-columns: minmax(0, 1fr) 280px; }
   .people-results-layout { grid-template-columns: 1fr; }
   .people-contributor-rail { position: static; }
   .people-contributor-card ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3305,8 +3346,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .start-now-row { grid-template-columns: 1fr; }
   .start-now-row button { justify-content: center; width: 100%; }
   .people-page { padding: 0 20px 68px; }
-  .people-directory-head { padding: 26px 1px 17px; }
-  .people-directory-head h1 { font-size: 28px; }
+  .people-directory-head { align-items: stretch; grid-template-columns: 1fr; padding: 34px 1px 24px; }
+  .people-directory-head h1 { font-size: clamp(36px, 10.5vw, 48px); }
+  .people-directory-copy > p:last-child { font-size: 13px; }
+  .people-directory-join { padding: 18px; }
   .people-search-panel { padding: 16px 16px 0; }
   .people-search-row { grid-template-columns: 1fr; }
   .people-search-row > button { display: none; }

@@ -193,7 +193,7 @@ export default async function Home() {
               <li><span>✓</span> {tx(locale, "Perekrut dapat menemukanmu melalui keahlian dan pengalaman yang relevan", "Recruiters can find you through relevant skills and experience")}</li>
               <li><span>✓</span> {tx(locale, "Pendiri dapat melihat kedalaman pekerjaan proyekmu", "Founders can see the depth of your project work")}</li>
             </ul>
-            <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi orang", "Browse people")} <Arrow /></Link>
+            <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi talent", "Browse talent")} <Arrow /></Link>
           </div>
 
           <div className="talent-preview" aria-label={tx(locale, "Orang di Ahsan Project", "People on Ahsan Project")}>

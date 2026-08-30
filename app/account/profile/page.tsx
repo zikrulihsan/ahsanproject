@@ -85,6 +85,7 @@ function toEditable(viewer: Viewer): EditableProfile {
     skills: viewer.skills.join(", "),
     yearsExperience: viewer.yearsExperience === null ? "" : String(viewer.yearsExperience),
     fields: viewer.fields.join(", "),
+    availability: viewer.availability,
     website: viewer.website,
     publicEmail: viewer.publicEmail,
     github: viewer.github,

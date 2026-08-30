@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
+import { AvailabilityBadges } from "../components/availability-badges";
 import { initials } from "../components/pieces";
 import { LoadingNote, Skeleton } from "../components/skeleton";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
@@ -20,11 +21,13 @@ import {
 import { shareCard } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { currentViewer } from "../lib/session";
+import { profileReady } from "../lib/next-steps";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Orang — Ahsan Project", "People — Ahsan Project");
-  const description = tx(locale, "Temukan orang berdasarkan profesi, keahlian, pengalaman, bidang, dan proyek yang mereka kerjakan di Ahsan Project.", "Find people by profession, skills, experience, field, and the projects they work on at Ahsan Project.");
+  const title = "Talent Pool — Ahsan Project";
+  const description = tx(locale, "Temukan talent terbaik berdasarkan profesi, keahlian, pengalaman, bidang, status peluang, dan bukti karya nyata.", "Find the best talent by profession, skills, experience, field, opportunity status, and real proof of work.");
   return { title, description, alternates: { canonical: "/people" }, openGraph: shareCard({ title, description, url: "/people" }) };
 }
 
@@ -66,8 +69,14 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
 
       <main id="main-content" className="people-page">
         <header className="people-directory-head">
-          <h1>{tx(locale, "Temukan orang", "Find people")}</h1>
-          <p>{tx(locale, "Temukan orang berdasarkan profesi, keahlian, pengalaman, bidang, atau proyek.", "Discover people by profession, skills, experience, field, or project.")}</p>
+          <div className="people-directory-copy">
+            <p className="people-directory-kicker">Talent Pool · Ahsan Project</p>
+            <h1>{tx(locale, "Temukan talent terbaik untuk membawa ide lebih jauh.", "Find the best talent to take ideas further.")}</h1>
+            <p>{tx(locale, "Jelajahi builder, desainer, peneliti, dan kolaborator berdasarkan keahlian, pengalaman, serta bukti karya nyata—bukan sekadar headline.", "Discover builders, designers, researchers, and collaborators by skills, experience, and real proof of work—not just a headline.")}</p>
+          </div>
+          <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
+            <TalentPoolCta locale={locale} />
+          </Suspense>
         </header>
 
         <Suspense fallback={<DirectorySkeleton />}>
@@ -77,6 +86,38 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
 
       <SiteFooter />
     </>
+  );
+}
+
+async function TalentPoolCta({ locale }: { locale: Locale }) {
+  const viewer = await currentViewer();
+
+  if (!viewer) return <TalentPoolCtaFallback locale={locale} />;
+
+  const ready = profileReady(viewer);
+  return (
+    <div className="people-directory-join">
+      <p>
+        {ready
+          ? tx(locale, "Profilmu sudah tampil di talent pool. Pastikan status peluangmu tetap relevan.", "Your profile is live in the talent pool. Keep your opportunity status up to date.")
+          : tx(locale, "Lengkapi profesi, keahlian, dan perkenalanmu agar talent terbaikmu mudah ditemukan.", "Complete your profession, skills, and introduction so your talent can be discovered.")}
+      </p>
+      <Link href="/account/profile">
+        {ready ? tx(locale, "Perbarui status & profil", "Update status & profile") : tx(locale, "Lengkapi profil", "Complete your profile")}
+        <span aria-hidden="true">→</span>
+      </Link>
+    </div>
+  );
+}
+
+function TalentPoolCtaFallback({ locale }: { locale: Locale }) {
+  return (
+    <div className="people-directory-join">
+      <p>{tx(locale, "Punya keahlian yang ingin ditemukan? Tampilkan karya dan peluang yang kamu cari.", "Want your talent to be discovered? Show your work and the opportunities you want.")}</p>
+      <Link href="/signup?next=%2Faccount%2Fprofile">
+        {tx(locale, "Daftar sebagai talent", "Join as talent")} <span aria-hidden="true">→</span>
+      </Link>
+    </div>
   );
 }
 
@@ -157,16 +198,16 @@ async function Directory({ query }: { query: SearchParams }) {
     <>
         {peopleResult.unavailable ? (
           <p className="public-data-notice" role="status">
-            {tx(locale, "Data orang tidak dapat dimuat.", "People data could not load.")} <Link href={returnTo}>{tx(locale, "Coba lagi", "Try again")}</Link>.
+            {tx(locale, "Data talent tidak dapat dimuat.", "Talent data could not load.")} <Link href={returnTo}>{tx(locale, "Coba lagi", "Try again")}</Link>.
           </p>
         ) : null}
 
-        <section className="people-search-panel" aria-label={tx(locale, "Cari dan saring orang", "Search and filter people")}>
+        <section className="people-search-panel" aria-label={tx(locale, "Cari dan saring talent", "Search and filter talent")}>
           <form action="/people" method="get">
             {filters.involvement ? <input type="hidden" name="involvement" value={filters.involvement} /> : null}
             <div className="people-search-row">
               <label className="people-search-field">
-                <span className="sr-only">{tx(locale, "Cari orang", "Search people")}</span>
+                <span className="sr-only">{tx(locale, "Cari talent", "Search talent")}</span>
                 <SearchIcon />
                 <input
                   type="search"
@@ -288,7 +329,7 @@ async function Directory({ query }: { query: SearchParams }) {
           <div className="people-results-layout">
             <div className="people-results-main">
               <div className="people-results-head">
-                <h2 id="people-results-heading">{tx(locale, `${matched.length} orang ditemukan`, `${matched.length} people found`)}</h2>
+                <h2 id="people-results-heading">{tx(locale, `${matched.length} talent ditemukan`, `${matched.length} talent profiles found`)}</h2>
                 {matched.length > 0 ? (
                   <p>
                     {tx(locale, `Menampilkan ${pagination.from}–${pagination.to} dari ${matched.length}`, `Showing ${pagination.from}–${pagination.to} of ${matched.length}`)}
@@ -299,9 +340,9 @@ async function Directory({ query }: { query: SearchParams }) {
               {people.length === 0 ? (
                 <div className="people-empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>{tx(locale, "Belum ada orang yang cocok.", "No matching people yet.")}</h3>
+                  <h3>{tx(locale, "Belum ada talent yang cocok.", "No matching talent yet.")}</h3>
                   <p>{tx(locale, "Coba istilah yang lebih luas atau hapus filter untuk memperbanyak hasil.", "Try a broader term or remove a filter to expand the results.")}</p>
-                  <Link className="ghost-button" href="/people">{tx(locale, "Lihat semua orang", "View all people")}</Link>
+                  <Link className="ghost-button" href="/people">{tx(locale, "Lihat semua talent", "View all talent")}</Link>
                 </div>
               ) : (
                 <ul className="people-list">
@@ -408,6 +449,13 @@ function PersonRow({ entry, locale }: { entry: PersonAtWork; locale: Locale }) {
           </p>
           {headline ? <p className="people-headline">{headline}</p> : null}
 
+          <AvailabilityBadges
+            status={person.availability}
+            fields={person.fields}
+            skills={person.skills}
+            locale={locale}
+          />
+
           <ul className="people-meta">
             {person.yearsExperience !== null ? <li>{tx(locale, `${person.yearsExperience} tahun pengalaman`, `${person.yearsExperience} years of experience`)}</li> : null}
             {person.fields.slice(0, 2).map((field) => <li key={field}>{field}</li>)}
@@ -455,8 +503,8 @@ function ContributorRail({ people, locale }: { people: PersonAtWork[]; locale: L
   return (
     <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
       <div className="people-contributor-card">
-        <p className="section-label">{tx(locale, "Kontributor", "Contributors")}</p>
-        <h2 id="contributors-heading">{tx(locale, "Kontributor paling aktif", "Most active contributors")}</h2>
+        <p className="section-label">{tx(locale, "Sorotan talent", "Talent spotlight")}</p>
+        <h2 id="contributors-heading">{tx(locale, "Kolaborator paling aktif", "Most active collaborators")}</h2>
         <p className="people-contributor-note">
           {tx(locale, "Diurutkan berdasarkan jumlah proyek berbeda yang pernah dibantu setiap orang.", "Ranked by the number of distinct projects each person has helped with.")}
         </p>
