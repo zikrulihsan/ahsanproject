@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { resilientSupabaseFetch } from "./app/lib/resilient-fetch";
 import { sameOriginRedirect } from "./app/lib/redirect";
 import { originFromHeaders, strayCodeTarget } from "./app/lib/urls";
+import { isLocale, LANGUAGE_COOKIE, LANGUAGE_PARAM } from "./app/lib/locale";
 
 /**
  * Keeps the Supabase session cookie fresh.
@@ -42,6 +43,19 @@ export async function proxy(request: NextRequest) {
       browserOrigin(request),
     );
   }
+
+  // A ?lang= on the URL is how the language switcher asks for a page in the
+  // other language. Applying it to the request cookies here is what lets the
+  // switch be an ordinary navigation: every Server Component below reads the
+  // asked-for language, and the router treats the result as a page it can
+  // prefetch — which is why the header can have it ready before the click.
+  //
+  // It is deliberately not written to the response. <Link prefetch> fetches
+  // this URL before anybody clicks it, and a Set-Cookie there would change the
+  // language unasked. The browser writes the cookie once the language is
+  // actually being shown; see LanguageProvider.
+  const asked = request.nextUrl.searchParams.get(LANGUAGE_PARAM) ?? undefined;
+  if (isLocale(asked)) request.cookies.set(LANGUAGE_COOKIE, asked);
 
   let response = NextResponse.next({ request });
 
