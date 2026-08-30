@@ -29,7 +29,7 @@ import { profileReady } from "../lib/next-steps";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = "Talent Pool — Ahsan Project";
-  const description = tx(locale, "Cari talent berdasarkan keahlian, pengalaman proyek, dan status peluang.", "Find talent by skills, project experience, and opportunity status.");
+  const description = tx(locale, "Cari tech talent berdasarkan peran, keahlian, pengalaman proyek, dan status peluang.", "Find tech talent by role, skills, project experience, and opportunity status.");
   return { title, description, alternates: { canonical: "/people" }, openGraph: shareCard({ title, description, url: "/people" }) };
 }
 
@@ -73,8 +73,8 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
         <header className="people-directory-head">
           <div className="people-directory-copy">
             <p className="people-directory-kicker">Talent Pool</p>
-            <h1>{tx(locale, "Temukan talent untuk timmu.", "Find talent for your team.")}</h1>
-            <p>{tx(locale, "Lihat keahlian, pengalaman proyek, dan status peluang dalam satu tempat.", "See skills, project experience, and opportunity status in one place.")}</p>
+            <h1>{tx(locale, "Temukan tech talent untuk timmu.", "Find tech talent for your team.")}</h1>
+            <p>{tx(locale, "Untuk engineering, design, product, data, dan research. Lihat keahlian, pengalaman proyek, dan status peluangnya.", "For engineering, design, product, data, and research. See skills, project experience, and opportunity status.")}</p>
           </div>
           <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
             <TalentPoolCta locale={locale} />
@@ -101,8 +101,8 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
     <div className="people-directory-join">
       <p>
         {ready
-          ? tx(locale, "Profilmu sudah dapat ditemukan. Perbarui status peluangmu bila perlu.", "Your profile is discoverable. Update your opportunity status when needed.")
-          : tx(locale, "Lengkapi profil agar keahlian dan pengalamanmu mudah ditemukan.", "Complete your profile so your skills and experience are easy to find.")}
+          ? tx(locale, "Profilmu sudah tampil. Perbarui status peluangmu bila perlu.", "Your profile is live. Update your opportunity status when needed.")
+          : tx(locale, "Lengkapi profil agar keahlian tech dan pengalamanmu mudah ditemukan.", "Complete your profile so your tech skills and experience are easy to find.")}
       </p>
       <Link href="/account/profile">
         {ready ? tx(locale, "Perbarui status", "Update status") : tx(locale, "Lengkapi profil", "Complete your profile")}
@@ -115,7 +115,7 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
 function TalentPoolCtaFallback({ locale }: { locale: Locale }) {
   return (
     <div className="people-directory-join">
-      <p>{tx(locale, "Punya pengalaman proyek? Buat profil agar lebih mudah ditemukan.", "Have project experience? Create a profile to get discovered.")}</p>
+      <p>{tx(locale, "Punya pengalaman membangun produk digital? Buat profil agar recruiter dapat menemukanmu.", "Have experience building digital products? Create a profile so recruiters can find you.")}</p>
       <Link href="/signup?next=%2Faccount%2Fprofile">
         {tx(locale, "Buat profil talent", "Create a talent profile")} <span aria-hidden="true">→</span>
       </Link>
@@ -226,7 +226,7 @@ async function Directory({ query }: { query: SearchParams }) {
                 name="q"
                 maxLength={100}
                 defaultValue={filters.q}
-                placeholder={tx(locale, "Cari nama, profesi, atau keahlian…", "Search by name, profession, or skill…")}
+                placeholder={tx(locale, "Cari nama, peran, atau keahlian tech…", "Search by name, tech role, or skill…")}
               />
             </label>
             <button type="submit">{tx(locale, "Cari", "Search")}</button>
@@ -243,19 +243,19 @@ async function Directory({ query }: { query: SearchParams }) {
 
             <div className="collaboration-filter-controls">
               <div className="collaboration-control">
-                <span>{tx(locale, "Profesi", "Profession")}</span>
+                <span>{tx(locale, "Peran tech", "Tech role")}</span>
                 <SearchableFilter
                   action="/people"
                   name="profession"
                   value={filters.profession}
-                  label={tx(locale, "Saring profesi", "Filter professions")}
-                  placeholder={tx(locale, "Cari profesi…", "Search professions…")}
-                  clearLabel={tx(locale, "Hapus filter profesi", "Clear profession filter")}
-                  resultsLabel={tx(locale, "Hasil profesi", "Profession results")}
+                  label={tx(locale, "Saring peran tech", "Filter tech roles")}
+                  placeholder={tx(locale, "Cari peran…", "Search roles…")}
+                  clearLabel={tx(locale, "Hapus filter peran", "Clear role filter")}
+                  resultsLabel={tx(locale, "Hasil peran", "Role results")}
                   options={withSelectedFacet(facets.professions, filters.profession).map((facet) => ({
                     ...facet,
                     label: facet.value,
-                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                    meta: tx(locale, `${facet.count} tech talent`, `${facet.count} tech talent`),
                   }))}
                   hidden={{ q: filters.q, skill: filters.skill, experience: filters.experience, field: filters.field, involvement: filters.involvement }}
                 />
@@ -274,7 +274,7 @@ async function Directory({ query }: { query: SearchParams }) {
                   options={withSelectedFacet(facets.skills, filters.skill).map((facet) => ({
                     ...facet,
                     label: facet.value,
-                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                    meta: tx(locale, `${facet.count} tech talent`, `${facet.count} tech talent`),
                   }))}
                   hidden={{ q: filters.q, profession: filters.profession, experience: filters.experience, field: filters.field, involvement: filters.involvement }}
                 />
@@ -308,7 +308,7 @@ async function Directory({ query }: { query: SearchParams }) {
                   options={withSelectedFacet(facets.fields, filters.field).map((facet) => ({
                     ...facet,
                     label: facet.value,
-                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                    meta: tx(locale, `${facet.count} tech talent`, `${facet.count} tech talent`),
                   }))}
                   hidden={{ q: filters.q, profession: filters.profession, skill: filters.skill, experience: filters.experience, involvement: filters.involvement }}
                 />
@@ -340,7 +340,7 @@ async function Directory({ query }: { query: SearchParams }) {
                 <ActiveFilter label={tx(locale, "Pencarian", "Search")} value={filters.q} href={directoryHref({ q: null, page: null })} locale={locale} />
               ) : null}
               {filters.profession ? (
-                <ActiveFilter label={tx(locale, "Profesi", "Profession")} value={filters.profession} href={directoryHref({ profession: null, page: null })} locale={locale} />
+                <ActiveFilter label={tx(locale, "Peran tech", "Tech role")} value={filters.profession} href={directoryHref({ profession: null, page: null })} locale={locale} />
               ) : null}
               {filters.skill ? (
                 <ActiveFilter label={tx(locale, "Keahlian", "Skill")} value={filters.skill} href={directoryHref({ skill: null, page: null })} locale={locale} />
@@ -373,7 +373,7 @@ async function Directory({ query }: { query: SearchParams }) {
           <div className="people-results-layout">
             <div className="people-results-main">
               <div className="people-results-head">
-                <h2 id="people-results-heading">{tx(locale, `${matched.length} talent ditemukan`, `${matched.length} talent profiles found`)}</h2>
+                <h2 id="people-results-heading">{tx(locale, `${matched.length} tech talent ditemukan`, `${matched.length} tech talent found`)}</h2>
                 {matched.length > 0 ? (
                   <p>
                     {tx(locale, `Menampilkan ${pagination.from}–${pagination.to} dari ${matched.length}`, `Showing ${pagination.from}–${pagination.to} of ${matched.length}`)}
@@ -384,9 +384,9 @@ async function Directory({ query }: { query: SearchParams }) {
               {people.length === 0 ? (
                 <div className="people-empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>{tx(locale, "Belum ada hasil yang cocok.", "No matching talent.")}</h3>
+                  <h3>{tx(locale, "Belum ada tech talent yang cocok.", "No matching tech talent.")}</h3>
                   <p>{tx(locale, "Ubah kata kunci atau hapus filter.", "Try another keyword or clear a filter.")}</p>
-                  <Link className="ghost-button" href="/people">{tx(locale, "Lihat semua talent", "View all talent")}</Link>
+                  <Link className="ghost-button" href="/people">{tx(locale, "Lihat semua tech talent", "View all tech talent")}</Link>
                 </div>
               ) : (
                 <ul className="people-list">

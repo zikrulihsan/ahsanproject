@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "./language-provider";
 
 const PHRASES = {
-  id: ["Perekrut", "Mitra", "Kontributor"],
-  en: ["Recruiters", "Partners", "Contributors"],
+  id: ["Perekrut tech", "Hiring manager", "Tim tech"],
+  en: ["Tech recruiters", "Hiring managers", "Tech teams"],
 } as const;
 
 export function RotatingHeadline() {
@@ -43,11 +43,11 @@ export function RotatingHeadline() {
   }, [characterCount, isDeleting, phrase, phraseIndex, phrases.length]);
 
   return (
-    <h1 id="landing-title" aria-label={tx("Tampilkan karyamu. Temukan kolaborator. Bangun portofolio yang berdampak. Jadilah lebih mudah ditemukan.", "Show your work. Find collaborators. Build an impactful portfolio. Get discovered.")}>
-      <span>{tx("Tampilkan ", "Show ")}<span className="text-gray-500">{tx("karyamu", "your work")}</span> &amp;</span>
+    <h1 id="landing-title" aria-label={tx("Tampilkan karya techmu. Bangun pengalaman nyata. Jadilah lebih mudah ditemukan.", "Show your tech work. Build real experience. Get discovered.")}>
+      <span>{tx("Tampilkan ", "Show ")}<span className="text-gray-500">{tx("karya techmu", "your tech work")}</span> &amp;</span>
       <span>{tx("buat dirimu ", "get ")}<span className="text-gray-500">{tx("ditemukan", "discover")}</span>{tx(" oleh:", "ed by:")}</span>
       <span className="typing-line" aria-hidden="true">
-        <span className="typing-sizer">{tx("Kontributor", "Contributors")}</span>
+        <span className="typing-sizer">{tx("Hiring manager", "Tech recruiters")}</span>
         <span className="typing-text">{phrase.slice(0, characterCount)}</span>
       </span>
     </h1>
