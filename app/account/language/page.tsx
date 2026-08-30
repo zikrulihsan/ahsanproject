@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import { SiteFooter, SiteHeader } from "../../components/shell";
+import { LanguagePicker } from "../../components/language-picker";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
+
+/**
+ * A settings page rather than the always-visible header toggle it replaced.
+ *
+ * Open to signed-out visitors on purpose: the language a visitor reads in has
+ * nothing to do with having an account, and this page is the only route left
+ * that changes it, so gating it behind sign-in would strand anyone browsing
+ * anonymously. The account menu and the footer both link here.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Bahasa — Ahsan Project", "Language — Ahsan Project"),
+    description: tx(locale, "Pilih bahasa tampilan Ahsan Project.", "Choose the display language for Ahsan Project."),
+    robots: { index: false },
+  };
+}
+
+export default async function LanguageSettingsPage() {
+  const locale = await currentLocale();
+
+  return (
+    <>
+      <SiteHeader returnTo="/account/language" />
+
+      <main id="main-content" className="page-narrow">
+        <p className="eyebrow">
+          <span /> {tx(locale, "Bahasa", "Language")}
+        </p>
+        <h1>{tx(locale, "Pilih bahasa tampilan.", "Choose your display language.")}</h1>
+        <p className="lede">
+          {tx(
+            locale,
+            "Berlaku di seluruh Ahsan Project sampai kamu menggantinya lagi di sini.",
+            "Applies across Ahsan Project until you change it again here.",
+          )}
+        </p>
+
+        <LanguagePicker />
+      </main>
+
+      <SiteFooter />
+    </>
+  );
+}
