@@ -1014,12 +1014,22 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
   color: var(--muted); font-size: 12px; grid-column: 1 / -1; line-height: 1.5; margin: 9px 0 0;
 }
 
-/* Inherits the pill summary from .optional-fields; only the spacing differs,
-   because this one opens the whole of the old form rather than one field.
-   Scoped to the form so it outranks the .optional-fields margin defined
-   further down the file. */
-.link-form .project-details { margin: 4px 0 24px; }
+/* The two steps of adding a project. Both stay in the document — the first
+   one still posts its answers with the second — so only their visibility and
+   the button row underneath them change. */
+.step-indicator {
+  color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: .04em;
+  margin: 0 0 18px; text-transform: uppercase;
+}
+.link-start > .create-submit { margin-top: 4px; }
+.link-form .project-details { margin: 0; }
 .link-form .project-details-body fieldset:last-of-type { margin-bottom: 0; }
+.step-head { margin: 0 0 24px; }
+.step-head h2 { font-size: 20px; letter-spacing: -.03em; margin: 0 0 7px; }
+.step-head p { color: var(--ink-soft); font-size: 13px; line-height: 1.65; margin: 0; }
+.step-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.step-actions .primary-button { flex: 1 1 200px; justify-content: center; }
+.step-actions .ghost-button { flex: 0 0 auto; }
 
 /* The owner's own words, at the top of the brief they may not have written. */
 .brief-highlight {
@@ -1821,6 +1831,7 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .sidebar { grid-template-columns: 1fr; }
   .project-page, .profile-page, .page-narrow { padding: 18px 20px 70px; }
   .entry-method-options { grid-template-columns: 1fr; }
+  .step-actions .ghost-button { flex: 1 1 auto; justify-content: center; }
   .project-hero { padding: 24px; }
   .project-main > section { padding: 22px; }
   .seat-list li, .task-list li { grid-template-columns: 1fr; }
