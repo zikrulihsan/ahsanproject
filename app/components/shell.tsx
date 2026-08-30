@@ -36,7 +36,7 @@ export function Brand({ footer = false, locale }: { footer?: boolean; locale: Lo
 const LINKS: { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName }[] = [
   { href: "/", label: "Home", labelId: "Beranda", key: "home", icon: "home" },
   { href: "/explore", label: "Explore", labelId: "Jelajahi", key: "explore", icon: "explore" },
-  { href: "/people", label: "People", labelId: "Orang", key: "people", icon: "people" },
+  { href: "/people", label: "Talent Pool", labelId: "Talent Pool", key: "people", icon: "people" },
 ];
 
 type HeaderIconName =
@@ -384,7 +384,7 @@ export async function SiteFooter() {
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Beranda", "Home")}</Link>
         <Link href="/explore">{tx(locale, "Jelajahi", "Explore")}</Link>
-        <Link href="/people">{tx(locale, "Orang", "People")}</Link>
+        <Link href="/people">Talent Pool</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
         {/* The only reach a signed-out visitor has left to change language,
             now that the header no longer carries the switcher directly. */}

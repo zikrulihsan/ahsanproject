@@ -16,6 +16,7 @@ import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 import type { Lane } from "./feed";
 import { PROJECT_MEMORY_KINDS } from "./activity";
+import { availabilityStatus, type AvailabilityStatus } from "./availability";
 import {
   normaliseRole,
   roleAliases,
@@ -34,6 +35,7 @@ export type Person = {
   skills: string[];
   yearsExperience: number | null;
   fields: string[];
+  availability: AvailabilityStatus;
   website: string;
   publicEmail: string;
   github: string;
@@ -1506,6 +1508,7 @@ function toPerson(row: ProfileRow): Person {
     skills: row.skills ?? [],
     yearsExperience: row.years_experience ?? null,
     fields: row.fields ?? [],
+    availability: availabilityStatus(row.availability_status),
     website: row.website ?? "",
     publicEmail: row.public_email ?? "",
     github: row.github ?? "",

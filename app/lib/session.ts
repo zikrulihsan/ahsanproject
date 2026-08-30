@@ -2,6 +2,7 @@ import { cache } from "react";
 import { getSupabase } from "./supabase";
 import type { Person } from "./data";
 import type { ProfileRow } from "./database.types";
+import { availabilityStatus } from "./availability";
 
 export type Viewer = Person & { email: string };
 
@@ -120,6 +121,7 @@ function toViewer(profile: ProfileRow, email: string): Viewer {
     skills: profile.skills ?? [],
     yearsExperience: profile.years_experience ?? null,
     fields: profile.fields ?? [],
+    availability: availabilityStatus(profile.availability_status),
     website: profile.website ?? "",
     publicEmail: profile.public_email ?? "",
     github: profile.github ?? "",

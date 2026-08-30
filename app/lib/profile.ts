@@ -11,6 +11,7 @@
  */
 
 import { isHttpUrl } from "./brief";
+import { isAvailabilityStatus } from "./availability";
 import { tx, type Locale } from "./locale";
 
 export const PROFILE_MAXIMUM = {
@@ -38,6 +39,7 @@ export type ProfileInput = {
   skills: string;
   yearsExperience: string;
   fields: string;
+  availability: string;
   website: string;
   publicEmail: string;
   github: string;
@@ -58,6 +60,7 @@ const LABELS: Record<keyof ProfileInput, string> = {
   skills: "Skills",
   yearsExperience: "Years of experience",
   fields: "Fields of expertise",
+  availability: "Opportunity status",
   website: "Website",
   publicEmail: "Public email",
   github: "GitHub",
@@ -105,6 +108,10 @@ export function validateProfile(input: ProfileInput, locale: Locale = "en"): Pro
     }
   }
 
+  if (!isAvailabilityStatus(input.availability)) {
+    errors.availability = tx(locale, "Pilih status peluang yang valid.", "Choose a valid opportunity status.");
+  }
+
   for (const field of LINK_FIELDS) {
     const value = input[field].trim();
     if (!value) continue;
@@ -142,6 +149,7 @@ function labelId(field: keyof ProfileInput): string {
     skills: "Keahlian",
     yearsExperience: "Lama pengalaman",
     fields: "Bidang keahlian",
+    availability: "Status peluang",
     website: "Situs web",
     publicEmail: "Email publik",
     github: "GitHub",

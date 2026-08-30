@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { createProject, previewProjectLink, type CreateState, type LinkPreview } from "../actions";
-import { MAXIMUM } from "../lib/brief";
+import { MAXIMUM, MINIMUM } from "../lib/brief";
 import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";
 import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
@@ -16,6 +16,8 @@ const EMPTY: CreateState = { errors: {}, values: {} };
 
 /** How long after the last keystroke we go and read the link. */
 const PREVIEW_DELAY_MS = 700;
+
+type EntryMethod = "link" | "description";
 
 /** Errors that can only have come from the collapsed half of the form. */
 const DETAIL_FIELDS = [
@@ -37,32 +39,22 @@ const DETAIL_FIELDS = [
 ] as const;
 
 /**
- * Adding a project is one field.
+ * Adding a project starts from whichever evidence already exists.
  *
- * Everything visible before the fold is a link box and a button, because the
- * submissions this board was losing were not lost to a missing feature — they
- * were lost to a form that asked for six paragraphs before it would take
- * anything at all. The page behind the link can answer most of what that form
- * was asking, so it does, and the rest waits.
- *
- * Under it, two things and no more:
- *
- *   - one optional question, already open: what is interesting about this. It
- *     is the only thing a machine cannot read off the page, and it is what
- *     makes the entry worth reading rather than worth indexing.
- *   - everything the old form asked, behind a toggle, all of it optional. Every
- *     field still exists and still saves; none of it stands between a person
- *     and a published project.
- *
- * Short, but not styled apart: the labelled fields and the pill disclosure
- * are the ones every other form here uses. What was cut is the explaining —
- * a form with one required field is quicker to fill in than to read about.
+ * A project with a public page needs only its link; the page supplies the name,
+ * summary and icon. An idea without a page needs its owner's name and short
+ * description instead. Both routes meet at the same optional brief, so choosing
+ * the easier starting point never removes the richer fields or the chance to
+ * open a role.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
   const formRef = useRef<HTMLFormElement>(null);
   const { errors, values } = state;
 
+  const [entryMethod, setEntryMethod] = useState<EntryMethod>(
+    values.entryMethod === "description" ? "description" : "link",
+  );
   const [link, setLink] = useState(values.link ?? "");
   const [preview, setPreview] = useState<LinkPreview | null>(null);
   const [previewError, setPreviewError] = useState("");
@@ -74,7 +66,9 @@ export function CreateForm() {
   const [openForGitHubContributions, setOpenForGitHubContributions] = useState(
     values.openForGitHubContributions === "yes",
   );
-  const detailsHaveErrors = DETAIL_FIELDS.some((field) => errors[field]);
+  const detailsHaveErrors = DETAIL_FIELDS.some(
+    (field) => errors[field] && !(entryMethod === "description" && field === "title"),
+  );
   const { locale, tx } = useLanguage();
 
   /*
@@ -93,7 +87,7 @@ export function CreateForm() {
 
   useEffect(() => {
     const typed = link.trim();
-    if (!looksLikeLink(typed) || preview?.requested === typed) return;
+    if (entryMethod !== "link" || !looksLikeLink(typed) || preview?.requested === typed) return;
 
     const timer = setTimeout(() => {
       startReading(async () => {
@@ -108,7 +102,7 @@ export function CreateForm() {
     }, PREVIEW_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [link, preview?.requested]);
+  }, [entryMethod, link, preview?.requested]);
 
   // Remounts the detail inputs when a new page has been read, so opening the
   // details afterwards shows what was found instead of an empty form. Anything
@@ -124,38 +118,96 @@ export function CreateForm() {
       ) : null}
 
       <section className="link-start">
-        <div className={`field ${errors.link ? "has-error" : ""}`}>
-          <label htmlFor="link">{tx("Tautan proyek", "Project link")}</label>
-          <input
-            id="link"
-            name="link"
-            type="text"
-            inputMode="url"
-            autoComplete="url"
-            autoFocus
-            spellCheck={false}
-            placeholder="https://"
-            value={link}
-            onChange={(event) => changeLink(event.target.value)}
-            aria-invalid={errors.link ? true : undefined}
-            required
-          />
-          {errors.link ? (
-            <p className="field-error" role="alert">
-              {errors.link}
-            </p>
-          ) : null}
-        </div>
+        <fieldset className="entry-method">
+          <legend>{tx("Mau mulai dari mana?", "How would you like to start?")}</legend>
+          <div className="entry-method-options">
+            <label className={entryMethod === "link" ? "is-selected" : ""}>
+              <input
+                type="radio"
+                name="entryMethod"
+                value="link"
+                checked={entryMethod === "link"}
+                onChange={() => setEntryMethod("link")}
+              />
+              <span>
+                <strong>{tx("Pakai tautan", "Use a link")}</strong>
+                <small>{tx("Baca nama dan deskripsi dari halaman yang sudah ada.", "Read the name and description from an existing page.")}</small>
+              </span>
+            </label>
+            <label className={entryMethod === "description" ? "is-selected" : ""}>
+              <input
+                type="radio"
+                name="entryMethod"
+                value="description"
+                checked={entryMethod === "description"}
+                onChange={() => setEntryMethod("description")}
+              />
+              <span>
+                <strong>{tx("Tulis deskripsi", "Write a description")}</strong>
+                <small>{tx("Cocok untuk ide atau proyek yang belum punya tautan.", "Best for an idea or a project without a link yet.")}</small>
+              </span>
+            </label>
+          </div>
+        </fieldset>
 
-        <LinkReading reading={reading} preview={preview} error={previewError} />
+        {entryMethod === "link" ? (
+          <>
+            <div className={`field ${errors.link ? "has-error" : ""}`}>
+              <label htmlFor="link">{tx("Tautan proyek", "Project link")}</label>
+              <input
+                id="link"
+                name="link"
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                autoFocus
+                spellCheck={false}
+                placeholder="https://"
+                value={link}
+                onChange={(event) => changeLink(event.target.value)}
+                aria-invalid={errors.link ? true : undefined}
+                required
+              />
+              {errors.link ? (
+                <p className="field-error" role="alert">
+                  {errors.link}
+                </p>
+              ) : null}
+            </div>
+
+            <LinkReading reading={reading} preview={preview} error={previewError} />
+          </>
+        ) : (
+          <>
+            <Field
+              label={tx("Nama proyek atau ide", "Project or idea name")}
+              name="title"
+              error={errors.title}
+              defaultValue={values.title}
+              required
+              minLength={MINIMUM.title}
+              maxLength={MAXIMUM.title}
+              placeholder={tx("Contoh: Teman Belajar", "For example: Study Buddy")}
+            />
+            <p className="idea-entry-note">
+              <strong>{tx("Status awal: Ide", "Starting stage: Idea")}</strong>
+              <span>{tx("Tautan dapat ditambahkan kapan saja saat proyek mulai dibangun.", "You can add a link any time once the project starts taking shape.")}</span>
+            </p>
+          </>
+        )}
 
         <Field
-          label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
+          label={entryMethod === "description"
+            ? tx("Deskripsikan ide atau proyekmu", "Describe your idea or project")
+            : tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
           name="highlight"
-          hint={tx("Opsional.", "Optional.")}
+          hint={entryMethod === "description"
+            ? tx("Ceritakan apa yang ingin dibuat, masalah yang ingin dijawab, atau siapa yang akan terbantu. Satu sampai tiga kalimat sudah cukup.", "Tell people what you want to make, the problem it addresses, or who it could help. One to three sentences is enough.")
+            : tx("Opsional.", "Optional.")}
           error={errors.highlight}
           defaultValue={values.highlight}
           rows={3}
+          required={entryMethod === "description"}
           maxLength={MAXIMUM.highlight}
         />
       </section>
@@ -169,16 +221,18 @@ export function CreateForm() {
           <fieldset className="step">
             <legend>{tx("Proyek", "The project")}</legend>
 
-            <Field
-              key={`title-${prefillKey}`}
-              label={tx("Nama proyek", "Project name")}
-              name="title"
-              hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
-              error={errors.title}
-              defaultValue={values.title || preview?.title || ""}
-              maxLength={MAXIMUM.title}
-              placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
-            />
+            {entryMethod === "link" ? (
+              <Field
+                key={`title-${prefillKey}`}
+                label={tx("Nama proyek", "Project name")}
+                name="title"
+                hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
+                error={errors.title}
+                defaultValue={values.title || preview?.title || ""}
+                maxLength={MAXIMUM.title}
+                placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
+              />
+            ) : null}
 
             <Field
               key={`tagline-${prefillKey}`}
@@ -247,7 +301,9 @@ export function CreateForm() {
           <fieldset className="step">
             <legend>{tx("Status dan tautan", "Status and links")}</legend>
             <p className="step-intro">
-              {tx("Jika tidak dipilih, status mengikuti tautannya: sesuatu yang dapat dibuka orang dianggap berjalan, sedangkan repositori dianggap sedang dibangun.", "Left alone, the status follows the link: something people can open is live, a repository is being built.")}
+              {entryMethod === "description"
+                ? tx("Jika tidak dipilih, proyek disimpan sebagai Ide. Pilih tahap lain hanya jika sudah ada pekerjaan atau tautan yang mendukungnya.", "Left alone, the project is saved as an Idea. Choose another stage only when there is work or a link to support it.")
+                : tx("Jika tidak dipilih, status mengikuti tautannya: sesuatu yang dapat dibuka orang dianggap berjalan, sedangkan repositori dianggap sedang dibangun.", "Left alone, the status follows the link: something people can open is live, a repository is being built.")}
             </p>
 
             <p className="type-picker-divider" id="stage-label">
@@ -296,7 +352,9 @@ export function CreateForm() {
             <Field
               label={tx("Tautan lainnya", "Another link")}
               name="liveUrl"
-              hint={tx("Isi hanya jika tautan di bagian atas bukan situs web proyek.", "Only if the link at the top is not the project's own website.")}
+              hint={entryMethod === "description"
+                ? tx("Opsional. Tambahkan jika proyek sudah memiliki halaman yang dapat dibuka.", "Optional. Add this if the project already has a page people can open.")
+                : tx("Isi hanya jika tautan di bagian atas bukan situs web proyek.", "Only if the link at the top is not the project's own website.")}
               error={errors.liveUrl}
               defaultValue={values.liveUrl}
               type="url"

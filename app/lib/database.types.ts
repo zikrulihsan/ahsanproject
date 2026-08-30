@@ -73,6 +73,8 @@ export type ProfileRow = {
   skills: string[];
   years_experience: number | null;
   fields: string[];
+  /** Public opportunity status — 20260830090000_profile_availability.sql. */
+  availability_status: string;
   website: string;
   public_email: string;
   github: string;
