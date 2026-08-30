@@ -29,7 +29,7 @@ import { profileReady } from "../lib/next-steps";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = "Talent Pool — Ahsan Project";
-  const description = tx(locale, "Temukan talent untuk peran, proyek, dan tim berdasarkan keahlian, pengalaman, status peluang, dan bukti kontribusi nyata.", "Find talent for roles, projects, and teams by skills, experience, opportunity status, and proof of real contribution.");
+  const description = tx(locale, "Cari talent berdasarkan keahlian, pengalaman proyek, dan status peluang.", "Find talent by skills, project experience, and opportunity status.");
   return { title, description, alternates: { canonical: "/people" }, openGraph: shareCard({ title, description, url: "/people" }) };
 }
 
@@ -72,9 +72,9 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
       <main id="main-content" className="people-page">
         <header className="people-directory-head">
           <div className="people-directory-copy">
-            <p className="people-directory-kicker">Talent Pool · Ahsan Project</p>
-            <h1>{tx(locale, "Temukan talent yang tepat untuk timmu.", "Find the right talent for your team.")}</h1>
-            <p>{tx(locale, "Cari berdasarkan keahlian, pengalaman proyek, dan status peluang.", "Search by skills, project experience, and opportunity status.")}</p>
+            <p className="people-directory-kicker">Talent Pool</p>
+            <h1>{tx(locale, "Temukan talent untuk timmu.", "Find talent for your team.")}</h1>
+            <p>{tx(locale, "Lihat keahlian, pengalaman proyek, dan status peluang dalam satu tempat.", "See skills, project experience, and opportunity status in one place.")}</p>
           </div>
           <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
             <TalentPoolCta locale={locale} />
@@ -101,11 +101,11 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
     <div className="people-directory-join">
       <p>
         {ready
-          ? tx(locale, "Profilmu sudah tampil. Pastikan status peluangmu tetap relevan.", "Your profile is live. Keep your opportunity status up to date.")
-          : tx(locale, "Lengkapi profil agar recruiter dapat melihat keahlian dan pengalamanmu.", "Complete your profile so recruiters can see your skills and experience.")}
+          ? tx(locale, "Profilmu sudah dapat ditemukan. Perbarui status peluangmu bila perlu.", "Your profile is discoverable. Update your opportunity status when needed.")
+          : tx(locale, "Lengkapi profil agar keahlian dan pengalamanmu mudah ditemukan.", "Complete your profile so your skills and experience are easy to find.")}
       </p>
       <Link href="/account/profile">
-        {ready ? tx(locale, "Perbarui status & profil", "Update status & profile") : tx(locale, "Lengkapi profil", "Complete your profile")}
+        {ready ? tx(locale, "Perbarui status", "Update status") : tx(locale, "Lengkapi profil", "Complete your profile")}
         <span aria-hidden="true">→</span>
       </Link>
     </div>
@@ -115,9 +115,9 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
 function TalentPoolCtaFallback({ locale }: { locale: Locale }) {
   return (
     <div className="people-directory-join">
-      <p>{tx(locale, "Ingin ditemukan recruiter? Tampilkan keahlian dan pengalaman proyekmu.", "Want recruiters to find you? Show your skills and project experience.")}</p>
+      <p>{tx(locale, "Punya pengalaman proyek? Buat profil agar lebih mudah ditemukan.", "Have project experience? Create a profile to get discovered.")}</p>
       <Link href="/signup?next=%2Faccount%2Fprofile">
-        {tx(locale, "Daftar sebagai talent", "Join as talent")} <span aria-hidden="true">→</span>
+        {tx(locale, "Buat profil talent", "Create a talent profile")} <span aria-hidden="true">→</span>
       </Link>
     </div>
   );
@@ -207,7 +207,7 @@ async function Directory({ query }: { query: SearchParams }) {
     <>
         {peopleResult.unavailable ? (
           <p className="public-data-notice" role="status">
-            {tx(locale, "Data talent tidak dapat dimuat.", "Talent data could not load.")} <Link href={returnTo}>{tx(locale, "Coba lagi", "Try again")}</Link>.
+            {tx(locale, "Data talent tidak dapat dimuat.", "Talent data could not load.")} <Link href={returnTo}>{tx(locale, "Muat ulang", "Reload")}</Link>.
           </p>
         ) : null}
 
@@ -384,8 +384,8 @@ async function Directory({ query }: { query: SearchParams }) {
               {people.length === 0 ? (
                 <div className="people-empty">
                   <span aria-hidden="true">⌕</span>
-                  <h3>{tx(locale, "Belum ada talent yang cocok.", "No matching talent yet.")}</h3>
-                  <p>{tx(locale, "Coba istilah yang lebih luas atau hapus filter untuk memperbanyak hasil.", "Try a broader term or remove a filter to expand the results.")}</p>
+                  <h3>{tx(locale, "Belum ada hasil yang cocok.", "No matching talent.")}</h3>
+                  <p>{tx(locale, "Ubah kata kunci atau hapus filter.", "Try another keyword or clear a filter.")}</p>
                   <Link className="ghost-button" href="/people">{tx(locale, "Lihat semua talent", "View all talent")}</Link>
                 </div>
               ) : (
@@ -517,7 +517,7 @@ function PersonRow({ entry, locale }: { entry: PersonAtWork; locale: Locale }) {
           ) : null}
 
           <div className="people-proof">
-            <strong>{tx(locale, "Bukti karya", "Proof of work")}</strong>
+            <strong>{tx(locale, "Proyek & kontribusi", "Projects & contributions")}</strong>
             {evidence.length > 0 ? (
               <ul>
                 {evidence.map(({ project, label }) => (
@@ -528,7 +528,7 @@ function PersonRow({ entry, locale }: { entry: PersonAtWork; locale: Locale }) {
                 ))}
               </ul>
             ) : (
-              <p className="people-no-proof">{tx(locale, "Belum ada proyek publik yang ditampilkan.", "No public projects shown yet.")}</p>
+              <p className="people-no-proof">{tx(locale, "Belum ada proyek publik.", "No public projects yet.")}</p>
             )}
           </div>
         </div>
@@ -547,10 +547,10 @@ function ContributorRail({ people, locale }: { people: PersonAtWork[]; locale: L
   return (
     <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
       <div className="people-contributor-card">
-        <p className="section-label">{tx(locale, "Sorotan talent", "Talent spotlight")}</p>
-        <h2 id="contributors-heading">{tx(locale, "Kolaborator paling aktif", "Most active collaborators")}</h2>
+        <p className="section-label">{tx(locale, "Kontributor aktif", "Active contributors")}</p>
+        <h2 id="contributors-heading">{tx(locale, "Kontributor paling aktif", "Most active contributors")}</h2>
         <p className="people-contributor-note">
-          {tx(locale, "Diurutkan berdasarkan jumlah proyek berbeda yang pernah dibantu setiap orang.", "Ranked by the number of distinct projects each person has helped with.")}
+          {tx(locale, "Berdasarkan jumlah proyek yang pernah mereka bantu.", "Based on the projects they have helped with.")}
         </p>
 
         {people.length > 0 ? (
@@ -570,7 +570,7 @@ function ContributorRail({ people, locale }: { people: PersonAtWork[]; locale: L
             ))}
           </ol>
         ) : (
-          <p className="people-contributor-empty">{tx(locale, "Belum ada kontribusi lintas proyek yang tercatat.", "No cross-project contributions recorded yet.")}</p>
+          <p className="people-contributor-empty">{tx(locale, "Belum ada kontribusi yang ditampilkan.", "No contributions shown yet.")}</p>
         )}
 
         <Link className="people-contributor-all" href="/people?involvement=helping">
