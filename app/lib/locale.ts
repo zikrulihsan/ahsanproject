@@ -4,6 +4,9 @@ export type Locale = (typeof LOCALES)[number];
 
 export const LANGUAGE_COOKIE = "ahsan-language";
 
+/** How the switcher asks a URL for the other language. See proxy.ts. */
+export const LANGUAGE_PARAM = "lang";
+
 export function isLocale(value: string | undefined): value is Locale {
   return value === "id" || value === "en";
 }

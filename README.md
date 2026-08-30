@@ -291,6 +291,24 @@ That the forwarded host comes from outside is not a hole: Supabase refuses a
 Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
 is the base for canonical and Open Graph URLs.
 
+### Subdomain shortcuts
+
+`talents.ahsanproject.id` is a short address for the people directory. The
+redirect itself lives in `netlify.toml`, but it only fires once the name reaches
+this site, which takes two steps outside the repository:
+
+1. Point the DNS record at Netlify: `talents` is a `CNAME` to
+   `ahsanproject-id.netlify.app` — the same target as `www`. A `CNAME` holding a
+   URL rather than a hostname is not a redirect; nothing serves it.
+2. Add `talents.ahsanproject.id` as a domain alias under Site settings → Domain
+   management, so Netlify answers for the name and issues a certificate for it.
+
+Then deploy, and the rule sends every path under the subdomain to
+`https://ahsanproject.id/people`. Because it is a forced redirect the app never
+renders there, so the subdomain is not a second origin for sign-in and needs no
+entry in Supabase's URL configuration. Another shortcut is the same three
+steps with its own pair of rules.
+
 ## Useful commands
 
 - `npm run dev` — local development
