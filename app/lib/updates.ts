@@ -20,21 +20,23 @@ export const UPDATE_LIMITS = {
 export type UpdateInput = { title: string; body: string };
 export type UpdateErrors = Partial<Record<keyof UpdateInput, string>>;
 
-export function validateUpdate(input: UpdateInput): UpdateErrors {
+import { tx, type Locale } from "./locale";
+
+export function validateUpdate(input: UpdateInput, locale: Locale = "en"): UpdateErrors {
   const errors: UpdateErrors = {};
   const title = input.title.trim();
   const body = input.body.trim();
 
   if (!title) {
-    errors.title = "Give this update a title.";
+    errors.title = tx(locale, "Beri judul untuk kabar terbaru ini.", "Give this update a title.");
   } else if (title.length < UPDATE_LIMITS.title.min) {
-    errors.title = `The title is too short—at least ${UPDATE_LIMITS.title.min} characters.`;
+    errors.title = tx(locale, `Judul terlalu pendek—minimal ${UPDATE_LIMITS.title.min} karakter.`, `The title is too short—at least ${UPDATE_LIMITS.title.min} characters.`);
   } else if (title.length > UPDATE_LIMITS.title.max) {
-    errors.title = `The title is too long—at most ${UPDATE_LIMITS.title.max} characters.`;
+    errors.title = tx(locale, `Judul terlalu panjang—maksimal ${UPDATE_LIMITS.title.max} karakter.`, `The title is too long—at most ${UPDATE_LIMITS.title.max} characters.`);
   }
 
   if (body.length > UPDATE_LIMITS.body.max) {
-    errors.body = `The details are too long—at most ${UPDATE_LIMITS.body.max} characters.`;
+    errors.body = tx(locale, `Detail terlalu panjang—maksimal ${UPDATE_LIMITS.body.max} karakter.`, `The details are too long—at most ${UPDATE_LIMITS.body.max} characters.`);
   }
 
   return errors;
@@ -46,10 +48,10 @@ export function validateUpdate(input: UpdateInput): UpdateErrors {
  * Day and month, no year: the journey is read top to bottom, and the year is
  * only news at the point it changes, which `journeyYear` below marks instead.
  */
-export function journeyDate(value: string): string {
+export function journeyDate(value: string, locale: Locale = "en"): string {
   const then = parse(value);
   if (Number.isNaN(then)) return "";
-  return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "long" }).format(then);
+  return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", { day: "numeric", month: "long" }).format(then);
 }
 
 export function journeyYear(value: string): string {

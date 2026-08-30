@@ -1,5 +1,6 @@
 import { roleLabel } from "./roles";
 import { isStage, stageMeta } from "./stages";
+import { tx, type Locale } from "./locale";
 
 /**
  * The trail a profile shows: what somebody has actually done, written by the
@@ -40,6 +41,24 @@ export const eventKindMeta: Record<EventKind, { label: string }> = {
   boost_given: { label: "Supported a project" },
   update_posted: { label: "Posted an update" },
 };
+
+const EVENT_LABEL_ID: Record<EventKind, string> = {
+  project_created: "Menambahkan ide baru",
+  project_stage_changed: "Mengubah tahap proyek",
+  seat_opened: "Membuka peran",
+  seat_applied: "Mendaftar untuk sebuah peran",
+  seat_filled: "Bergabung dengan proyek",
+  task_created: "Menambahkan tugas",
+  task_taken: "Mengambil tugas",
+  task_done: "Menyelesaikan tugas",
+  comment_posted: "Bergabung dalam diskusi",
+  boost_given: "Mendukung proyek",
+  update_posted: "Mengirim kabar terbaru",
+};
+
+export function eventKindLabel(kind: EventKind, locale: Locale): string {
+  return tx(locale, EVENT_LABEL_ID[kind], eventKindMeta[kind].label);
+}
 
 export function isEventKind(value: string): value is EventKind {
   return (EVENT_KINDS as readonly string[]).includes(value);
@@ -99,44 +118,46 @@ export type ActivityLike = {
  * A trail entry split around the project title, so the page can make the title
  * a link without this module knowing anything about markup.
  */
-export function activityParts(event: ActivityLike): { lead: string; trail: string } {
+export function activityParts(event: ActivityLike, locale: Locale = "en"): { lead: string; trail: string } {
   const { payload } = event;
-  const role = payload.role ? roleLabel(payload.role) : "";
+  const role = payload.role ? roleLabel(payload.role, "", locale) : "";
   const task = payload.task_title ?? "";
-  const stage = payload.to && isStage(payload.to) ? stageMeta[payload.to].label : payload.to;
+  const stage = payload.to && isStage(payload.to)
+    ? tx(locale, stageMeta[payload.to].labelId, stageMeta[payload.to].label)
+    : payload.to;
 
   switch (event.kind) {
     case "project_created":
-      return { lead: "added ", trail: "." };
+      return { lead: tx(locale, "menambahkan ", "added "), trail: "." };
     case "project_stage_changed":
-      return { lead: "moved ", trail: ` to ${stage}.` };
+      return { lead: tx(locale, "memindahkan ", "moved "), trail: tx(locale, ` ke tahap ${stage}.`, ` to ${stage}.`) };
     case "seat_opened":
-      return { lead: `opened the ${role} role on `, trail: "." };
+      return { lead: tx(locale, `membuka peran ${role} di `, `opened the ${role} role on `), trail: "." };
     case "seat_applied":
-      return { lead: `applied as ${role} on `, trail: "." };
+      return { lead: tx(locale, `mendaftar sebagai ${role} di `, `applied as ${role} on `), trail: "." };
     case "seat_filled":
-      return { lead: "started working on ", trail: ` as ${role}.` };
+      return { lead: tx(locale, "mulai mengerjakan ", "started working on "), trail: tx(locale, ` sebagai ${role}.`, ` as ${role}.`) };
     case "task_created":
-      return { lead: `added the task “${task}” to `, trail: "." };
+      return { lead: tx(locale, `menambahkan tugas “${task}” ke `, `added the task “${task}” to `), trail: "." };
     case "task_taken":
-      return { lead: `took the task “${task}” on `, trail: "." };
+      return { lead: tx(locale, `mengambil tugas “${task}” di `, `took the task “${task}” on `), trail: "." };
     case "task_done":
-      return { lead: `completed the task “${task}” on `, trail: "." };
+      return { lead: tx(locale, `menyelesaikan tugas “${task}” di `, `completed the task “${task}” on `), trail: "." };
     case "comment_posted":
-      return { lead: "joined the discussion on ", trail: "." };
+      return { lead: tx(locale, "bergabung dalam diskusi di ", "joined the discussion on "), trail: "." };
     case "boost_given":
-      return { lead: "supported ", trail: "." };
+      return { lead: tx(locale, "mendukung ", "supported "), trail: "." };
     case "update_posted":
-      return { lead: "posted an update on ", trail: payload.update_title ? `: “${payload.update_title}”.` : "." };
+      return { lead: tx(locale, "mengirim kabar terbaru di ", "posted an update on "), trail: payload.update_title ? `: “${payload.update_title}”.` : "." };
     default:
       // A kind this build has not heard of still reads as something, the same
       // way roleLabel falls back rather than throwing.
-      return { lead: "contributed to ", trail: "." };
+      return { lead: tx(locale, "berkontribusi pada ", "contributed to "), trail: "." };
   }
 }
 
-export function activitySentence(event: ActivityLike): string {
-  const { lead, trail } = activityParts(event);
+export function activitySentence(event: ActivityLike, locale: Locale = "en"): string {
+  const { lead, trail } = activityParts(event, locale);
   return `${lead}${event.projectTitle}${trail}`;
 }
 

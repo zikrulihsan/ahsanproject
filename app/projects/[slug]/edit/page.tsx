@@ -8,7 +8,9 @@ import { EditForm } from "../../../components/edit-form";
 import { getProject } from "../../../lib/data";
 import { currentViewer } from "../../../lib/session";
 import { signInPath } from "../../../lib/urls";
-import { stageMeta } from "../../../lib/stages";
+import { stageLabel } from "../../../lib/stages";
+import { currentLocale } from "../../../lib/locale-server";
+import { tx } from "../../../lib/locale";
 
 /*
  * Allowed to block.
@@ -21,16 +23,19 @@ import { stageMeta } from "../../../lib/stages";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "Edit project — Ahsan Project",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Edit proyek — Ahsan Project", "Edit project — Ahsan Project"),
+    robots: { index: false },
+  };
+}
 
 type Params = Promise<{ slug: string }>;
 
 export default async function EditProjectPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const [project, viewer] = await Promise.all([getProject(slug), currentViewer()]);
+  const [project, viewer, locale] = await Promise.all([getProject(slug), currentViewer(), currentLocale()]);
   if (!project) notFound();
 
   if (!viewer) redirect(signInPath(`/projects/${slug}/edit`));
@@ -46,16 +51,15 @@ export default async function EditProjectPage({ params }: { params: Params }) {
       <main id="main-content" className="page-narrow">
         <p className="breadcrumb">
           <Link href={`/projects/${project.slug}`}>{project.title}</Link>{" "}
-          <span aria-hidden="true">/</span> Edit
+          <span aria-hidden="true">/</span> {tx(locale, "Edit", "Edit")}
         </p>
 
         <p className="eyebrow">
-          <span /> Edit project
+          <span /> {tx(locale, "Edit proyek", "Edit project")}
         </p>
         <h1>{project.title}</h1>
         <p className="lede">
-          Its address remains <code>/projects/{project.slug}</code>, so links you have already shared
-          keep working. Current stage: <strong>{stageMeta[project.stage].label}</strong>.
+          {tx(locale, "Alamatnya tetap", "Its address remains")} <code>/projects/{project.slug}</code>, {tx(locale, "sehingga tautan yang sudah kamu bagikan tetap berfungsi. Tahap saat ini:", "so links you have already shared keep working. Current stage:")} <strong>{stageLabel(project.stage, locale)}</strong>.
         </p>
 
         <EditForm
@@ -80,22 +84,21 @@ export default async function EditProjectPage({ params }: { params: Params }) {
         />
 
         <section className="danger-zone">
-          <h2>Delete project</h2>
+          <h2>{tx(locale, "Hapus proyek", "Delete project")}</h2>
           <p>
-            This is permanent. Its discussions, applications, and support will be deleted too, with
-            no way to restore them. If work is only paused, change the project to{" "}
-            <strong>Resting</strong> from its page—the content remains visible.
+            {tx(locale, "Tindakan ini permanen. Diskusi, pengajuan, dan dukungannya juga akan dihapus tanpa dapat dipulihkan. Jika pekerjaan hanya dijeda, ubah proyek menjadi", "This is permanent. Its discussions, applications, and support will be deleted too, with no way to restore them. If work is only paused, change the project to")} {" "}
+            <strong>{tx(locale, "Beristirahat", "Resting")}</strong> {tx(locale, "dari halamannya—kontennya akan tetap terlihat.", "from its page—the content remains visible.")}
           </p>
           <details>
-            <summary>I still want to delete it</summary>
+            <summary>{tx(locale, "Saya tetap ingin menghapusnya", "I still want to delete it")}</summary>
             <form action={deleteProject}>
               <input type="hidden" name="slug" value={project.slug} />
               <label htmlFor="confirm">
-                Type <code>{project.slug}</code> to confirm this was intentional.
+                {tx(locale, "Ketik", "Type")} <code>{project.slug}</code> {tx(locale, "untuk mengonfirmasi bahwa tindakan ini disengaja.", "to confirm this was intentional.")}
               </label>
               <input id="confirm" name="confirm" type="text" autoComplete="off" required />
-              <SubmitButton className="danger" pendingLabel="Deleting…">
-                Delete this project
+              <SubmitButton className="danger" pendingLabel={tx(locale, "Menghapus…", "Deleting…")}>
+                {tx(locale, "Hapus proyek ini", "Delete this project")}
               </SubmitButton>
             </form>
           </details>

@@ -21,6 +21,8 @@ export const PROJECT_TYPES = ["pet", "community", "product", "commercial"] as co
 
 export type ProjectType = (typeof PROJECT_TYPES)[number];
 
+import { tx, type Locale } from "./locale";
+
 export const projectTypeMeta: Record<
   ProjectType,
   {
@@ -33,34 +35,61 @@ export const projectTypeMeta: Record<
   }
 > = {
   pet: {
+    label: "Proyek pribadi",
+    blurb: "Dibangun sendiri untuk belajar, bereksperimen, dan bersenang-senang.",
+    contribution:
+      "Santai dan terbuka untuk bereksperimen. Tanpa tenggat dan bayaran—yang kamu dapatkan adalah pengalaman dan hasil karya itu sendiri.",
+    tone: "type-pet",
+  },
+  community: {
+    label: "Proyek komunitas",
+    blurb: "Dibangun secara terbuka untuk manfaat bersama, bukan demi keuntungan.",
+    contribution:
+      "Bekerja bersama banyak orang pada sesuatu yang akhirnya dimiliki bersama. Cocok jika kamu ingin karyamu digunakan secara luas.",
+    tone: "type-community",
+  },
+  product: {
+    label: "Produk dengan pengguna",
+    blurb: "Sudah digunakan orang di luar tim dan belum dimonetisasi.",
+    contribution:
+      "Yang kamu bangun langsung menjangkau pengguna yang sudah ada. Ada ritme rilis dan tanggung jawab yang mengikutinya.",
+    tone: "type-product",
+  },
+  commercial: {
+    label: "Proyek komersial",
+    blurb: "Sudah menghasilkan uang atau memang diarahkan ke sana.",
+    contribution:
+      "Ada uang yang terlibat. Sepakati imbalannya—bayaran, bagi hasil, atau kepemilikan—sebelum mulai.",
+    tone: "type-commercial",
+  },
+};
+
+const PROJECT_TYPE_EN: Record<ProjectType, { label: string; blurb: string; contribution: string }> = {
+  pet: {
     label: "Pet project",
     blurb: "Built alone, to learn, try things out, and enjoy it.",
-    contribution:
-      "Relaxed, and open to experiment. No deadlines and no pay — what you take away is the experience and the work itself.",
-    tone: "type-pet",
+    contribution: "Relaxed, and open to experiment. No deadlines and no pay — what you take away is the experience and the work itself.",
   },
   community: {
     label: "Community project",
     blurb: "Built in the open for shared benefit rather than for profit.",
-    contribution:
-      "Work alongside many people, on something everyone ends up owning. A good fit if you want the work used widely.",
-    tone: "type-community",
+    contribution: "Work alongside many people, on something everyone ends up owning. A good fit if you want the work used widely.",
   },
   product: {
     label: "Product with users",
     blurb: "Already used by people outside the team, and not monetised.",
-    contribution:
-      "What you build reaches users who are already there. That brings a release rhythm, and the responsibility that comes with it.",
-    tone: "type-product",
+    contribution: "What you build reaches users who are already there. That brings a release rhythm, and the responsibility that comes with it.",
   },
   commercial: {
     label: "Commercial project",
     blurb: "Earning money already, or deliberately heading that way.",
-    contribution:
-      "There is money involved. Settle what you get — pay, a share, or ownership — before you start.",
-    tone: "type-commercial",
+    contribution: "There is money involved. Settle what you get — pay, a share, or ownership — before you start.",
   },
 };
+
+export function projectTypeBlurb(value: string, locale: Locale = "id"): string {
+  return isProjectType(value) ? tx(locale, projectTypeMeta[value].blurb, PROJECT_TYPE_EN[value].blurb) : "";
+}
 
 /**
  * A project that has not said which it is.
@@ -77,8 +106,8 @@ export function isProjectType(value: string): value is ProjectType {
 }
 
 /** The visible name, or an empty string when the project has not said. */
-export function projectTypeLabel(value: string): string {
-  return isProjectType(value) ? projectTypeMeta[value].label : "";
+export function projectTypeLabel(value: string, locale: Locale = "id"): string {
+  return isProjectType(value) ? tx(locale, projectTypeMeta[value].label, PROJECT_TYPE_EN[value].label) : "";
 }
 
 /** The badge's colour class, or an empty string when there is no badge to draw. */
@@ -87,6 +116,8 @@ export function projectTypeTone(value: string): string {
 }
 
 /** What joining this kind of project means, for the project page to say out loud. */
-export function projectTypeContribution(value: string): string {
-  return isProjectType(value) ? projectTypeMeta[value].contribution : "";
+export function projectTypeContribution(value: string, locale: Locale = "id"): string {
+  return isProjectType(value)
+    ? tx(locale, projectTypeMeta[value].contribution, PROJECT_TYPE_EN[value].contribution)
+    : "";
 }

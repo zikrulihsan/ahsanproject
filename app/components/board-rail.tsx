@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Lane, ProjectSummary } from "../lib/data";
-import { ROLES, roleMeta } from "../lib/roles";
-import { STAGES, stageMeta, type Stage } from "../lib/stages";
+import { ROLES, roleBlurb, roleLabel } from "../lib/roles";
+import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
 type LinkTo = (query: {
   lane?: string;
@@ -11,7 +13,7 @@ type LinkTo = (query: {
   q?: string;
 }) => string;
 
-export function BoardRail({
+export async function BoardRail({
   topics,
   scoped,
   helpBoard,
@@ -32,6 +34,7 @@ export function BoardRail({
   q: string;
   linkTo: LinkTo;
 }) {
+  const locale = await currentLocale();
   const roleCounts = new Map<string, number>();
   for (const project of helpBoard) {
     for (const openRole of project.openRoles) {
@@ -51,7 +54,7 @@ export function BoardRail({
   const activeFilters = [stage, role].filter(Boolean).length;
 
   const topicList = (items: { tag: string; count: number }[]) => (
-    <ul aria-label="Categories">
+    <ul aria-label={tx(locale, "Kategori", "Categories")}>
       {items.map((topic) => {
         const active = tag === topic.tag;
         return (
@@ -77,8 +80,8 @@ export function BoardRail({
   const filterSections = (keyPrefix: string) => (
     <div className="rail-more-content">
       <section className="rail-section">
-        <h2>Stage</h2>
-        <ul aria-label="Stages">
+        <h2>{tx(locale, "Tahap", "Stage")}</h2>
+        <ul aria-label={tx(locale, "Tahap", "Stages")}>
           {STAGES.map((key) => {
             const count = scoped.filter((project) => project.stage === key).length;
             if (count === 0 && stage !== key) return null;
@@ -88,14 +91,14 @@ export function BoardRail({
                 <Link
                   className={`rail-row ${active ? "is-active" : ""}`}
                   aria-current={active ? "page" : undefined}
-                  title={stageMeta[key].blurb}
+                  title={stageBlurb(key, locale)}
                   href={
                     active
                       ? linkTo({ lane, tag, role, q })
                       : linkTo({ lane, stage: key, tag, role, q })
                   }
                 >
-                  <span>{stageMeta[key].label}</span>
+                  <span>{stageLabel(key, locale)}</span>
                   <small>{count}</small>
                 </Link>
               </li>
@@ -105,8 +108,8 @@ export function BoardRail({
       </section>
 
       <section className="rail-section">
-        <h2>Needs help with</h2>
-        <ul aria-label="Roles being sought">
+        <h2>{tx(locale, "Butuh bantuan untuk", "Needs help with")}</h2>
+        <ul aria-label={tx(locale, "Peran yang dicari", "Roles being sought")}>
           {ROLES.map((key) => {
             const count = roleCounts.get(key) ?? 0;
             if (count === 0 && role !== key) return null;
@@ -116,14 +119,14 @@ export function BoardRail({
                 <Link
                   className={`rail-row ${active ? "is-active" : ""}`}
                   aria-current={active ? "page" : undefined}
-                  title={roleMeta[key].blurb}
+                  title={roleBlurb(key, locale)}
                   href={
                     active
                       ? linkTo({ lane, stage, tag, q })
                       : linkTo({ lane, stage, tag, role: key, q })
                   }
                 >
-                  <span>{roleMeta[key].label}</span>
+                  <span>{roleLabel(key, "", locale)}</span>
                   <small>{count}</small>
                 </Link>
               </li>
@@ -135,13 +138,13 @@ export function BoardRail({
   );
 
   return (
-    <nav className="board-rail" aria-label="Filters">
+    <nav className="board-rail" aria-label={tx(locale, "Filter", "Filters")}>
       <section className="rail-section rail-topics" aria-labelledby="rail-topics-title">
-        <h2 id="rail-topics-title">Topics</h2>
-        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">No topics yet.</p>}
+        <h2 id="rail-topics-title">{tx(locale, "Topik", "Topics")}</h2>
+        {visibleTopics.length > 0 ? topicList(visibleTopics) : <p className="rail-empty">{tx(locale, "Belum ada topik.", "No topics yet.")}</p>}
         {moreTopics.length > 0 ? (
           <details className="rail-disclosure">
-            <summary>+ {moreTopics.length} more</summary>
+            <summary>+ {tx(locale, `${moreTopics.length} lainnya`, `${moreTopics.length} more`)}</summary>
             {topicList(moreTopics)}
           </details>
         ) : null}
@@ -150,7 +153,7 @@ export function BoardRail({
       <div className="rail-more-desktop">{filterSections("desktop")}</div>
 
       <details className="rail-more-mobile">
-        <summary>Filters · {activeFilters} active</summary>
+        <summary>{tx(locale, "Filter", "Filters")} · {tx(locale, `${activeFilters} aktif`, `${activeFilters} active`)}</summary>
         {filterSections("mobile")}
       </details>
     </nav>

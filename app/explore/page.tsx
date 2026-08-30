@@ -25,22 +25,21 @@ import { readPublicly } from "../lib/public-read";
 import {
   PROJECT_TYPES,
   isProjectType,
-  projectTypeMeta,
+  projectTypeLabel,
   type ProjectType,
 } from "../lib/project-types";
-import { normaliseRole, roleLabel, type Role } from "../lib/roles";
-import { isStage, stageMeta, STAGES, type Stage } from "../lib/stages";
+import { localizeRoleLabel, normaliseRole, roleLabel, type Role } from "../lib/roles";
+import { isStage, stageLabel, STAGES, type Stage } from "../lib/stages";
 import { viewerId } from "../lib/session";
+import { currentLocale } from "../lib/locale-server";
+import { tx } from "../lib/locale";
 
-const title = "Explore — Ahsan Project";
-const description = "Explore projects by category, stage, and role, then find the best place to contribute.";
-
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: { canonical: "/explore" },
-  openGraph: shareCard({ title, description, url: "/explore" }),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  const title = tx(locale, "Jelajahi — Ahsan Project", "Explore — Ahsan Project");
+  const description = tx(locale, "Jelajahi proyek berdasarkan kategori, tahap, dan peran, lalu temukan tempat terbaik untuk berkontribusi.", "Explore projects by category, stage, and role, then find the best place to contribute.");
+  return { title, description, alternates: { canonical: "/explore" }, openGraph: shareCard({ title, description, url: "/explore" }) };
+}
 
 const SORTS: { value: Lane; label: string }[] = [
   { value: "for-you", label: "For you" },
@@ -99,8 +98,9 @@ function pathFor(query: BoardQuery): string {
  * neither of which exists until somebody asks, so they stream in behind a
  * skeleton rather than holding the page back.
  */
-export default function CollaborationPage({ searchParams }: { searchParams?: SearchParams }) {
+export default async function CollaborationPage({ searchParams }: { searchParams?: SearchParams }) {
   const params = searchParams ?? Promise.resolve({});
+  const locale = await currentLocale();
 
   return (
     <>
@@ -109,8 +109,8 @@ export default function CollaborationPage({ searchParams }: { searchParams?: Sea
       <main id="main-content" className="discovery-page collaboration-page">
         <section className="collaboration-hero" aria-labelledby="collaboration-title">
           <div>
-            <h1 id="collaboration-title">Explore & Contribute</h1>
-            <p>Browse projects by what they need, find a contribution that fits, or get inspired.</p>
+            <h1 id="collaboration-title">{tx(locale, "Jelajahi & Berkontribusi", "Explore & Contribute")}</h1>
+            <p>{tx(locale, "Jelajahi proyek berdasarkan kebutuhannya, temukan kontribusi yang cocok, atau cari inspirasi.", "Browse projects by what they need, find a contribution that fits, or get inspired.")}</p>
           </div>
           <ContributorPulse />
         </section>
@@ -130,10 +130,13 @@ export default function CollaborationPage({ searchParams }: { searchParams?: Sea
  * it, so it is prerendered into the shell alongside the heading.
  */
 async function ContributorPulse() {
-  const { value: people } = await readPublicly("people in Explore", () => listPeople(400), []);
+  const [{ value: people }, locale] = await Promise.all([
+    readPublicly("people in Explore", () => listPeople(400), []),
+    currentLocale(),
+  ]);
 
   return (
-    <div className="contributor-pulse" aria-label={`${people.length} contributors`}>
+    <div className="contributor-pulse" aria-label={tx(locale, `${people.length} kontributor`, `${people.length} contributors`)}>
       <div className="pulse-avatars" aria-hidden="true">
         {people.slice(0, 3).map((person) => (
           <span key={person.id}>{initials(person.name)}</span>
@@ -141,8 +144,8 @@ async function ContributorPulse() {
         <span className="pulse-plus">+</span>
       </div>
       <p>
-        <strong>{people.length} contributors</strong>
-        <small>ready to build together</small>
+        <strong>{tx(locale, `${people.length} kontributor`, `${people.length} contributors`)}</strong>
+        <small>{tx(locale, "siap membangun bersama", "ready to build together")}</small>
       </p>
     </div>
   );
@@ -175,6 +178,7 @@ function BoardSkeleton() {
 }
 
 async function Board({ params: paramsPromise }: { params: SearchParams }) {
+  const locale = await currentLocale();
   const { sort, stage, type, role, tag, q, searchBy, needs } = readBoardQuery(await paramsPromise);
 
   const query: FeedQuery = {
@@ -241,7 +245,11 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     : projectsResult.value;
   const topics = tagCountsFromProjects(topicProjectsResult.value);
   const helpBoard = helpBoardResult.value;
-  const roleSuggestions = roleSuggestionsResult.value;
+  const roleSuggestions = roleSuggestionsResult.value.map((suggestion) => ({
+    ...suggestion,
+    value: localizeRoleLabel(suggestion.value, locale),
+    label: localizeRoleLabel(suggestion.label, locale),
+  }));
   const seatsResult = await readPublicly<Map<number, Record<string, number>>>(
     "open role count",
     () => openSeatsByRole(projects.map((project) => project.id)),
@@ -265,11 +273,11 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     <>
         {dataUnavailable ? (
           <p className="public-data-notice" role="status">
-            Some data could not load. <Link href={currentPath}>Try again</Link>.
+            {tx(locale, "Sebagian data tidak dapat dimuat.", "Some data could not load.")} <Link href={currentPath}>{tx(locale, "Coba lagi", "Try again")}</Link>.
           </p>
         ) : null}
 
-        <section className="collaboration-panel" aria-label="Search projects or roles, then filter and sort the results">
+        <section className="collaboration-panel" aria-label={tx(locale, "Cari proyek atau peran, lalu saring dan urutkan hasilnya", "Search projects or roles, then filter and sort the results")}>
           <ExploreSearchForm
             mode={searchBy}
             q={q}
@@ -286,70 +294,73 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
 
           <details className="collaboration-filter-panel">
             <summary className="collaboration-filter-summary">
-              <span><FilterIcon /> Filter &amp; sort</span>
+              <span><FilterIcon /> {tx(locale, "Saring & urutkan", "Filter & sort")}</span>
               <span>
-                {activeControlCount > 0 ? `${activeControlCount} active` : "Optional"}
+                {activeControlCount > 0 ? tx(locale, `${activeControlCount} aktif`, `${activeControlCount} active`) : tx(locale, "Opsional", "Optional")}
                 <i aria-hidden="true" />
               </span>
             </summary>
 
             <div className="collaboration-filter-controls">
               <div className="collaboration-control collaboration-sort-control">
-                <span>Sort</span>
+                <span>{tx(locale, "Urutkan", "Sort")}</span>
                 <SortSelect
                   action="/explore"
                   name="lane"
                   value={sort}
-                  label="Sort projects"
-                  options={SORTS}
+                  label={tx(locale, "Urutkan proyek", "Sort projects")}
+                  options={SORTS.map((entry) => ({ ...entry, label: tx(locale,
+                    entry.value === "for-you" ? "Untukmu" : entry.value === "newest" ? "Proyek terbaru" : "Paling aktif",
+                    entry.label,
+                  ) }))}
                   hidden={{ stage, type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs }}
                 />
               </div>
 
               <div className="collaboration-control">
-                <span>Category</span>
+                <span>{tx(locale, "Kategori", "Category")}</span>
                 <SearchableFilter
                   action="/explore"
                   name="tag"
                   value={tag}
-                  label="Filter categories"
-                  placeholder="Enter a category…"
+                  label={tx(locale, "Saring kategori", "Filter categories")}
+                  placeholder={tx(locale, "Masukkan kategori…", "Enter a category…")}
                   options={withSelectedTopic(topics, tag).map((topic) => ({
                     value: topic.tag,
                     label: topic.tag,
-                    meta: `${topic.count} projects`,
+                    meta: tx(locale, `${topic.count} proyek`, `${topic.count} projects`),
                   }))}
                   hidden={{ stage, type, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "for-you" ? "" : sort }}
                 />
               </div>
 
               <div className="collaboration-control">
-                <span>Project stage</span>
+                <span>{tx(locale, "Tahap proyek", "Project stage")}</span>
                 <SortSelect
                   action="/explore"
                   name="stage"
                   value={stage}
-                  label="Filter project stages"
+                  label={tx(locale, "Saring tahap proyek", "Filter project stages")}
                   options={[
-                    { value: "", label: "All stages" },
-                    ...STAGES.map((entry) => ({ value: entry, label: stageMeta[entry].label })),
+                    { value: "", label: tx(locale, "Semua tahap", "All stages") },
+                    ...STAGES.map((entry) => ({ value: entry, label: stageLabel(entry, locale) })),
                   ]}
                   hidden={{ type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "for-you" ? "" : sort }}
                 />
               </div>
 
               <div className="collaboration-control">
-                <span>Project kind</span>
+                <span>{tx(locale, "Jenis proyek", "Project kind")}</span>
                 <SortSelect
                   action="/explore"
                   name="type"
                   value={type}
-                  label="Filter project kind"
+                  label={tx(locale, "Saring jenis proyek", "Filter project kind")}
                   options={[
-                    { value: "", label: "All kinds" },
+                    { value: "", label: tx(locale, "Semua jenis", "All kinds") },
                     ...PROJECT_TYPES.map((entry) => ({
                       value: entry,
-                      label: projectTypeMeta[entry].label,
+                      label: projectTypeLabel(entry, locale),
                     })),
                   ]}
                   hidden={{ stage, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", needs, lane: sort === "for-you" ? "" : sort }}
@@ -357,15 +368,15 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
               </div>
 
               <div className="collaboration-control">
-                <span>Needs</span>
+                <span>{tx(locale, "Kebutuhan", "Needs")}</span>
                 <SortSelect
                   action="/explore"
                   name="needs"
                   value={needs}
-                  label="Filter collaboration needs"
+                  label={tx(locale, "Saring kebutuhan kolaborasi", "Filter collaboration needs")}
                   options={[
-                    { value: "", label: "All projects" },
-                    { value: "open", label: "Looking for collaborators" },
+                    { value: "", label: tx(locale, "Semua proyek", "All projects") },
+                    { value: "open", label: tx(locale, "Mencari kolaborator", "Looking for collaborators") },
                   ]}
                   hidden={{ stage, type, tag, role, q, searchBy: searchBy === "role" ? searchBy : "", lane: sort === "for-you" ? "" : sort }}
                 />
@@ -375,22 +386,22 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
         </section>
 
         {filtered ? (
-          <div className="active-filters home-active-filters" aria-label="Active filters">
+          <div className="active-filters home-active-filters" aria-label={tx(locale, "Filter aktif", "Active filters")}>
             <ul>
               {role ? (
                 <li>
                   <Link href={linkTo({ lane: sort, stage, type, tag, q, searchBy, needs })}>
-                    Role: <strong>{roleLabel(role)}</strong> <span>×</span>
+                    {tx(locale, "Peran", "Role")}: <strong>{roleLabel(role, "", locale)}</strong> <span>×</span>
                   </Link>
                 </li>
               ) : null}
-              {tag ? <li><Link href={linkTo({ lane: sort, stage, type, role, q, searchBy, needs })}>Category: <strong>{tag}</strong> <span>×</span></Link></li> : null}
-              {stage ? <li><Link href={linkTo({ lane: sort, type, tag, role, q, searchBy, needs })}>Stage: <strong>{stageMeta[stage].label}</strong> <span>×</span></Link></li> : null}
-              {type ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy, needs })}>Kind: <strong>{projectTypeMeta[type].label}</strong> <span>×</span></Link></li> : null}
-              {needs ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, q, searchBy })}>Needs: <strong>Looking for collaborators</strong> <span>×</span></Link></li> : null}
-              {q ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, searchBy, needs })}>{searchBy === "role" ? "Role search" : "Search"}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
+              {tag ? <li><Link href={linkTo({ lane: sort, stage, type, role, q, searchBy, needs })}>{tx(locale, "Kategori", "Category")}: <strong>{tag}</strong> <span>×</span></Link></li> : null}
+              {stage ? <li><Link href={linkTo({ lane: sort, type, tag, role, q, searchBy, needs })}>{tx(locale, "Tahap", "Stage")}: <strong>{stageLabel(stage, locale)}</strong> <span>×</span></Link></li> : null}
+              {type ? <li><Link href={linkTo({ lane: sort, stage, tag, role, q, searchBy, needs })}>{tx(locale, "Jenis", "Kind")}: <strong>{projectTypeLabel(type, locale)}</strong> <span>×</span></Link></li> : null}
+              {needs ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, q, searchBy })}>{tx(locale, "Kebutuhan", "Needs")}: <strong>{tx(locale, "Mencari kolaborator", "Looking for collaborators")}</strong> <span>×</span></Link></li> : null}
+              {q ? <li><Link href={linkTo({ lane: sort, stage, type, tag, role, searchBy, needs })}>{searchBy === "role" ? tx(locale, "Pencarian peran", "Role search") : tx(locale, "Pencarian", "Search")}: <strong>“{q}”</strong> <span>×</span></Link></li> : null}
             </ul>
-            <Link className="clear-filters" href={linkTo({ lane: sort })}>Clear all</Link>
+            <Link className="clear-filters" href={linkTo({ lane: sort })}>{tx(locale, "Hapus semua", "Clear all")}</Link>
           </div>
         ) : null}
 
@@ -398,16 +409,16 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
           <section className="home-projects" aria-labelledby="collaboration-project-list-title">
             <div className="home-list-head collaboration-list-head">
               <div>
-                <h2 id="collaboration-project-list-title">Projects for collaboration</h2>
-                <p>{projects.length} projects found</p>
+                <h2 id="collaboration-project-list-title">{tx(locale, "Proyek untuk berkolaborasi", "Projects for collaboration")}</h2>
+                <p>{tx(locale, `${projects.length} proyek ditemukan`, `${projects.length} projects found`)}</p>
               </div>
             </div>
 
-            <div className="feed" aria-label="Project list">
+            <div className="feed" aria-label={tx(locale, "Daftar proyek", "Project list")}>
               {projects.length === 0 ? (
                 <div className="empty home-empty">
-                  <p>No projects match this search yet.</p>
-                  <Link href="/explore">View all projects</Link>
+                  <p>{tx(locale, "Belum ada proyek yang cocok dengan pencarian ini.", "No projects match this search yet.")}</p>
+                  <Link href="/explore">{tx(locale, "Lihat semua proyek", "View all projects")}</Link>
                 </div>
               ) : (
                 <ul className="board-grid">
@@ -423,33 +434,33 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
             </div>
           </section>
 
-          <aside className="discovery-sidebar" aria-label="Collaboration shortcuts">
+          <aside className="discovery-sidebar" aria-label={tx(locale, "Pintasan kolaborasi", "Collaboration shortcuts")}>
             <section className="show-project-card">
               <span className="show-project-plus" aria-hidden="true">+</span>
-              <h2>Building something?</h2>
-              <p>Show your project and find people who can help move it forward.</p>
-              <Link href="/new">Add a project</Link>
-              <small>Free for the community</small>
+              <h2>{tx(locale, "Sedang membangun sesuatu?", "Building something?")}</h2>
+              <p>{tx(locale, "Tampilkan proyekmu dan temukan orang yang dapat membantu mengembangkannya.", "Show your project and find people who can help move it forward.")}</p>
+              <Link href="/new">{tx(locale, "Tambah proyek", "Add a project")}</Link>
+              <small>{tx(locale, "Gratis untuk komunitas", "Free for the community")}</small>
             </section>
 
             <section className="role-ranking">
               <div className="role-ranking-head">
                 <div>
-                  <p className="home-eyebrow">Start with your role</p>
-                  <h2>Most requested roles</h2>
-                  <p>Choose a role, then see projects waiting for your contribution.</p>
+                  <p className="home-eyebrow">{tx(locale, "Mulai dari peranmu", "Start with your role")}</p>
+                  <h2>{tx(locale, "Peran yang paling dicari", "Most requested roles")}</h2>
+                  <p>{tx(locale, "Pilih peran, lalu lihat proyek yang menunggu kontribusimu.", "Choose a role, then see projects waiting for your contribution.")}</p>
                 </div>
-                <span className="live-dot" title="Updated from open roles" />
+                <span className="live-dot" title={tx(locale, "Diperbarui dari peran terbuka", "Updated from open roles")} />
               </div>
               {rankedRoles.length > 0 ? (
                 <ol>
                   {rankedRoles.map((entry, index) => (
                     <li key={entry.role}>
-                      <Link href={linkTo({ lane: sort, stage, type, tag, q: roleLabel(entry.role), searchBy: "role", needs: "open" })}>
+                      <Link href={linkTo({ lane: sort, stage, type, tag, q: roleLabel(entry.role, "", locale), searchBy: "role", needs: "open" })}>
                         <span className="role-number">{String(index + 1).padStart(2, "0")}</span>
                         <span>
-                          <strong>{roleLabel(entry.role)}</strong>
-                          <small>{entry.count} projects</small>
+                          <strong>{roleLabel(entry.role, "", locale)}</strong>
+                          <small>{tx(locale, `${entry.count} proyek`, `${entry.count} projects`)}</small>
                         </span>
                         <Arrow />
                       </Link>
@@ -457,10 +468,10 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   ))}
                 </ol>
               ) : (
-                <p className="role-ranking-empty">No roles are open yet.</p>
+                <p className="role-ranking-empty">{tx(locale, "Belum ada peran yang dibuka.", "No roles are open yet.")}</p>
               )}
               <Link className="all-roles-link" href="/explore?searchBy=role&needs=open">
-                View all roles <Arrow />
+                {tx(locale, "Lihat semua peran", "View all roles")} <Arrow />
               </Link>
             </section>
           </aside>

@@ -49,14 +49,14 @@ import { projectTypeContribution, projectTypeLabel } from "../../lib/project-typ
 import { roleLabel } from "../../lib/roles";
 import { CommitmentField } from "../../components/commitment-field";
 import { RoleFields } from "../../components/role-fields";
-import { STAGES, meetsStage, requirementsFor, stageMeta, type StageInput } from "../../lib/stages";
+import { STAGES, meetsStage, requirementsFor, stageBlurb, stageLabel, type StageInput } from "../../lib/stages";
 import { accessOf, canManage } from "../../lib/access";
 import { UPDATE_LIMITS } from "../../lib/updates";
 import {
   TASK_ORDER,
   TASK_STATUSES,
   taskStatusLabel,
-  taskStatusMeta,
+  taskStatusBlurb,
   taskStatusTone,
 } from "../../lib/tasks";
 import { currentViewer } from "../../lib/session";
@@ -65,6 +65,8 @@ import { ProjectLogo } from "../../components/project-logo";
 import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
 import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
 import { isGitHubRepositoryUrl } from "../../lib/github";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<{ tab?: string | string[] }>;
@@ -90,9 +92,9 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, locale] = await Promise.all([params, currentLocale()]);
   const project = await getProject(slug);
-  if (!project) return { title: "Project not found — Ahsan Project" };
+  if (!project) return { title: tx(locale, "Proyek tidak ditemukan — Ahsan Project", "Project not found — Ahsan Project") };
 
   return {
     title: `${project.title} — Ahsan Project`,
@@ -120,7 +122,7 @@ export default async function ProjectPage({
   const requestedTab = Array.isArray(query.tab) ? query.tab[0] : query.tab;
   const activeTab: ProjectTab = requestedTab && isProjectTab(requestedTab) ? requestedTab : "about";
   // The project and the visitor are independent questions — ask them together.
-  const [project, viewer] = await Promise.all([getProject(slug), currentViewer()]);
+  const [project, viewer, locale] = await Promise.all([getProject(slug), currentViewer(), currentLocale()]);
   if (!project) notFound();
 
   // Where this visitor stands. The database decides what may actually
@@ -169,9 +171,9 @@ export default async function ProjectPage({
       <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
-            <Link href="/">Explore</Link> <span aria-hidden="true">/</span> {project.title}
+            <Link href="/">{tx(locale, "Jelajahi", "Explore")}</Link> <span aria-hidden="true">/</span> {project.title}
           </p>
-          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>Edit project</Link> : null}
+          {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>{tx(locale, "Edit proyek", "Edit project")}</Link> : null}
         </div>
 
         {/* Identity, then what it is, then who is behind it, then the two
@@ -199,13 +201,13 @@ export default async function ProjectPage({
             <p className="project-tagline">{projectBlurb(project)}</p>
             <TagRow tags={project.tags} />
 
-            {projectTypeContribution(project.projectType) ? (
+            {projectTypeContribution(project.projectType, locale) ? (
               /* What saying yes here actually means. The badge names the kind;
                  this is the sentence somebody weighing an application needs,
                  and it belongs beside the ask rather than in a tooltip. */
               <p className="project-type-note">
-                <strong>{projectTypeLabel(project.projectType)}</strong>
-                {projectTypeContribution(project.projectType)}
+                <strong>{projectTypeLabel(project.projectType, locale)}</strong>
+                {projectTypeContribution(project.projectType, locale)}
               </p>
             ) : null}
 
@@ -217,9 +219,9 @@ export default async function ProjectPage({
                 <span>
                   <strong>
                     {project.owner.name}
-                    {team.length > 0 ? ` + ${team.length} people` : ""}
+                    {team.length > 0 ? tx(locale, ` + ${team.length} orang`, ` + ${team.length} people`) : ""}
                   </strong>
-                  <small>{freshness(project)}</small>
+                  <small>{freshness(project, locale)}</small>
                 </span>
               </Link>
 
@@ -228,12 +230,12 @@ export default async function ProjectPage({
                   <form action={toggleFollow}>
                     <input type="hidden" name="slug" value={project.slug} />
                     <SubmitButton className={`follow ${following ? "is-on" : ""}`}>
-                      {following ? "Following" : "Follow project"}
+                      {following ? tx(locale, "Mengikuti", "Following") : tx(locale, "Ikuti proyek", "Follow project")}
                     </SubmitButton>
                   </form>
                 ) : (
                   <Link className="follow" href={signInPath(returnTo)}>
-                    Follow project
+                    {tx(locale, "Ikuti proyek", "Follow project")}
                   </Link>
                 )}
 
@@ -245,14 +247,14 @@ export default async function ProjectPage({
                     <SubmitButton className={`boost ${boosted ? "is-on" : ""}`}>
                       <span aria-hidden="true">♡</span>
                       <strong>{project.boostCount}</strong>
-                      <span className="sr-only">support</span>
+                      <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
                     </SubmitButton>
                   </form>
                 ) : (
                   <Link className="boost" href={signInPath(returnTo)}>
                     <span aria-hidden="true">♡</span>
                     <strong>{project.boostCount}</strong>
-                    <span className="sr-only">support</span>
+                    <span className="sr-only">{tx(locale, "dukungan", "support")}</span>
                   </Link>
                 )}
               </div>
@@ -263,21 +265,21 @@ export default async function ProjectPage({
                 {project.liveUrl ? (
                   <li>
                     <a href={project.liveUrl} target="_blank" rel="noreferrer">
-                      {domainOf(project.liveUrl) || "Open product"} <Arrow diagonal />
+                      {domainOf(project.liveUrl) || tx(locale, "Buka produk", "Open product")} <Arrow diagonal />
                     </a>
                   </li>
                 ) : null}
                 {project.docUrl ? (
                   <li>
                     <a href={project.docUrl} target="_blank" rel="noreferrer">
-                      Document <Arrow diagonal />
+                      {tx(locale, "Dokumen", "Document")} <Arrow diagonal />
                     </a>
                   </li>
                 ) : null}
                 {project.repoUrl ? (
                   <li>
                     <a href={project.repoUrl} target="_blank" rel="noreferrer">
-                      {isGitHubRepositoryUrl(project.repoUrl) ? "View GitHub repository" : "Repository"} <Arrow diagonal />
+                      {isGitHubRepositoryUrl(project.repoUrl) ? tx(locale, "Lihat repositori GitHub", "View GitHub repository") : tx(locale, "Repositori", "Repository")} <Arrow diagonal />
                     </a>
                   </li>
                 ) : null}
@@ -290,7 +292,7 @@ export default async function ProjectPage({
           <div className="project-main">
             <ProjectTabContent tab="about">
               <section className="brief" aria-labelledby="brief-heading">
-                <h2 id="brief-heading">About this project</h2>
+                <h2 id="brief-heading">{tx(locale, "Tentang proyek ini", "About this project")}</h2>
 
                 {/* The owner's own words come first: on a project added as a
                     link this is the whole of what a person wrote, and on a
@@ -301,19 +303,19 @@ export default async function ProjectPage({
 
                 {project.problem ? (
                   <article>
-                    <h3>Problem to solve</h3>
+                    <h3>{tx(locale, "Masalah yang ingin diselesaikan", "Problem to solve")}</h3>
                     <p>{project.problem}</p>
                   </article>
                 ) : null}
                 {project.solution ? (
                   <article>
-                    <h3>What is being built</h3>
+                    <h3>{tx(locale, "Hal yang sedang dibangun", "What is being built")}</h3>
                     <p>{project.solution}</p>
                   </article>
                 ) : null}
                 {project.audience ? (
                   <article>
-                    <h3>Who it is for</h3>
+                    <h3>{tx(locale, "Untuk siapa", "Who it is for")}</h3>
                     <p>{project.audience}</p>
                   </article>
                 ) : null}
@@ -323,25 +325,24 @@ export default async function ProjectPage({
                 {!project.problem && !project.solution && !project.audience ? (
                   <p className="brief-empty">
                     {isOwner
-                      ? "The brief is still empty. Adding the problem, what you are making, and who it is for takes a couple of minutes and is what makes people want to help."
-                      : "The brief has not been written yet. What the project links to is the best place to start."}
+                      ? tx(locale, "Ringkasan proyek masih kosong. Menambahkan masalah, apa yang kamu buat, dan siapa sasarannya hanya perlu beberapa menit serta membantu orang tertarik untuk berkontribusi.", "The brief is still empty. Adding the problem, what you are making, and who it is for takes a couple of minutes and is what makes people want to help.")
+                      : tx(locale, "Ringkasan proyek belum ditulis. Tautan proyek adalah tempat terbaik untuk mulai melihatnya.", "The brief has not been written yet. What the project links to is the best place to start.")}
                     {isOwner ? (
                       <>
                         {" "}
-                        <Link href={`/projects/${project.slug}/edit`}>Write the brief</Link>
+                        <Link href={`/projects/${project.slug}/edit`}>{tx(locale, "Tulis ringkasan", "Write the brief")}</Link>
                       </>
                     ) : null}
                   </p>
                 ) : null}
                 {isGitHubRepositoryUrl(project.repoUrl) ? (
                   <article className="github-contribution">
-                    <h3>Want to help with code?</h3>
+                    <h3>{tx(locale, "Ingin membantu lewat kode?", "Want to help with code?")}</h3>
                     <p>
-                      View the contribution guide, open issues, or open a pull request directly from
-                      this project’s GitHub repository.
+                      {tx(locale, "Lihat panduan kontribusi, issue terbuka, atau buat pull request langsung dari repositori GitHub proyek ini.", "View the contribution guide, open issues, or open a pull request directly from this project’s GitHub repository.")}
                     </p>
                     <a href={project.repoUrl} target="_blank" rel="noreferrer">
-                      Contribute on GitHub <Arrow diagonal />
+                      {tx(locale, "Berkontribusi di GitHub", "Contribute on GitHub")} <Arrow diagonal />
                     </a>
                   </article>
                 ) : null}
@@ -353,41 +354,40 @@ export default async function ProjectPage({
                 the project look alive rather than parked. */}
             <ProjectTabContent tab="about">
               <section className="now-card" aria-labelledby="now-heading">
-              <h2 id="now-heading">Work in progress</h2>
+              <h2 id="now-heading">{tx(locale, "Sedang dikerjakan", "Work in progress")}</h2>
 
               {project.nowText ? (
                 <>
                   <p className="now-headline">{project.nowText}</p>
                   {project.nowUpdatedAt ? (
-                    <p className="now-when">Written {timeAgo(project.nowUpdatedAt)}</p>
+                    <p className="now-when">{tx(locale, "Ditulis", "Written")} {timeAgo(project.nowUpdatedAt, locale)}</p>
                   ) : null}
                 </>
               ) : (
                 <p className="muted">
-                  Nothing has been written yet.
-                  {isManager ? " One sentence is enough to make this project feel active." : ""}
+                  {tx(locale, "Belum ada yang ditulis.", "Nothing has been written yet.")}
+                  {isManager ? tx(locale, " Satu kalimat sudah cukup untuk menunjukkan bahwa proyek ini aktif.", " One sentence is enough to make this project feel active.") : ""}
                 </p>
               )}
 
               {isManager ? (
                 <details className="owner-tool">
-                  <summary>{project.nowText ? "Update" : "Write what you are working on"}</summary>
+                  <summary>{project.nowText ? tx(locale, "Perbarui", "Update") : tx(locale, "Tulis apa yang sedang dikerjakan", "Write what you are working on")}</summary>
                   <form action={setNow}>
                     <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="now-text">Working on now…</label>
+                    <label htmlFor="now-text">{tx(locale, "Sedang dikerjakan…", "Working on now…")}</label>
                     <input
                       id="now-text"
                       name="now"
                       type="text"
                       maxLength={MAXIMUM.now}
                       defaultValue={project.nowText}
-                      placeholder="Drafting the first safety materials."
+                      placeholder={tx(locale, "Menyusun draf materi keselamatan pertama.", "Drafting the first safety materials.")}
                     />
                     <p className="hint">
-                      One sentence—update it whenever the direction changes. This is how people know
-                      the project is still moving.
+                      {tx(locale, "Cukup satu kalimat—perbarui saat arahnya berubah. Dari sinilah orang tahu bahwa proyek masih bergerak.", "One sentence—update it whenever the direction changes. This is how people know the project is still moving.")}
                     </p>
-                    <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+                    <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -398,61 +398,60 @@ export default async function ProjectPage({
             <ProjectTabContent tab="collaboration">
               {(open.length > 0 || isManager) && (
                 <section className="help" aria-labelledby="help-heading">
-                <h2 id="help-heading">Want to help?</h2>
+                <h2 id="help-heading">{tx(locale, "Ingin membantu?", "Want to help?")}</h2>
 
                 {open.length > 0 ? (
                   <ul className="seat-list">
                     {open.map((seat) => (
                       <li key={seat.id}>
                         <div>
-                          <h3>{roleLabel(seat.role, seat.roleTitle)}</h3>
+                          <h3>{roleLabel(seat.role, seat.roleTitle, locale)}</h3>
                           <p>{seat.brief}</p>
                           {seat.commitment ? (
                             <p className="seat-commitment">{seat.commitment}</p>
                           ) : null}
                         </div>
                         {isOwner ? (
-                          <p className="muted">Waiting for someone to join.</p>
+                          <p className="muted">{tx(locale, "Menunggu seseorang bergabung.", "Waiting for someone to join.")}</p>
                         ) : viewer ? (
                           viewerSeat ? (
                             <p className="muted">
                               {viewerSeat.status === "filled"
-                                ? `You are already on this team as ${roleLabel(viewerSeat.role, viewerSeat.roleTitle)}.`
-                                : "You have already applied to this project."}
+                                ? tx(locale, `Kamu sudah berada di tim ini sebagai ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`, `You are already on this team as ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`)
+                                : tx(locale, "Kamu sudah mendaftar ke proyek ini.", "You have already applied to this project.")}
                             </p>
                           ) : !canPropose ? (
                             <p className="muted">
-                              Complete your talent-pool profile to apply for this role. {" "}
-                              <Link href={profileReturnTo}>Complete your profile</Link>
+                              {tx(locale, "Lengkapi profil talent pool untuk mendaftar ke peran ini.", "Complete your talent-pool profile to apply for this role.")} {" "}
+                              <Link href={profileReturnTo}>{tx(locale, "Lengkapi profil", "Complete your profile")}</Link>
                             </p>
                           ) : (
                             proposalsForSeat(seat.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
-                              <p className="muted">Your proposal is awaiting a response.</p>
+                              <p className="muted">{tx(locale, "Proposalmu sedang menunggu tanggapan.", "Your proposal is awaiting a response.")}</p>
                             ) : (
                               <details>
-                                <summary>Apply for this role</summary>
+                                <summary>{tx(locale, "Daftar untuk peran ini", "Apply for this role")}</summary>
                                 <form action={submitProposal}>
                                 <input type="hidden" name="slug" value={project.slug} />
                                 <input type="hidden" name="seatId" value={seat.id} />
                                 <label htmlFor={`pitch-${seat.id}`}>
-                                  Tell us why you are a good fit and how much time you can
-                                  contribute.
+                                  {tx(locale, "Ceritakan mengapa kamu cocok dan berapa banyak waktu yang dapat kamu kontribusikan.", "Tell us why you are a good fit and how much time you can contribute.")}
                                 </label>
                                 <textarea
                                   id={`pitch-${seat.id}`}
                                   name="pitch"
                                   rows={4}
                                   required
-                                  placeholder="For example: I have helped with similar research and can contribute three hours per week."
+                                  placeholder={tx(locale, "Contoh: Saya pernah membantu riset serupa dan dapat berkontribusi tiga jam per minggu.", "For example: I have helped with similar research and can contribute three hours per week.")}
                                 />
-                                  <SubmitButton pendingLabel="Sending…">Send proposal</SubmitButton>
+                                  <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim proposal", "Send proposal")}</SubmitButton>
                                 </form>
                               </details>
                             )
                           )
                         ) : (
                           <Link className="ghost-button" href={signInPath(returnTo)}>
-                            Sign in to join
+                            {tx(locale, "Masuk untuk bergabung", "Sign in to join")}
                           </Link>
                         )}
                       </li>
@@ -460,25 +459,25 @@ export default async function ProjectPage({
                   </ul>
                 ) : (
                   <p className="muted">
-                    No help is being requested yet.
-                    {isManager ? " Open a role below if there is work to share." : ""}
+                    {tx(locale, "Belum ada bantuan yang diminta.", "No help is being requested yet.")}
+                    {isManager ? tx(locale, " Buka peran di bawah jika ada pekerjaan yang dapat dibagikan.", " Open a role below if there is work to share.") : ""}
                   </p>
                 )}
 
                 {isManager && proposals.filter((proposal) => proposal.seatId && proposal.status === "pending").length > 0 ? (
                   <div className="pending-list">
-                    <h3>Pending role proposals</h3>
+                    <h3>{tx(locale, "Proposal peran yang menunggu", "Pending role proposals")}</h3>
                     {open.flatMap((seat) => proposalsForSeat(seat.id)
                       .filter((proposal) => proposal.status === "pending")
                       .map((proposal) => (
                         <article key={proposal.id} className="pending-card">
-                          <p><strong>{proposal.person.name}</strong> wants to help as {roleLabel(seat.role, seat.roleTitle)}</p>
+                          <p><strong>{proposal.person.name}</strong> {tx(locale, "ingin membantu sebagai", "wants to help as")} {roleLabel(seat.role, seat.roleTitle, locale)}</p>
                           <blockquote>{proposal.pitch}</blockquote>
                           <form action={decideProposal}>
                             <input type="hidden" name="slug" value={project.slug} />
                             <input type="hidden" name="proposalId" value={proposal.id} />
-                            <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">Accept</SubmitButton>
-                            <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
+                            <SubmitButton name="decision" value="terima" pendingLabel={tx(locale, "Mohon tunggu…", "Please wait…")}>{tx(locale, "Terima", "Accept")}</SubmitButton>
+                            <SubmitButton className="quiet" name="decision" value="tolak">{tx(locale, "Tolak", "Decline")}</SubmitButton>
                           </form>
                         </article>
                       )))}
@@ -487,17 +486,17 @@ export default async function ProjectPage({
 
                 {isManager ? (
                   <details className="owner-tool">
-                    <summary>Find new help</summary>
+                    <summary>{tx(locale, "Cari bantuan baru", "Find new help")}</summary>
                     <form action={openSeat}>
                       <input type="hidden" name="slug" value={project.slug} />
                       <RoleFields id="new-seat-role" />
-                      <label htmlFor="new-seat-brief">What needs help</label>
+                      <label htmlFor="new-seat-brief">{tx(locale, "Bagian yang membutuhkan bantuan", "What needs help")}</label>
                       <textarea id="new-seat-brief" name="brief" rows={3} required />
                       <CommitmentField
                         id="new-seat-commitment"
                         name="commitment"
                       />
-                      <SubmitButton pendingLabel="Opening…">Open role</SubmitButton>
+                      <SubmitButton pendingLabel={tx(locale, "Membuka…", "Opening…")}>{tx(locale, "Buka peran", "Open role")}</SubmitButton>
                     </form>
                   </details>
                 ) : null}
@@ -507,8 +506,8 @@ export default async function ProjectPage({
 
             <ProjectTabContent tab="journey">
               <section className="journey-section" aria-labelledby="journey-heading">
-              <h2 id="journey-heading">Project journey</h2>
-              <p className="muted">Written by the people working on it, newest first.</p>
+              <h2 id="journey-heading">{tx(locale, "Perjalanan proyek", "Project journey")}</h2>
+              <p className="muted">{tx(locale, "Ditulis oleh orang-orang yang mengerjakannya, dari yang terbaru.", "Written by the people working on it, newest first.")}</p>
 
               <JourneyList
                 updates={project.updates}
@@ -520,7 +519,7 @@ export default async function ProjectPage({
                         <form className="journey-remove" action={deleteUpdate}>
                           <input type="hidden" name="slug" value={project.slug} />
                           <input type="hidden" name="updateId" value={update.id} />
-                          <SubmitButton className="quiet">Delete</SubmitButton>
+                          <SubmitButton className="quiet">{tx(locale, "Hapus", "Delete")}</SubmitButton>
                         </form>
                       )
                     : undefined
@@ -529,10 +528,10 @@ export default async function ProjectPage({
 
               {isManager ? (
                 <details className="owner-tool">
-                  <summary>Write an update</summary>
+                  <summary>{tx(locale, "Tulis kabar terbaru", "Write an update")}</summary>
                   <form action={postUpdate}>
                     <input type="hidden" name="slug" value={project.slug} />
-                    <label htmlFor="update-title">What is the update?</label>
+                    <label htmlFor="update-title">{tx(locale, "Apa kabar terbarunya?", "What is the update?")}</label>
                     <input
                       id="update-title"
                       name="title"
@@ -540,17 +539,17 @@ export default async function ProjectPage({
                       required
                       minLength={UPDATE_LIMITS.title.min}
                       maxLength={UPDATE_LIMITS.title.max}
-                      placeholder="First materials draft completed"
+                      placeholder={tx(locale, "Draf materi pertama selesai", "First materials draft completed")}
                     />
-                    <label htmlFor="update-body">Details</label>
+                    <label htmlFor="update-body">{tx(locale, "Detail", "Details")}</label>
                     <textarea
                       id="update-body"
                       name="body"
                       rows={4}
                       maxLength={UPDATE_LIMITS.body.max}
-                      placeholder="What changed, what did you learn, and what comes next?"
+                      placeholder={tx(locale, "Apa yang berubah, apa yang dipelajari, dan apa langkah berikutnya?", "What changed, what did you learn, and what comes next?")}
                     />
-                    <SubmitButton pendingLabel="Sending…">Post update</SubmitButton>
+                    <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim kabar terbaru", "Post update")}</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -559,7 +558,7 @@ export default async function ProjectPage({
 
             <ProjectTabContent tab="collaboration">
               <section className="team" aria-labelledby="team-heading">
-              <h2 id="team-heading">People behind the project</h2>
+              <h2 id="team-heading">{tx(locale, "Orang-orang di balik proyek", "People behind the project")}</h2>
 
               <ul className="member-list">
                 <li>
@@ -570,7 +569,7 @@ export default async function ProjectPage({
                     <strong>
                       <Link href={`/u/${project.owner.username}`}>{project.owner.name}</Link>
                     </strong>
-                    <small>Started it</small>
+                    <small>{tx(locale, "Memulai proyek", "Started it")}</small>
                   </span>
                 </li>
                 {team.map((seat) => (
@@ -583,11 +582,11 @@ export default async function ProjectPage({
                         {seat.person ? (
                           <Link href={`/u/${seat.person.username}`}>{seat.person.name}</Link>
                         ) : (
-                          "Unnamed"
+                          tx(locale, "Tanpa nama", "Unnamed")
                         )}
                       </strong>
                       <small>
-                        {roleLabel(seat.role, seat.roleTitle)}
+                        {roleLabel(seat.role, seat.roleTitle, locale)}
                         {seat.access === "admin" ? <span className="access-badge">admin</span> : null}
                       </small>
                     </span>
@@ -597,22 +596,21 @@ export default async function ProjectPage({
 
               {isOwner && team.length > 0 ? (
                 <details className="owner-tool">
-                  <summary>Manage access</summary>
+                  <summary>{tx(locale, "Kelola akses", "Manage access")}</summary>
                   <p className="hint">
-                    Admins can manage tasks, seek help, respond to applicants, and write updates.
-                    The brief, stage, and project deletion remain yours alone.
+                    {tx(locale, "Admin dapat mengelola tugas, mencari bantuan, menanggapi pendaftar, dan menulis kabar terbaru. Ringkasan, tahap, dan penghapusan proyek tetap hanya dapat kamu kelola.", "Admins can manage tasks, seek help, respond to applicants, and write updates. The brief, stage, and project deletion remain yours alone.")}
                   </p>
                   {team.map((seat) => (
                     <form className="access-form" action={setSeatAccess} key={seat.id}>
                       <input type="hidden" name="slug" value={project.slug} />
                       <input type="hidden" name="seatId" value={seat.id} />
-                      <span>{seat.person?.name ?? "Unnamed"}</span>
+                      <span>{seat.person?.name ?? tx(locale, "Tanpa nama", "Unnamed")}</span>
                       <SubmitButton
                         name="access"
                         value={seat.access === "admin" ? "member" : "admin"}
                         className={seat.access === "admin" ? "quiet" : ""}
                       >
-                        {seat.access === "admin" ? "Make member" : "Make admin"}
+                        {seat.access === "admin" ? tx(locale, "Jadikan anggota", "Make member") : tx(locale, "Jadikan admin", "Make admin")}
                       </SubmitButton>
                     </form>
                   ))}
@@ -625,14 +623,14 @@ export default async function ProjectPage({
             <ProjectTabContent tab="tasks">
               <section className="tasks" aria-labelledby="tasks-heading">
                 <h2 id="tasks-heading">
-                  Tasks
-                  {project.tasks.length > 0 ? ` (${doneTasks} of ${project.tasks.length} complete)` : ""}
+                  {tx(locale, "Tugas", "Tasks")}
+                  {project.tasks.length > 0 ? tx(locale, ` (${doneTasks} dari ${project.tasks.length} selesai)`, ` (${doneTasks} of ${project.tasks.length} complete)`) : ""}
                 </h2>
 
                 {project.tasks.length === 0 ? (
                   <p className="muted">
-                    There are no tasks here yet.
-                    {isManager ? " Add one so people know what is in progress." : ""}
+                    {tx(locale, "Belum ada tugas di sini.", "There are no tasks here yet.")}
+                    {isManager ? tx(locale, " Tambahkan satu agar orang tahu apa yang sedang dikerjakan.", " Add one so people know what is in progress.") : ""}
                   </p>
                 ) : (
                   TASK_ORDER.map((status) => {
@@ -641,7 +639,7 @@ export default async function ProjectPage({
 
                     return (
                       <div className="task-group" key={status}>
-                        <h3>{taskStatusMeta[status].label}</h3>
+                        <h3>{taskStatusLabel(status, locale)}</h3>
                         <ul className="task-list">
                           {items.map((task) => {
                             const mine = Boolean(viewer && task.assignee?.id === viewer.id);
@@ -652,7 +650,7 @@ export default async function ProjectPage({
                                   <h4>{task.title}</h4>
                                   {task.detail ? <p className="muted">{task.detail}</p> : null}
                                   {task.role ? (
-                                    <p className="task-role">Related role: {roleLabel(task.role.role, task.role.roleTitle)}</p>
+                                    <p className="task-role">{tx(locale, "Peran terkait", "Related role")}: {roleLabel(task.role.role, task.role.roleTitle, locale)}</p>
                                   ) : null}
                                   <p className="task-holder">
                                     {task.assignee ? (
@@ -665,7 +663,7 @@ export default async function ProjectPage({
                                         </Link>
                                       </>
                                     ) : (
-                                      <span className="muted">Nobody has taken it yet</span>
+                                      <span className="muted">{tx(locale, "Belum ada yang mengambilnya", "Nobody has taken it yet")}</span>
                                     )}
                                   </p>
 
@@ -674,58 +672,58 @@ export default async function ProjectPage({
                                       <input type="hidden" name="slug" value={project.slug} />
                                       <input type="hidden" name="taskId" value={task.id} />
                                       <label className="sr-only" htmlFor={`assignee-${task.id}`}>
-                                        Who is assigned to {task.title}
+                                        {tx(locale, `Orang yang ditugaskan untuk ${task.title}`, `Who is assigned to ${task.title}`)}
                                       </label>
                                       <select
                                         id={`assignee-${task.id}`}
                                         name="assigneeId"
                                         defaultValue={task.assignee?.id ?? ""}
                                       >
-                                        <option value="">Nobody has taken it yet</option>
+                                        <option value="">{tx(locale, "Belum ada yang mengambilnya", "Nobody has taken it yet")}</option>
                                         {assignable.map((person) => (
                                           <option key={person.id} value={person.id}>
                                             {person.name}
                                           </option>
                                         ))}
                                       </select>
-                                      <SubmitButton pendingLabel="Please wait…">Save</SubmitButton>
+                                      <SubmitButton pendingLabel={tx(locale, "Mohon tunggu…", "Please wait…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
                                       <label className="sr-only" htmlFor={`task-role-${task.id}`}>
-                                        Related role for {task.title}
+                                        {tx(locale, `Peran terkait untuk ${task.title}`, `Related role for ${task.title}`)}
                                       </label>
                                       <select id={`task-role-${task.id}`} name="seatId" defaultValue={task.role?.id ?? ""}>
-                                        <option value="">No related role</option>
+                                        <option value="">{tx(locale, "Tidak ada peran terkait", "No related role")}</option>
                                         {project.seats.map((seat) => (
                                           <option key={seat.id} value={seat.id}>
-                                            {roleLabel(seat.role, seat.roleTitle)}
+                                            {roleLabel(seat.role, seat.roleTitle, locale)}
                                           </option>
                                         ))}
                                       </select>
-                                      <SubmitButton className="quiet" formAction={setTaskRole}>Save role</SubmitButton>
+                                      <SubmitButton className="quiet" formAction={setTaskRole}>{tx(locale, "Simpan peran", "Save role")}</SubmitButton>
                                       <SubmitButton className="quiet" formAction={deleteTask}>
-                                        Delete
+                                        {tx(locale, "Hapus", "Delete")}
                                       </SubmitButton>
                                     </form>
                                   ) : null}
 
                                   {!isManager && !task.assignee && task.status !== "done" ? (
                                     !viewer ? (
-                                      <Link className="ghost-button" href={signInPath(returnTo)}>Sign in to apply for this task</Link>
+                                      <Link className="ghost-button" href={signInPath(returnTo)}>{tx(locale, "Masuk untuk mendaftar ke tugas ini", "Sign in to apply for this task")}</Link>
                                     ) : !canPropose ? (
                                       <p className="muted">
-                                        Complete your talent-pool profile to apply for this task. {" "}
-                                        <Link href={profileReturnTo}>Complete your profile</Link>
+                                        {tx(locale, "Lengkapi profil talent pool untuk mendaftar ke tugas ini.", "Complete your talent-pool profile to apply for this task.")} {" "}
+                                        <Link href={profileReturnTo}>{tx(locale, "Lengkapi profil", "Complete your profile")}</Link>
                                       </p>
                                     ) : proposalsForTask(task.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
-                                      <p className="muted">Your proposal is awaiting a response.</p>
+                                      <p className="muted">{tx(locale, "Proposalmu sedang menunggu tanggapan.", "Your proposal is awaiting a response.")}</p>
                                     ) : (
                                       <details className="task-proposal">
-                                        <summary>Apply to work on this</summary>
+                                        <summary>{tx(locale, "Daftar untuk mengerjakan ini", "Apply to work on this")}</summary>
                                         <form action={submitProposal}>
                                           <input type="hidden" name="slug" value={project.slug} />
                                           <input type="hidden" name="taskId" value={task.id} />
-                                          <label htmlFor={`task-pitch-${task.id}`}>Why are you a good fit for this?</label>
+                                          <label htmlFor={`task-pitch-${task.id}`}>{tx(locale, "Mengapa kamu cocok mengerjakan ini?", "Why are you a good fit for this?")}</label>
                                           <textarea id={`task-pitch-${task.id}`} name="pitch" rows={3} required />
-                                          <SubmitButton pendingLabel="Sending…">Send proposal</SubmitButton>
+                                          <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim proposal", "Send proposal")}</SubmitButton>
                                         </form>
                                       </details>
                                     )
@@ -733,16 +731,16 @@ export default async function ProjectPage({
 
                                   {isManager && proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").length > 0 ? (
                                     <div className="pending-list task-proposal-list">
-                                      <h4>Proposals for this task</h4>
+                                      <h4>{tx(locale, "Proposal untuk tugas ini", "Proposals for this task")}</h4>
                                       {proposalsForTask(task.id).filter((proposal) => proposal.status === "pending").map((proposal) => (
                                         <article key={proposal.id} className="pending-card">
-                                          <p><strong>{proposal.person.name}</strong> wants to work on this task.</p>
+                                          <p><strong>{proposal.person.name}</strong> {tx(locale, "ingin mengerjakan tugas ini.", "wants to work on this task.")}</p>
                                           <blockquote>{proposal.pitch}</blockquote>
                                           <form action={decideProposal}>
                                             <input type="hidden" name="slug" value={project.slug} />
                                             <input type="hidden" name="proposalId" value={proposal.id} />
-                                            <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">Accept</SubmitButton>
-                                            <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
+                                            <SubmitButton name="decision" value="terima" pendingLabel={tx(locale, "Mohon tunggu…", "Please wait…")}>{tx(locale, "Terima", "Accept")}</SubmitButton>
+                                            <SubmitButton className="quiet" name="decision" value="tolak">{tx(locale, "Tolak", "Decline")}</SubmitButton>
                                           </form>
                                         </article>
                                       ))}
@@ -752,7 +750,7 @@ export default async function ProjectPage({
 
                                 <div className="task-side">
                                   <span className={`task-status ${taskStatusTone(task.status)}`}>
-                                    {taskStatusLabel(task.status)}
+                                    {taskStatusLabel(task.status, locale)}
                                   </span>
 
                                   {mine || isManager ? (
@@ -765,9 +763,9 @@ export default async function ProjectPage({
                                           name="status"
                                           value={next}
                                           disabled={next === task.status}
-                                          title={taskStatusMeta[next].blurb}
+                                          title={taskStatusBlurb(next, locale)}
                                         >
-                                          {taskStatusMeta[next].label}
+                                          {taskStatusLabel(next, locale)}
                                         </SubmitButton>
                                       ))}
                                     </form>
@@ -784,32 +782,32 @@ export default async function ProjectPage({
 
                 {isManager ? (
                   <details className="owner-tool">
-                    <summary>Add task</summary>
+                    <summary>{tx(locale, "Tambahkan tugas", "Add task")}</summary>
                     <form action={createTask}>
                       <input type="hidden" name="slug" value={project.slug} />
-                      <label htmlFor="task-title">Task title</label>
+                      <label htmlFor="task-title">{tx(locale, "Judul tugas", "Task title")}</label>
                       <input id="task-title" name="title" type="text" required maxLength={120} />
-                      <label htmlFor="task-detail">Short description</label>
+                      <label htmlFor="task-detail">{tx(locale, "Deskripsi singkat", "Short description")}</label>
                       <textarea id="task-detail" name="detail" rows={2} maxLength={400} />
-                      <label htmlFor="task-role">Related role (optional)</label>
+                      <label htmlFor="task-role">{tx(locale, "Peran terkait (opsional)", "Related role (optional)")}</label>
                       <select id="task-role" name="seatId" defaultValue="">
-                        <option value="">Not linked to a role</option>
+                        <option value="">{tx(locale, "Tidak terhubung ke peran", "Not linked to a role")}</option>
                         {project.seats.map((seat) => (
                           <option key={seat.id} value={seat.id}>
-                            {roleLabel(seat.role, seat.roleTitle)}{seat.status === "open" ? " · open" : ""}
+                            {roleLabel(seat.role, seat.roleTitle, locale)}{seat.status === "open" ? tx(locale, " · terbuka", " · open") : ""}
                           </option>
                         ))}
                       </select>
-                      <label htmlFor="task-assignee">Assignee</label>
+                      <label htmlFor="task-assignee">{tx(locale, "Penanggung jawab", "Assignee")}</label>
                       <select id="task-assignee" name="assigneeId" defaultValue="">
-                        <option value="">Nobody has taken it yet</option>
+                        <option value="">{tx(locale, "Belum ada yang mengambilnya", "Nobody has taken it yet")}</option>
                         {assignable.map((person) => (
                           <option key={person.id} value={person.id}>
                             {person.name}
                           </option>
                         ))}
                       </select>
-                      <SubmitButton pendingLabel="Adding…">Add task</SubmitButton>
+                      <SubmitButton pendingLabel={tx(locale, "Menambahkan…", "Adding…")}>{tx(locale, "Tambahkan tugas", "Add task")}</SubmitButton>
                     </form>
                   </details>
                 ) : null}
@@ -818,29 +816,29 @@ export default async function ProjectPage({
 
             <ProjectTabContent tab="discussion">
               <section className="discussion" aria-labelledby="discussion-heading">
-              <h2 id="discussion-heading">Discussion ({project.comments.length})</h2>
+              <h2 id="discussion-heading">{tx(locale, "Diskusi", "Discussion")} ({project.comments.length})</h2>
 
               {viewer ? (
                 <form className="comment-form" action={addComment}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <label htmlFor="comment-body">Comment or question</label>
+                  <label htmlFor="comment-body">{tx(locale, "Komentar atau pertanyaan", "Comment or question")}</label>
                   <textarea
                     id="comment-body"
                     name="body"
                     rows={4}
                     required
-                    placeholder="Which part feels most risky? Is there a simpler way?"
+                    placeholder={tx(locale, "Bagian mana yang terasa paling berisiko? Apakah ada cara yang lebih sederhana?", "Which part feels most risky? Is there a simpler way?")}
                   />
-                  <SubmitButton pendingLabel="Sending…">Send</SubmitButton>
+                  <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim", "Send")}</SubmitButton>
                 </form>
               ) : (
                 <p className="muted">
-                  <Link href={signInPath(returnTo)}>Sign in</Link> to join this project’s discussion.
+                  <Link href={signInPath(returnTo)}>{tx(locale, "Masuk", "Sign in")}</Link> {tx(locale, "untuk bergabung dalam diskusi proyek ini.", "to join this project’s discussion.")}
                 </p>
               )}
 
               {project.comments.length === 0 ? (
-                <p className="muted">No comments yet. Feel free to start the conversation.</p>
+                <p className="muted">{tx(locale, "Belum ada komentar. Silakan mulai percakapan.", "No comments yet. Feel free to start the conversation.")}</p>
               ) : (
                 <ul className="comment-list">
                   {project.comments.map((comment) => (
@@ -850,7 +848,7 @@ export default async function ProjectPage({
                           {initials(comment.author.name)}
                         </span>
                         <Link href={`/u/${comment.author.username}`}>{comment.author.name}</Link>
-                        <small>{timeAgo(comment.createdAt)}</small>
+                        <small>{timeAgo(comment.createdAt, locale)}</small>
                       </div>
                       <p>{comment.body}</p>
                     </li>
@@ -863,9 +861,9 @@ export default async function ProjectPage({
             <ProjectTabContent tab="journey">
               {history.length > 0 ? (
                 <section className="history" aria-labelledby="history-heading">
-                  <h2 id="history-heading">System record</h2>
+                  <h2 id="history-heading">{tx(locale, "Catatan sistem", "System record")}</h2>
                   <p className="muted">
-                    Recorded by the system when it happened—not typed in later. It complements the journey above.
+                    {tx(locale, "Dicatat oleh sistem saat kejadian berlangsung—bukan diketik belakangan. Catatan ini melengkapi perjalanan di atas.", "Recorded by the system when it happened—not typed in later. It complements the journey above.")}
                   </p>
                   <ActivityList events={history} showActor />
                 </section>
@@ -875,12 +873,12 @@ export default async function ProjectPage({
 
           <aside className="project-side">
             <section className="level-card">
-              <h2>So far</h2>
+              <h2>{tx(locale, "Sejauh ini", "So far")}</h2>
               <RungRail stage={project.stage} />
 
-              <h3>Requirements for this stage</h3>
+              <h3>{tx(locale, "Syarat untuk tahap ini", "Requirements for this stage")}</h3>
               <ul className="requirement-list">
-                {requirementsFor(project.stage, stageInput).map((requirement) => (
+                {requirementsFor(project.stage, stageInput, locale).map((requirement) => (
                   <li key={requirement.label} className={requirement.met ? "met" : ""}>
                     <span aria-hidden="true">{requirement.met ? "✓" : "○"}</span>
                     {requirement.label}
@@ -891,7 +889,7 @@ export default async function ProjectPage({
               {isOwner ? (
                 <form className="stage-form" action={setStage}>
                   <input type="hidden" name="slug" value={project.slug} />
-                  <h3>Change stage</h3>
+                  <h3>{tx(locale, "Ubah tahap", "Change stage")}</h3>
                   <div className="stage-buttons">
                     {STAGES.filter((stage) => stage !== project.stage).map((stage) => {
                       const allowed = meetsStage(stage, stageInput);
@@ -903,11 +901,11 @@ export default async function ProjectPage({
                           disabled={!allowed}
                           title={
                             allowed
-                              ? stageMeta[stage].blurb
-                              : "The requirements for this stage are not met yet."
+                              ? stageBlurb(stage, locale)
+                              : tx(locale, "Syarat untuk tahap ini belum terpenuhi.", "The requirements for this stage are not met yet.")
                           }
                         >
-                          {stageMeta[stage].label}
+                          {stageLabel(stage, locale)}
                         </SubmitButton>
                       );
                     })}
@@ -917,7 +915,7 @@ export default async function ProjectPage({
 
               {project.followerCount > 0 ? (
                 <p className="follower-count">
-                  {project.followerCount} people follow this project.
+                  {tx(locale, `${project.followerCount} orang mengikuti proyek ini.`, `${project.followerCount} people follow this project.`)}
                 </p>
               ) : null}
             </section>

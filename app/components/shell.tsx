@@ -10,6 +10,9 @@ import { readPublicly } from "../lib/public-read";
 import { HeaderMenu } from "./header-menu";
 import { SignOutButton } from "./sign-out-button";
 import { Skeleton } from "./skeleton";
+import { LanguageSwitcher } from "./language-switcher";
+import { currentLocale } from "../lib/locale-server";
+import { tx, type Locale } from "../lib/locale";
 
 /** Which top-level section the current page belongs to. */
 export type Section = "home" | "explore" | "people" | "";
@@ -22,19 +25,19 @@ export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   );
 }
 
-export function Brand({ footer = false }: { footer?: boolean }) {
+export function Brand({ footer = false, locale }: { footer?: boolean; locale: Locale }) {
   return (
-    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label="Ahsan Project home">
+    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label={tx(locale, "Beranda Ahsan Project", "Ahsan Project home")}>
       <Logo className="brand-mark" />
       <span><strong>ahsan</strong><span className="brand-alt">project</span></span>
     </Link>
   );
 }
 
-const LINKS: { href: string; label: string; key: Section; icon: HeaderIconName }[] = [
-  { href: "/", label: "Home", key: "home", icon: "home" },
-  { href: "/explore", label: "Explore", key: "explore", icon: "explore" },
-  { href: "/people", label: "People", key: "people", icon: "people" },
+const LINKS: { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName }[] = [
+  { href: "/", label: "Home", labelId: "Beranda", key: "home", icon: "home" },
+  { href: "/explore", label: "Explore", labelId: "Jelajahi", key: "explore", icon: "explore" },
+  { href: "/people", label: "People", labelId: "Orang", key: "people", icon: "people" },
 ];
 
 type HeaderIconName =
@@ -66,9 +69,9 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
   return <svg className="menu-icon" viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function MainNav({ active }: { active: Section }) {
+function MainNav({ active, locale }: { active: Section; locale: Locale }) {
   return (
-    <nav className="desktop-nav" aria-label="Primary navigation">
+    <nav className="desktop-nav" aria-label={tx(locale, "Navigasi utama", "Primary navigation")}>
       {LINKS.map((link) => (
         <Link
           key={link.href}
@@ -76,7 +79,7 @@ function MainNav({ active }: { active: Section }) {
           className={active === link.key ? "is-active" : ""}
           href={link.href}
         >
-          {link.label}
+          {tx(locale, link.labelId, link.label)}
         </Link>
       ))}
     </nav>
@@ -90,16 +93,17 @@ function MainNav({ active }: { active: Section }) {
  * page's skeleton instead of a blank strip where the header will be. The real
  * SiteHeader streams in over it once the visitor is known.
  */
-export function HeaderShell({ active = "" }: { active?: Section }) {
+export async function HeaderShell({ active = "" }: { active?: Section }) {
+  const locale = await currentLocale();
   return (
     <header className="site-header">
       <div className="topbar-inner">
-        <Brand />
-        <MainNav active={active} />
+        <Brand locale={locale} />
+        <MainNav active={active} locale={locale} />
         <div className="header-actions header-shell-actions header-account-skeleton" aria-busy="true">
           <Skeleton height={38} width={38} round />
           <Skeleton height={40} width={116} style={{ borderRadius: 999 }} />
-          <span className="sr-only">Loading account controls…</span>
+          <span className="sr-only">{tx(locale, "Memuat kontrol akun…", "Loading account controls…")}</span>
         </div>
       </div>
     </header>
@@ -120,16 +124,17 @@ export function HeaderShell({ active = "" }: { active?: Section }) {
  * sign-in link or an account menu, and rendering either would flash the wrong
  * state.
  */
-export function SiteHeader({
+export async function SiteHeader({
   returnTo = "/",
   active = "",
 }: {
   returnTo?: string | Promise<string>;
   active?: Section;
 }) {
+  const locale = await currentLocale();
   return (
     <Suspense fallback={<HeaderShell active={active} />}>
-      <VisitorHeader returnTo={returnTo} active={active} />
+      <VisitorHeader returnTo={returnTo} active={active} locale={locale} />
     </Suspense>
   );
 }
@@ -137,9 +142,11 @@ export function SiteHeader({
 async function VisitorHeader({
   returnTo = "/",
   active = "",
+  locale,
 }: {
   returnTo?: string | Promise<string>;
   active?: Section;
+  locale: Locale;
 }) {
   // `returnTo` may be a promise: on the pages whose address depends on the
   // filters in the URL, working it out means reading `searchParams`. Awaiting
@@ -166,33 +173,34 @@ async function VisitorHeader({
   return (
     <header className="site-header">
       <div className="topbar-inner">
-        <Brand />
-        <MainNav active={active} />
+        <Brand locale={locale} />
+        <MainNav active={active} locale={locale} />
 
         <div className="header-actions">
+          <LanguageSwitcher />
           {viewer ? (
             <>
-              <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen)}>
+              <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
                 <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4" />
                 </svg>
                 {waiting > 0 ? <span className="notification-dot">{waiting}</span> : null}
               </Link>
-              <AccountMenu viewer={viewer} waiting={waiting} />
+              <AccountMenu viewer={viewer} waiting={waiting} locale={locale} />
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add project
+                <span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add project")}
               </Link>
             </>
           ) : (
             <>
-              <Link className="nav-login" href={signInPath(destination)}>Sign in</Link>
+              <Link className="nav-login" href={signInPath(destination)}>{tx(locale, "Masuk", "Sign in")}</Link>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> Add project
+                <span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add project")}
               </Link>
             </>
           )}
 
-          <MobileHeaderMenu active={active} returnTo={destination} viewer={viewer} waiting={waiting} />
+          <MobileHeaderMenu active={active} returnTo={destination} viewer={viewer} waiting={waiting} locale={locale} />
         </div>
       </div>
     </header>
@@ -212,37 +220,37 @@ function AccountIdentity({ viewer }: { viewer: Viewer }) {
   );
 }
 
-function AccountMenu({ viewer, waiting }: { viewer: Viewer; waiting: number }) {
+function AccountMenu({ viewer, waiting, locale }: { viewer: Viewer; waiting: number; locale: Locale }) {
   return (
     <HeaderMenu
       className="account-menu"
       summaryClassName="avatar-button"
-      summaryLabel={`Open ${viewer.name}'s account menu`}
+      summaryLabel={tx(locale, `Buka menu akun ${viewer.name}`, `Open ${viewer.name}'s account menu`)}
       summary={<span aria-hidden="true">{initialsOf(viewer.name)}</span>}
     >
       <div className="account-popover">
         <AccountIdentity viewer={viewer} />
-        <nav className="account-menu-links" aria-label="Account menu">
+        <nav className="account-menu-links" aria-label={tx(locale, "Menu akun", "Account menu")}>
           <Link href={`/u/${viewer.username}`}>
             <HeaderIcon name="profile" />
-            <span>Public profile</span>
+            <span>{tx(locale, "Profil publik", "Public profile")}</span>
           </Link>
           <Link href="/account/profile">
             <HeaderIcon name="edit" />
-            <span>Edit profile</span>
+            <span>{tx(locale, "Edit profil", "Edit profile")}</span>
           </Link>
           <Link href="/get-started?all=1">
             <HeaderIcon name="steps" />
-            <span>Next steps</span>
+            <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
           </Link>
           <Link href="/inbox">
             <HeaderIcon name="inbox" />
-            <span>Inbox</span>
+            <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
             {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
           </Link>
           <Link href="/new">
             <HeaderIcon name="add" />
-            <span>Add project</span>
+            <span>{tx(locale, "Tambah proyek", "Add project")}</span>
           </Link>
         </nav>
         <form className="account-signout" action={signOut}>
@@ -258,16 +266,18 @@ function MobileHeaderMenu({
   returnTo,
   viewer,
   waiting,
+  locale,
 }: {
   active: Section;
   returnTo: string;
   viewer?: Viewer | null;
   waiting: number;
+  locale: Locale;
 }) {
   return (
     <HeaderMenu
       className="mobile-menu"
-      summaryLabel="Open navigation menu"
+      summaryLabel={tx(locale, "Buka menu navigasi", "Open navigation menu")}
       summary={
         <>
           <i aria-hidden="true" />
@@ -276,8 +286,8 @@ function MobileHeaderMenu({
       }
     >
       <div className="mobile-nav">
-        <nav className="mobile-nav-primary" aria-label="Mobile primary navigation">
-          <p className="mobile-menu-label">Explore</p>
+        <nav className="mobile-nav-primary" aria-label={tx(locale, "Navigasi utama seluler", "Mobile primary navigation")}>
+          <p className="mobile-menu-label">{tx(locale, "Jelajahi", "Explore")}</p>
           {LINKS.map((link) => (
             <Link
               key={link.href}
@@ -286,7 +296,7 @@ function MobileHeaderMenu({
               href={link.href}
             >
               <HeaderIcon name={link.icon} />
-              <span>{link.label}</span>
+              <span>{tx(locale, link.labelId, link.label)}</span>
               {active === link.key ? <span className="mobile-active-dot" aria-hidden="true" /> : null}
             </Link>
           ))}
@@ -294,28 +304,28 @@ function MobileHeaderMenu({
 
         <Link className="mobile-project-action" href="/new">
           <HeaderIcon name="add" />
-          <span>Add project</span>
+          <span>{tx(locale, "Tambah proyek", "Add project")}</span>
         </Link>
 
         {viewer ? (
-          <section className="mobile-account-section" aria-label="Account">
+          <section className="mobile-account-section" aria-label={tx(locale, "Akun", "Account")}>
             <AccountIdentity viewer={viewer} />
-            <nav className="mobile-account-links" aria-label="Mobile account menu">
+            <nav className="mobile-account-links" aria-label={tx(locale, "Menu akun seluler", "Mobile account menu")}>
               <Link href={`/u/${viewer.username}`}>
                 <HeaderIcon name="profile" />
-                <span>Public profile</span>
+                <span>{tx(locale, "Profil publik", "Public profile")}</span>
               </Link>
               <Link href="/account/profile">
                 <HeaderIcon name="edit" />
-                <span>Edit profile</span>
+                <span>{tx(locale, "Edit profil", "Edit profile")}</span>
               </Link>
               <Link href="/get-started?all=1">
                 <HeaderIcon name="steps" />
-                <span>Next steps</span>
+                <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
               </Link>
               <Link href="/inbox">
                 <HeaderIcon name="inbox" />
-                <span>Inbox</span>
+                <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
                 {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
               </Link>
             </nav>
@@ -327,7 +337,7 @@ function MobileHeaderMenu({
           <div className="mobile-guest-actions">
             <Link href={signInPath(returnTo)}>
               <HeaderIcon name="signin" />
-              <span>Sign in</span>
+              <span>{tx(locale, "Masuk", "Sign in")}</span>
             </Link>
           </div>
         )}
@@ -337,13 +347,15 @@ function MobileHeaderMenu({
 }
 
 /** One badge, two meanings — the label says which, rather than just a number. */
-function inboxLabel(incoming: number, unseen: number): string {
+function inboxLabel(incoming: number, unseen: number, locale: Locale): string {
   const parts = [
-    incoming > 0 ? `${incoming} people awaiting a response` : "",
-    unseen > 0 ? `${unseen} new updates` : "",
+    incoming > 0 ? tx(locale, `${incoming} orang menunggu tanggapan`, `${incoming} people awaiting a response`) : "",
+    unseen > 0 ? tx(locale, `${unseen} kabar baru`, `${unseen} new updates`) : "",
   ].filter(Boolean);
 
-  return parts.length > 0 ? `Inbox — ${parts.join(", ")}` : "Inbox";
+  return parts.length > 0
+    ? `${tx(locale, "Kotak masuk", "Inbox")} — ${parts.join(", ")}`
+    : tx(locale, "Kotak masuk", "Inbox");
 }
 
 function initialsOf(name: string): string {
@@ -355,16 +367,17 @@ function initialsOf(name: string): string {
     .join("");
 }
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const locale = await currentLocale();
   return (
     <footer>
-      <Brand footer />
-      <p>A public place for real work, proof, and the people behind it.</p>
-      <nav aria-label="Footer navigation">
-        <Link href="/">Home</Link>
-        <Link href="/explore">Explore</Link>
-        <Link href="/people">People</Link>
-        <Link href="/privacy">Privacy</Link>
+      <Brand footer locale={locale} />
+      <p>{tx(locale, "Ruang publik untuk karya nyata, bukti, dan orang-orang di baliknya.", "A public place for real work, proof, and the people behind it.")}</p>
+      <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
+        <Link href="/">{tx(locale, "Beranda", "Home")}</Link>
+        <Link href="/explore">{tx(locale, "Jelajahi", "Explore")}</Link>
+        <Link href="/people">{tx(locale, "Orang", "People")}</Link>
+        <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
       </nav>
       <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>

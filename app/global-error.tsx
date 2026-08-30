@@ -1,6 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { LANGUAGE_COOKIE, tx, type Locale } from "./lib/locale";
+
+function browserLocale(): Locale {
+  const saved = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${LANGUAGE_COOKIE}=`))
+    ?.split("=")[1];
+  return saved === "en" ? "en" : "id";
+}
+
+function subscribeToNothing() {
+  return () => undefined;
+}
 
 /**
  * The outermost net. `app/error.tsx` cannot catch a failure in the root layout
@@ -14,12 +27,14 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const locale = useSyncExternalStore<Locale>(subscribeToNothing, browserLocale, () => "id");
+
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         style={{
           background: "#f8f6f0",
@@ -35,10 +50,10 @@ export default function GlobalError({
       >
         <div style={{ maxWidth: 460 }}>
           <h1 style={{ fontSize: 40, letterSpacing: "-0.04em", marginBottom: 12 }}>
-            Something went wrong.
+            {tx(locale, "Terjadi kesalahan.", "Something went wrong.")}
           </h1>
           <p style={{ color: "#68746d", lineHeight: 1.7, marginBottom: 24 }}>
-            Ahsan Project could not load. This is usually temporary, so please try again shortly.
+            {tx(locale, "Ahsan Project tidak dapat dimuat. Biasanya ini hanya sementara, jadi coba lagi sebentar lagi.", "Ahsan Project could not load. This is usually temporary, so please try again shortly.")}
           </p>
           <button
             type="button"
@@ -54,7 +69,7 @@ export default function GlobalError({
               padding: "14px 24px",
             }}
           >
-            Try again
+            {tx(locale, "Coba lagi", "Try again")}
           </button>
         </div>
       </body>

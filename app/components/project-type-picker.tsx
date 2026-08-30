@@ -1,4 +1,7 @@
-import { PROJECT_TYPES, projectTypeMeta } from "../lib/project-types";
+"use client";
+
+import { PROJECT_TYPES, projectTypeBlurb, projectTypeContribution, projectTypeLabel } from "../lib/project-types";
+import { useLanguage } from "./language-provider";
 
 /**
  * The project kind as a list of four, on the create form and the edit form.
@@ -21,14 +24,14 @@ export function ProjectTypePicker({
   defaultValue?: string;
   error?: string;
 }) {
+  const { locale, tx } = useLanguage();
   return (
     <div className={`type-picker ${error ? "has-error" : ""}`}>
       <p className="type-picker-label" id="project-type-label">
-        Project kind <span className="optional-label">optional</span>
+        {tx("Jenis proyek", "Project kind")} <span className="optional-label">{tx("opsional", "optional")}</span>
       </p>
       <p className="hint" id="project-type-hint">
-        This is what people use to pick the kind of collaboration they are after. Separate from the
-        status: a pet project can be live too.
+        {tx("Ini membantu orang memilih bentuk kolaborasi yang mereka cari. Berbeda dari status: proyek pribadi juga bisa sudah berjalan.", "This is what people use to pick the kind of collaboration they are after. Separate from the status: a pet project can be live too.")}
       </p>
 
       <ul
@@ -49,10 +52,10 @@ export function ProjectTypePicker({
                 aria-describedby={`projectType-${type}-note`}
               />
               <span>
-                <strong>{projectTypeMeta[type].label}</strong>
-                <small>{projectTypeMeta[type].blurb}</small>
+                <strong>{projectTypeLabel(type, locale)}</strong>
+                <small>{projectTypeBlurb(type, locale)}</small>
                 <small className="type-choice-note" id={`projectType-${type}-note`}>
-                  If you join: {projectTypeMeta[type].contribution}
+                  {tx("Jika kamu bergabung:", "If you join:")} {projectTypeContribution(type, locale)}
                 </small>
               </span>
             </label>

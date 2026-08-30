@@ -1,12 +1,6 @@
 /** Canonical origin for metadata, share cards, and the sitemap. */
 export const siteUrl = "https://ahsanproject.id";
 
-export const homeMeta = {
-  title: "Ahsan Project — Show Your Work and Build an Impactful Portfolio",
-  description:
-    "A public place to list projects, make real work visible, build a portfolio, and get discovered.",
-};
-
 /** The shared picture, for pages that do not draw a card of their own. */
 export const defaultShareImage = { url: "/opengraph-image", width: 1200, height: 630 };
 

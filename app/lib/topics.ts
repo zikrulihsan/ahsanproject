@@ -19,3 +19,26 @@ export const SUGGESTED_TOPICS = [
   "public services",
   "creative",
 ] as const;
+
+import { tx, type Locale } from "./locale";
+
+const TOPIC_ID: Record<(typeof SUGGESTED_TOPICS)[number], string> = {
+  education: "pendidikan",
+  health: "kesehatan",
+  community: "komunitas",
+  "small business": "usaha kecil",
+  environment: "lingkungan",
+  technology: "teknologi",
+  faith: "keagamaan",
+  family: "keluarga",
+  careers: "karier",
+  finance: "keuangan",
+  "public services": "layanan publik",
+  creative: "kreatif",
+};
+
+export function topicLabel(topic: string, locale: Locale): string {
+  return topic in TOPIC_ID
+    ? tx(locale, TOPIC_ID[topic as keyof typeof TOPIC_ID], topic)
+    : topic;
+}

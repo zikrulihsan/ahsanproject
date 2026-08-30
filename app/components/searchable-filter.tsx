@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { useLanguage } from "./language-provider";
 
 export type SearchableOption = {
   value: string;
@@ -32,6 +33,7 @@ export function SearchableFilter({
   const [query, setQuery] = useState(selected?.label ?? value);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { tx } = useLanguage();
 
   const matches = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("id");
@@ -103,10 +105,10 @@ export function SearchableFilter({
         }}
         onKeyDown={handleKeys}
       />
-      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label="Clear category filter">×</button> : null}
+      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label={tx("Hapus filter kategori", "Clear category filter")}>×</button> : null}
 
       {open ? (
-        <div className="searchable-filter-options" id={listId} role="listbox" aria-label="Category results">
+        <div className="searchable-filter-options" id={listId} role="listbox" aria-label={tx("Hasil kategori", "Category results")}>
           {matches.length > 0 ? matches.map((option, index) => (
             <button
               key={option.value}
@@ -122,7 +124,7 @@ export function SearchableFilter({
               <span>{option.label}</span>
               {option.meta ? <small>{option.meta}</small> : null}
             </button>
-          )) : <p>Category not found.</p>}
+          )) : <p>{tx("Kategori tidak ditemukan.", "Category not found.")}</p>}
         </div>
       ) : null}
     </form>

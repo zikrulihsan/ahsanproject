@@ -12,10 +12,12 @@ import {
   type ApplicationView,
   type NoticeView,
 } from "../lib/data";
-import { roleLabel } from "../lib/roles";
+import { localizeRoleLabel, roleLabel } from "../lib/roles";
 import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
 import { SubmitButton } from "../components/submit-button";
+import { currentLocale } from "../lib/locale-server";
+import { tx, type Locale } from "../lib/locale";
 
 /*
  * Allowed to block.
@@ -28,24 +30,30 @@ import { SubmitButton } from "../components/submit-button";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "Inbox — Ahsan Project",
-  description: "Updates from projects you follow and applications in both directions.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Kotak masuk — Ahsan Project", "Inbox — Ahsan Project"),
+    description: tx(locale, "Kabar terbaru dari proyek yang kamu ikuti dan pengajuan dari kedua arah.", "Updates from projects you follow and applications in both directions."),
+    robots: { index: false },
+  };
+}
 
 /*
  * Proposals remain as a small history instead of taking over the task or role
  * row, so one target can collect several people's offers at once.
  */
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Awaiting a response",
-  accepted: "Accepted",
-  declined: "Not moving forward",
-};
+function statusLabel(status: string, locale: Locale): string {
+  const labels: Record<string, [string, string]> = {
+    pending: ["Menunggu tanggapan", "Awaiting a response"],
+    accepted: ["Diterima", "Accepted"],
+    declined: ["Tidak dilanjutkan", "Not moving forward"],
+  };
+  return labels[status] ? tx(locale, ...labels[status]) : status;
+}
 
 export default async function InboxPage() {
-  const viewer = await currentViewer();
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) redirect(signInPath("/inbox"));
 
   const [incoming, mine, notices, followed] = await Promise.all([
@@ -62,33 +70,32 @@ export default async function InboxPage() {
 
       <main id="main-content" className="page-narrow inbox">
         <p className="eyebrow">
-          <span /> Inbox
+          <span /> {tx(locale, "Kotak masuk", "Inbox")}
         </p>
-        <h1>Updates and applications.</h1>
+        <h1>{tx(locale, "Kabar terbaru dan pengajuan.", "Updates and applications.")}</h1>
         <p className="lede">
-          Everything moving in the projects you follow, what awaits your response, and what you are
-          waiting to hear back about—in one place.
+          {tx(locale, "Semua perkembangan dari proyek yang kamu ikuti, hal yang menunggu tanggapanmu, dan kabar yang sedang kamu tunggu—semuanya di satu tempat.", "Everything moving in the projects you follow, what awaits your response, and what you are waiting to hear back about—in one place.")}
         </p>
 
         {notices.length > 0 ? (
           <section aria-labelledby="notices-heading">
             <h2 id="notices-heading" className="section-title">
-              Updates for you {unseen > 0 ? `(${unseen} new)` : ""}
+              {tx(locale, "Kabar untukmu", "Updates for you")} {unseen > 0 ? tx(locale, `(${unseen} baru)`, `(${unseen} new)`) : ""}
             </h2>
 
             <ul className="notice-list">
               {notices.map((notice) => (
                 <li key={notice.id} className={notice.seen ? "" : "is-new"}>
-                  <NoticeLine notice={notice} />
-                  <small>{timeAgo(notice.createdAt)}</small>
+                  <NoticeLine notice={notice} locale={locale} />
+                  <small>{timeAgo(notice.createdAt, locale)}</small>
                 </li>
               ))}
             </ul>
 
             {unseen > 0 ? (
               <form action={markNoticesSeen}>
-                <SubmitButton className="quiet" pendingLabel="Please wait…">
-                  Mark as read
+                <SubmitButton className="quiet" pendingLabel={tx(locale, "Mohon tunggu…", "Please wait…")}>
+                  {tx(locale, "Tandai sudah dibaca", "Mark as read")}
                 </SubmitButton>
               </form>
             ) : null}
@@ -98,7 +105,7 @@ export default async function InboxPage() {
         {followed.length > 0 ? (
           <section aria-labelledby="followed-heading">
             <h2 id="followed-heading" className="section-title">
-              From projects you follow
+              {tx(locale, "Dari proyek yang kamu ikuti", "From projects you follow")}
             </h2>
             <ul className="followed-list">
               {followed.map((update) => (
@@ -112,7 +119,7 @@ export default async function InboxPage() {
                   </p>
                   <h3>{update.title}</h3>
                   {update.body ? <p className="followed-body">{update.body}</p> : null}
-                  <small>{timeAgo(update.createdAt)}</small>
+                  <small>{timeAgo(update.createdAt, locale)}</small>
                 </li>
               ))}
             </ul>
@@ -121,27 +128,26 @@ export default async function InboxPage() {
 
         <section aria-labelledby="incoming-heading">
           <h2 id="incoming-heading" className="section-title">
-            Awaiting your response {incoming.length > 0 ? `(${incoming.length})` : ""}
+            {tx(locale, "Menunggu tanggapanmu", "Awaiting your response")} {incoming.length > 0 ? `(${incoming.length})` : ""}
           </h2>
 
           {incoming.length === 0 ? (
             <p className="muted">
-              Nobody has applied to help yet. Projects that clearly name the help they need are much
-              more likely to find collaborators—open one from your project page.
+              {tx(locale, "Belum ada yang mendaftar untuk membantu. Proyek yang menjelaskan kebutuhan bantuannya dengan jelas lebih mudah menemukan kolaborator—buka peran dari halaman proyekmu.", "Nobody has applied to help yet. Projects that clearly name the help they need are much more likely to find collaborators—open one from your project page.")}
             </p>
           ) : (
             <ul className="application-list">
               {incoming.map((application) => (
                 <li key={application.proposalId}>
-                  <ApplicationHead application={application} showApplicant />
+                  <ApplicationHead application={application} showApplicant locale={locale} />
                   {application.pitch ? <blockquote>{application.pitch}</blockquote> : null}
                   <form action={decideProposal}>
                     <input type="hidden" name="slug" value={application.project.slug} />
                     <input type="hidden" name="proposalId" value={application.proposalId} />
-                    <SubmitButton name="decision" value="terima" pendingLabel="Please wait…">
-                      Accept
+                    <SubmitButton name="decision" value="terima" pendingLabel={tx(locale, "Mohon tunggu…", "Please wait…")}>
+                      {tx(locale, "Terima", "Accept")}
                     </SubmitButton>
-                    <SubmitButton className="quiet" name="decision" value="tolak">Decline</SubmitButton>
+                    <SubmitButton className="quiet" name="decision" value="tolak">{tx(locale, "Tolak", "Decline")}</SubmitButton>
                   </form>
                 </li>
               ))}
@@ -151,22 +157,22 @@ export default async function InboxPage() {
 
         <section aria-labelledby="mine-heading">
           <h2 id="mine-heading" className="section-title">
-            Your applications
+            {tx(locale, "Pengajuanmu", "Your applications")}
           </h2>
 
           {mine.length === 0 ? (
             <p className="muted">
-              You have not joined anything yet.{" "}
-              <Link href="/explore?needs=open">See projects that need a hand</Link>.
+              {tx(locale, "Kamu belum bergabung ke proyek apa pun.", "You have not joined anything yet.")} {" "}
+              <Link href="/explore?needs=open">{tx(locale, "Lihat proyek yang membutuhkan bantuan", "See projects that need a hand")}</Link>.
             </p>
           ) : (
             <ul className="application-list">
               {mine.map((application) => (
                 <li key={application.proposalId}>
-                  <ApplicationHead application={application} />
+                  <ApplicationHead application={application} locale={locale} />
                   {application.pitch ? <blockquote>{application.pitch}</blockquote> : null}
                   <p className={`application-status status-${application.status}`}>
-                    {STATUS_LABEL[application.status] ?? application.status}
+                    {statusLabel(application.status, locale)}
                   </p>
                 </li>
               ))}
@@ -186,9 +192,12 @@ export default async function InboxPage() {
  * The slug can be empty if the project was deleted after the decision — the
  * sentence still reads, it just stops being a link.
  */
-function NoticeLine({ notice }: { notice: NoticeView }) {
-  const target = notice.payload.target || (notice.payload.role ? roleLabel(notice.payload.role) : "");
-  const title = notice.payload.title || "deleted project";
+function NoticeLine({ notice, locale }: { notice: NoticeView; locale: Locale }) {
+  const target = localizeRoleLabel(
+    notice.payload.target || (notice.payload.role ? roleLabel(notice.payload.role, "", locale) : ""),
+    locale,
+  );
+  const title = notice.payload.title || tx(locale, "proyek yang dihapus", "deleted project");
   const slug = notice.payload.slug;
   const project = slug ? (
     <Link href={`/projects/${slug}`}>{title}</Link>
@@ -199,39 +208,44 @@ function NoticeLine({ notice }: { notice: NoticeView }) {
   if (notice.kind === "application_accepted") {
     return (
       <p>
-        Your application was accepted—you are now {target ? <strong>{target}</strong> : "a member"} of{" "}
+        {tx(locale, "Pengajuanmu diterima—sekarang kamu menjadi", "Your application was accepted—you are now")} {target ? <strong>{target}</strong> : tx(locale, "anggota", "a member")} {tx(locale, "di", "of")}{" "}
         {project}.
       </p>
     );
   }
 
   if (notice.kind === "proposal_accepted") {
-    return <p>Your proposal for <strong>{target || "a contribution"}</strong> was accepted on {project}.</p>;
+    return <p>{tx(locale, "Proposalmu untuk", "Your proposal for")} <strong>{target || tx(locale, "sebuah kontribusi", "a contribution")}</strong> {tx(locale, "diterima di", "was accepted on")} {project}.</p>;
   }
 
   if (notice.kind === "application_declined") {
     return (
       <p>
-        The {target ? <strong>{target}</strong> : "role"} on {project} has reopened, so your application
-        is not moving forward. There are plenty of other projects looking for help.
+        {tx(locale, "Peran", "The")} {target ? <strong>{target}</strong> : tx(locale, "tersebut", "role")} {tx(locale, "di", "on")} {project} {tx(locale, "telah dibuka kembali, sehingga pengajuanmu tidak dilanjutkan. Masih banyak proyek lain yang mencari bantuan.", "has reopened, so your application is not moving forward. There are plenty of other projects looking for help.")}
       </p>
     );
   }
 
   if (notice.kind === "proposal_declined") {
-    return <p>Your proposal for <strong>{target || "a contribution"}</strong> on {project} is not moving forward.</p>;
+    return <p>{tx(locale, "Proposalmu untuk", "Your proposal for")} <strong>{target || tx(locale, "sebuah kontribusi", "a contribution")}</strong> {tx(locale, "di", "on")} {project} {tx(locale, "tidak dilanjutkan.", "is not moving forward.")}</p>;
   }
 
-  return <p>There is an update from {project}.</p>;
+  return <p>{tx(locale, "Ada kabar terbaru dari", "There is an update from")} {project}.</p>;
 }
 
 function ApplicationHead({
   application,
   showApplicant = false,
+  locale,
 }: {
   application: ApplicationView;
   showApplicant?: boolean;
+  locale: Locale;
 }) {
+  const targetLabel = application.targetKind === "role"
+    ? localizeRoleLabel(application.targetLabel, locale)
+    : application.targetLabel;
+
   return (
     <div className="application-head">
       {showApplicant && application.person ? (
@@ -244,11 +258,11 @@ function ApplicationHead({
           {showApplicant && application.person ? (
             <>
               <Link href={`/u/${application.person.username}`}>{application.person.name}</Link>{" "}
-              wants to help with <strong>{application.targetLabel}</strong>
+              {tx(locale, "ingin membantu pada", "wants to help with")} <strong>{targetLabel}</strong>
             </>
           ) : (
             <>
-              <strong>{application.targetLabel}</strong> on{" "}
+              <strong>{targetLabel}</strong> {tx(locale, "di", "on")}{" "}
               <Link href={`/projects/${application.project.slug}`}>
                 {application.project.title}
               </Link>
@@ -260,7 +274,7 @@ function ApplicationHead({
             <Link href={`/projects/${application.project.slug}`}>{application.project.title}</Link>
           ) : null}
           {showApplicant ? " · " : ""}
-          {timeAgo(application.createdAt)}
+          {timeAgo(application.createdAt, locale)}
         </p>
       </div>
     </div>

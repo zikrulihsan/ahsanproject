@@ -18,10 +18,12 @@ import {
   type Person,
   type ProjectSummary,
 } from "../../lib/data";
-import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindMeta } from "../../lib/activity";
+import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindLabel } from "../../lib/activity";
 import { domainOf } from "../../lib/brief";
 import { nextSteps, remainingSteps } from "../../lib/next-steps";
 import { currentViewer } from "../../lib/session";
+import { currentLocale } from "../../lib/locale-server";
+import { tx, type Locale } from "../../lib/locale";
 
 type Params = Promise<{ username: string }>;
 
@@ -41,12 +43,12 @@ export async function generateStaticParams(): Promise<{ username: string }[]> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { username } = await params;
+  const [{ username }, locale] = await Promise.all([params, currentLocale()]);
   const person = await getPerson(username);
-  if (!person) return { title: "Person not found — Ahsan Project" };
+  if (!person) return { title: tx(locale, "Orang tidak ditemukan — Ahsan Project", "Person not found — Ahsan Project") };
 
   const description =
-    person.headline || `What ${person.name} is building and contributing to on Ahsan Project.`;
+    person.headline || tx(locale, `Hal yang sedang dibangun dan dibantu ${person.name} di Ahsan Project.`, `What ${person.name} is building and contributing to on Ahsan Project.`);
 
   return {
     title: `${person.name} — Ahsan Project`,
@@ -73,7 +75,7 @@ export default async function ProfilePage({
 }) {
   const { username } = await params;
   const query = (await searchParams) ?? {};
-  const [person, viewer] = await Promise.all([getPerson(username), currentViewer()]);
+  const [person, viewer, locale] = await Promise.all([getPerson(username), currentViewer(), currentLocale()]);
   if (!person) notFound();
 
   // "Muat lebih lama" grows the limit instead of paging cursors: the list is
@@ -140,14 +142,14 @@ export default async function ProfilePage({
           <div className="profile-hero-top">
             <div className="profile-hero-copy">
               <p className="eyebrow light">
-                <span /> Personal portfolio
+                <span /> {tx(locale, "Portofolio pribadi", "Personal portfolio")}
               </p>
               <h1>{person.name}</h1>
               {person.profession ? <p className="profile-profession">{person.profession}</p> : null}
               {person.headline ? <p className="profile-headline">{person.headline}</p> : null}
 
               {contacts.length > 0 ? (
-                <ul className="profile-contact-list" aria-label={`${person.name}'s links`}>
+                <ul className="profile-contact-list" aria-label={tx(locale, `Tautan ${person.name}`, `${person.name}'s links`)}>
                   {contacts.map((contact) => (
                     <li key={`${contact.icon}-${contact.href}`}>
                       <a
@@ -166,14 +168,14 @@ export default async function ProfilePage({
                 <div className="profile-hero-actions">
                   <a className="profile-resume-link" href={resume} target="_blank" rel="noreferrer">
                     <LinkIcon kind="resume" />
-                <span>Download résumé</span>
+                <span>{tx(locale, "Unduh résumé", "Download résumé")}</span>
                   </a>
                 </div>
               ) : null}
             </div>
 
             <aside className="profile-contributions" aria-labelledby="projects-heading">
-              <p id="projects-heading" className="profile-summary-label">Projects:</p>
+              <p id="projects-heading" className="profile-summary-label">{tx(locale, "Proyek:", "Projects:")}</p>
               {profileProjects.length > 0 ? (
                 <ul className="profile-project-icon-list">
                   {profileProjects.map((project) => (
@@ -181,20 +183,20 @@ export default async function ProfilePage({
                   ))}
                 </ul>
               ) : (
-                <p className="profile-contribution-empty">No projects recorded yet.</p>
+                <p className="profile-contribution-empty">{tx(locale, "Belum ada proyek yang tercatat.", "No projects recorded yet.")}</p>
               )}
             </aside>
           </div>
 
-          <section className="profile-summary" aria-label="Profile summary">
+          <section className="profile-summary" aria-label={tx(locale, "Ringkasan profil", "Profile summary")}>
             <div className="profile-summary-copy">
-              <p className="profile-summary-label">Summary</p>
+              <p className="profile-summary-label">{tx(locale, "Ringkasan", "Summary")}</p>
               {person.bio ? <p className="profile-bio">{person.bio}</p> : null}
             </div>
             <div className="profile-summary-meta">
               {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
-                <ul className="profile-tags" aria-label="Skills and experience">
-                  {person.yearsExperience !== null ? <li>{person.yearsExperience} years of experience</li> : null}
+                <ul className="profile-tags" aria-label={tx(locale, "Keahlian dan pengalaman", "Skills and experience")}>
+                  {person.yearsExperience !== null ? <li>{tx(locale, `${person.yearsExperience} tahun pengalaman`, `${person.yearsExperience} years of experience`)}</li> : null}
                   {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
                   {person.skills.slice(0, 6).map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
                 </ul>
@@ -202,24 +204,24 @@ export default async function ProfilePage({
               <ul className="profile-stats">
                 <li>
                   <strong>{owned.length}</strong>
-                  <span>projects built</span>
+                  <span>{tx(locale, "proyek dibangun", "projects built")}</span>
                 </li>
                 {contributing.length > 0 ? (
                   <li>
                     <strong>{contributing.length}</strong>
-                    <span>projects supported</span>
+                    <span>{tx(locale, "proyek dibantu", "projects supported")}</span>
                   </li>
                 ) : null}
                 {stats.tasksDone > 0 ? (
                   <li>
                     <strong>{stats.tasksDone}</strong>
-                    <span>tasks completed</span>
+                    <span>{tx(locale, "tugas diselesaikan", "tasks completed")}</span>
                   </li>
                 ) : null}
                 {stats.since ? (
                   <li>
-                    <strong>{monthYear(stats.since)}</strong>
-                    <span>active since</span>
+                    <strong>{monthYear(stats.since, locale)}</strong>
+                    <span>{tx(locale, "aktif sejak", "active since")}</span>
                   </li>
                 ) : null}
               </ul>
@@ -230,16 +232,16 @@ export default async function ProfilePage({
 
       <main id="main-content" className="profile-page">
         <div className="profile-content">
-            {isSelf ? <SelfTools person={person} owned={owned} contributing={contributing} /> : null}
+            {isSelf ? <SelfTools person={person} owned={owned} contributing={contributing} locale={locale} /> : null}
 
             <section aria-labelledby="owned-heading">
               <h2 id="owned-heading" className="section-title">
-                In progress
+                {tx(locale, "Sedang berjalan", "In progress")}
               </h2>
               {owned.length === 0 ? (
                 <p className="muted">
-                  No projects yet.{" "}
-                  {isSelf ? <Link href="/new">Show your first</Link> : null}
+                  {tx(locale, "Belum ada proyek.", "No projects yet.")} {" "}
+                  {isSelf ? <Link href="/new">{tx(locale, "Tampilkan proyek pertamamu", "Show your first")}</Link> : null}
                 </p>
               ) : (
                 <div className="profile-project-grid">
@@ -252,26 +254,26 @@ export default async function ProfilePage({
 
             <section aria-labelledby="activity-heading">
               <h2 id="activity-heading" className="section-title">
-                Work trail
+                {tx(locale, "Jejak karya", "Work trail")}
               </h2>
               <p className="trail-note">
-                This trail is recorded by the system when work happens—not added afterwards.
+                {tx(locale, "Jejak ini dicatat oleh sistem saat pekerjaan berlangsung—bukan ditambahkan setelahnya.", "This trail is recorded by the system when work happens—not added afterwards.")}
               </p>
 
               <div className="trail-modes">
                 <Link className={showAll ? "" : "is-active"} href={trailPath({})}>
-                  Highlights
+                  {tx(locale, "Sorotan", "Highlights")}
                 </Link>
                 <Link className={showAll ? "is-active" : ""} href={trailPath({ trail: "all" })}>
-                  Full trail
+                  {tx(locale, "Jejak lengkap", "Full trail")}
                 </Link>
               </div>
 
               {trail.length === 0 ? (
                 <p className="muted">
-                  {showAll ? "No entries yet." : "No highlights yet."}
+                  {showAll ? tx(locale, "Belum ada entri.", "No entries yet.") : tx(locale, "Belum ada sorotan.", "No highlights yet.")}
                   {isSelf
-                    ? " Your work here appears automatically—you do not need to add it manually."
+                    ? tx(locale, " Karyamu di sini muncul secara otomatis—kamu tidak perlu menambahkannya secara manual.", " Your work here appears automatically—you do not need to add it manually.")
                     : ""}
                 </p>
               ) : (
@@ -286,18 +288,17 @@ export default async function ProfilePage({
                       limit: limit + TRAIL_PAGE,
                     })}
                   >
-                    Load earlier entries
+                    {tx(locale, "Muat entri sebelumnya", "Load earlier entries")}
                   </Link>
                 </p>
               ) : null}
 
               {isSelf ? (
                 <details className="owner-tool">
-                  <summary>Choose what is visible</summary>
+                  <summary>{tx(locale, "Pilih yang dapat dilihat", "Choose what is visible")}</summary>
                   <form action={setActivityVisibility}>
                     <p className="hint">
-                      Checked items appear on your public profile. Unchecked items remain visible
-                      only to you—they are still recorded and are not deleted.
+                      {tx(locale, "Item yang dicentang muncul di profil publikmu. Item yang tidak dicentang tetap hanya terlihat olehmu—tetap tercatat dan tidak dihapus.", "Checked items appear on your public profile. Unchecked items remain visible only to you—they are still recorded and are not deleted.")}
                     </p>
                     <ul className="kind-list">
                       {EVENT_KINDS.map((kind) => (
@@ -310,12 +311,12 @@ export default async function ProfilePage({
                               value={kind}
                               defaultChecked={!person.activityHidden.includes(kind)}
                             />
-                            {eventKindMeta[kind].label}
+                            {eventKindLabel(kind, locale)}
                           </label>
                         </li>
                       ))}
                     </ul>
-                    <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+                    <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
                   </form>
                 </details>
               ) : null}
@@ -341,22 +342,24 @@ function SelfTools({
   person,
   owned,
   contributing,
+  locale,
 }: {
   person: Person;
   owned: ProjectSummary[];
   contributing: Contribution[];
+  locale: Locale;
 }) {
-  const remaining = remainingSteps(nextSteps({ person, owned, contributing }));
+  const remaining = remainingSteps(nextSteps({ person, owned, contributing, locale }));
 
   return (
     <div className="profile-self-tools">
       <Link className="profile-edit-link" href="/account/profile">
-        Edit profile
+        {tx(locale, "Edit profil", "Edit profile")}
       </Link>
       {remaining.length > 0 ? (
         <p className="profile-self-note">
-          {remaining.length} steps remain before your profile can be found in the talent pool.{" "}
-          <Link href="/get-started?all=1">View steps</Link>
+          {tx(locale, `${remaining.length} langkah tersisa sebelum profilmu dapat ditemukan di talent pool.`, `${remaining.length} steps remain before your profile can be found in the talent pool.`)} {" "}
+          <Link href="/get-started?all=1">{tx(locale, "Lihat langkah", "View steps")}</Link>
         </p>
       ) : null}
     </div>

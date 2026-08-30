@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { useLanguage } from "./language-provider";
 
 function SignOutIcon() {
   return (
@@ -16,6 +17,7 @@ function SignOutIcon() {
  */
 export function SignOutButton() {
   const { pending } = useFormStatus();
+  const { tx } = useLanguage();
 
   return (
     <button
@@ -28,12 +30,12 @@ export function SignOutButton() {
       {pending ? (
         <>
           <span className="signout-spinner" aria-hidden="true" />
-          <span>Signing out…</span>
+          <span>{tx("Sedang keluar…", "Signing out…")}</span>
         </>
       ) : (
         <>
           <SignOutIcon />
-          <span>Sign out</span>
+          <span>{tx("Keluar", "Sign out")}</span>
         </>
       )}
     </button>

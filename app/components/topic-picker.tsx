@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { tagList } from "../lib/stages";
-import { SUGGESTED_TOPICS } from "../lib/topics";
+import { SUGGESTED_TOPICS, topicLabel } from "../lib/topics";
+import { useLanguage } from "./language-provider";
 
 const MAX_TOPICS = 6;
 const SUGGESTED = new Set<string>(SUGGESTED_TOPICS);
@@ -18,6 +19,7 @@ export function TopicPicker({
   const initial = tagList(defaultValue);
   const [selected, setSelected] = useState(() => initial.filter((topic) => SUGGESTED.has(topic)));
   const custom = initial.filter((topic) => !SUGGESTED.has(topic)).join(", ");
+  const { locale, tx } = useLanguage();
 
   function toggle(topic: string) {
     setSelected((current) =>
@@ -32,10 +34,10 @@ export function TopicPicker({
   return (
     <div className={`field topic-picker ${error ? "has-error" : ""}`}>
       <label id="topics-label">
-        Topics <span className="optional-label">optional</span>
+        {tx("Topik", "Topics")} <span className="optional-label">{tx("opsional", "optional")}</span>
       </label>
       <p className="hint" id="topics-hint">
-        Choose the closest matches, up to six. Nothing fits? Add your own below.
+        {tx("Pilih maksimal enam topik yang paling sesuai. Tidak ada yang cocok? Tambahkan sendiri di bawah.", "Choose the closest matches, up to six. Nothing fits? Add your own below.")}
       </p>
       <div className="topic-options" role="group" aria-labelledby="topics-label" aria-describedby="topics-hint">
         {SUGGESTED_TOPICS.map((topic) => {
@@ -50,13 +52,13 @@ export function TopicPicker({
                 disabled={!checked && selected.length >= MAX_TOPICS}
                 onChange={() => toggle(topic)}
               />
-              <span>{topic}</span>
+              <span>{topicLabel(topic, locale)}</span>
             </label>
           );
         })}
       </div>
 
-      <label htmlFor="customTags">Other topics <span className="optional-label">optional</span></label>
+      <label htmlFor="customTags">{tx("Topik lainnya", "Other topics")} <span className="optional-label">{tx("opsional", "optional")}</span></label>
       <input
         id="customTags"
         name="customTags"
@@ -64,7 +66,7 @@ export function TopicPicker({
         defaultValue={custom}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "tags-error" : undefined}
-        placeholder="For example: children, transportation"
+        placeholder={tx("Contoh: anak-anak, transportasi", "For example: children, transportation")}
       />
       {error ? (
         <p className="field-error" id="tags-error" role="alert">

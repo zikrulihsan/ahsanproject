@@ -1,10 +1,13 @@
 import { ImageResponse } from "next/og";
+import { currentLocale } from "./lib/locale-server";
+import { tx } from "./lib/locale";
 
-export const alt = "Ahsan Project — Show your work and get discovered";
+export const alt = "Ahsan Project";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const locale = await currentLocale();
   return new ImageResponse(
     <div
       style={{
@@ -94,7 +97,7 @@ export default function OpenGraphImage() {
               textTransform: "uppercase",
             }}
           >
-            A public index of real work
+            {tx(locale, "Indeks publik untuk karya nyata", "A public index of real work")}
           </div>
           <div
             style={{
@@ -106,7 +109,7 @@ export default function OpenGraphImage() {
               maxWidth: 960,
             }}
           >
-            Show your work. Build your portfolio. Get discovered.
+            {tx(locale, "Tampilkan karyamu. Bangun portofolio. Jadilah mudah ditemukan.", "Show your work. Build your portfolio. Get discovered.")}
           </div>
         </div>
 

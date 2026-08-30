@@ -2,7 +2,9 @@ import { ImageResponse } from "next/og";
 import { getProject } from "../../lib/data";
 import { projectBlurb } from "../../lib/brief";
 import { roleLabel } from "../../lib/roles";
-import { stageMeta, type Stage } from "../../lib/stages";
+import { stageLabel, type Stage } from "../../lib/stages";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
 
 /**
  * The share card for a project — what somebody sees before they decide to
@@ -11,7 +13,7 @@ import { stageMeta, type Stage } from "../../lib/stages";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Project on Ahsan Project";
+export const alt = "Ahsan Project";
 
 const PAPER = "#f8f6f0";
 const INK = "#183d34";
@@ -19,7 +21,7 @@ const MUTED = "#68746d";
 const ORANGE = "#ed714b";
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const [{ slug }, locale] = await Promise.all([params, currentLocale()]);
   const project = await getProject(slug);
 
   if (!project) {
@@ -45,12 +47,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     );
   }
 
-  const stage = stageMeta[project.stage as Stage] ?? stageMeta.idea;
+  const stage = stageLabel(project.stage as Stage, locale);
   const openRoles = [
     ...new Set(
       project.seats
         .filter((seat) => seat.status === "open")
-        .map((seat) => roleLabel(seat.role, seat.roleTitle)),
+        .map((seat) => roleLabel(seat.role, seat.roleTitle, locale)),
     ),
   ];
 
@@ -91,7 +93,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 padding: "10px 26px",
               }}
             >
-              {stage.label.toUpperCase()}
+              {stage.toUpperCase()}
             </div>
           </div>
 
@@ -103,7 +105,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               {(() => {
                 // What it is doing beats what it is: a shared link should say
                 // the project is alive, not only what it is called.
-                const line = project.nowText ? `Now: ${project.nowText}` : projectBlurb(project);
+                const line = project.nowText ? tx(locale, `Sekarang: ${project.nowText}`, `Now: ${project.nowText}`) : projectBlurb(project);
                 return line.length > 150 ? `${line.slice(0, 150)}…` : line;
               })()}
             </div>
@@ -131,13 +133,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                       padding: "8px 22px",
                     }}
                   >
-                    {`Needs ${role}`}
+                    {tx(locale, `Butuh ${role}`, `Needs ${role}`)}
                   </div>
                 ))}
               </div>
             ) : null}
             <div style={{ display: "flex", fontSize: 24, color: MUTED }}>
-              {`by ${project.owner.name}`}
+              {tx(locale, `oleh ${project.owner.name}`, `by ${project.owner.name}`)}
             </div>
           </div>
         </div>

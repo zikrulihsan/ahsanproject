@@ -4,6 +4,8 @@ import { SiteFooter, SiteHeader } from "../../components/shell";
 import { NewPasswordForm } from "../../components/auth-forms";
 import { currentViewer } from "../../lib/session";
 import { supabaseConfigured } from "../../lib/supabase";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
 
 /*
  * Allowed to block.
@@ -16,11 +18,14 @@ import { supabaseConfigured } from "../../lib/supabase";
  */
 export const instant = false;
 
-export const metadata: Metadata = {
-  title: "New password — Ahsan Project",
-  description: "Set a new password for your Ahsan Project account.",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await currentLocale();
+  return {
+    title: tx(locale, "Kata sandi baru — Ahsan Project", "New password — Ahsan Project"),
+    description: tx(locale, "Buat kata sandi baru untuk akun Ahsan Project.", "Set a new password for your Ahsan Project account."),
+    robots: { index: false },
+  };
+}
 
 /**
  * Where a recovery link lands, by way of /auth/confirm.
@@ -32,7 +37,7 @@ export const metadata: Metadata = {
  * how an expired link turns into a person giving up.
  */
 export default async function NewPasswordPage() {
-  const viewer = await currentViewer();
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
 
   return (
     <>
@@ -40,28 +45,28 @@ export default async function NewPasswordPage() {
 
       <main id="main-content" className="page-narrow auth-page">
         <p className="eyebrow">
-          <span /> Password
+          <span /> {tx(locale, "Kata sandi", "Password")}
         </p>
-        <h1>Set a new password.</h1>
+        <h1>{tx(locale, "Buat kata sandi baru.", "Set a new password.")}</h1>
 
         {!supabaseConfigured() ? (
           <p className="form-error">
-            This site is not connected to Supabase yet, so passwords cannot be set.
+            {tx(locale, "Situs ini belum terhubung ke Supabase sehingga kata sandi belum dapat dibuat.", "This site is not connected to Supabase yet, so passwords cannot be set.")}
           </p>
         ) : viewer ? (
           <>
             <p className="lede">
-              After saving, your old password will no longer work.
+              {tx(locale, "Setelah disimpan, kata sandi lamamu tidak akan dapat digunakan lagi.", "After saving, your old password will no longer work.")}
             </p>
             <NewPasswordForm />
           </>
         ) : (
           <>
             <p className="form-error" role="alert">
-              This link has expired or has already been used, so there is nothing to change yet.
+              {tx(locale, "Tautan ini telah kedaluwarsa atau sudah digunakan, jadi belum ada yang dapat diubah.", "This link has expired or has already been used, so there is nothing to change yet.")}
             </p>
             <p className="auth-switch">
-              <Link href="/forgot-password">Request a new link</Link>.
+              <Link href="/forgot-password">{tx(locale, "Minta tautan baru", "Request a new link")}</Link>.
             </p>
           </>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "./language-provider";
 
 type ShareStatus = "idle" | "copied" | "error";
 
@@ -12,6 +13,7 @@ export function ShareProfileButton({
   path: string;
 }) {
   const [status, setStatus] = useState<ShareStatus>("idle");
+  const { tx } = useLanguage();
   const resetTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function ShareProfileButton({
       try {
         await navigator.share({
           title: `${name} — Ahsan Project`,
-          text: `View ${name}'s profile and work on Ahsan Project.`,
+          text: tx(`Lihat profil dan karya ${name} di Ahsan Project.`, `View ${name}'s profile and work on Ahsan Project.`),
           url,
         });
         return;
@@ -52,17 +54,17 @@ export function ShareProfileButton({
 
   const label =
     status === "copied"
-      ? "Link copied"
+      ? tx("Tautan disalin", "Link copied")
       : status === "error"
-        ? "Could not copy link"
-        : "Share profile";
+        ? tx("Tautan tidak dapat disalin", "Could not copy link")
+        : tx("Bagikan profil", "Share profile");
 
   return (
     <div className="profile-share-control">
       <button
         aria-label={label}
         className="profile-share-button"
-        title="Share profile"
+        title={tx("Bagikan profil", "Share profile")}
         type="button"
         onClick={share}
       >
@@ -70,9 +72,9 @@ export function ShareProfileButton({
       </button>
       <span className="sr-only" role="status" aria-live="polite">
         {status === "copied"
-          ? "Profile link copied."
+          ? tx("Tautan profil disalin.", "Profile link copied.")
           : status === "error"
-            ? "Could not copy profile link."
+            ? tx("Tautan profil tidak dapat disalin.", "Could not copy profile link.")
             : ""}
       </span>
     </div>

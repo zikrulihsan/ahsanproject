@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import { getPerson, getPersonStats, getPortfolio } from "../../lib/data";
 import { monthYear } from "../../components/pieces";
+import { currentLocale } from "../../lib/locale-server";
+import { tx } from "../../lib/locale";
 
 /**
  * The share card for a profile — the page doing the actual promoting when a
@@ -9,7 +11,7 @@ import { monthYear } from "../../components/pieces";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Portfolio on Ahsan Project";
+export const alt = "Ahsan Project";
 
 const PAPER = "#f8f6f0";
 const INK = "#183d34";
@@ -17,7 +19,7 @@ const MUTED = "#68746d";
 const ORANGE = "#ed714b";
 
 export default async function Image({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params;
+  const [{ username }, locale] = await Promise.all([params, currentLocale()]);
   const person = await getPerson(username);
 
   if (!person) {
@@ -50,11 +52,11 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const live = owned.filter((project) => project.stage === "live").length;
 
   const numbers = [
-    `${owned.length} project`,
-    live > 0 ? `${live} live` : "",
-    contributing.length > 0 ? `${contributing.length} contributions` : "",
-    stats.rolesTaken > 0 ? `${stats.rolesTaken} roles joined` : "",
-    stats.tasksDone > 0 ? `${stats.tasksDone} tasks completed` : "",
+    tx(locale, `${owned.length} proyek`, `${owned.length} project`),
+    live > 0 ? tx(locale, `${live} aktif`, `${live} live`) : "",
+    contributing.length > 0 ? tx(locale, `${contributing.length} kontribusi`, `${contributing.length} contributions`) : "",
+    stats.rolesTaken > 0 ? tx(locale, `${stats.rolesTaken} peran diikuti`, `${stats.rolesTaken} roles joined`) : "",
+    stats.tasksDone > 0 ? tx(locale, `${stats.tasksDone} tugas selesai`, `${stats.tasksDone} tasks completed`) : "",
   ]
     .filter(Boolean)
     .join("  ·  ");
@@ -84,7 +86,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
           }}
         >
           <div style={{ display: "flex" }}>AHSAN PROJECT</div>
-          <div style={{ display: "flex" }}>PORTOFOLIO</div>
+          <div style={{ display: "flex" }}>{tx(locale, "PORTOFOLIO", "PORTFOLIO")}</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -110,8 +112,8 @@ export default async function Image({ params }: { params: Promise<{ username: st
           {numbers ? <div style={{ display: "flex", fontSize: 32 }}>{numbers}</div> : null}
           <div style={{ display: "flex", fontSize: 24, color: MUTED }}>
             {stats.since
-              ? `Active since ${monthYear(stats.since)} — the system records this trail; it is not typed in later.`
-              : "The system records this trail; it is not typed in later."}
+              ? tx(locale, `Aktif sejak ${monthYear(stats.since, locale)} — sistem mencatat jejak ini; bukan diketik belakangan.`, `Active since ${monthYear(stats.since, locale)} — the system records this trail; it is not typed in later.`)
+              : tx(locale, "Sistem mencatat jejak ini; bukan diketik belakangan.", "The system records this trail; it is not typed in later.")}
           </div>
         </div>
       </div>

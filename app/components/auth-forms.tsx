@@ -9,11 +9,13 @@ import {
   updatePassword,
   type AuthState,
 } from "../auth-actions";
+import { useLanguage } from "./language-provider";
 
 const EMPTY: AuthState = { values: {} };
 
 export function SignInForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(signIn, EMPTY);
+  const { tx } = useLanguage();
 
   return (
     <form className="auth-form signin-form" action={formAction}>
@@ -39,21 +41,21 @@ export function SignInForm({ next }: { next: string }) {
 
       <div className="auth-field">
         <div className="auth-label-row">
-          <label htmlFor="password">Password</label>
-          <Link href="/forgot-password">Forgot password?</Link>
+          <label htmlFor="password">{tx("Kata sandi", "Password")}</label>
+          <Link href="/forgot-password">{tx("Lupa kata sandi?", "Forgot password?")}</Link>
         </div>
         <input
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
-          placeholder="Enter your password"
+          placeholder={tx("Masukkan kata sandi", "Enter your password")}
           required
         />
       </div>
 
       <button className="primary-button auth-submit" type="submit" disabled={pending}>
-        <span>{pending ? "Please wait…" : "Sign in with email"}</span>
+        <span>{pending ? tx("Mohon tunggu…", "Please wait…") : tx("Masuk dengan email", "Sign in with email")}</span>
         {!pending ? <span aria-hidden="true">→</span> : null}
       </button>
     </form>
@@ -62,6 +64,7 @@ export function SignInForm({ next }: { next: string }) {
 
 export function SignUpForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(signUp, EMPTY);
+  const { tx } = useLanguage();
 
   return (
     <form className="auth-form" action={formAction}>
@@ -71,22 +74,22 @@ export function SignUpForm({ next }: { next: string }) {
       <GoogleButton next={next} />
       <AuthDivider />
 
-      <label htmlFor="name">Name</label>
+      <label htmlFor="name">{tx("Nama", "Name")}</label>
       <input id="name" name="name" type="text" autoComplete="name" required defaultValue={state.values.name} />
-      <p className="hint">This name appears on your projects and profile.</p>
+      <p className="hint">{tx("Nama ini ditampilkan pada proyek dan profilmu.", "This name appears on your projects and profile.")}</p>
 
       <label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" autoComplete="email" required defaultValue={state.values.email} />
 
-      <label htmlFor="password">Password</label>
+      <label htmlFor="password">{tx("Kata sandi", "Password")}</label>
       <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} />
-      <p className="hint">At least 8 characters.</p>
+      <p className="hint">{tx("Minimal 8 karakter.", "At least 8 characters.")}</p>
 
-      <label htmlFor="confirm">Repeat password</label>
+      <label htmlFor="confirm">{tx("Ulangi kata sandi", "Repeat password")}</label>
       <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Please wait…" : "Create account"}
+        {pending ? tx("Mohon tunggu…", "Please wait…") : tx("Buat akun", "Create account")}
       </button>
     </form>
   );
@@ -94,6 +97,7 @@ export function SignUpForm({ next }: { next: string }) {
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(requestPasswordReset, EMPTY);
+  const { tx } = useLanguage();
 
   return (
     <form className="auth-form" action={formAction}>
@@ -108,10 +112,10 @@ export function ForgotPasswordForm() {
         required
         defaultValue={state.values.email}
       />
-      <p className="hint">Use the address associated with your account.</p>
+      <p className="hint">{tx("Gunakan alamat yang terhubung dengan akunmu.", "Use the address associated with your account.")}</p>
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Sending…" : "Send reset link"}
+        {pending ? tx("Mengirim…", "Sending…") : tx("Kirim tautan pengaturan ulang", "Send reset link")}
       </button>
     </form>
   );
@@ -119,12 +123,13 @@ export function ForgotPasswordForm() {
 
 export function NewPasswordForm() {
   const [state, formAction, pending] = useActionState(updatePassword, EMPTY);
+  const { tx } = useLanguage();
 
   return (
     <form className="auth-form" action={formAction}>
       <Message state={state} />
 
-      <label htmlFor="password">New password</label>
+      <label htmlFor="password">{tx("Kata sandi baru", "New password")}</label>
       <input
         id="password"
         name="password"
@@ -133,9 +138,9 @@ export function NewPasswordForm() {
         required
         minLength={8}
       />
-      <p className="hint">At least 8 characters.</p>
+      <p className="hint">{tx("Minimal 8 karakter.", "At least 8 characters.")}</p>
 
-      <label htmlFor="confirm">Repeat new password</label>
+      <label htmlFor="confirm">{tx("Ulangi kata sandi baru", "Repeat new password")}</label>
       <input
         id="confirm"
         name="confirm"
@@ -146,7 +151,7 @@ export function NewPasswordForm() {
       />
 
       <button className="primary-button" type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save password"}
+        {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan kata sandi", "Save password")}
       </button>
     </form>
   );
@@ -162,20 +167,22 @@ export function NewPasswordForm() {
  * being lost. A link also works with JavaScript switched off.
  */
 function GoogleButton({ next }: { next: string }) {
+  const { tx } = useLanguage();
   const href = next === "/" ? "/auth/google" : `/auth/google?next=${encodeURIComponent(next)}`;
 
   return (
     <a className="google-auth-button" href={href}>
       <GoogleMark />
-      <span>Continue with Google</span>
+      <span>{tx("Lanjutkan dengan Google", "Continue with Google")}</span>
     </a>
   );
 }
 
 function AuthDivider() {
+  const { tx } = useLanguage();
   return (
     <div className="auth-divider" aria-hidden="true">
-      <span>or use email</span>
+      <span>{tx("atau gunakan email", "or use email")}</span>
     </div>
   );
 }
