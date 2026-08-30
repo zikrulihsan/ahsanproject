@@ -4,7 +4,9 @@ import Link from "next/link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { AvailabilityBadges } from "../components/availability-badges";
 import { initials } from "../components/pieces";
+import { SearchableFilter } from "../components/searchable-filter";
 import { LoadingNote, Skeleton } from "../components/skeleton";
+import { SortSelect } from "../components/sort-select";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import {
@@ -179,6 +181,13 @@ async function Directory({ query }: { query: SearchParams }) {
     filters.field,
     filters.involvement,
   ].filter(Boolean).length;
+  const activeControlCount = [
+    filters.profession,
+    filters.skill,
+    filters.experience,
+    filters.field,
+    filters.involvement,
+  ].filter(Boolean).length;
 
   const directoryHref = (patch: Partial<Record<DirectoryParam, string | number | null>>) =>
     directoryPath(filters, page, patch);
@@ -203,94 +212,129 @@ async function Directory({ query }: { query: SearchParams }) {
         ) : null}
 
         <section className="people-search-panel" aria-label={tx(locale, "Cari dan saring talent", "Search and filter talent")}>
-          <form action="/people" method="get">
+          <form className="discovery-search collaboration-search" action="/people" method="get" role="search">
+            {filters.profession ? <input type="hidden" name="profession" value={filters.profession} /> : null}
+            {filters.skill ? <input type="hidden" name="skill" value={filters.skill} /> : null}
+            {filters.experience ? <input type="hidden" name="experience" value={filters.experience} /> : null}
+            {filters.field ? <input type="hidden" name="field" value={filters.field} /> : null}
             {filters.involvement ? <input type="hidden" name="involvement" value={filters.involvement} /> : null}
-            <div className="people-search-row">
-              <label className="people-search-field">
-                <span className="sr-only">{tx(locale, "Cari talent", "Search talent")}</span>
-                <SearchIcon />
-                <input
-                  type="search"
-                  name="q"
-                  maxLength={100}
-                  defaultValue={filters.q}
-                  placeholder={tx(locale, "Cari nama, profesi, keahlian, atau proyek…", "Search name, profession, skill, or project…")}
-                />
-              </label>
-              <button type="submit">{tx(locale, "Tampilkan hasil", "Show results")}</button>
-            </div>
-
-            <div className="people-filter-grid">
-              <FilterSelect name="profession" label={tx(locale, "Profesi", "Profession")} value={filters.profession}>
-                <option value="">{tx(locale, "Semua profesi", "All professions")}</option>
-                {filters.profession && !hasFacet(facets.professions, filters.profession) ? (
-                  <option value={filters.profession}>{filters.profession} (0)</option>
-                ) : null}
-                {facets.professions.map((facet) => (
-                  <option key={facet.value} value={facet.value}>
-                    {facet.value} ({facet.count})
-                  </option>
-                ))}
-              </FilterSelect>
-
-              <FilterSelect name="skill" label={tx(locale, "Keahlian", "Skill")} value={filters.skill}>
-                <option value="">{tx(locale, "Semua keahlian", "All skills")}</option>
-                {filters.skill && !hasFacet(facets.skills, filters.skill) ? (
-                  <option value={filters.skill}>{filters.skill} (0)</option>
-                ) : null}
-                {facets.skills.map((facet) => (
-                  <option key={facet.value} value={facet.value}>
-                    {facet.value} ({facet.count})
-                  </option>
-                ))}
-              </FilterSelect>
-
-              <FilterSelect name="experience" label={tx(locale, "Pengalaman", "Experience")} value={filters.experience}>
-                <option value="">{tx(locale, "Semua tingkat pengalaman", "All experience levels")}</option>
-                {EXPERIENCE_BANDS.map((band) => (
-                  <option key={band} value={band}>{experienceBandName(band, locale)}</option>
-                ))}
-              </FilterSelect>
-
-              <FilterSelect name="field" label={tx(locale, "Bidang", "Field")} value={filters.field}>
-                <option value="">{tx(locale, "Semua bidang", "All fields")}</option>
-                {filters.field && !hasFacet(facets.fields, filters.field) ? (
-                  <option value={filters.field}>{filters.field} (0)</option>
-                ) : null}
-                {facets.fields.map((facet) => (
-                  <option key={facet.value} value={facet.value}>
-                    {facet.value} ({facet.count})
-                  </option>
-                ))}
-              </FilterSelect>
-            </div>
-            <button className="people-filter-submit" type="submit">{tx(locale, "Tampilkan hasil", "Show results")}</button>
+            <label className="collaboration-search-field">
+              <span className="sr-only">{tx(locale, "Cari talent", "Search talent")}</span>
+              <SearchIcon />
+              <input
+                type="search"
+                name="q"
+                maxLength={100}
+                defaultValue={filters.q}
+                placeholder={tx(locale, "Cari nama, profesi, keahlian, atau proyek…", "Search name, profession, skill, or project…")}
+              />
+            </label>
+            <button type="submit">{tx(locale, "Cari", "Search")}</button>
           </form>
 
-          <div className="people-work-filters" aria-label={tx(locale, "Filter keterlibatan", "Involvement filter")}>
-            <Link
-              className={filters.involvement === "" ? "is-active" : ""}
-              href={directoryHref({ involvement: null, page: null })}
-            >
-              {tx(locale, "Semua", "All")}
-            </Link>
-            <Link
-              className={filters.involvement === "building" ? "is-active" : ""}
-              href={directoryHref({ involvement: "building", page: null })}
-            >
-              {tx(locale, "Membangun", "Building")}
-            </Link>
-            <Link
-              className={filters.involvement === "helping" ? "is-active" : ""}
-              href={directoryHref({ involvement: "helping", page: null })}
-            >
-              {tx(locale, "Membantu", "Helping")}
-            </Link>
-          </div>
+          <details className="collaboration-filter-panel">
+            <summary className="collaboration-filter-summary">
+              <span><FilterIcon /> {tx(locale, "Saring talent", "Filter talent")}</span>
+              <span>
+                {activeControlCount > 0 ? tx(locale, `${activeControlCount} aktif`, `${activeControlCount} active`) : tx(locale, "Opsional", "Optional")}
+                <i aria-hidden="true" />
+              </span>
+            </summary>
+
+            <div className="collaboration-filter-controls">
+              <div className="collaboration-control">
+                <span>{tx(locale, "Profesi", "Profession")}</span>
+                <SearchableFilter
+                  action="/people"
+                  name="profession"
+                  value={filters.profession}
+                  label={tx(locale, "Saring profesi", "Filter professions")}
+                  placeholder={tx(locale, "Cari profesi…", "Search professions…")}
+                  clearLabel={tx(locale, "Hapus filter profesi", "Clear profession filter")}
+                  resultsLabel={tx(locale, "Hasil profesi", "Profession results")}
+                  options={withSelectedFacet(facets.professions, filters.profession).map((facet) => ({
+                    ...facet,
+                    label: facet.value,
+                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                  }))}
+                  hidden={{ q: filters.q, skill: filters.skill, experience: filters.experience, field: filters.field, involvement: filters.involvement }}
+                />
+              </div>
+
+              <div className="collaboration-control">
+                <span>{tx(locale, "Keahlian", "Skill")}</span>
+                <SearchableFilter
+                  action="/people"
+                  name="skill"
+                  value={filters.skill}
+                  label={tx(locale, "Saring keahlian", "Filter skills")}
+                  placeholder={tx(locale, "Cari keahlian…", "Search skills…")}
+                  clearLabel={tx(locale, "Hapus filter keahlian", "Clear skill filter")}
+                  resultsLabel={tx(locale, "Hasil keahlian", "Skill results")}
+                  options={withSelectedFacet(facets.skills, filters.skill).map((facet) => ({
+                    ...facet,
+                    label: facet.value,
+                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                  }))}
+                  hidden={{ q: filters.q, profession: filters.profession, experience: filters.experience, field: filters.field, involvement: filters.involvement }}
+                />
+              </div>
+
+              <div className="collaboration-control">
+                <span>{tx(locale, "Pengalaman", "Experience")}</span>
+                <SortSelect
+                  action="/people"
+                  name="experience"
+                  value={filters.experience}
+                  label={tx(locale, "Saring pengalaman", "Filter experience")}
+                  options={[
+                    { value: "", label: tx(locale, "Semua tingkat pengalaman", "All experience levels") },
+                    ...EXPERIENCE_BANDS.map((band) => ({ value: band, label: experienceBandName(band, locale) })),
+                  ]}
+                  hidden={{ q: filters.q, profession: filters.profession, skill: filters.skill, field: filters.field, involvement: filters.involvement }}
+                />
+              </div>
+
+              <div className="collaboration-control">
+                <span>{tx(locale, "Bidang", "Field")}</span>
+                <SearchableFilter
+                  action="/people"
+                  name="field"
+                  value={filters.field}
+                  label={tx(locale, "Saring bidang", "Filter fields")}
+                  placeholder={tx(locale, "Cari bidang…", "Search fields…")}
+                  clearLabel={tx(locale, "Hapus filter bidang", "Clear field filter")}
+                  resultsLabel={tx(locale, "Hasil bidang", "Field results")}
+                  options={withSelectedFacet(facets.fields, filters.field).map((facet) => ({
+                    ...facet,
+                    label: facet.value,
+                    meta: tx(locale, `${facet.count} talent`, `${facet.count} talent`),
+                  }))}
+                  hidden={{ q: filters.q, profession: filters.profession, skill: filters.skill, experience: filters.experience, involvement: filters.involvement }}
+                />
+              </div>
+
+              <div className="collaboration-control">
+                <span>{tx(locale, "Pengalaman proyek", "Project experience")}</span>
+                <SortSelect
+                  action="/people"
+                  name="involvement"
+                  value={filters.involvement}
+                  label={tx(locale, "Saring pengalaman proyek", "Filter project experience")}
+                  options={[
+                    { value: "", label: tx(locale, "Semua pengalaman", "Any experience") },
+                    { value: "building", label: tx(locale, "Membangun proyek", "Building projects") },
+                    { value: "helping", label: tx(locale, "Berkontribusi di proyek", "Contributing to projects") },
+                  ]}
+                  hidden={{ q: filters.q, profession: filters.profession, skill: filters.skill, experience: filters.experience, field: filters.field }}
+                />
+              </div>
+            </div>
+          </details>
         </section>
 
         {activeFilterCount > 0 ? (
-          <div className="people-active-filters" aria-label={tx(locale, "Filter aktif", "Active filters")}>
+          <div className="active-filters home-active-filters" aria-label={tx(locale, "Filter aktif", "Active filters")}>
             <ul>
               {filters.q ? (
                 <ActiveFilter label={tx(locale, "Pencarian", "Search")} value={filters.q} href={directoryHref({ q: null, page: null })} locale={locale} />
@@ -537,32 +581,30 @@ function ContributorRail({ people, locale }: { people: PersonAtWork[]; locale: L
   );
 }
 
-function FilterSelect({
-  name,
-  label,
-  value,
-  children,
-}: {
-  name: string;
-  label: string;
-  value: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label>
-      <span>{label}</span>
-      <select name={name} defaultValue={value}>{children}</select>
-    </label>
-  );
-}
-
 function ActiveFilter({ label, value, href, locale }: { label: string; value: string; href: string; locale: Locale }) {
   return (
     <li>
       <Link href={href} aria-label={tx(locale, `Hapus filter ${label}: ${value}`, `Remove ${label} filter: ${value}`)}>
-        <small>{label}</small> {value} <span aria-hidden="true">×</span>
+        {label}: <strong>{value}</strong> <span aria-hidden="true">×</span>
       </Link>
     </li>
+  );
+}
+
+function withSelectedFacet(
+  facets: { value: string; count: number }[],
+  selected: string,
+): { value: string; count: number }[] {
+  return selected && !hasFacet(facets, selected)
+    ? [{ value: selected, count: 0 }, ...facets]
+    : facets;
+}
+
+function FilterIcon() {
+  return (
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16M7 12h10M10 17h4" />
+    </svg>
   );
 }
 

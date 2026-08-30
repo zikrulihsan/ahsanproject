@@ -17,6 +17,8 @@ export function SearchableFilter({
   placeholder,
   options,
   hidden,
+  clearLabel,
+  resultsLabel,
 }: {
   action: string;
   name: string;
@@ -25,6 +27,8 @@ export function SearchableFilter({
   placeholder: string;
   options: SearchableOption[];
   hidden: Record<string, string>;
+  clearLabel?: string;
+  resultsLabel?: string;
 }) {
   const form = useRef<HTMLFormElement>(null);
   const listId = useId();
@@ -105,10 +109,10 @@ export function SearchableFilter({
         }}
         onKeyDown={handleKeys}
       />
-      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label={tx("Hapus filter kategori", "Clear category filter")}>×</button> : null}
+      {query ? <button className="searchable-filter-clear" type="button" onClick={clear} aria-label={clearLabel ?? tx("Hapus filter kategori", "Clear category filter")}>×</button> : null}
 
       {open ? (
-        <div className="searchable-filter-options" id={listId} role="listbox" aria-label={tx("Hasil kategori", "Category results")}>
+        <div className="searchable-filter-options" id={listId} role="listbox" aria-label={resultsLabel ?? tx("Hasil kategori", "Category results")}>
           {matches.length > 0 ? matches.map((option, index) => (
             <button
               key={option.value}
