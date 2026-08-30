@@ -55,7 +55,7 @@ export default async function EditProfilePage({
         <h1>{tx(locale, "Lengkapi profilmu.", "Complete your profile.")}</h1>
         <p className="lede">
           {tx(locale, "Inilah yang dilihat orang di ", "This is what people see on ")}<Link href={`/u/${viewer.username}`}>{tx(locale, "halaman portofoliomu", "your portfolio page")}</Link>{" "}
-          {tx(locale, "dan digunakan untuk menemukanmu di ", "and use to find you in the ")}<Link href="/people">talent pool</Link>{tx(locale, ". Kamu dapat memperbaruinya kapan saja.", ". You can update it at any time.")}
+          {tx(locale, "dan digunakan untuk menemukanmu di ", "and use to find you in the ")}<Link href="/people">talent pool</Link>{tx(locale, ", tempat recruiter, hiring manager, dan pembangun tim mencari talent berdasarkan bukti pengalaman. Kamu dapat memperbaruinya kapan saja.", ", where recruiters, hiring managers, and team builders look for talent through proof of experience. You can update it at any time.")}
         </p>
 
         <ProfileForm

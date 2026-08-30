@@ -99,7 +99,7 @@ export function ProfileForm({
           <span className="step-number">2</span> {tx("Tampil di talent pool", "Be discoverable in the talent pool")}
         </legend>
         <p className="step-intro">
-          {tx("Detail ini digunakan oleh filter di ", "These details power the filters in the ")}<strong>Talent Pool</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya.", ". Your projects remain the proof of your work—this just helps people find them.")}
+          {tx("Detail ini membantu recruiter, hiring manager, dan orang yang sedang membangun tim menemukanmu di ", "These details help recruiters, hiring managers, and team builders find you in the ")}<strong>Talent Pool</strong>{tx(". Proyekmu tetap menjadi bukti pengalamanmu—bagian ini membantu orang yang tepat menemukannya.", ". Your projects remain the proof of your experience—this helps the right people find it.")}
         </p>
 
         <Field
@@ -136,7 +136,7 @@ export function ProfileForm({
         <div className={`field ${errors.availability ? "has-error" : ""}`}>
           <label htmlFor="availability">{tx("Status peluang", "Opportunity status")}</label>
           <p className="hint" id="availability-hint">
-            {tx("Tampilkan jenis peluang yang boleh ditawarkan kepadamu di talent pool.", "Show which opportunities people may approach you about in the talent pool.")}
+            {tx("Tampilkan peluang kerja atau kolaborasi yang boleh ditawarkan kepadamu di talent pool.", "Show which work or collaboration opportunities people may approach you about in the talent pool.")}
           </p>
           <select
             id="availability"

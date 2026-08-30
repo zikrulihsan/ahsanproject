@@ -27,7 +27,7 @@ import { profileReady } from "../lib/next-steps";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = "Talent Pool — Ahsan Project";
-  const description = tx(locale, "Temukan talent terbaik berdasarkan profesi, keahlian, pengalaman, bidang, status peluang, dan bukti karya nyata.", "Find the best talent by profession, skills, experience, field, opportunity status, and real proof of work.");
+  const description = tx(locale, "Temukan talent untuk peran, proyek, dan tim berdasarkan keahlian, pengalaman, status peluang, dan bukti kontribusi nyata.", "Find talent for roles, projects, and teams by skills, experience, opportunity status, and proof of real contribution.");
   return { title, description, alternates: { canonical: "/people" }, openGraph: shareCard({ title, description, url: "/people" }) };
 }
 
@@ -71,8 +71,8 @@ export default async function PeoplePage({ searchParams }: { searchParams?: Sear
         <header className="people-directory-head">
           <div className="people-directory-copy">
             <p className="people-directory-kicker">Talent Pool · Ahsan Project</p>
-            <h1>{tx(locale, "Temukan talent terbaik untuk membawa ide lebih jauh.", "Find the best talent to take ideas further.")}</h1>
-            <p>{tx(locale, "Jelajahi builder, desainer, peneliti, dan kolaborator berdasarkan keahlian, pengalaman, serta bukti karya nyata—bukan sekadar headline.", "Discover builders, designers, researchers, and collaborators by skills, experience, and real proof of work—not just a headline.")}</p>
+            <h1>{tx(locale, "Temukan talent dengan pengalaman proyek nyata untuk timmu.", "Find talent with real project experience for your team.")}</h1>
+            <p>{tx(locale, "Talent Pool mempertemukan orang yang mencari peluang kerja dengan recruiter, hiring manager, dan orang yang sedang membangun tim—berdasarkan keahlian, status peluang, serta bukti kontribusi nyata.", "Talent Pool connects people seeking work with recruiters, hiring managers, and team builders through skills, opportunity status, and proof of real contribution.")}</p>
           </div>
           <Suspense fallback={<TalentPoolCtaFallback locale={locale} />}>
             <TalentPoolCta locale={locale} />
@@ -99,8 +99,8 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
     <div className="people-directory-join">
       <p>
         {ready
-          ? tx(locale, "Profilmu sudah tampil di talent pool. Pastikan status peluangmu tetap relevan.", "Your profile is live in the talent pool. Keep your opportunity status up to date.")
-          : tx(locale, "Lengkapi profesi, keahlian, dan perkenalanmu agar talent terbaikmu mudah ditemukan.", "Complete your profession, skills, and introduction so your talent can be discovered.")}
+          ? tx(locale, "Profilmu siap ditemukan recruiter, hiring manager, dan orang yang sedang membangun tim. Pastikan status peluangmu tetap relevan.", "Your profile is ready to be found by recruiters, hiring managers, and team builders. Keep your opportunity status up to date.")
+          : tx(locale, "Lengkapi profil untuk menampilkan keahlian, pengalaman proyek nyata, dan peluang kerja yang kamu cari.", "Complete your profile to show your skills, real project experience, and the work opportunities you want.")}
       </p>
       <Link href="/account/profile">
         {ready ? tx(locale, "Perbarui status & profil", "Update status & profile") : tx(locale, "Lengkapi profil", "Complete your profile")}
@@ -113,7 +113,7 @@ async function TalentPoolCta({ locale }: { locale: Locale }) {
 function TalentPoolCtaFallback({ locale }: { locale: Locale }) {
   return (
     <div className="people-directory-join">
-      <p>{tx(locale, "Punya keahlian yang ingin ditemukan? Tampilkan karya dan peluang yang kamu cari.", "Want your talent to be discovered? Show your work and the opportunities you want.")}</p>
+      <p>{tx(locale, "Bangun pengalaman lewat proyek nyata, tampilkan buktinya, lalu biarkan recruiter, hiring manager, dan pembangun tim menemukanmu.", "Build experience through real projects, show the proof, then let recruiters, hiring managers, and team builders find you.")}</p>
       <Link href="/signup?next=%2Faccount%2Fprofile">
         {tx(locale, "Daftar sebagai talent", "Join as talent")} <span aria-hidden="true">→</span>
       </Link>

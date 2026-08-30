@@ -31,9 +31,9 @@ const USE_CASES = [
 const WORKFLOW = [
   ["Cantumkan proyek", "List a project", "Tuliskan masalahnya, sasarannya, dan sudah sejauh apa pekerjaannya.", "Write down the problem, who it is for, and where the work stands."],
   ["Pilih cara proyek berjalan", "Choose how it lives", "Buka peran atau jadikan proyek sebagai catatan pengembangan publik.", "Open a role, or leave the project as a public build log."],
-  ["Biarkan orang menemukan karyamu", "Let people find the work", "Temui kolaborator melalui proyek—atau temukan orang yang kamu butuhkan.", "Meet collaborators through the project—or find the people you need."],
+  ["Kolaborasi di proyek nyata", "Collaborate on real projects", "Ambil peran, kerjakan kontribusi nyata, dan bangun pengalaman yang dapat dibuktikan.", "Take a role, make a real contribution, and build experience you can prove."],
   ["Rilis dan simpan buktinya", "Ship and keep the proof", "Karya selesai dan kontribusi nyata masuk ke portofoliomu.", "Finished work and real contributions land on your portfolio."],
-  ["Jadilah lebih mudah ditemukan", "Become discoverable", "Profilmu masuk ke talent pool dengan bukti yang menyertainya.", "Your profile enters the talent pool with evidence attached."],
+  ["Ditemukan untuk peluang kerja", "Get discovered for work", "Profilmu masuk ke talent pool agar recruiter, hiring manager, dan pembangun tim dapat melihat buktinya.", "Your profile enters the talent pool so recruiters, hiring managers, and team builders can see the evidence."],
 ] as const;
 
 export default async function Home() {
@@ -184,14 +184,14 @@ export default async function Home() {
         <section className="talent-story" aria-labelledby="talent-story-title">
           <div className="talent-story-copy">
             <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">{tx(locale, "Lengkapi profilmu agar perekrut dapat menemukanmu.", "Complete your profile so recruiters can find you.")}</h2>
+            <h2 id="talent-story-title">{tx(locale, "Bangun pengalaman proyek nyata, lalu ditemukan untuk peluang kerja.", "Build real project experience, then get discovered for work.")}</h2>
             <p>
-              {tx(locale, "Profilmu akan masuk ke talent pool. Perekrut, manajer perekrutan, dan pendiri melihat bukti yang sama. Begini caranya:", "Your profile is collected into the talent pool. Recruiters, hiring managers, and founders all see the same evidence. Here is how:")}
+              {tx(locale, "Kolaborasi di proyek memberi kamu pengalaman nyata untuk ditunjukkan. Talent Pool lalu mempertemukanmu dengan recruiter, hiring manager, dan orang yang sedang membangun tim.", "Collaborating on projects gives you real experience to show. Talent Pool then connects you with recruiters, hiring managers, and people building teams.")}
             </p>
             <ul>
-              <li><span>✓</span> {tx(locale, "Manajer perekrutan dapat mencari berdasarkan topik proyek", "Hiring managers can search by project topic")}</li>
-              <li><span>✓</span> {tx(locale, "Perekrut dapat menemukanmu melalui keahlian dan pengalaman yang relevan", "Recruiters can find you through relevant skills and experience")}</li>
-              <li><span>✓</span> {tx(locale, "Pendiri dapat melihat kedalaman pekerjaan proyekmu", "Founders can see the depth of your project work")}</li>
+              <li><span>✓</span> {tx(locale, "Recruiter dapat menemukanmu melalui keahlian, pengalaman, dan status peluang", "Recruiters can find you through skills, experience, and opportunity status")}</li>
+              <li><span>✓</span> {tx(locale, "Hiring manager dapat menilai kontribusimu dari proyek yang benar-benar kamu kerjakan", "Hiring managers can assess your contribution through projects you actually worked on")}</li>
+              <li><span>✓</span> {tx(locale, "Orang yang membangun tim dapat menemukan rekan yang sesuai sebelum mengajak bekerja bersama", "Team builders can find the right people before inviting them to work together")}</li>
             </ul>
             <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi talent", "Browse talent")} <Arrow /></Link>
           </div>
