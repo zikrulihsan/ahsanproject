@@ -44,6 +44,13 @@ export function ProfileForm({
         </p>
       ) : null}
 
+      <p className="form-notice" role="status">
+        {tx(
+          "Wajib diisi: profesi, minimal satu keahlian, dan perkenalan singkat atau bio. Tanpa ketiganya, profilmu tidak akan muncul di talent pool dan kamu belum bisa mengajukan proposal ke proyek orang lain.",
+          "Required: a profession, at least one skill, and a headline or bio. Without all three your profile won't appear in the talent pool, and you won't be able to submit proposals to other people's projects.",
+        )}
+      </p>
+
       <fieldset className="step">
         <legend>
           <span className="step-number">1</span> {tx("Tentang dirimu", "About you")}
@@ -93,7 +100,7 @@ export function ProfileForm({
           <span className="step-number">2</span> {tx("Tampil di talent pool", "Be discoverable in the talent pool")}
         </legend>
         <p className="step-intro">
-          {tx("Detail ini digunakan oleh filter di direktori ", "These details power the filters in the ")}<strong>{tx("Orang", "People")}</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya.", " directory. Your projects remain the proof of your work—this just helps people find them.")}
+          {tx("Detail ini digunakan oleh filter di direktori ", "These details power the filters in the ")}<strong>{tx("Orang", "People")}</strong>{tx(". Proyekmu tetap menjadi bukti karyamu—bagian ini hanya membantu orang menemukannya. Keahlian di sini juga menjadi salah satu syarat sebelum kamu bisa mengajukan proposal ke proyek orang lain.", " directory. Your projects remain the proof of your work—this just helps people find them. Skills here are also one of the requirements before you can submit a proposal to someone else's project.")}
         </p>
 
         <Field
