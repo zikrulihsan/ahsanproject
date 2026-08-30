@@ -10,7 +10,6 @@ import { readPublicly } from "../lib/public-read";
 import { HeaderMenu } from "./header-menu";
 import { SignOutButton } from "./sign-out-button";
 import { Skeleton } from "./skeleton";
-import { LanguageSwitcher } from "./language-switcher";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 
@@ -49,6 +48,7 @@ type HeaderIconName =
   | "steps"
   | "inbox"
   | "add"
+  | "language"
   | "signout"
   | "signin";
 
@@ -62,6 +62,7 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
     edit: <><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m14 6 4 4" /></>,
     steps: <><path d="M4 7h5v13H4zM9.5 12h5v8h-5zM15 4h5v16h-5z" /></>,
     add: <path d="M12 5v14M5 12h14" />,
+    language: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></>,
     signout: <><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></>,
     signin: <><path d="M14 5h5v14h-5M10 8l-4 4 4 4M6 12h9" /></>,
   };
@@ -177,7 +178,6 @@ async function VisitorHeader({
         <MainNav active={active} locale={locale} />
 
         <div className="header-actions">
-          <LanguageSwitcher />
           {viewer ? (
             <>
               <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
@@ -251,6 +251,10 @@ function AccountMenu({ viewer, waiting, locale }: { viewer: Viewer; waiting: num
           <Link href="/new">
             <HeaderIcon name="add" />
             <span>{tx(locale, "Tambah proyek", "Add project")}</span>
+          </Link>
+          <Link href="/account/language">
+            <HeaderIcon name="language" />
+            <span>{tx(locale, "Bahasa", "Language")}</span>
           </Link>
         </nav>
         <form className="account-signout" action={signOut}>
@@ -328,6 +332,10 @@ function MobileHeaderMenu({
                 <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
                 {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
               </Link>
+              <Link href="/account/language">
+                <HeaderIcon name="language" />
+                <span>{tx(locale, "Bahasa", "Language")}</span>
+              </Link>
             </nav>
             <form className="account-signout" action={signOut}>
               <SignOutButton />
@@ -378,6 +386,9 @@ export async function SiteFooter() {
         <Link href="/explore">{tx(locale, "Jelajahi", "Explore")}</Link>
         <Link href="/people">{tx(locale, "Orang", "People")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
+        {/* The only reach a signed-out visitor has left to change language,
+            now that the header no longer carries the switcher directly. */}
+        <Link href="/account/language">{tx(locale, "Bahasa", "Language")}</Link>
       </nav>
       <small>© <CopyrightYear /> Ahsan Project</small>
     </footer>

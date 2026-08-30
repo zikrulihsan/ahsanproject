@@ -3329,31 +3329,35 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .people-pagination > div { grid-column: 1 / -1; grid-row: 1; justify-content: center; }
   .people-pagination .pagination-direction { grid-row: 2; }
 }
-/* The language control is deliberately compact enough for both desktop and mobile headers. */
-.language-switcher {
+/* The two cards on /account/language. */
+.language-picker {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  max-width: 360px;
+}
+
+.language-option {
   align-items: center;
-  color: var(--muted);
-  display: inline-flex;
-  font-size: 11px;
-  font-weight: 700;
-  gap: 4px;
-  letter-spacing: .04em;
-}
-
-.language-switcher a {
-  background: transparent;
-  border: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 13px;
   color: inherit;
-  cursor: pointer;
-  font: inherit;
-  opacity: .55;
-  padding: 7px 3px;
+  display: flex;
+  gap: 10px;
+  padding: 15px 17px;
   text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.language-switcher a.is-active {
-  color: var(--ink);
-  opacity: 1;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.language-option:hover { border-color: #b7c4bd; }
+
+.language-option.is-active {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
 }
+
+.language-option-name { flex: 1; font-weight: 600; }
+.language-option-code { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.language-option.is-active .language-option-code { color: var(--muted); }
+.language-option-check { color: var(--ink); font-weight: 700; }
