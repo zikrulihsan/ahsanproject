@@ -50,6 +50,13 @@ export function ProfileForm({
         </p>
       ) : null}
 
+      <p className="form-notice" role="status">
+        {tx(
+          "Wajib diisi: profesi, minimal satu keahlian, dan perkenalan singkat atau bio. Tanpa ketiganya, profilmu tidak akan muncul di talent pool dan kamu belum bisa mengajukan proposal ke proyek orang lain.",
+          "Required: a profession, at least one skill, and a headline or bio. Without all three your profile won't appear in the talent pool, and you won't be able to submit proposals to other people's projects.",
+        )}
+      </p>
+
       <fieldset className="step">
         <legend>
           <span className="step-number">1</span> {tx("Tentang dirimu", "About you")}
