@@ -2,8 +2,12 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { createProject, previewProjectLink, type CreateState, type LinkPreview } from "../actions";
-import { MAXIMUM, MINIMUM } from "../lib/brief";
-import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";
+import { MAXIMUM, MINIMUM, domainOf } from "../lib/brief";
+import type { Locale } from "../lib/locale";
+import { STAGES, stageBlurb, stageLabel, tagList, type Stage } from "../lib/stages";
+import { projectTypeLabel } from "../lib/project-types";
+import { roleLabel } from "../lib/roles";
+import { topicLabel } from "../lib/topics";
 import { CommitmentField } from "./commitment-field";
 import { Field } from "./field";
 import { ProjectTypePicker } from "./project-type-picker";
@@ -18,24 +22,27 @@ const EMPTY: CreateState = { errors: {}, values: {} };
 const PREVIEW_DELAY_MS = 700;
 
 type EntryMethod = "link" | "description";
-type Step = 1 | 2;
+type Step = 1 | 2 | 3;
 
 /** What the first step asks for, per route. Everything else belongs to step two. */
 const STEP_ONE_FIELDS: Record<EntryMethod, readonly string[]> = {
-  link: ["link"],
+  link: ["link", "title", "highlight"],
   description: ["title", "highlight"],
 };
 
+/** The detail fields an idea has to answer itself, having no page to be read. */
+const REQUIRED_DETAILS = ["tagline", "problem", "solution", "audience"] as const;
+
 /**
- * Adding a project is two steps, because the first one is the only one that
- * has to be answered.
+ * Adding a project is three steps, and only the first one has to be answered.
  *
  * Step one takes whichever evidence already exists: a link, whose page supplies
  * the name, summary and icon, or a short description for an idea that has no
  * page yet. Step two is the fuller brief, and its weight follows what step one
- * gave us — a link can carry a project on its own, so the details are optional
- * and skippable, while a description-only idea has nothing else to be read
- * from and is asked to finish the brief.
+ * gave us — a link can carry a project on its own, so its details are optional
+ * and skippable, while a description-only idea has nothing else to be read from
+ * and is asked to finish the brief. Step three is the card everyone else will
+ * see, shown before anything is saved rather than after.
  */
 export function CreateForm() {
   const [state, formAction, pending] = useActionState(createProject, EMPTY);
@@ -50,8 +57,10 @@ export function CreateForm() {
   const [preview, setPreview] = useState<LinkPreview | null>(null);
   const [previewError, setPreviewError] = useState("");
   const [reading, startReading] = useTransition();
-  /** What the first step itself objected to, before the server saw anything. */
+  /** What a step objected to itself, before the server saw anything. */
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
+  /** Everything typed so far, read off the form when the review opens. */
+  const [review, setReview] = useState<Review | null>(null);
 
   const initialStage = STAGES.includes(values.stage as Stage) ? (values.stage as Stage) : null;
   const [stage, setStage] = useState<Stage | null>(initialStage);
@@ -64,6 +73,13 @@ export function CreateForm() {
   /* A description-only idea has no page to be read from, so its brief is the
      project; a link can stand on its own, so its details stay optional. */
   const detailsRequired = entryMethod === "description";
+  /* Once there is something link-shaped to read, the name and the highlight
+     belong on this step too — they are what the page was read for. */
+  const linkStarted = entryMethod === "link" && looksLikeLink(link.trim());
+
+  function errorFor(field: string): string | undefined {
+    return stepErrors[field] || errors[field as keyof typeof errors];
+  }
 
   /*
    * Read the link while they are still looking at it.
@@ -102,10 +118,10 @@ export function CreateForm() {
   /*
    * Send them back to the step that holds the problem.
    *
-   * A rejected submission was posted from step two, so an error on a step one
+   * A rejected submission was posted from the review, so an error on an earlier
    * field would otherwise be reported on a screen nobody is looking at. This
-   * reacts to a new result from the action rather than to a render, so it is
-   * an adjustment during rendering and not an effect.
+   * reacts to a new result from the action rather than to a render, so it is an
+   * adjustment during rendering and not an effect.
    */
   const [answered, setAnswered] = useState(state);
   if (answered !== state) {
@@ -117,10 +133,10 @@ export function CreateForm() {
     }
   }
 
-  /** The first step, checked here so nobody pays a round trip to be told. */
-  function continueToDetails() {
-    const form = formRef.current;
+  /** The starting point, checked here so nobody pays a round trip to be told. */
+  function leaveStartingPoint() {
     const found: Record<string, string> = {};
+    const title = fieldValue(formRef.current, "title");
 
     if (entryMethod === "link") {
       if (!looksLikeLink(link.trim())) {
@@ -130,15 +146,13 @@ export function CreateForm() {
         );
       }
     } else {
-      const title = fieldValue(form, "title");
-      const highlight = fieldValue(form, "highlight");
       if (title.length < MINIMUM.title) {
         found.title = tx(
           `Tuliskan nama proyek atau ide—minimal ${MINIMUM.title} karakter.`,
           `Write the project or idea name — at least ${MINIMUM.title} characters.`,
         );
       }
-      if (!highlight) {
+      if (!fieldValue(formRef.current, "highlight")) {
         found.highlight = tx(
           "Tuliskan deskripsi singkat agar orang memahami idenya.",
           "Write a short description so people can understand the idea.",
@@ -147,36 +161,75 @@ export function CreateForm() {
     }
 
     setStepErrors(found);
-    if (Object.keys(found).length > 0) return;
-    goToStep(2);
+    if (Object.keys(found).length === 0) goToStep(2);
+  }
+
+  /** The details, which only an idea has to have answered before the review. */
+  function leaveDetails() {
+    const found: Record<string, string> = {};
+    if (detailsRequired) {
+      for (const field of REQUIRED_DETAILS) {
+        if (!fieldValue(formRef.current, field)) found[field] = DETAIL_PROMPTS[field](tx);
+      }
+    }
+
+    setStepErrors(found);
+    if (Object.keys(found).length === 0) goToStep(3);
   }
 
   function goToStep(next: Step) {
+    if (next === 3) setReview(readReview(formRef.current, preview, link, locale));
+    if (next < 3) setStepErrors((current) => (next === 1 ? current : {}));
     setStep(next);
     formRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
-  // Remounts the detail inputs when a new page has been read, so reaching the
-  // details afterwards shows what was found instead of an empty form. Anything
-  // typed there stays typed: their value is what gets posted either way.
+  // Remounts the prefilled inputs when a new page has been read, so the name
+  // and summary show what was found instead of staying empty. Anything typed
+  // there stays typed: their value is what gets posted either way.
   const prefillKey = preview?.url ?? "no-preview";
 
   return (
-    <form className="create-form link-form" action={formAction} ref={formRef}>
+    /* Validated here and on the server rather than by the browser: the two
+       steps that are not on screen stay in the document so their answers are
+       still posted, and a required field inside a hidden section is one the
+       browser refuses to submit and cannot focus to explain why. */
+    <form className="create-form link-form" action={formAction} ref={formRef} noValidate>
       {errors.form ? (
         <p className="form-error" role="alert">
           {errors.form}
         </p>
       ) : null}
 
-      <p className="step-indicator">
-        {step === 1
-          ? tx("Langkah 1 dari 2 · Titik awal", "Step 1 of 2 · Starting point")
-          : tx("Langkah 2 dari 2 · Detail proyek", "Step 2 of 2 · Project details")}
-      </p>
+      <nav className="step-nav">
+        {step > 1 ? (
+          <button className="step-nav-link" type="button" onClick={() => goToStep((step - 1) as Step)}>
+            <span aria-hidden="true">←</span> {tx("Kembali", "Back")}
+          </button>
+        ) : (
+          <span />
+        )}
 
-      {/* Both steps stay mounted: the first one still has to post its answers
-          with the second one, and going back must not empty what was typed. */}
+        <p className="step-indicator">
+          {step === 1
+            ? tx("Langkah 1 dari 3 · Titik awal", "Step 1 of 3 · Starting point")
+            : step === 2
+              ? tx("Langkah 2 dari 3 · Detail", "Step 2 of 3 · Details")
+              : tx("Langkah 3 dari 3 · Tinjau", "Step 3 of 3 · Review")}
+        </p>
+
+        {step === 2 && !detailsRequired ? (
+          <button className="step-nav-link is-end" type="button" onClick={() => goToStep(3)}>
+            {tx("Lewati", "Skip")} <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <span />
+        )}
+      </nav>
+
+      {/* Every step stays mounted: the ones behind still have to post their
+          answers with the submit, and going back must not empty what was
+          typed. */}
       <section className="link-start" hidden={step !== 1}>
         <fieldset className="entry-method">
           <legend>{tx("Mau mulai dari mana?", "How would you like to start?")}</legend>
@@ -218,10 +271,10 @@ export function CreateForm() {
 
         {entryMethod === "link" ? (
           <>
-            <div className={`field ${stepErrors.link || errors.link ? "has-error" : ""}`}>
+            <div className={`field ${errorFor("link") ? "has-error" : ""}`}>
               <label htmlFor="link">{tx("Tautan proyek", "Project link")}</label>
               <p className="hint" id="link-hint">
-                {tx("Nama dan deskripsi proyek diambil dari halaman ini.", "The project name and description are read from this page.")}
+                {tx("Nama dan deskripsi diambil dari halaman ini.", "The name and description are read from this page.")}
               </p>
               <input
                 id="link"
@@ -235,23 +288,48 @@ export function CreateForm() {
                 value={link}
                 onChange={(event) => changeLink(event.target.value)}
                 aria-describedby="link-hint"
-                aria-invalid={stepErrors.link || errors.link ? true : undefined}
+                aria-invalid={errorFor("link") ? true : undefined}
               />
-              {stepErrors.link || errors.link ? (
+              {errorFor("link") ? (
                 <p className="field-error" role="alert">
-                  {stepErrors.link || errors.link}
+                  {errorFor("link")}
                 </p>
               ) : null}
             </div>
 
             <LinkReading reading={reading} preview={preview} error={previewError} />
+
+            {linkStarted ? (
+              <>
+                <Field
+                  key={`title-${prefillKey}`}
+                  label={tx("Nama proyek", "Project name")}
+                  name="title"
+                  hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
+                  error={errorFor("title")}
+                  defaultValue={values.title || preview?.title || ""}
+                  maxLength={MAXIMUM.title}
+                  placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
+                />
+
+                <Field
+                  label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
+                  name="highlight"
+                  hint={tx("Opsional.", "Optional.")}
+                  error={errorFor("highlight")}
+                  defaultValue={values.highlight}
+                  rows={3}
+                  maxLength={MAXIMUM.highlight}
+                />
+              </>
+            ) : null}
           </>
         ) : (
           <>
             <Field
               label={tx("Nama proyek atau ide", "Project or idea name")}
               name="title"
-              error={stepErrors.title || errors.title}
+              error={errorFor("title")}
               defaultValue={values.title}
               maxLength={MAXIMUM.title}
               placeholder={tx("Contoh: Teman Belajar", "For example: Study Buddy")}
@@ -260,7 +338,7 @@ export function CreateForm() {
               label={tx("Deskripsikan ide atau proyekmu", "Describe your idea or project")}
               name="highlight"
               hint={tx("Ceritakan apa yang ingin dibuat, masalah yang ingin dijawab, atau siapa yang akan terbantu. Satu sampai tiga kalimat sudah cukup.", "Tell people what you want to make, the problem it addresses, or who it could help. One to three sentences is enough.")}
-              error={stepErrors.highlight || errors.highlight}
+              error={errorFor("highlight")}
               defaultValue={values.highlight}
               rows={3}
               maxLength={MAXIMUM.highlight}
@@ -272,7 +350,7 @@ export function CreateForm() {
           </>
         )}
 
-        <button className="primary-button create-submit" type="button" onClick={continueToDetails}>
+        <button className="primary-button create-submit" type="button" onClick={leaveStartingPoint}>
           {tx("Lanjut", "Continue")}
         </button>
       </section>
@@ -287,38 +365,13 @@ export function CreateForm() {
           <p>
             {detailsRequired
               ? tx("Idemu belum punya halaman yang bisa dibaca, jadi bagian ini yang menjelaskannya kepada orang lain.", "Your idea has no page for us to read, so this is what explains it to other people.")
-              : tx("Semuanya opsional—nama, ringkasan, dan ikon sudah diambil dari halaman tautanmu. Kamu juga bisa melengkapinya nanti dari halaman proyek.", "All optional — the name, summary, and icon already come from your link's page. You can also fill this in later from the project page.")}
+              : tx("Semuanya opsional—kamu bisa langsung melewatinya, atau melengkapinya nanti dari halaman proyek.", "All optional — you can skip straight past this, or fill it in later from the project page.")}
           </p>
         </div>
 
         <div className="project-details-body">
           <fieldset className="step">
             <legend>{tx("Proyek", "The project")}</legend>
-
-            {entryMethod === "link" ? (
-              <>
-                <Field
-                  key={`title-${prefillKey}`}
-                  label={tx("Nama proyek", "Project name")}
-                  name="title"
-                  hint={tx("Diambil dari halaman jika dikosongkan.", "Taken from the page when you leave it blank.")}
-                  error={errors.title}
-                  defaultValue={values.title || preview?.title || ""}
-                  maxLength={MAXIMUM.title}
-                  placeholder={tx("Contoh: Main Aman", "For example: Stay Safe")}
-                />
-
-                <Field
-                  label={tx("Apa yang menarik dari proyek ini?", "What is interesting about this project?")}
-                  name="highlight"
-                  hint={tx("Opsional.", "Optional.")}
-                  error={errors.highlight}
-                  defaultValue={values.highlight}
-                  rows={3}
-                  maxLength={MAXIMUM.highlight}
-                />
-              </>
-            ) : null}
 
             <Field
               key={`tagline-${prefillKey}`}
@@ -327,10 +380,10 @@ export function CreateForm() {
               hint={detailsRequired
                 ? tx("Manfaat utamanya dalam bahasa sederhana.", "Its main benefit in plain language.")
                 : tx("Manfaat utamanya dalam bahasa sederhana. Diambil dari halaman jika dikosongkan.", "Its main benefit in plain language. Taken from the page when you leave it blank.")}
-              error={errors.tagline}
+              error={errorFor("tagline")}
               defaultValue={values.tagline || preview?.tagline || ""}
               maxLength={MAXIMUM.tagline}
-              required={detailsRequired && step === 2}
+              required={detailsRequired}
               placeholder={tx("Contoh: Materi keamanan digital untuk orang tua dan anak.", "For example: Digital safety materials for parents and children.")}
             />
 
@@ -362,10 +415,10 @@ export function CreateForm() {
               label={tx("Masalah apa yang ingin kamu selesaikan?", "What problem are you solving?")}
               name="problem"
               hint={tx("Siapa yang mengalami kesulitan, dalam situasi apa, dan mengapa cara yang ada belum cukup?", "Who is struggling, in what situation, and why is the current approach not enough?")}
-              error={errors.problem}
+              error={errorFor("problem")}
               defaultValue={values.problem}
               rows={4}
-              required={detailsRequired && step === 2}
+              required={detailsRequired}
               maxLength={MAXIMUM.problem}
             />
 
@@ -373,10 +426,10 @@ export function CreateForm() {
               label={tx("Apa yang sedang kamu buat?", "What are you making?")}
               name="solution"
               hint={tx("Jelaskan bentuk solusi dan arah yang ingin kamu jajaki.", "Describe the form of the solution and the direction you want to explore.")}
-              error={errors.solution}
+              error={errorFor("solution")}
               defaultValue={values.solution}
               rows={4}
-              required={detailsRequired && step === 2}
+              required={detailsRequired}
               maxLength={MAXIMUM.solution}
             />
 
@@ -384,10 +437,10 @@ export function CreateForm() {
               label={tx("Untuk siapa proyek ini?", "Who is it for?")}
               name="audience"
               hint={tx("Sebutkan secara spesifik kelompok yang paling terbantu.", "Name the group of people it will help most specifically.")}
-              error={errors.audience}
+              error={errorFor("audience")}
               defaultValue={values.audience}
               rows={2}
-              required={detailsRequired && step === 2}
+              required={detailsRequired}
               maxLength={MAXIMUM.audience}
             />
           </fieldset>
@@ -556,39 +609,188 @@ export function CreateForm() {
           </fieldset>
         </div>
 
-        <div className="step-actions">
-          <button className="ghost-button" type="button" onClick={() => goToStep(1)} disabled={pending}>
-            {tx("Kembali", "Back")}
-          </button>
-          {detailsRequired ? null : (
-            <button className="ghost-button" type="submit" disabled={pending}>
-              {tx("Lewati", "Skip")}
-            </button>
-          )}
-          <button className="primary-button" type="submit" disabled={pending}>
-            {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
-          </button>
+        <button className="primary-button create-submit" type="button" onClick={leaveDetails}>
+          {tx("Lanjut", "Continue")}
+        </button>
+      </section>
+
+      <section className="review-step" hidden={step !== 3}>
+        <div className="step-head">
+          <h2>{tx("Beginilah proyekmu akan terlihat", "This is how your project will look")}</h2>
+          <p>{tx("Periksa sekali lagi sebelum dikirim. Setelah tampil, semuanya masih bisa diubah dari halaman proyek.", "Have one more look before you send it. Once it is up, all of this can still be edited from the project page.")}</p>
         </div>
+
+        {step === 3 && review ? <ReviewCard review={review} locale={locale} /> : null}
+
+        <button className="primary-button create-submit" type="submit" disabled={pending}>
+          {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
+        </button>
       </section>
     </form>
   );
 }
 
-/** The same record without one key, for clearing a single resolved complaint. */
-function omit(errors: Record<string, string>, key: string): Record<string, string> {
-  const rest = { ...errors };
-  delete rest[key];
-  return rest;
+/** Everything the review shows, read off the form the moment it is opened. */
+type Review = {
+  title: string;
+  tagline: string;
+  highlight: string;
+  logoUrl: string;
+  stage: Stage;
+  topics: string[];
+  projectType: string;
+  problem: string;
+  solution: string;
+  audience: string;
+  now: string;
+  docUrl: string;
+  liveUrl: string;
+  repoUrl: string;
+  openToGitHub: boolean;
+  seat: { role: string; brief: string; commitment: string } | null;
+};
+
+/**
+ * The form as the board will read it.
+ *
+ * Taken from `FormData` rather than from React state because most of these
+ * inputs are uncontrolled: their value lives in the DOM, and this is the same
+ * snapshot the server action is about to be handed. The fallbacks mirror
+ * `createProject` — a blank name becomes the page's name, a blank stage is
+ * inferred from the evidence — so the card is a rehearsal, not a guess.
+ */
+function readReview(
+  form: HTMLFormElement | null,
+  preview: LinkPreview | null,
+  link: string,
+  locale: Locale,
+): Review {
+  const data = form ? new FormData(form) : new FormData();
+  const value = (name: string) => String(data.get(name) ?? "").trim();
+
+  const entryMethod = value("entryMethod") === "description" ? "description" : "link";
+  const typedLink = link.trim();
+  const repoLink = isGitHubRepository(typedLink);
+  const chosen = value("stage");
+  const custom = tagList(value("customTags"));
+  const seatRole = value("seatRole");
+
+  return {
+    title: value("title") || preview?.title || domainOf(typedLink) || typedLink,
+    tagline: value("tagline") || preview?.tagline || "",
+    highlight: value("highlight"),
+    logoUrl: value("logoUrl") || preview?.logoUrl || "",
+    stage: STAGES.includes(chosen as Stage)
+      ? (chosen as Stage)
+      : entryMethod === "description"
+        ? "idea"
+        : repoLink
+          ? "building"
+          : "live",
+    topics: [
+      ...new Set([
+        ...data.getAll("topics").map((topic) => String(topic).trim()).filter(Boolean),
+        ...custom,
+      ]),
+    ].slice(0, 6),
+    projectType: value("projectType"),
+    problem: value("problem"),
+    solution: value("solution"),
+    audience: value("audience"),
+    now: value("now"),
+    docUrl: value("docUrl"),
+    liveUrl: value("liveUrl") || (entryMethod === "link" && !repoLink ? typedLink : ""),
+    repoUrl: value("repoUrl") || (repoLink ? typedLink : ""),
+    openToGitHub: value("openForGitHubContributions") === "yes",
+    seat:
+      value("openSeat") === "yes" && seatRole
+        ? {
+            role: roleLabel(seatRole, value("seatRoleTitle"), locale),
+            brief: value("seatBrief"),
+            commitment: value("seatCommitment"),
+          }
+        : null,
+  };
 }
 
-/** The value a named control currently holds, trimmed, or an empty string. */
-function fieldValue(form: HTMLFormElement | null, name: string): string {
-  const control = form?.elements.namedItem(name);
-  if (!control || !("value" in control) || typeof control.value !== "string") return "";
-  return control.value.trim();
+/** The card, plus the parts of the brief a card does not have room for. */
+function ReviewCard({ review, locale }: { review: Review; locale: Locale }) {
+  const { tx } = useLanguage();
+  const rows: [string, string][] = [
+    [tx("Jenis proyek", "Project kind"), review.projectType ? projectTypeLabel(review.projectType, locale) : ""],
+    [tx("Masalah", "Problem"), review.problem],
+    [tx("Yang dibuat", "What is being made"), review.solution],
+    [tx("Untuk siapa", "Who it is for"), review.audience],
+    [tx("Sedang dikerjakan", "Working on now"), review.now],
+    [tx("Situs proyek", "Project site"), review.liveUrl],
+    [tx("Repositori", "Repository"), review.repoUrl],
+    [tx("Dokumen", "Document"), review.docUrl],
+  ];
+  const filled = rows.filter(([, body]) => body);
+
+  return (
+    <>
+      <div className="review-card">
+        <div className="review-card-top">
+          <span className={`review-mark level-${review.stage}`} aria-hidden="true">
+            {review.logoUrl ? (
+              // A runtime URL from somebody else's domain, which is exactly what
+              // next/image's configured host list cannot cover.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={review.logoUrl} alt="" />
+            ) : (
+              review.title.slice(0, 1).toUpperCase() || "?"
+            )}
+          </span>
+          <span className="review-stage">{stageLabel(review.stage, locale)}</span>
+        </div>
+
+        <h3>{review.title}</h3>
+        {review.tagline ? <p className="card-tagline">{review.tagline}</p> : null}
+        {review.highlight ? <p className="card-now">{review.highlight}</p> : null}
+        {review.topics.length > 0 ? (
+          <p className="tag-row">{review.topics.map((topic) => topicLabel(topic, locale)).join(" · ")}</p>
+        ) : null}
+        {review.openToGitHub ? (
+          <p className="seat-chips">
+            <span className="seat-chip">{tx("Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")}</span>
+          </p>
+        ) : null}
+        {review.seat ? (
+          <p className="seat-chips">
+            <span className="seat-chip">
+              {review.seat.role}
+              {review.seat.commitment ? ` · ${review.seat.commitment}` : ""}
+            </span>
+          </p>
+        ) : null}
+      </div>
+
+      {filled.length > 0 || review.seat?.brief ? (
+        <dl className="review-list">
+          {filled.map(([label, body]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{body}</dd>
+            </div>
+          ))}
+          {review.seat?.brief ? (
+            <div>
+              <dt>{tx("Bantuan yang dicari", "Help wanted")}</dt>
+              <dd>{review.seat.brief}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : (
+        <p className="review-empty">
+          {tx("Belum ada detail tambahan. Kamu bisa kembali dan mengisinya, atau menambahkannya nanti.", "No extra details yet. You can go back and add some, or fill them in later.")}
+        </p>
+      )}
+    </>
+  );
 }
 
-/** What we found behind the link, or an honest note that we found nothing. */
+/** What we found behind the link, what we are still reading, or nothing. */
 function LinkReading({
   reading,
   preview,
@@ -601,9 +803,21 @@ function LinkReading({
   const { tx } = useLanguage();
   if (reading) {
     return (
-      <p className="link-reading" aria-live="polite">
-        {tx("Membaca halaman…", "Reading the page…")}
-      </p>
+      <>
+        <div className="link-preview is-loading">
+          <span className="link-preview-mark">
+            <span className="skeleton" style={{ height: "100%", width: "100%" }} />
+          </span>
+          <div className="link-preview-copy">
+            <span className="skeleton" style={{ height: 15, width: "48%" }} />
+            <span className="skeleton" style={{ height: 11, width: "84%", marginTop: 9 }} />
+            <span className="skeleton" style={{ height: 10, width: "30%", marginTop: 9 }} />
+          </div>
+        </div>
+        <p className="sr-only" aria-live="polite">
+          {tx("Membaca halaman…", "Reading the page…")}
+        </p>
+      </>
     );
   }
 
@@ -641,6 +855,36 @@ function LinkReading({
       )}
     </div>
   );
+}
+
+/** The prompts the details step uses for what an idea left blank. */
+const DETAIL_PROMPTS: Record<
+  (typeof REQUIRED_DETAILS)[number],
+  (tx: (id: string, en: string) => string) => string
+> = {
+  tagline: (tx) => tx("Tuliskan ringkasan satu kalimat tentang idemu.", "Write a one-line summary of your idea."),
+  problem: (tx) => tx("Jelaskan masalah yang ingin kamu selesaikan.", "Describe the problem you want to solve."),
+  solution: (tx) => tx("Jelaskan apa yang sedang atau akan kamu buat.", "Describe what you are making, or plan to make."),
+  audience: (tx) => tx("Sebutkan untuk siapa proyek ini.", "Say who this project is for."),
+};
+
+/** The same record without one key, for clearing a single resolved complaint. */
+function omit(errors: Record<string, string>, key: string): Record<string, string> {
+  const rest = { ...errors };
+  delete rest[key];
+  return rest;
+}
+
+/** The value a named control currently holds, trimmed, or an empty string. */
+function fieldValue(form: HTMLFormElement | null, name: string): string {
+  const control = form?.elements.namedItem(name);
+  if (!control || !("value" in control) || typeof control.value !== "string") return "";
+  return control.value.trim();
+}
+
+/** Good enough for a preview; the server decides what is really a repository. */
+function isGitHubRepository(value: string): boolean {
+  return /^(https?:\/\/)?(www\.)?github\.com\/[^/]+\/[^/]+/i.test(value);
 }
 
 /**
