@@ -1571,6 +1571,44 @@ form button.danger:hover { background: #96320f; }
 .how-section { margin: 0 auto; max-width: 900px; padding: 76px var(--gutter); }
 .how-section h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 620; letter-spacing: -.05em; margin-bottom: 28px; }
 
+/* The About page stacks three of these one after another. Their own 76px of
+   top padding would otherwise add to the 76px below the section above it, so
+   only the first one after the dark band keeps it. */
+.about-page .how-section + .how-section { padding-top: 0; }
+.about-lead { color: var(--muted); font-size: 16px; line-height: 1.75; margin: 0 0 26px; max-width: 66ch; }
+.how-list + .landing-inline-link { margin-top: 0; }
+
+.partner-benefits {
+  display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none;
+  margin: 0 0 26px; padding: 0;
+}
+.partner-benefits li {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+}
+.partner-benefits h3 { font-size: 16px; font-weight: 680; letter-spacing: -.02em; margin-bottom: 8px; }
+.partner-benefits p { color: var(--muted); font-size: 14px; line-height: 1.65; margin: 0; }
+
+/* An FAQ reads as a list of rows, so these disclosures drop the pill summary
+   the rest of the app uses for small inline toggles. */
+.faq-list { border-top: 1px solid var(--line); }
+.faq-list details { border-bottom: 1px solid var(--line); margin: 0; }
+.faq-list summary {
+  align-items: center; border: 0; border-radius: 0; display: flex; gap: 18px;
+  justify-content: space-between; font-size: 17px; font-weight: 650; letter-spacing: -.02em;
+  padding: 20px 2px;
+}
+.faq-list summary:hover { border-color: transparent; color: var(--coral); }
+.faq-list summary::after {
+  color: var(--muted); content: "+"; flex: none; font-size: 22px; font-weight: 400; line-height: 1;
+  transition: transform .2s ease;
+}
+.faq-list details[open] summary { margin-bottom: 0; }
+.faq-list details[open] summary::after { transform: rotate(45deg); }
+.faq-list details > p {
+  color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0; max-width: 68ch;
+  padding: 0 40px 22px 2px;
+}
+
 /* ------------------------------------------------------------- activity */
 
 .activity-list { list-style: none; margin: 0; padding: 0; }
@@ -1886,8 +1924,10 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-project-card { min-height: 0; }
   .about-section { padding: 60px 20px 52px; }
-  .marquee { font-size: 26px; gap: 14px; margin-top: 52px; overflow: hidden; white-space: nowrap; }
-  .marquee span:nth-of-type(2), .marquee i:nth-of-type(1) { display: none; }
+  /* Three phrases will not sit on one narrow line, and clipping the last one
+     mid-word reads as a bug. Stack them and drop the separators instead. */
+  .marquee { flex-direction: column; font-size: 26px; gap: 4px; margin-top: 52px; text-align: center; }
+  .marquee i { display: none; }
   footer { align-items: flex-start; gap: 20px; grid-template-columns: 1fr; padding: 30px 20px; }
 }
 
@@ -2408,6 +2448,10 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .landing-inline-link:hover .arrow { transform: translateX(3px); }
 
 .landing-project-feature { background: #edf3ef; border-radius: 30px; max-width: 1152px; padding: 62px 60px; }
+/* The first card after the hero has no section above it to lend it space: the
+   hero's bottom padding sits inside the hero's own background, so without this
+   the rounded card is pressed flat against the hero's closing border. */
+.solo-builder-feature { margin-top: 76px; }
 .landing-project-feature-head { align-items: end; display: grid; gap: 52px; grid-template-columns: minmax(0, 1fr) 340px; }
 .landing-project-feature-head h2, .proof-strip-heading h2 {
   color: #17392f; font-size: clamp(38px, 4.2vw, 52px); font-weight: 630; letter-spacing: -.065em;
@@ -2945,6 +2989,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-hero-copy { max-width: 720px; }
   .landing-hero .typing-line { min-height: 1.08em; }
   .use-case-layout { grid-template-columns: 1fr; }
+  .partner-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-project-feature-head { align-items: start; gap: 20px; grid-template-columns: 1fr; }
   .landing-project-feature-head > p { max-width: 620px; }
   .landing-index-row { grid-template-columns: 48px minmax(0, 1fr) 140px; }
@@ -3049,6 +3094,12 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .use-case-list li { font-size: 13px; min-height: 56px; }
   .project-brief-note { padding: 24px; }
   .landing-project-feature { border-radius: 22px; margin: 0 20px; padding: 47px 20px; }
+  .solo-builder-feature { margin-top: 44px; }
+  .about-page .how-section { padding-top: 56px; padding-bottom: 56px; }
+  .about-lead { font-size: 15px; }
+  .partner-benefits { grid-template-columns: 1fr; }
+  .faq-list summary { font-size: 16px; gap: 14px; padding: 18px 2px; }
+  .faq-list details > p { padding-right: 24px; }
   .landing-project-feature-head h2 { font-size: clamp(32px, 9.3vw, 38px); }
   .landing-index-row { align-items: start; gap: 11px; grid-template-columns: 44px minmax(0, 1fr); padding: 17px 15px; }
   .landing-index-row .home-project-logo, .landing-index-row .home-project-logo img { height: 44px; width: 44px; }
