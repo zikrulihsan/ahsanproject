@@ -87,7 +87,7 @@ const PROJECT_TYPE_EN: Record<ProjectType, { label: string; blurb: string; contr
   },
 };
 
-export function projectTypeBlurb(value: string, locale: Locale = "id"): string {
+export function projectTypeBlurb(value: string, locale: Locale = "en"): string {
   return isProjectType(value) ? tx(locale, projectTypeMeta[value].blurb, PROJECT_TYPE_EN[value].blurb) : "";
 }
 
@@ -106,7 +106,7 @@ export function isProjectType(value: string): value is ProjectType {
 }
 
 /** The visible name, or an empty string when the project has not said. */
-export function projectTypeLabel(value: string, locale: Locale = "id"): string {
+export function projectTypeLabel(value: string, locale: Locale = "en"): string {
   return isProjectType(value) ? tx(locale, projectTypeMeta[value].label, PROJECT_TYPE_EN[value].label) : "";
 }
 
@@ -116,7 +116,7 @@ export function projectTypeTone(value: string): string {
 }
 
 /** What joining this kind of project means, for the project page to say out loud. */
-export function projectTypeContribution(value: string, locale: Locale = "id"): string {
+export function projectTypeContribution(value: string, locale: Locale = "en"): string {
   return isProjectType(value)
     ? tx(locale, projectTypeMeta[value].contribution, PROJECT_TYPE_EN[value].contribution)
     : "";
