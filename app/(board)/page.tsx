@@ -56,7 +56,7 @@ export default async function Home() {
           <div className="landing-hero-copy">
             <RotatingHeadline />
             <p className="landing-hero-lead">
-              {tx(locale, "Ruang publik untuk menampilkan karyamu, menunjukkan keahlian, dan lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, prove your skills, and get discovered by everyone.")}
+              {tx(locale, "Ruang publik untuk membangun dan mengembangkan proyek techmu, membuktikan keahlianmu, dan berkolaborasi.", "A public place to build and grow your tech project, prove your skill and collaborate.")}
             </p>
 
             <div className="home-hero-actions" aria-label={tx(locale, "Mulai menggunakan Ahsan Project", "Get started with Ahsan Project")}>
@@ -90,6 +90,32 @@ export default async function Home() {
             {tx(locale, "Sebagian data terbaru tidak dapat dimuat.", "Some live data could not be loaded.")} <Link href="/">{tx(locale, "Muat ulang halaman ini", "Refresh this page")}</Link>.
           </p>
         ) : null}
+
+        <section className="landing-project-feature solo-builder-feature" aria-labelledby="solo-builder-title">
+          <div className="landing-project-feature-head">
+            <div>
+              <p className="home-eyebrow">{tx(locale, "Untuk solo builder", "For solo builders")}</p>
+              <h2 id="solo-builder-title">
+                {tx(locale, "Jangan sampai proyekmu berhenti dan stuck di kamu sendirian.", "Don't let your project stop and get stuck with just you.")}
+              </h2>
+            </div>
+            <p>
+              {tx(
+                locale,
+                "Di sini kamu bisa cari orang untuk berkolaborasi dan membuat proyekmu terus bertumbuh — bukan cuma jadi folder yang didiamkan.",
+                "Find people to collaborate with here, and keep your project growing — instead of it becoming a folder nobody touches again.",
+              )}
+            </p>
+          </div>
+
+          <div className="landing-index-filters" aria-label={tx(locale, "Manfaat berkolaborasi", "Benefits of collaborating")}>
+            <span>✅ {tx(locale, "Buka peran", "Open roles")}</span><span>✅ {tx(locale, "Cari kolaborator", "Find collaborators")}</span><span>✅ {tx(locale, "Bagi kepemilikan", "Share ownership")}</span><span>✅ {tx(locale, "Proyek tetap jalan", "Keep it moving")}</span>
+          </div>
+
+          <Link className="landing-inline-link" href="/new">
+            {tx(locale, "Cantumkan proyek dan buka peran", "List your project and open a role")} <Arrow />
+          </Link>
+        </section>
 
         <section className="landing-use-cases" aria-labelledby="use-cases-title">
           <div className="landing-section-intro">
