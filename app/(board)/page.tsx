@@ -258,8 +258,8 @@ export default async function Home() {
         </section>
 
         <section className="landing-final-cta" aria-labelledby="final-cta-title">
-          <p className="home-eyebrow">{tx(locale, "Mulai dari karya", "Start with the work")}</p>
-          <h2 id="final-cta-title">{tx(locale, "Tempatkan karya agar orang dapat melihatnya.", "Put the work where people can see it.")}</h2>
+          <p className="home-eyebrow">{tx(locale, "Mulai dari kamu", "Start with you")}</p>
+          <h2 id="final-cta-title">{tx(locale, "Tampilkan karya agar orang dapat melihatnya.", "Show your work so people can see it.")}</h2>
           <p>{tx(locale, "Tambahkan proyek meski masih berupa ide. Perbarui seiring perkembangannya.", "Add a project even if it's still an idea. Update it as it moves.")}</p>
           <div>
             <Link className="home-hero-primary" href="/new"><span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add a project")}</Link>

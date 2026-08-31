@@ -2919,8 +2919,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .home-projects .board-grid, .home-project-loading-grid { grid-template-columns: minmax(0, 1fr); }
   .home-open-call { grid-template-columns: 115px minmax(0, 1fr); }
   .home-project-link { grid-column: 2; justify-self: end; }
-  .landing-hero { padding-left: 34px; padding-right: 34px; }
-  .landing-use-cases, .landing-project-feature { padding-left: 44px; padding-right: 44px; }
+  .landing-hero, .landing-use-cases, .landing-project-feature { padding-left: 44px; padding-right: 44px; }
   .landing-purpose, .how-it-works { padding-left: 34px; padding-right: 34px; }
   .landing-stats, .talent-story, .portfolio-story, .landing-final-cta { margin-left: 34px; margin-right: 34px; }
   .landing-stats { padding-left: 44px; padding-right: 44px; }
@@ -3025,7 +3024,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .collaboration-control .sort-field select { font-size: 11px; padding-left: 12px; padding-right: 30px; }
   .collaboration-sort-control { margin-top: 0; }
   .collaboration-content { margin-top: 29px; }
-  .landing-hero { margin: 0 auto; padding: 96px 16px 54px; width: 100%; }
+  .landing-hero { margin: 0 auto; padding: 96px 20px 54px; width: 100%; }
   .landing-hero::before {
     display: block; height: 110px; left: -38px; opacity: .5; top: 330px; width: 110px;
   }
