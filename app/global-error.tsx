@@ -8,7 +8,7 @@ function browserLocale(): Locale {
     .split("; ")
     .find((entry) => entry.startsWith(`${LANGUAGE_COOKIE}=`))
     ?.split("=")[1];
-  return saved === "en" ? "en" : "id";
+  return saved === "id" ? "id" : "en";
 }
 
 function subscribeToNothing() {
@@ -27,7 +27,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const locale = useSyncExternalStore<Locale>(subscribeToNothing, browserLocale, () => "id");
+  const locale = useSyncExternalStore<Locale>(subscribeToNothing, browserLocale, () => "en");
 
   useEffect(() => {
     console.error(error);
