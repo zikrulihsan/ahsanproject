@@ -42,10 +42,19 @@ test("a project that has not said its type renders nothing anywhere", () => {
   }
 });
 
+/*
+ * The locale is named rather than left to default. `projectTypeMeta` holds the
+ * Indonesian copy, so a test that asks for the default and compares against it
+ * is really asserting which language the default happens to be — which is why
+ * this broke the moment English became the default. The default gets its own
+ * assertion instead, so a change to it fails as itself.
+ */
 test("a known type answers with its own copy", () => {
-  assert.equal(projectTypeLabel("pet"), projectTypeMeta.pet.label);
+  assert.equal(projectTypeLabel("pet", "id"), projectTypeMeta.pet.label);
+  assert.equal(projectTypeLabel("pet", "en"), "Pet project");
+  assert.equal(projectTypeLabel("pet"), "Pet project");
   assert.equal(projectTypeTone("commercial"), projectTypeMeta.commercial.tone);
-  assert.equal(projectTypeContribution("community"), projectTypeMeta.community.contribution);
+  assert.equal(projectTypeContribution("community", "id"), projectTypeMeta.community.contribution);
 });
 
 /*
