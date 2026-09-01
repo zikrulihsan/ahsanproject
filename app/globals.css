@@ -2323,24 +2323,43 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .home-empty p { margin-bottom: 10px; }
 
 .discovery-sidebar { align-self: start; display: flex; flex-direction: column; gap: 16px; position: sticky; top: calc(var(--header-h) + 20px); }
-.role-ranking { background: #fff; border: 1px solid #dce3df; border-radius: 16px; padding: 24px 23px 20px; }
-.role-ranking-head { display: flex; gap: 12px; justify-content: space-between; }
-.role-ranking .home-eyebrow { margin-bottom: 10px; }
-.role-ranking h2 { font-size: 18px; font-weight: 520; letter-spacing: -.035em; margin: 0 0 10px; }
-.role-ranking-head p:last-child { color: #84908b; font-size: 11px; line-height: 1.55; margin: 0 0 17px; max-width: 230px; }
+/* Explore's rail leads with whichever of the two the search toggle is asking
+   about: the last collaboration, or the projects moving fastest. One card, two
+   contents, so the rail keeps its shape when the toggle flips. */
+.explore-spotlight { background: #fff; border: 1px solid #dce3df; border-radius: 16px; padding: 24px 23px 20px; }
+.explore-spotlight-head { display: flex; gap: 12px; justify-content: space-between; }
+.explore-spotlight .home-eyebrow { margin-bottom: 10px; }
+.explore-spotlight h2 { font-size: 18px; font-weight: 520; letter-spacing: -.035em; margin: 0 0 10px; }
+.explore-spotlight-head p:last-child { color: #84908b; font-size: 11px; line-height: 1.55; margin: 0 0 17px; max-width: 230px; }
 .live-dot { background: #3eaa78; border: 5px solid #dcf3e7; border-radius: 50%; flex: none; height: 15px; margin-top: 0; width: 15px; }
-.role-ranking ol { border-top: 1px solid #e0e5e2; list-style: none; margin: 0; padding: 0; }
-.role-ranking li { border-bottom: 1px solid #e0e5e2; }
-.role-ranking li a { align-items: center; display: grid; gap: 13px; grid-template-columns: 24px minmax(0, 1fr) auto; padding: 13px 0; }
-.role-ranking li a:hover strong { color: #2d715b; }
-.role-number { color: #adb7b2; font-size: 10px; font-weight: 750; }
-.role-ranking li strong, .role-ranking li small { display: block; }
-.role-ranking li strong { font-size: 11px; line-height: 1.3; }
-.role-ranking li small { color: #a0aaa5; font-size: 9px; margin-top: 4px; }
-.role-ranking li .arrow { color: #9aa6a0; }
-.all-roles-link { display: inline-flex; font-size: 10px; font-weight: 760; gap: 11px; margin-top: 17px; }
-.all-roles-link:hover .arrow { transform: translateX(3px); }
-.role-ranking-empty { color: var(--muted); font-size: 12px; padding: 16px 0 0; }
+.explore-spotlight-projects { border-top: 1px solid #e0e5e2; list-style: none; margin: 0; padding: 0; }
+.explore-spotlight-projects li { border-bottom: 1px solid #e0e5e2; }
+.explore-spotlight-projects li a {
+  align-items: center; display: grid; gap: 13px; grid-template-columns: minmax(0, 1fr) auto; padding: 13px 0;
+}
+.explore-spotlight-projects li a:hover strong { color: #2d715b; }
+.explore-spotlight-projects li span { min-width: 0; }
+.explore-spotlight-projects li strong, .explore-spotlight-projects li small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.explore-spotlight-projects li strong { font-size: 11px; line-height: 1.3; }
+.explore-spotlight-projects li small { color: #a0aaa5; font-size: 9px; margin-top: 4px; }
+.explore-spotlight-projects li .arrow { color: #9aa6a0; }
+.explore-spotlight-link { display: inline-flex; font-size: 10px; font-weight: 760; gap: 11px; margin-top: 17px; }
+.explore-spotlight-link:hover .arrow { transform: translateX(3px); }
+.explore-spotlight-empty { color: var(--muted); font-size: 12px; padding: 16px 0 0; }
+
+/* The site-wide trail: one sentence per line, shared by Home and Explore. */
+.collab-trail { border-top: 1px solid #e0e5e2; list-style: none; margin: 0; padding: 0; }
+.collab-trail li { border-bottom: 1px solid #e0e5e2; display: grid; gap: 11px; grid-template-columns: 26px minmax(0, 1fr); padding: 12px 0; }
+.collab-trail-avatar {
+  align-items: center; background: #e9f2ed; border-radius: 50%; color: #2e6653; display: flex; font-size: 8px;
+  font-weight: 750; height: 26px; justify-content: center; width: 26px;
+}
+.collab-trail li > div { min-width: 0; }
+.collab-trail p { color: #6d7c76; font-size: 11px; line-height: 1.5; margin: 0; }
+.collab-trail p a, .collab-trail p strong { color: #21332d; font-weight: 640; }
+.collab-trail p a:hover { color: #2d715b; }
+.collab-trail small { color: #a0aaa5; display: block; font-size: 9px; margin-top: 4px; }
+.collab-trail-empty { color: var(--muted); font-size: 12px; margin: 0; padding: 16px 0 0; }
 
 .show-project-card { background: #154c3d; border-radius: 16px; color: #fff; padding: 24px; }
 .show-project-plus {
@@ -2490,6 +2509,34 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   background: rgba(255, 255, 255, .72); border: 1px solid #d5e0da; border-radius: 99px; color: #62746c;
   font-size: 12px; font-weight: 400; padding: 8px 11px;
 }
+/* Two answers to "don't get stuck alone", side by side: what people have just
+   done here, and which project is asking for which role. */
+.solo-builder-panels { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 22px; }
+.solo-builder-panel { background: #fff; border: 1px solid #d8e2dd; border-radius: 19px; display: flex; flex-direction: column; padding: 24px 23px 20px; }
+.solo-builder-panel-head { display: flex; gap: 12px; justify-content: space-between; }
+.solo-builder-panel .home-eyebrow { margin-bottom: 10px; }
+.solo-builder-panel h3 { color: #17392f; font-size: 18px; font-weight: 560; letter-spacing: -.035em; margin: 0; }
+.solo-builder-panel-note { color: #84908b; font-size: 11px; line-height: 1.55; margin: 9px 0 17px; max-width: 260px; }
+.solo-builder-panel-empty { color: var(--muted); font-size: 12px; margin: 0; padding: 16px 0 0; }
+.solo-builder-panel-link { align-items: center; color: #245548; display: inline-flex; font-size: 10px; font-weight: 760; gap: 11px; margin-top: auto; padding-top: 17px; }
+.solo-builder-panel-link:hover { color: var(--coral); }
+.solo-builder-panel-link:hover .arrow { transform: translateX(3px); }
+.role-wanted-list { border-top: 1px solid #e0e5e2; list-style: none; margin: 0; padding: 0; }
+.role-wanted-list li {
+  align-items: center; border-bottom: 1px solid #e0e5e2; display: grid; gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto; padding: 12px 0;
+}
+.role-wanted-list li > a { min-width: 0; }
+.role-wanted-list strong, .role-wanted-list small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.role-wanted-list strong { color: #21332d; font-size: 11px; line-height: 1.3; }
+.role-wanted-list li > a:hover strong { color: #2d715b; }
+.role-wanted-list small { color: #a0aaa5; font-size: 9px; margin-top: 4px; }
+.role-wanted-roles { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; }
+.role-wanted-roles i {
+  background: #e9f2ed; border-radius: 99px; color: #2e6653; font-size: 9px; font-style: normal;
+  font-weight: 640; padding: 4px 8px; white-space: nowrap;
+}
+
 .landing-project-index { background: #fff; border: 1px solid #d8e2dd; border-radius: 19px; overflow: hidden; }
 .landing-index-row {
   align-items: center; display: grid; gap: 16px; grid-template-columns: 48px minmax(0, 1fr) 150px 145px;
@@ -3033,6 +3080,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .use-case-layout { grid-template-columns: 1fr; }
   .landing-project-feature-head { align-items: start; gap: 20px; grid-template-columns: 1fr; }
   .landing-project-feature-head > p { max-width: 620px; }
+  .solo-builder-panels { grid-template-columns: 1fr; }
   .landing-index-row { grid-template-columns: 48px minmax(0, 1fr) 140px; }
   .landing-index-owner { grid-column: 2; }
   .landing-index-role { grid-column: 3; grid-row: 1 / span 2; }
@@ -3316,9 +3364,8 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 .people-contributor-card ol { border-top: 1px solid #e4e9e6; list-style: none; margin: 0; padding: 0; }
 .people-contributor-card li {
   align-items: center; border-bottom: 1px solid #e4e9e6; display: grid; gap: 9px;
-  grid-template-columns: 20px minmax(0, 1fr) auto; padding: 12px 0;
+  grid-template-columns: minmax(0, 1fr) auto; padding: 12px 0;
 }
-.people-contributor-rank { color: #a3ada8; font-family: var(--font-geist-mono), monospace; font-size: 8px; }
 .people-contributor-person { align-items: center; display: flex; gap: 9px; min-width: 0; }
 .people-mini-avatar {
   align-items: center; background: #e8f0eb; border-radius: 50%; color: #35604f; display: flex; flex: none;

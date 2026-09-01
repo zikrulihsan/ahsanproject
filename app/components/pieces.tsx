@@ -572,6 +572,59 @@ export function monthYear(value: string, locale: Locale = "en"): string {
 }
 
 /**
+ * The site-wide trail, compact enough for a sidebar or a panel on Home.
+ *
+ * Reads as one sentence per line — who, what, on which project, how long ago —
+ * built from the same `activityParts` the profile trail uses, so a new kind of
+ * event only has to be worded in one place.
+ */
+export function CollaborationTrail({
+  events,
+  locale,
+  emptyNote,
+}: {
+  events: ActivityEvent[];
+  locale: Locale;
+  emptyNote: string;
+}) {
+  if (events.length === 0) return <p className="collab-trail-empty">{emptyNote}</p>;
+
+  return (
+    <ol className="collab-trail">
+      {events.map((event) => {
+        const { lead, trail } = activityParts(event, locale);
+        const gone = event.projectId === null || !event.projectSlug;
+
+        return (
+          <li key={event.id}>
+            <span className="collab-trail-avatar" aria-hidden="true">
+              {event.actor ? initials(event.actor.name) : "?"}
+            </span>
+            <div>
+              <p>
+                {event.actor ? (
+                  <Link href={`/u/${event.actor.username}`}>{event.actor.name}</Link>
+                ) : (
+                  <strong>{tx(locale, "Seseorang", "Someone")}</strong>
+                )}{" "}
+                {lead}
+                {gone ? (
+                  <strong>{event.projectTitle}</strong>
+                ) : (
+                  <Link href={`/projects/${event.projectSlug}`}>{event.projectTitle}</Link>
+                )}
+                {trail}
+              </p>
+              <small><RelativeTime value={event.createdAt} locale={locale} /></small>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/**
  * A trail of what somebody, or a project, has actually done.
  *
  * `hidden` is only ever passed when somebody is looking at their own profile:

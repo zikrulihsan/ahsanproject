@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { shareCard } from "../content";
-import { initials } from "../components/pieces";
+import { CollaborationTrail, initials } from "../components/pieces";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { ProjectLogo } from "../components/project-logo";
 import { RotatingHeadline } from "../components/rotating-headline";
-import { listPeople, listProjects, type Person, type ProjectSummary } from "../lib/data";
+import {
+  listPeople,
+  listProjects,
+  listRecentActivity,
+  type Person,
+  type ProjectSummary,
+} from "../lib/data";
+import { Skeleton } from "../components/skeleton";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
 import { projectTypeLabel } from "../lib/project-types";
@@ -37,14 +45,21 @@ const WORKFLOW = [
 ] as const;
 
 export default async function Home() {
-  const [projectsResult, peopleResult, locale] = await Promise.all([
+  const [projectsResult, peopleResult, activityResult, askingResult, locale] = await Promise.all([
     readPublicly("projects on the home page", () => listProjects({ lane: "newest" }), []),
     readPublicly("people on the home page", () => listPeople(400), []),
+    readPublicly("recent collaboration on the home page", () => listRecentActivity(5), []),
+    readPublicly("projects asking for a role", () => listProjects({ lane: "needs-help" }), []),
     currentLocale(),
   ]);
   const projects = projectsResult.value;
   const people = peopleResult.value;
-  const dataUnavailable = projectsResult.unavailable || peopleResult.unavailable;
+  const activity = activityResult.value;
+  // Only the ones that actually name a role: "mencari kolaborator" with nothing
+  // said about what for is not an invitation anybody can answer.
+  const asking = askingResult.value.filter((project) => project.openRoles.length > 0).slice(0, 4);
+  const dataUnavailable = [projectsResult, peopleResult, activityResult, askingResult]
+    .some((result) => result.unavailable);
   const openRoles = projects.reduce((total, project) => total + project.openSeatCount, 0);
 
   return (
@@ -110,6 +125,71 @@ export default async function Home() {
 
           <div className="landing-index-filters" aria-label={tx(locale, "Manfaat berkolaborasi", "Benefits of collaborating")}>
             <span>✅ {tx(locale, "Buka peran", "Open roles")}</span><span>✅ {tx(locale, "Cari kolaborator", "Find collaborators")}</span><span>✅ {tx(locale, "Bagi kepemilikan", "Share ownership")}</span><span>✅ {tx(locale, "Proyek tetap jalan", "Keep it moving")}</span>
+          </div>
+
+          <div className="solo-builder-panels">
+            <div className="solo-builder-panel" aria-labelledby="contribution-activity-title">
+              <div className="solo-builder-panel-head">
+                <div>
+                  <p className="home-eyebrow">{tx(locale, "Sedang terjadi", "Happening now")}</p>
+                  <h3 id="contribution-activity-title">{tx(locale, "Aktivitas kontribusi", "Contribution activity")}</h3>
+                </div>
+                <span className="live-dot" title={tx(locale, "Diperbarui dari aktivitas proyek", "Updated from project activity")} />
+              </div>
+              <p className="solo-builder-panel-note">
+                {tx(locale, "Kontribusi nyata yang baru saja terjadi di proyek orang lain.", "Real contributions that just happened on other people's projects.")}
+              </p>
+              {/* The trail reads the clock for "2 hari lalu", so it arrives at
+                  request time behind its own boundary rather than holding the
+                  rest of the page back. */}
+              <Suspense fallback={<Skeleton height={196} />}>
+                <CollaborationTrail
+                  events={activity}
+                  locale={locale}
+                  emptyNote={tx(locale, "Belum ada aktivitas. Jadilah yang pertama berkontribusi.", "No activity yet. Be the first to contribute.")}
+                />
+              </Suspense>
+              <Link className="solo-builder-panel-link" href="/explore?lane=active">
+                {tx(locale, "Lihat proyek yang sedang bergerak", "See the projects on the move")} <Arrow />
+              </Link>
+            </div>
+
+            <div className="solo-builder-panel" aria-labelledby="asking-for-role-title">
+              <div className="solo-builder-panel-head">
+                <div>
+                  <p className="home-eyebrow">{tx(locale, "Sedang dicari", "Wanted right now")}</p>
+                  <h3 id="asking-for-role-title">{tx(locale, "Proyek ini mencari peran apa", "Which project needs which role")}</h3>
+                </div>
+              </div>
+              <p className="solo-builder-panel-note">
+                {tx(locale, "Proyek yang sudah menyebutkan peran yang mereka butuhkan.", "Projects that have already named the role they need.")}
+              </p>
+              {asking.length > 0 ? (
+                <ul className="role-wanted-list">
+                  {asking.map((project) => (
+                    <li key={project.id}>
+                      <Link href={`/projects/${project.slug}`}>
+                        <strong>{project.title}</strong>
+                        <small>{stageLabel(project.stage, locale)}</small>
+                      </Link>
+                      <span className="role-wanted-roles" aria-label={tx(locale, `Peran yang dicari ${project.title}`, `Roles ${project.title} is looking for`)}>
+                        {project.openRoles.slice(0, 2).map((role) => (
+                          <i key={role}>{roleLabel(role, "", locale)}</i>
+                        ))}
+                        {project.openRoles.length > 2 ? <i>+{project.openRoles.length - 2}</i> : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="solo-builder-panel-empty">
+                  {tx(locale, "Belum ada peran yang dibuka. Proyekmu bisa jadi yang pertama.", "No roles are open yet. Yours could be the first.")}
+                </p>
+              )}
+              <Link className="solo-builder-panel-link" href="/explore?needs=open">
+                {tx(locale, "Lihat semua peran yang dicari", "See every role being asked for")} <Arrow />
+              </Link>
+            </div>
           </div>
 
           <Link className="landing-inline-link" href="/new">
