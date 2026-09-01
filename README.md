@@ -158,6 +158,7 @@ match it.
 | `/account/profile` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
 | `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
 | `/about`, `/en/about` | The story behind the name, in Indonesian and English |
+| `/feedback` | The feedback box — what is broken, what is confusing, what is missing. Open to guests, and read by the maintainers alone |
 
 ### Where the rules live
 
@@ -185,6 +186,11 @@ match it.
 - `app/lib/feed.ts` — the board's lanes, and how the "untuk kamu" lane is
   arranged. Pure, so the unit tests read it directly.
 - `app/lib/updates.ts` — the journey a project writes for itself.
+- `app/lib/feedback.ts` — the five kinds a masukan can be, and what one has
+  to carry to be worth answering. The `feedback` table it validates for is the
+  only one on the site nothing reads back: it is written through
+  `submit_feedback()` and read in the Supabase dashboard — see
+  `20260901000000_feedback.sql`.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
 - `app/lib/tasks.ts` — the three task statuses and what a task must carry.
 - `app/lib/activity.ts` — the eleven kinds of trail entry and how each one reads

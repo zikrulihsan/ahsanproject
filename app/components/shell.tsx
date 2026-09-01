@@ -386,6 +386,7 @@ export async function SiteFooter() {
         <Link href="/explore">{tx(locale, "Jelajahi", "Explore")}</Link>
         <Link href="/people">Talent Pool</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
+        <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
         {/* The only reach a signed-out visitor has left to change language,
             now that the header no longer carries the switcher directly. */}

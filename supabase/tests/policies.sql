@@ -562,6 +562,37 @@ $$, 'mengosongkan kalimat sekarang');
 select checks.equal((select stage from public.projects where slug = 'kelas-sore'), 'idea',
                     'tanpa sandaran lain, tahapnya turun sendiri');
 
+-- ----------------------------------------------------------------- masukan --
+
+-- The feedback box is the one table nobody may read back, not even the person
+-- who wrote the row. Everything about it happens through submit_feedback().
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+
+select checks.allowed($$select public.submit_feedback('idea', 'Tolong tambahkan filter berdasarkan bahasa.', 'dina@example.com')$$,
+                      'anggota mengirim masukan');
+select checks.denied($$select count(*) from public.feedback$$,
+                     'anggota membaca kotak masukan');
+select checks.denied($$insert into public.feedback (kind, message) values ('bug', 'Lewat jalan belakang.')$$,
+                     'anggota menulis langsung ke tabelnya');
+select checks.denied($$select public.submit_feedback('keluhan', 'Jenis yang tidak ada di daftarnya.')$$,
+                     'jenis masukan karangan');
+select checks.denied($$select public.submit_feedback('bug', '   error   ')$$,
+                     'masukan sependek satu kata');
+
+-- Five in an hour is the cap; the sixth is refused.
+select checks.allowed($$select public.submit_feedback('bug', 'Masukan kedua dalam sejam ini.')$$, 'masukan ke-2');
+select checks.allowed($$select public.submit_feedback('bug', 'Masukan ketiga dalam sejam ini.')$$, 'masukan ke-3');
+select checks.allowed($$select public.submit_feedback('bug', 'Masukan keempat dalam sejam ini.')$$, 'masukan ke-4');
+select checks.allowed($$select public.submit_feedback('bug', 'Masukan kelima dalam sejam ini.')$$, 'masukan ke-5');
+select checks.denied($$select public.submit_feedback('bug', 'Masukan keenam dalam sejam ini.')$$,
+                     'masukan keenam kena batas sejam');
+
+reset role;
+select checks.equal((select count(*)::int from public.feedback), 5, 'yang benar-benar tersimpan');
+select checks.equal((select contact from public.feedback where kind = 'idea'), 'dina@example.com',
+                    'alamat balasan tersimpan apa adanya');
+select checks.equal((select bool_or(handled) from public.feedback), false, 'masukan baru belum ditangani');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
@@ -615,6 +646,15 @@ $$, 'tamu menaruh ide');
 select checks.denied($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Tamu mengajukan bantuan.')$$,
                      'tamu mengajukan role');
 
+-- Feedback is the one write a guest may make, and only through the function:
+-- somebody who cannot get past the sign-in screen is exactly the person with
+-- something to report.
+select checks.allowed($$select public.submit_feedback('bug', 'Masuk dengan Google berhenti di halaman kosong.')$$,
+                      'tamu mengirim masukan');
+select checks.denied($$select count(*) from public.feedback$$, 'tamu membaca kotak masukan');
+select checks.denied($$insert into public.feedback (kind, message) values ('bug', 'Lewat jalan belakang.')$$,
+                     'tamu menulis langsung ke tabelnya');
+
 -- The overview must agree with the rows it counts.
 -- The project was just re-created, so every count starts from nothing again.
 select checks.equal((select seat_count::int from public.project_overview), 0, 'hitungan peran');
@@ -624,6 +664,9 @@ select checks.equal((select open_task_count::int from public.project_overview), 
 select checks.equal((select done_task_count::int from public.project_overview), 0, 'hitungan tugas beres');
 
 reset role;
+select checks.equal((select count(*)::int from public.feedback where author_id is null), 1,
+                    'masukan tamu tersimpan tanpa penulis');
+
 rollback;
 
 drop schema checks cascade;

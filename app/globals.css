@@ -946,13 +946,32 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .field.has-error input, .field.has-error textarea, .field.has-error select { border-color: var(--coral); }
 .field-error, .form-error { color: #b23c14; font-size: 13px; margin: -12px 0 18px; }
 .form-error { background: rgba(238, 106, 59, .12); border-radius: 12px; margin: 0 0 22px; padding: 14px 16px; }
-.create-form, .auth-form {
+.create-form, .auth-form, .feedback-form {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 30px; padding: 30px;
 }
 .form-start-note {
   background: var(--paper); border-radius: 12px; color: var(--muted); font-size: 13px;
   line-height: 1.6; margin: 0 0 24px; padding: 13px 15px;
 }
+/* ---------------------------------------------------------------- feedback */
+
+/* The sent card stands where the form did, so the answer arrives in the place
+   the message left from rather than as a banner above an emptied form. */
+.feedback-sent {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 30px; padding: 30px;
+}
+.feedback-sent h2 { font-size: 23px; letter-spacing: -.03em; margin: 0 0 10px; }
+.feedback-sent p:not(.eyebrow) { color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0 0 22px; }
+.feedback-sent button {
+  background: transparent; border: 1px solid var(--line-2); border-radius: 99px; color: inherit;
+  font-family: inherit; font-size: 13px; font-weight: 650; padding: 12px 20px;
+}
+.feedback-sent button:hover { background: var(--paper); }
+.feedback-elsewhere { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 28px; }
+.feedback-elsewhere h2 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 12px; }
+.feedback-elsewhere p { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; }
+.feedback-elsewhere a { border-bottom: 1px solid var(--line-2); }
+
 .github-start { background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 16px; margin: 0 0 24px; padding: 21px; }
 .github-start .eyebrow { margin-bottom: 9px; }
 .github-start h2 { font-size: 19px; letter-spacing: -.03em; margin-bottom: 7px; }
