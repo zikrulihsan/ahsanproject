@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -32,6 +33,10 @@ export function supabaseConfigured(): boolean {
 export const getSupabase = cache(async (): Promise<Supabase | null> => {
   if (!supabaseConfigured()) return null;
 
+  // `createServerClient` generates PKCE/auth internals with request-scoped
+  // randomness. Make that boundary explicit under Cache Components so Next
+  // never attempts to evaluate the client while prerendering a public shell.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, anonKey, {

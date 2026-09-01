@@ -1,6 +1,8 @@
 "use client";
 
+import Form from "next/form";
 import { useRef } from "react";
+import { FormPendingIndicator } from "./form-pending-indicator";
 import { useLanguage } from "./language-provider";
 
 export type SortOption = { value: string; label: string };
@@ -36,7 +38,7 @@ export function SortSelect({
   const controlId = `board-${name}`;
 
   return (
-    <form className="sort-field" method="get" action={action} ref={form}>
+    <Form className="sort-field" action={action} ref={form}>
       {Object.entries(hidden).map(([key, entry]) =>
         entry ? <input key={key} type="hidden" name={key} value={entry} /> : null,
       )}
@@ -58,6 +60,7 @@ export function SortSelect({
       <noscript>
         <button type="submit">{tx("Urutkan", "Sort")}</button>
       </noscript>
-    </form>
+      <FormPendingIndicator />
+    </Form>
   );
 }

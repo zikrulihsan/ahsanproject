@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useTransition } from "react";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "./language-provider";
 import { LANGUAGE_PARAM, LOCALES, type Locale } from "../lib/locale";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { setActivityVisibility } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ActivityList, ProjectCard, ProjectIconLink, monthYear } from "../../components/pieces";

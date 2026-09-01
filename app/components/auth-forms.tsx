@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useActionState } from "react";
+import Link from "@/app/components/responsive-link";
+import { useActionState, useState } from "react";
 import {
   requestPasswordReset,
   signIn,
@@ -54,7 +54,7 @@ export function SignInForm({ next }: { next: string }) {
         />
       </div>
 
-      <button className="primary-button auth-submit" type="submit" disabled={pending}>
+      <button className="primary-button auth-submit" type="submit" disabled={pending} aria-busy={pending || undefined}>
         <span>{pending ? tx("Mohon tunggu…", "Please wait…") : tx("Masuk dengan email", "Sign in with email")}</span>
         {!pending ? <span aria-hidden="true">→</span> : null}
       </button>
@@ -88,7 +88,7 @@ export function SignUpForm({ next }: { next: string }) {
       <label htmlFor="confirm">{tx("Ulangi kata sandi", "Repeat password")}</label>
       <input id="confirm" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Mohon tunggu…", "Please wait…") : tx("Buat akun", "Create account")}
       </button>
     </form>
@@ -114,7 +114,7 @@ export function ForgotPasswordForm() {
       />
       <p className="hint">{tx("Gunakan alamat yang terhubung dengan akunmu.", "Use the address associated with your account.")}</p>
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Mengirim…", "Sending…") : tx("Kirim tautan pengaturan ulang", "Send reset link")}
       </button>
     </form>
@@ -150,7 +150,7 @@ export function NewPasswordForm() {
         minLength={8}
       />
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan kata sandi", "Save password")}
       </button>
     </form>
@@ -168,12 +168,27 @@ export function NewPasswordForm() {
  */
 function GoogleButton({ next }: { next: string }) {
   const { tx } = useLanguage();
+  const [pending, setPending] = useState(false);
   const href = next === "/" ? "/auth/google" : `/auth/google?next=${encodeURIComponent(next)}`;
 
   return (
-    <a className="google-auth-button" href={href}>
-      <GoogleMark />
-      <span>{tx("Lanjutkan dengan Google", "Continue with Google")}</span>
+    <a
+      className="google-auth-button"
+      href={href}
+      aria-busy={pending || undefined}
+      aria-disabled={pending || undefined}
+      onClick={(event) => {
+        const plainClick = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+        if (!plainClick) return;
+        if (pending) {
+          event.preventDefault();
+          return;
+        }
+        setPending(true);
+      }}
+    >
+      {pending ? <span className="action-spinner" aria-hidden="true" /> : <GoogleMark />}
+      <span>{pending ? tx("Menghubungkan…", "Connecting…") : tx("Lanjutkan dengan Google", "Continue with Google")}</span>
     </a>
   );
 }

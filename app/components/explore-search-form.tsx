@@ -1,8 +1,10 @@
 "use client";
 
+import Form from "next/form";
 import { useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import type { OpenRoleSuggestion } from "../lib/data";
 import { useLanguage } from "./language-provider";
+import { SubmitButton } from "./submit-button";
 
 type SearchMode = "project" | "role";
 
@@ -66,9 +68,8 @@ export function ExploreSearchForm({
   };
 
   return (
-    <form
+    <Form
       className="discovery-search collaboration-search"
-      method="get"
       action="/explore"
       role="search"
       ref={form}
@@ -157,8 +158,8 @@ export function ExploreSearchForm({
         ) : null}
       </div>
 
-      <button type="submit">{tx("Cari", "Search")}</button>
-    </form>
+      <SubmitButton pendingLabel={tx("Mencari…", "Searching…")}>{tx("Cari", "Search")}</SubmitButton>
+    </Form>
   );
 }
 

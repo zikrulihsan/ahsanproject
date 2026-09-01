@@ -33,6 +33,8 @@
   --radius: 18px;
   --radius-lg: 22px;
   --shell: 1400px;
+  /* One article-width reading column, shared by every block on the About page. */
+  --measure: 720px;
   --gutter: clamp(20px, 4vw, 56px);
   --header-h: 70px;
 }
@@ -310,11 +312,11 @@ nav form { display: flex; margin: 0; }
 .eyebrow.light > span { background: var(--lime); }
 .section-label { margin-bottom: 9px; }
 
-.display, .page-narrow h1, .about-grid h1 {
+.display, .page-narrow h1, .about-intro h1 {
   font-size: clamp(52px, 6.4vw, 92px); font-weight: 640; letter-spacing: -.07em; line-height: .9;
   margin-bottom: 24px;
 }
-.about-grid h1 em, .page-narrow h1 em {
+.about-intro h1 em, .page-narrow h1 em {
   color: var(--coral); font-family: Georgia, "Times New Roman", serif; font-weight: 400;
   letter-spacing: -.04em;
 }
@@ -1565,7 +1567,9 @@ form button.danger:hover { background: #96320f; }
 .how-list p { color: var(--muted); font-size: 15px; line-height: 1.65; margin: 0; }
 
 .about-section { background: var(--ink-2); color: #f7f2e7; padding: 88px var(--gutter) 70px; }
-.about-section > * { margin-left: auto; margin-right: auto; max-width: var(--shell); }
+/* The About page reads top to bottom as one article, so every block on it —
+   the dark opening included — sits in the same single measure column. */
+.about-section > * { margin-left: auto; margin-right: auto; max-width: var(--measure); }
 .about-top { align-items: center; display: flex; justify-content: space-between; }
 .lang-switch {
   border: 1px solid var(--line-2); border-radius: 99px; font-family: var(--font-geist-mono), monospace;
@@ -1573,39 +1577,41 @@ form button.danger:hover { background: #96320f; }
 }
 .about-top .lang-switch { border-color: rgba(255, 255, 255, .3); margin-bottom: 26px; }
 .about-top .lang-switch:hover { background: #fff; color: var(--ink); }
-.about-grid { display: grid; gap: 70px; grid-template-columns: 1.25fr .75fr; }
-.about-grid h1 { font-size: clamp(46px, 5.8vw, 82px); font-weight: 560; letter-spacing: -.065em; line-height: .97; }
-.about-grid h1 em { color: var(--lime); }
-.about-copy { padding-top: 12px; }
-.about-copy p { color: #b9c9c3; font-size: 16px; line-height: 1.75; }
-.about-copy p + p { margin-top: 18px; }
+.about-intro h1 { font-size: clamp(40px, 5vw, 62px); font-weight: 560; letter-spacing: -.055em; line-height: 1.02; }
+.about-intro h1 em { color: var(--lime); }
+.about-copy { padding-top: 26px; }
+.about-copy p { color: #b9c9c3; font-size: 17px; line-height: 1.8; }
+/* An article opens on its standfirst, so the first paragraph carries the
+   larger type and the rest settles back to the body size. */
+.about-copy p:first-child { color: #e6ede9; font-size: 20px; line-height: 1.65; }
+.about-copy p + p { margin-top: 20px; }
 .about-copy strong { color: #fff; }
+/* Three phrases spread edge to edge would not fit the article measure, so they
+   sit centred and wrap instead of being stretched apart. */
 .marquee {
   align-items: center; border-bottom: 1px solid rgba(255, 255, 255, .16);
-  border-top: 1px solid rgba(255, 255, 255, .16); display: flex; font-family: Georgia, serif;
-  font-size: clamp(28px, 4vw, 58px); font-style: italic; justify-content: space-between;
-  margin-top: 76px; padding: 32px 0;
+  border-top: 1px solid rgba(255, 255, 255, .16); column-gap: 16px; display: flex;
+  flex-wrap: wrap; font-family: Georgia, serif; font-size: clamp(24px, 3vw, 34px);
+  font-style: italic; justify-content: center; margin-top: 64px; padding: 30px 0; row-gap: 4px;
 }
 .marquee i { color: var(--coral); font-family: Arial; font-size: 20px; font-style: normal; }
-.how-section { margin: 0 auto; max-width: 900px; padding: 76px var(--gutter); }
-.how-section h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 620; letter-spacing: -.05em; margin-bottom: 28px; }
+.how-section { margin: 0 auto; max-width: calc(var(--measure) + var(--gutter) * 2); padding: 76px var(--gutter); }
+.how-section h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 620; letter-spacing: -.04em; margin-bottom: 22px; }
 
 /* The About page stacks three of these one after another. Their own 76px of
    top padding would otherwise add to the 76px below the section above it, so
    only the first one after the dark band keeps it. */
 .about-page .how-section + .how-section { padding-top: 0; }
-.about-lead { color: var(--muted); font-size: 16px; line-height: 1.75; margin: 0 0 26px; max-width: 66ch; }
+.about-lead { color: var(--ink-soft); font-size: 17px; line-height: 1.8; margin: 0 0 26px; }
+.about-lead + .about-lead { margin-top: -6px; }
 .how-list + .landing-inline-link { margin-top: 0; }
 
-.partner-benefits {
-  display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none;
-  margin: 0 0 26px; padding: 0;
-}
-.partner-benefits li {
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
-}
-.partner-benefits h3 { font-size: 16px; font-weight: 680; letter-spacing: -.02em; margin-bottom: 8px; }
-.partner-benefits p { color: var(--muted); font-size: 14px; line-height: 1.65; margin: 0; }
+/* Stacked rows rather than a card grid: side-by-side cards would break the
+   single column the rest of the page reads down. */
+.partner-benefits { border-top: 1px solid var(--line); list-style: none; margin: 0 0 30px; padding: 0; }
+.partner-benefits li { border-bottom: 1px solid var(--line); padding: 20px 0; }
+.partner-benefits h3 { font-size: 17px; font-weight: 680; letter-spacing: -.02em; margin-bottom: 7px; }
+.partner-benefits p { color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0; }
 
 /* An FAQ reads as a list of rows, so these disclosures drop the pill summary
    the rest of the app uses for small inline toggles. */
@@ -1624,7 +1630,7 @@ form button.danger:hover { background: #96320f; }
 .faq-list details[open] summary { margin-bottom: 0; }
 .faq-list details[open] summary::after { transform: rotate(45deg); }
 .faq-list details > p {
-  color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0; max-width: 68ch;
+  color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0;
   padding: 0 40px 22px 2px;
 }
 
@@ -1888,7 +1894,6 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
   .project-body { grid-template-columns: 1fr; }
   .project-side { position: static; }
   .profile-card { grid-template-columns: 220px minmax(0, 1fr); }
-  .about-grid { gap: 32px; grid-template-columns: 1fr; }
   footer { grid-template-columns: auto 1fr auto; }
   footer > p { display: none; }
 }
@@ -3026,7 +3031,6 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-hero-copy { max-width: 720px; }
   .landing-hero .typing-line { min-height: 1.08em; }
   .use-case-layout { grid-template-columns: 1fr; }
-  .partner-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .landing-project-feature-head { align-items: start; gap: 20px; grid-template-columns: 1fr; }
   .landing-project-feature-head > p { max-width: 620px; }
   .landing-index-row { grid-template-columns: 48px minmax(0, 1fr) 140px; }
@@ -3134,7 +3138,6 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .solo-builder-feature { margin-top: 44px; }
   .about-page .how-section { padding-top: 56px; padding-bottom: 56px; }
   .about-lead { font-size: 15px; }
-  .partner-benefits { grid-template-columns: 1fr; }
   .faq-list summary { font-size: 16px; gap: 14px; padding: 18px 2px; }
   .faq-list details > p { padding-right: 24px; }
   .landing-project-feature-head h2 { font-size: clamp(32px, 9.3vw, 38px); }
@@ -3322,7 +3325,7 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   font-family: var(--font-geist-mono), monospace; font-size: 7.5px; font-weight: 800; height: 31px;
   justify-content: center; width: 31px;
 }
-.people-contributor-person > span:last-child { min-width: 0; }
+.people-contributor-person > span:nth-child(2) { min-width: 0; }
 .people-contributor-person strong, .people-contributor-person small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .people-contributor-person strong { font-size: 10.5px; }
 .people-contributor-person small { color: #8c9792; font-size: 8px; margin-top: 3px; }
@@ -3529,3 +3532,63 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
 
 @keyframes language-option-spin { to { transform: rotate(360deg); } }
 @keyframes language-option-appear { to { opacity: 1; } }
+
+/* ------------------------------------------------ responsive interactions */
+
+/* A click can precede the route shell on a cold or slow connection. Every
+   internal Link owns one of these fixed bars; only the clicked link turns its
+   bar on, and the 100ms grace period avoids flashing for instant navigations. */
+.route-pending-indicator {
+  background: rgba(224, 91, 65, .18); height: 3px; left: 0; opacity: 0;
+  overflow: hidden; pointer-events: none; position: fixed; right: 0; top: 0;
+  z-index: 10000;
+}
+.route-pending-indicator::after {
+  animation: route-pending-travel .9s ease-in-out infinite; background: var(--coral);
+  content: ""; inset: 0 auto 0 0; position: absolute; transform: translateX(-120%);
+  width: min(42vw, 420px);
+}
+.route-pending-indicator.is-pending {
+  animation: route-pending-appear 0s linear 100ms forwards;
+}
+@keyframes route-pending-appear { to { opacity: 1; } }
+@keyframes route-pending-travel { to { transform: translateX(250vw); } }
+
+/* Auto-submitting filters have no submit button to relabel. Their two-pixel
+   track gives the same immediate acknowledgement without moving the control. */
+.sort-field { position: relative; }
+.form-pending-indicator {
+  background: transparent; border-radius: 999px; bottom: 1px; height: 2px;
+  left: 8px; opacity: 0; overflow: hidden; pointer-events: none; position: absolute;
+  right: 8px;
+}
+.form-pending-indicator.is-pending { background: rgba(24, 61, 52, .12); opacity: 1; }
+.form-pending-spinner {
+  animation: form-pending-travel .75s ease-in-out infinite; background: var(--coral);
+  border-radius: inherit; display: block; height: 100%; transform: translateX(-120%); width: 42%;
+}
+@keyframes form-pending-travel { to { transform: translateX(340%); } }
+
+/* Server actions already disable their button and often change its words.
+   The spinner covers compact/icon-only actions where a label cannot change. */
+form button[aria-busy="true"] { align-items: center; cursor: progress; display: inline-flex; gap: 8px; }
+form button[aria-busy="true"]::after,
+.action-spinner {
+  animation: action-spin .65s linear infinite; border: 2px solid currentColor;
+  border-radius: 50%; border-right-color: transparent; box-sizing: border-box;
+  content: ""; display: inline-block; flex: none; height: 14px; opacity: .75; width: 14px;
+}
+.google-auth-button[aria-disabled="true"] { cursor: progress; opacity: .72; pointer-events: none; }
+.profile-share-button:disabled { cursor: progress; opacity: .72; }
+@keyframes action-spin { to { transform: rotate(360deg); } }
+
+.generic-route-loading { min-height: 72vh; padding-top: 78px; }
+.generic-loading-nav { align-items: center; display: flex; gap: 26px; }
+.generic-loading-nav .skeleton { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .route-pending-indicator::after,
+  .form-pending-spinner,
+  form button[aria-busy="true"]::after,
+  .action-spinner { animation-duration: 1.8s; }
+}

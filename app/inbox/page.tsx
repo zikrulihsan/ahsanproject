@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { redirect } from "next/navigation";
 import { decideProposal, markNoticesSeen } from "../actions";
 import { SiteFooter, SiteHeader } from "../components/shell";
-import { initials, timeAgo } from "../components/pieces";
+import { initials } from "../components/pieces";
+import { RelativeTime } from "../components/relative-time";
 import {
   listFollowedUpdates,
   listIncomingApplications,
@@ -87,7 +88,7 @@ export default async function InboxPage() {
               {notices.map((notice) => (
                 <li key={notice.id} className={notice.seen ? "" : "is-new"}>
                   <NoticeLine notice={notice} locale={locale} />
-                  <small>{timeAgo(notice.createdAt, locale)}</small>
+                  <small><RelativeTime value={notice.createdAt} locale={locale} /></small>
                 </li>
               ))}
             </ul>
@@ -119,7 +120,7 @@ export default async function InboxPage() {
                   </p>
                   <h3>{update.title}</h3>
                   {update.body ? <p className="followed-body">{update.body}</p> : null}
-                  <small>{timeAgo(update.createdAt, locale)}</small>
+                  <small><RelativeTime value={update.createdAt} locale={locale} /></small>
                 </li>
               ))}
             </ul>
@@ -274,7 +275,7 @@ function ApplicationHead({
             <Link href={`/projects/${application.project.slug}`}>{application.project.title}</Link>
           ) : null}
           {showApplicant ? " · " : ""}
-          {timeAgo(application.createdAt, locale)}
+          <RelativeTime value={application.createdAt} locale={locale} />
         </p>
       </div>
     </div>

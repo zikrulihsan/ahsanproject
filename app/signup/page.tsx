@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { redirect } from "next/navigation";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { SignUpForm } from "../components/auth-forms";

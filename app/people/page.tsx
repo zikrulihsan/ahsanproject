@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
+import Form from "next/form";
+import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { AvailabilityBadges } from "../components/availability-badges";
 import { initials } from "../components/pieces";
 import { SearchableFilter } from "../components/searchable-filter";
 import { LoadingNote, Skeleton } from "../components/skeleton";
 import { SortSelect } from "../components/sort-select";
+import { SubmitButton } from "../components/submit-button";
 import { listPeopleAtWork, type PersonAtWork } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import {
@@ -212,7 +214,7 @@ async function Directory({ query }: { query: SearchParams }) {
         ) : null}
 
         <section className="people-search-panel" aria-label={tx(locale, "Cari dan saring talent", "Search and filter talent")}>
-          <form className="discovery-search collaboration-search" action="/people" method="get" role="search">
+          <Form className="discovery-search collaboration-search" action="/people" role="search">
             {filters.profession ? <input type="hidden" name="profession" value={filters.profession} /> : null}
             {filters.skill ? <input type="hidden" name="skill" value={filters.skill} /> : null}
             {filters.experience ? <input type="hidden" name="experience" value={filters.experience} /> : null}
@@ -229,8 +231,8 @@ async function Directory({ query }: { query: SearchParams }) {
                 placeholder={tx(locale, "Cari nama, peran, atau keahlian tech…", "Search by name, tech role, or skill…")}
               />
             </label>
-            <button type="submit">{tx(locale, "Cari", "Search")}</button>
-          </form>
+            <SubmitButton pendingLabel={tx(locale, "Mencari…", "Searching…")}>{tx(locale, "Cari", "Search")}</SubmitButton>
+          </Form>
 
           <details className="collaboration-filter-panel">
             <summary className="collaboration-filter-summary">

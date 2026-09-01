@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader, Arrow } from "./components/shell";
 import { currentLocale } from "./lib/locale-server";
 import { tx } from "./lib/locale";

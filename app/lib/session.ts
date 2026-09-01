@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { getSupabase } from "./supabase";
 import type { Person } from "./data";
 import type { ProfileRow } from "./database.types";
@@ -42,6 +43,8 @@ const authUser = cache(async (): Promise<AuthIdentity | null> => {
       userMetadata: isRecord(claims.user_metadata) ? claims.user_metadata : {},
     };
   } catch (error) {
+    unstable_rethrow(error);
+    if (isAbortError(error)) return null;
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
@@ -102,6 +105,8 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
 
     return created ? toViewer(created, user.email ?? "") : null;
   } catch (error) {
+    unstable_rethrow(error);
+    if (isAbortError(error)) return null;
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
@@ -109,6 +114,11 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
     return null;
   }
 });
+
+/** An interrupted navigation cancels its session request; that is not an outage. */
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
 
 function toViewer(profile: ProfileRow, email: string): Viewer {
   return {

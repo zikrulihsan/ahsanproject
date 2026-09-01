@@ -232,7 +232,7 @@ export function EditForm({ project }: { project: EditableProject }) {
         )}
       </fieldset>
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan perubahan", "Save changes")}
       </button>
     </form>

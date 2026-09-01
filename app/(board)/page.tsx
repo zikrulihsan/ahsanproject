@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { shareCard } from "../content";
 import { initials } from "../components/pieces";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";

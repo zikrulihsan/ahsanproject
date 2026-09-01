@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { BoardCard, initials } from "../components/pieces";
 import { ExploreSearchForm } from "../components/explore-search-form";
 import { SearchableFilter } from "../components/searchable-filter";

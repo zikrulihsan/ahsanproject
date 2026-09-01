@@ -622,7 +622,7 @@ export function CreateForm() {
 
         {step === 3 && review ? <ReviewCard review={review} locale={locale} /> : null}
 
-        <button className="primary-button create-submit" type="submit" disabled={pending}>
+        <button className="primary-button create-submit" type="submit" disabled={pending} aria-busy={pending || undefined}>
           {pending ? tx("Menambahkan…", "Adding…") : tx("Tambah proyek", "Add project")}
         </button>
       </section>

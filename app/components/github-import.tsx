@@ -50,7 +50,7 @@ export function GitHubImport({ formRef }: { formRef: RefObject<HTMLFormElement |
       <p>
         {tx("Kami akan membaca README dan detail repositori publik untuk mengisi kolom yang kosong. Tidak ada yang disimpan sampai kamu menerbitkan proyek.", "We will read the README and public repository details to fill in blank fields. Nothing is saved until you publish the project.")}
       </p>
-      <button className="quiet" type="button" onClick={startImport} disabled={pending}>
+      <button className="quiet" type="button" onClick={startImport} disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Membaca GitHub…", "Reading GitHub…") : tx("Isi draf dari README GitHub", "Fill draft from GitHub README")}
       </button>
       {message ? (

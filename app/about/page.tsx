@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { shareCard } from "../content";
 import { currentLocale } from "../lib/locale-server";
@@ -155,7 +155,7 @@ export default async function AboutPage() {
         <section className="about-section" aria-labelledby="about-title">
           <p className="eyebrow light"><span /> {tx(locale, "Tentang Kami", "About Us")}</p>
 
-          <div className="about-grid">
+          <div className="about-intro">
             <h1 id="about-title">
               {tx(locale, "Bukan cuma open source.", "Not just open source.")}
               <br />
