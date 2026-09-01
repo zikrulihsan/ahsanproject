@@ -149,7 +149,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      <SiteHeader returnTo="/about" />
+      <SiteHeader returnTo="/about" active="about" />
 
       <main id="main-content" className="about-page">
         <section className="about-section" aria-labelledby="about-title">

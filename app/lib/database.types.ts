@@ -175,6 +175,17 @@ export type NoticeRow = {
   created_at: string;
 };
 
+export type FeedbackRow = {
+  id: number;
+  /** Null for a guest, and null again once the account is deleted. */
+  author_id: string | null;
+  kind: string;
+  message: string;
+  contact: string;
+  handled: boolean;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -243,6 +254,14 @@ export type Database = {
         Insert: never;
         Update: never;
       };
+      feedback: {
+        Row: FeedbackRow;
+        // Written only by submit_feedback() in 20260901000000_feedback.sql, and
+        // read in the Supabase dashboard rather than by any page here — the
+        // table grants neither role anything. Same reasoning as `notices`.
+        Insert: never;
+        Update: never;
+      };
     };
     Views: {
       project_overview: { Row: ProjectOverviewRow };
@@ -255,6 +274,10 @@ export type Database = {
       };
       decide_proposal: { Args: { proposal_id: number; accept: boolean }; Returns: undefined };
       set_now: { Args: { project: number; line: string }; Returns: undefined };
+      submit_feedback: {
+        Args: { feedback_kind: string; message?: string; contact?: string };
+        Returns: undefined;
+      };
     };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;

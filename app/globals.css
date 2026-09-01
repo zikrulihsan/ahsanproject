@@ -946,13 +946,32 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .field.has-error input, .field.has-error textarea, .field.has-error select { border-color: var(--coral); }
 .field-error, .form-error { color: #b23c14; font-size: 13px; margin: -12px 0 18px; }
 .form-error { background: rgba(238, 106, 59, .12); border-radius: 12px; margin: 0 0 22px; padding: 14px 16px; }
-.create-form, .auth-form {
+.create-form, .auth-form, .feedback-form {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 30px; padding: 30px;
 }
 .form-start-note {
   background: var(--paper); border-radius: 12px; color: var(--muted); font-size: 13px;
   line-height: 1.6; margin: 0 0 24px; padding: 13px 15px;
 }
+/* ---------------------------------------------------------------- feedback */
+
+/* The sent card stands where the form did, so the answer arrives in the place
+   the message left from rather than as a banner above an emptied form. */
+.feedback-sent {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 30px; padding: 30px;
+}
+.feedback-sent h2 { font-size: 23px; letter-spacing: -.03em; margin: 0 0 10px; }
+.feedback-sent p:not(.eyebrow) { color: var(--muted); font-size: 15px; line-height: 1.7; margin: 0 0 22px; }
+.feedback-sent button {
+  background: transparent; border: 1px solid var(--line-2); border-radius: 99px; color: inherit;
+  font-family: inherit; font-size: 13px; font-weight: 650; padding: 12px 20px;
+}
+.feedback-sent button:hover { background: var(--paper); }
+.feedback-elsewhere { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 28px; }
+.feedback-elsewhere h2 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 12px; }
+.feedback-elsewhere p { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; }
+.feedback-elsewhere a { border-bottom: 1px solid var(--line-2); }
+
 .github-start { background: #f3f7f0; border: 1px solid #cfddc9; border-radius: 16px; margin: 0 0 24px; padding: 21px; }
 .github-start .eyebrow { margin-bottom: 9px; }
 .github-start h2 { font-size: 19px; letter-spacing: -.03em; margin-bottom: 7px; }
@@ -2081,8 +2100,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .brand strong { font-weight: 800; }
 .brand-alt { color: #315f51; font-weight: 680; }
 .brand-mark { border-radius: 10px; color: #fff; height: 35px; width: 35px; }
-.desktop-nav { gap: 38px; justify-self: center; margin: 0; }
-.desktop-nav a { font-size: 14px; padding: 26px 0 23px; }
+/* Five routes rather than three: the gap gives way before the labels do, so
+   the centre column still fits beside the brand and the account cluster on a
+   narrow laptop. */
+.desktop-nav { gap: clamp(18px, 2.4vw, 38px); justify-self: center; margin: 0; }
+.desktop-nav a { font-size: 14px; padding: 26px 0 23px; white-space: nowrap; }
 .desktop-nav a.is-active { border-color: var(--ink); }
 .header-actions { justify-self: end; }
 .nav-login { color: var(--ink-soft); font-size: 14px; font-weight: 680; padding: 12px 7px; white-space: nowrap; }
@@ -2969,6 +2991,21 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-stats { padding-left: 44px; padding-right: 44px; }
   .talent-story { gap: 44px; padding-left: 46px; padding-right: 46px; }
   .talent-skills i:nth-child(2) { display: none; }
+}
+
+/*
+ * Five routes need more room than three did.
+ *
+ * Between this width and 860px the account cluster stays where it is — the
+ * "tambah proyek" button is the whole point of the header — and only the main
+ * menu folds into the mobile sheet, which carries the same five links. Below
+ * 860px the block after this one takes the actions in with it.
+ */
+@media (max-width: 1024px) {
+  .topbar-inner { display: flex; }
+  .desktop-nav { display: none; }
+  .mobile-menu { display: block; }
+  .header-actions { margin-left: auto; }
 }
 
 @media (max-width: 860px) {
