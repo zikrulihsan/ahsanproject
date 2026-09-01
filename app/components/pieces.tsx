@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { connection } from "next/server";
+import Link from "@/app/components/responsive-link";
+import { RelativeTime } from "./relative-time";
 import { projectTypeBlurb, projectTypeLabel, projectTypeTone, isProjectType } from "../lib/project-types";
 import { projectBlurb } from "../lib/brief";
 import { roleLabel } from "../lib/roles";
@@ -138,7 +138,7 @@ export async function ProjectRow({ project }: { project: ProjectSummary }) {
             </small>
           </Link>
 
-          <span className="row-freshness">{freshness(project, locale)}</span>
+          <span className="row-freshness"><Freshness project={project} locale={locale} /></span>
 
           <Link className="detail-link" href={`/projects/${project.slug}`}>
             {tx(locale, "Lihat", "View")} <Arrow />
@@ -168,10 +168,14 @@ export async function NowLine({ project }: { project: ProjectSummary }) {
   );
 }
 
-/** "Aktif 3 hari lalu" — freshness, which beats any percentage of done. */
-export function freshness(project: ProjectSummary, locale: Locale = "en"): string {
-  const when = timeAgo(project.lastActivityAt || project.createdAt, locale);
-  return when ? tx(locale, `Pembaruan terakhir ${when}`, `Last update ${when}`) : "";
+/** "Last update 3 days ago" — freshness, which beats any percentage done. */
+export function Freshness({ project, locale = "en" }: { project: ProjectSummary; locale?: Locale }) {
+  return (
+    <>
+      {tx(locale, "Pembaruan terakhir ", "Last update ")}
+      <RelativeTime value={project.lastActivityAt || project.createdAt} locale={locale} />
+    </>
+  );
 }
 
 /**
@@ -271,7 +275,7 @@ export async function ProjectCard({
       </div>
 
       <div className="profile-project-footer">
-        <span>{freshness(project, locale) || tx(locale, "Baru ditampilkan", "Recently listed")}</span>
+        <span><Freshness project={project} locale={locale} /></span>
         <nav className="profile-project-actions" aria-label={tx(locale, `Tautan ${project.title}`, `${project.title} links`)}>
           {project.liveUrl ? (
             <a href={project.liveUrl} target="_blank" rel="noreferrer" aria-label={tx(locale, `Buka situs web ${project.title}`, `Open ${project.title} website`)}>
@@ -424,7 +428,7 @@ export async function BoardCard({
                   {projectTypeLabel(project.projectType, locale) ? (
                     <span className="home-project-type">{projectTypeLabel(project.projectType, locale)}</span>
                   ) : null}
-                  <span>{freshness(project, locale) || tx(locale, "Baru ditampilkan", "Recently listed")}</span>
+                  <span><Freshness project={project} locale={locale} /></span>
                   <span>{tx(locale, `${project.commentCount} diskusi`, `${project.commentCount} discussions`)}</span>
                 </p>
               </div>
@@ -532,7 +536,7 @@ export async function JourneyList({
               ) : (
                 tx(locale, "Seseorang", "Someone")
               )}{" "}
-              · {timeAgo(update.createdAt, locale)}
+              · <RelativeTime value={update.createdAt} locale={locale} />
             </p>
             {onDelete?.(update)}
           </div>
@@ -543,7 +547,7 @@ export async function JourneyList({
         <div>
           <h3>{tx(locale, "Proyek dimulai", "Project started")}</h3>
           <p>
-            <Link href={`/projects/${slug}`}>{tx(locale, "Ditampilkan di sini", "Shown here")}</Link> {timeAgo(startedAt, locale)}.
+            <Link href={`/projects/${slug}`}>{tx(locale, "Ditampilkan di sini", "Shown here")}</Link>{" "}<RelativeTime value={startedAt} locale={locale} />.
           </p>
         </div>
       </li>
@@ -567,17 +571,6 @@ export function monthYear(value: string, locale: Locale = "en"): string {
   return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-US", { month: "short", year: "numeric" }).format(then);
 }
 
-export function timeAgo(value: string, locale: Locale = "en"): string {
-  const then = Date.parse(value.includes("T") ? value : value.replace(" ", "T") + "Z");
-  if (Number.isNaN(then)) return "";
-
-  const days = Math.floor((Date.now() - then) / 86_400_000);
-  if (days < 1) return tx(locale, "hari ini", "today");
-  if (days < 30) return tx(locale, `${days} hari lalu`, `${days} days ago`);
-  if (days < 365) return tx(locale, `${Math.floor(days / 30)} bulan lalu`, `${Math.floor(days / 30)} months ago`);
-  return tx(locale, `${Math.floor(days / 365)} tahun lalu`, `${Math.floor(days / 365)} years ago`);
-}
-
 /**
  * The site-wide trail, compact enough for a sidebar or a panel on Home.
  *
@@ -585,7 +578,7 @@ export function timeAgo(value: string, locale: Locale = "en"): string {
  * built from the same `activityParts` the profile trail uses, so a new kind of
  * event only has to be worded in one place.
  */
-export async function CollaborationTrail({
+export function CollaborationTrail({
   events,
   locale,
   emptyNote,
@@ -594,11 +587,6 @@ export async function CollaborationTrail({
   locale: Locale;
   emptyNote: string;
 }) {
-  // "2 hari lalu" is read off the clock, and a prerender has no clock to read.
-  // Waiting for the connection moves these lines to request time; every caller
-  // streams this behind a Suspense boundary, so nothing else waits on it.
-  await connection();
-
   if (events.length === 0) return <p className="collab-trail-empty">{emptyNote}</p>;
 
   return (
@@ -627,7 +615,7 @@ export async function CollaborationTrail({
                 )}
                 {trail}
               </p>
-              <small>{timeAgo(event.createdAt, locale)}</small>
+              <small><RelativeTime value={event.createdAt} locale={locale} /></small>
             </div>
           </li>
         );
@@ -677,7 +665,7 @@ export async function ActivityList({
               {trail}
             </p>
             <small>
-              {timeAgo(event.createdAt, locale)}
+              <RelativeTime value={event.createdAt} locale={locale} />
               {gone ? tx(locale, " · proyek dihapus", " · project deleted") : ""}
               {isHidden ? tx(locale, " · hanya terlihat olehmu", " · only visible to you") : ""}
             </small>

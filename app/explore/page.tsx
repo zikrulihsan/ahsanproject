@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
-import { connection } from "next/server";
-import { BoardCard, CollaborationTrail, initials, timeAgo } from "../components/pieces";
+import Link from "@/app/components/responsive-link";
+import { BoardCard, CollaborationTrail, initials } from "../components/pieces";
+import { RelativeTime } from "../components/relative-time";
 import { ExploreSearchForm } from "../components/explore-search-form";
 import { SearchableFilter } from "../components/searchable-filter";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
@@ -497,16 +497,8 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
   );
 }
 
-/**
- * The projects that moved most recently, each with how long ago that was.
- *
- * Its own component because "3 hari lalu" is read off the clock: waiting for
- * the connection keeps the rest of the rail prerenderable, and the board this
- * sits beside is already streamed behind a Suspense boundary.
- */
-async function ActiveProjectList({ projects, locale }: { projects: ProjectSummary[]; locale: Locale }) {
-  await connection();
-
+/** The projects that moved most recently, each with how long ago that was. */
+function ActiveProjectList({ projects, locale }: { projects: ProjectSummary[]; locale: Locale }) {
   if (projects.length === 0) {
     return <p className="explore-spotlight-empty">{tx(locale, "Belum ada proyek yang bergerak.", "Nothing is moving yet.")}</p>;
   }
@@ -521,7 +513,7 @@ async function ActiveProjectList({ projects, locale }: { projects: ProjectSummar
               <small>
                 {stageLabel(project.stage, locale)}
                 {" · "}
-                {timeAgo(project.lastActivityAt || project.createdAt, locale)}
+                <RelativeTime value={project.lastActivityAt || project.createdAt} locale={locale} />
               </small>
             </span>
             <Arrow />

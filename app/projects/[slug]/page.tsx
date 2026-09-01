@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import {
   addComment,
   assignTask,
@@ -30,10 +30,10 @@ import {
   StageBadge,
   TagRow,
   TypeBadge,
-  freshness,
+  Freshness,
   initials,
-  timeAgo,
 } from "../../components/pieces";
+import { RelativeTime } from "../../components/relative-time";
 import { MAXIMUM, domainOf, projectBlurb } from "../../lib/brief";
 import {
   getProject,
@@ -221,7 +221,7 @@ export default async function ProjectPage({
                     {project.owner.name}
                     {team.length > 0 ? tx(locale, ` + ${team.length} orang`, ` + ${team.length} people`) : ""}
                   </strong>
-                  <small>{freshness(project, locale)}</small>
+                  <small><Freshness project={project} locale={locale} /></small>
                 </span>
               </Link>
 
@@ -360,7 +360,7 @@ export default async function ProjectPage({
                 <>
                   <p className="now-headline">{project.nowText}</p>
                   {project.nowUpdatedAt ? (
-                    <p className="now-when">{tx(locale, "Ditulis", "Written")} {timeAgo(project.nowUpdatedAt, locale)}</p>
+                    <p className="now-when">{tx(locale, "Ditulis", "Written")} <RelativeTime value={project.nowUpdatedAt} locale={locale} /></p>
                   ) : null}
                 </>
               ) : (
@@ -848,7 +848,7 @@ export default async function ProjectPage({
                           {initials(comment.author.name)}
                         </span>
                         <Link href={`/u/${comment.author.username}`}>{comment.author.name}</Link>
-                        <small>{timeAgo(comment.createdAt, locale)}</small>
+                        <small><RelativeTime value={comment.createdAt} locale={locale} /></small>
                       </div>
                       <p>{comment.body}</p>
                     </li>

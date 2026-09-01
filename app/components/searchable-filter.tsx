@@ -1,6 +1,8 @@
 "use client";
 
+import Form from "next/form";
 import { useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { FormPendingIndicator } from "./form-pending-indicator";
 import { useLanguage } from "./language-provider";
 
 export type SearchableOption = {
@@ -83,7 +85,7 @@ export function SearchableFilter({
   };
 
   return (
-    <form className="searchable-filter" method="get" action={action} ref={form} onBlur={leave}>
+    <Form className="searchable-filter" action={action} ref={form} onBlur={leave}>
       {Object.entries(hidden).map(([key, entry]) =>
         entry ? <input key={key} type="hidden" name={key} value={entry} /> : null,
       )}
@@ -131,7 +133,8 @@ export function SearchableFilter({
           )) : <p>{tx("Kategori tidak ditemukan.", "Category not found.")}</p>}
         </div>
       ) : null}
-    </form>
+      <FormPendingIndicator />
+    </Form>
   );
 }
 

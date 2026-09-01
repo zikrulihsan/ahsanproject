@@ -238,7 +238,7 @@ export function ProfileForm({
         />
       </fieldset>
 
-      <button className="primary-button create-submit" type="submit" disabled={pending}>
+      <button className="primary-button create-submit" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan profil", "Save profile")}
       </button>
     </form>

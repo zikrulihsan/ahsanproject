@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { shareCard } from "../content";
 import { CollaborationTrail, initials } from "../components/pieces";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";

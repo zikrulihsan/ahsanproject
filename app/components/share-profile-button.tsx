@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "./language-provider";
 
-type ShareStatus = "idle" | "copied" | "error";
+type ShareStatus = "idle" | "sharing" | "shared" | "copied" | "error";
 
 export function ShareProfileButton({
   name,
@@ -22,13 +22,15 @@ export function ShareProfileButton({
     };
   }, []);
 
-  const showStatus = (next: Exclude<ShareStatus, "idle">) => {
+  const showStatus = (next: "shared" | "copied" | "error") => {
     setStatus(next);
     if (resetTimer.current !== null) window.clearTimeout(resetTimer.current);
     resetTimer.current = window.setTimeout(() => setStatus("idle"), 2400);
   };
 
   const share = async () => {
+    if (status === "sharing") return;
+    setStatus("sharing");
     const url = new URL(path, window.location.origin).toString();
 
     if (navigator.share) {
@@ -38,9 +40,13 @@ export function ShareProfileButton({
           text: tx(`Lihat profil dan karya ${name} di Ahsan Project.`, `View ${name}'s profile and work on Ahsan Project.`),
           url,
         });
+        showStatus("shared");
         return;
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          setStatus("idle");
+          return;
+        }
       }
     }
 
@@ -53,7 +59,11 @@ export function ShareProfileButton({
   };
 
   const label =
-    status === "copied"
+    status === "sharing"
+      ? tx("Menyiapkan bagikan…", "Preparing share…")
+      : status === "shared"
+        ? tx("Profil dibagikan", "Profile shared")
+        : status === "copied"
       ? tx("Tautan disalin", "Link copied")
       : status === "error"
         ? tx("Tautan tidak dapat disalin", "Could not copy link")
@@ -67,11 +77,17 @@ export function ShareProfileButton({
         title={tx("Bagikan profil", "Share profile")}
         type="button"
         onClick={share}
+        disabled={status === "sharing"}
+        aria-busy={status === "sharing" || undefined}
       >
-        {status === "copied" ? <CheckIcon /> : <ShareIcon />}
+        {status === "sharing" ? <span className="action-spinner" aria-hidden="true" /> : status === "copied" || status === "shared" ? <CheckIcon /> : <ShareIcon />}
       </button>
       <span className="sr-only" role="status" aria-live="polite">
-        {status === "copied"
+        {status === "sharing"
+          ? tx("Menyiapkan opsi bagikan.", "Preparing sharing options.")
+          : status === "shared"
+            ? tx("Profil dibagikan.", "Profile shared.")
+            : status === "copied"
           ? tx("Tautan profil disalin.", "Profile link copied.")
           : status === "error"
             ? tx("Tautan profil tidak dapat disalin.", "Could not copy profile link.")

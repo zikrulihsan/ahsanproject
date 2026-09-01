@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import type { Lane, ProjectSummary } from "../lib/data";
 import { ROLES, roleBlurb, roleLabel } from "../lib/roles";
 import { STAGES, stageBlurb, stageLabel, type Stage } from "../lib/stages";

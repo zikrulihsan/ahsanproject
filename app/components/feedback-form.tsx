@@ -128,7 +128,7 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
         placeholder="nama@email.com"
       />
 
-      <button className="primary-button" type="submit" disabled={pending}>
+      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? tx("Mengirim…", "Sending…") : tx("Kirim masukan", "Send feedback")}
       </button>
     </form>

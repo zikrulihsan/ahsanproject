@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { cacheLife } from "next/cache";
-import Link from "next/link";
+import Link from "@/app/components/responsive-link";
 import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
 import { signInPath } from "../lib/urls";
