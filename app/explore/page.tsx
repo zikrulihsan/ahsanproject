@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { BoardCard, initials } from "../components/pieces";
+import { connection } from "next/server";
+import { BoardCard, CollaborationTrail, initials, timeAgo } from "../components/pieces";
 import { ExploreSearchForm } from "../components/explore-search-form";
 import { SearchableFilter } from "../components/searchable-filter";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
@@ -15,8 +16,10 @@ import {
   listPeople,
   listOpenRoleSuggestions,
   listProjects,
+  listRecentActivity,
   openSeatsByRole,
   tagCountsFromProjects,
+  type ActivityEvent,
   type FeedQuery,
   type Lane,
   type ProjectSummary,
@@ -32,7 +35,7 @@ import { localizeRoleLabel, normaliseRole, roleLabel, type Role } from "../lib/r
 import { isStage, stageLabel, STAGES, type Stage } from "../lib/stages";
 import { viewerId } from "../lib/session";
 import { currentLocale } from "../lib/locale-server";
-import { tx } from "../lib/locale";
+import { tx, type Locale } from "../lib/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
@@ -220,20 +223,29 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
         [],
       )
     : projectsPromise;
+  // What the rail leads with follows the search toggle: somebody looking for a
+  // role wants to know whether people here actually work together, and somebody
+  // looking for a project wants to know which ones are moving. Only the side
+  // being shown is read.
+  const trailPromise = searchBy === "role"
+    ? readPublicly<ActivityEvent[]>("recent collaboration in Explore", () => listRecentActivity(5), [])
+    : Promise.resolve({ value: [] as ActivityEvent[], unavailable: false });
+  const activeProjectsPromise = searchBy === "role"
+    ? Promise.resolve({ value: [] as ProjectSummary[], unavailable: false })
+    : readPublicly<ProjectSummary[]>("most active projects in Explore", () => listProjects({ lane: "active" }), []);
+
   const [
     projectsResult,
     topicProjectsResult,
-    helpBoardResult,
+    trailResult,
+    activeProjectsResult,
     roleSuggestionsResult,
     familiarResult,
   ] = await Promise.all([
     projectsPromise,
     topicProjectsPromise,
-    readPublicly<ProjectSummary[]>(
-      "projects needing help",
-      () => listProjects({ lane: "needs-help" }),
-      [],
-    ),
+    trailPromise,
+    activeProjectsPromise,
     readPublicly("open role suggestions", () => listOpenRoleSuggestions(), []),
     familiarPromise,
   ]);
@@ -244,7 +256,8 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     ? arrangeForYou(projectsResult.value, familiarResult.value)
     : projectsResult.value;
   const topics = tagCountsFromProjects(topicProjectsResult.value);
-  const helpBoard = helpBoardResult.value;
+  const recentCollaboration = trailResult.value;
+  const activeProjects = activeProjectsResult.value.slice(0, 5);
   const roleSuggestions = roleSuggestionsResult.value.map((suggestion) => ({
     ...suggestion,
     value: localizeRoleLabel(suggestion.value, locale),
@@ -260,11 +273,11 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     familiarResult,
     projectsResult,
     topicProjectsResult,
-    helpBoardResult,
+    trailResult,
+    activeProjectsResult,
     roleSuggestionsResult,
     seatsResult,
   ].some((result) => result.unavailable);
-  const rankedRoles = rankRoles(helpBoard).slice(0, 5);
   const filtered = Boolean(stage || type || tag || role || q || needs);
   const activeControlCount = [stage, type, tag, role, needs, sort === "for-you" ? "" : sort].filter(Boolean).length;
   const currentPath = linkTo({ lane: sort, stage, type, tag, role, q, searchBy, needs });
@@ -435,6 +448,42 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
           </section>
 
           <aside className="discovery-sidebar" aria-label={tx(locale, "Pintasan kolaborasi", "Collaboration shortcuts")}>
+            {searchBy === "role" ? (
+              <section className="explore-spotlight" aria-labelledby="explore-spotlight-title">
+                <div className="explore-spotlight-head">
+                  <div>
+                    <p className="home-eyebrow">{tx(locale, "Kolaborasi terbaru", "Latest collaboration")}</p>
+                    <h2 id="explore-spotlight-title">{tx(locale, "Aktivitas kolaborasi terakhir", "The last collaboration activity")}</h2>
+                    <p>{tx(locale, "Yang baru saja terjadi ketika orang mengambil peran di sini.", "What has just happened as people took roles here.")}</p>
+                  </div>
+                  <span className="live-dot" title={tx(locale, "Diperbarui dari aktivitas proyek", "Updated from project activity")} />
+                </div>
+                <CollaborationTrail
+                  events={recentCollaboration}
+                  locale={locale}
+                  emptyNote={tx(locale, "Belum ada kolaborasi yang tercatat.", "No collaboration recorded yet.")}
+                />
+                <Link className="explore-spotlight-link" href="/explore?searchBy=role&needs=open">
+                  {tx(locale, "Lihat peran yang sedang dibuka", "See the roles being opened")} <Arrow />
+                </Link>
+              </section>
+            ) : (
+              <section className="explore-spotlight" aria-labelledby="explore-spotlight-title">
+                <div className="explore-spotlight-head">
+                  <div>
+                    <p className="home-eyebrow">{tx(locale, "Sedang bergerak", "On the move")}</p>
+                    <h2 id="explore-spotlight-title">{tx(locale, "Proyek yang paling aktif", "The most active projects")}</h2>
+                    <p>{tx(locale, "Proyek dengan aktivitas terbaru — di sinilah kontribusimu paling cepat terlihat.", "Projects with the newest activity — where your contribution shows up fastest.")}</p>
+                  </div>
+                  <span className="live-dot" title={tx(locale, "Diperbarui dari aktivitas proyek", "Updated from project activity")} />
+                </div>
+                <ActiveProjectList projects={activeProjects} locale={locale} />
+                <Link className="explore-spotlight-link" href="/explore?lane=active">
+                  {tx(locale, "Urutkan semua proyek dari yang paling aktif", "Sort every project by most active")} <Arrow />
+                </Link>
+              </section>
+            )}
+
             <section className="show-project-card">
               <span className="show-project-plus" aria-hidden="true">+</span>
               <h2>{tx(locale, "Sedang membangun sesuatu?", "Building something?")}</h2>
@@ -442,53 +491,45 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
               <Link href="/new">{tx(locale, "Tambah proyek", "Add a project")}</Link>
               <small>{tx(locale, "Gratis untuk komunitas", "Free for the community")}</small>
             </section>
-
-            <section className="role-ranking">
-              <div className="role-ranking-head">
-                <div>
-                  <p className="home-eyebrow">{tx(locale, "Mulai dari peranmu", "Start with your role")}</p>
-                  <h2>{tx(locale, "Peran yang paling dicari", "Most requested roles")}</h2>
-                  <p>{tx(locale, "Pilih peran, lalu lihat proyek yang menunggu kontribusimu.", "Choose a role, then see projects waiting for your contribution.")}</p>
-                </div>
-                <span className="live-dot" title={tx(locale, "Diperbarui dari peran terbuka", "Updated from open roles")} />
-              </div>
-              {rankedRoles.length > 0 ? (
-                <ol>
-                  {rankedRoles.map((entry, index) => (
-                    <li key={entry.role}>
-                      <Link href={linkTo({ lane: sort, stage, type, tag, q: roleLabel(entry.role, "", locale), searchBy: "role", needs: "open" })}>
-                        <span className="role-number">{String(index + 1).padStart(2, "0")}</span>
-                        <span>
-                          <strong>{roleLabel(entry.role, "", locale)}</strong>
-                          <small>{tx(locale, `${entry.count} proyek`, `${entry.count} projects`)}</small>
-                        </span>
-                        <Arrow />
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="role-ranking-empty">{tx(locale, "Belum ada peran yang dibuka.", "No roles are open yet.")}</p>
-              )}
-              <Link className="all-roles-link" href="/explore?searchBy=role&needs=open">
-                {tx(locale, "Lihat semua peran", "View all roles")} <Arrow />
-              </Link>
-            </section>
           </aside>
         </div>
     </>
   );
 }
 
-function rankRoles(projects: ProjectSummary[]): { role: Role; count: number }[] {
-  const counts = new Map<Role, number>();
-  for (const project of projects) {
-    const roles = new Set(project.openRoles.map(normaliseRole).filter((entry): entry is Role => Boolean(entry)));
-    for (const role of roles) counts.set(role, (counts.get(role) ?? 0) + 1);
+/**
+ * The projects that moved most recently, each with how long ago that was.
+ *
+ * Its own component because "3 hari lalu" is read off the clock: waiting for
+ * the connection keeps the rest of the rail prerenderable, and the board this
+ * sits beside is already streamed behind a Suspense boundary.
+ */
+async function ActiveProjectList({ projects, locale }: { projects: ProjectSummary[]; locale: Locale }) {
+  await connection();
+
+  if (projects.length === 0) {
+    return <p className="explore-spotlight-empty">{tx(locale, "Belum ada proyek yang bergerak.", "Nothing is moving yet.")}</p>;
   }
-  return [...counts.entries()]
-    .map(([role, count]) => ({ role, count }))
-    .sort((a, b) => b.count - a.count || roleLabel(a.role).localeCompare(roleLabel(b.role), "id"));
+
+  return (
+    <ol className="explore-spotlight-projects">
+      {projects.map((project) => (
+        <li key={project.id}>
+          <Link href={`/projects/${project.slug}`}>
+            <span>
+              <strong>{project.title}</strong>
+              <small>
+                {stageLabel(project.stage, locale)}
+                {" · "}
+                {timeAgo(project.lastActivityAt || project.createdAt, locale)}
+              </small>
+            </span>
+            <Arrow />
+          </Link>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 function withSelectedTopic(topics: { tag: string; count: number }[], selected: string) {

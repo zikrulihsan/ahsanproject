@@ -140,6 +140,9 @@ function seatsChanged(slug: string): void {
 function trailChanged(personId: string | null | undefined, slug?: string): void {
   if (personId) updateTag(tags.trail(personId));
   if (slug) updateTag(tags.projectTrail(slug));
+  // The site-wide trail, which Home and Explore lead with: any event by
+  // anybody can change what sits at the top of it.
+  updateTag(tags.activity);
 }
 
 /* ------------------------------------------------------------------ *

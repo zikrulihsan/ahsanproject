@@ -83,6 +83,26 @@ export const HIGHLIGHT_KINDS = [
 ] as const satisfies readonly EventKind[];
 
 /**
+ * The kinds the site-wide trail leads with.
+ *
+ * This one answers "is anybody actually working together here?", so it keeps
+ * the entries where two people meet — a role opened, somebody joining, a task
+ * picked up or finished, a build-log entry — and leaves out the quieter
+ * bookkeeping (`task_created`, `seat_applied`, `boost_given`) that reads the
+ * same whether or not a collaboration followed.
+ */
+export const COLLABORATION_KINDS = [
+  "project_created",
+  "project_stage_changed",
+  "seat_opened",
+  "seat_filled",
+  "task_taken",
+  "task_done",
+  "comment_posted",
+  "update_posted",
+] as const satisfies readonly EventKind[];
+
+/**
  * The kinds a project's own history keeps.
  *
  * The project page already shows its tasks, its discussion and its support as

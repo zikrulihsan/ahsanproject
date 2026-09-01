@@ -547,17 +547,16 @@ function ContributorRail({ people, locale }: { people: PersonAtWork[]; locale: L
   return (
     <aside className="people-contributor-rail" aria-labelledby="contributors-heading">
       <div className="people-contributor-card">
-        <p className="section-label">{tx(locale, "Kontributor aktif", "Active contributors")}</p>
-        <h2 id="contributors-heading">{tx(locale, "Kontributor paling aktif", "Most active contributors")}</h2>
+        <p className="section-label">{tx(locale, "Talent pool", "Talent pool")}</p>
+        <h2 id="contributors-heading">{tx(locale, "Kontributor", "Contributors")}</h2>
         <p className="people-contributor-note">
-          {tx(locale, "Berdasarkan jumlah proyek yang pernah mereka bantu.", "Based on the projects they have helped with.")}
+          {tx(locale, "Orang yang sudah ikut membantu proyek di sini, dengan jumlah proyek yang mereka bantu.", "People who have helped on projects here, with how many they have helped on.")}
         </p>
 
         {people.length > 0 ? (
           <ol>
-            {people.map((entry, index) => (
+            {people.map((entry) => (
               <li key={entry.person.id}>
-                <span className="people-contributor-rank">{String(index + 1).padStart(2, "0")}</span>
                 <Link className="people-contributor-person" href={`/u/${entry.person.username}`}>
                   <span className="people-mini-avatar" aria-hidden="true">{initials(entry.person.name)}</span>
                   <span>

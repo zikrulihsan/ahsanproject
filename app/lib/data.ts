@@ -15,7 +15,7 @@ import type {
 import { seedEvents, seedProjects, seedUsers } from "./seed";
 import type { Stage } from "./stages";
 import type { Lane } from "./feed";
-import { PROJECT_MEMORY_KINDS } from "./activity";
+import { COLLABORATION_KINDS, PROJECT_MEMORY_KINDS } from "./activity";
 import { availabilityStatus, type AvailabilityStatus } from "./availability";
 import {
   normaliseRole,
@@ -1358,6 +1358,41 @@ async function queryProjectActivity(
   return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
 }
 
+/**
+ * What has been happening across the whole site, newest first.
+ *
+ * Home and Explore both lead with this: a board of projects says what exists,
+ * and this says whether anybody is actually working on them together. Narrowed
+ * to COLLABORATION_KINDS so the list reads as collaboration rather than as
+ * bookkeeping.
+ *
+ * A cached public read with nothing per-visitor in it. The SELECT policy on
+ * `events` already drops the kinds each person has hidden, so no filtering
+ * happens here — the anon key sees exactly the public trail.
+ */
+export async function listRecentActivity(limit = 6): Promise<ActivityEvent[]> {
+  "use cache";
+  cacheLife("trail");
+  cacheTag(tags.activity);
+
+  const supabase = getPublicSupabase();
+  if (!supabase) return seedRecentActivity(limit);
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, actor:profiles(id, username, name)")
+    .in("kind", [...COLLABORATION_KINDS])
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return [];
+  }
+
+  return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
+}
+
 export async function isFollowing(projectId: number, userId: string): Promise<boolean> {
   const supabase = await getSupabase();
   if (!supabase) return false;
@@ -1558,6 +1593,32 @@ function seedActivity(personId: string): ActivityEvent[] {
       payload: event.payload,
       actor: person ? { id: person.id, username: person.username, name: person.name } : null,
     }));
+}
+
+function seedRecentActivity(limit: number): ActivityEvent[] {
+  const collaboration = new Set<string>(COLLABORATION_KINDS);
+
+  return seedEvents
+    .filter((event) => collaboration.has(event.kind))
+    .filter((event) => {
+      const actor = seedUsers.find((user) => user.id === event.actorId);
+      return !(actor?.activityHidden ?? []).includes(event.kind);
+    })
+    .sort((a, b) => b.id - a.id)
+    .slice(0, limit)
+    .map((event) => {
+      const actor = seedUsers.find((user) => user.id === event.actorId);
+      return {
+        id: event.id,
+        kind: event.kind,
+        createdAt: event.createdAt,
+        projectId: seedProjects.find((project) => project.slug === event.projectSlug)?.id ?? null,
+        projectSlug: event.projectSlug,
+        projectTitle: event.payload.title ?? "",
+        payload: event.payload,
+        actor: actor ? { id: actor.id, username: actor.username, name: actor.name } : null,
+      };
+    });
 }
 
 function seedSummaries(): ProjectSummary[] {
