@@ -14,7 +14,7 @@ import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "explore" | "people" | "";
+export type Section = "home" | "explore" | "people" | "about" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -33,16 +33,28 @@ export function Brand({ footer = false, locale }: { footer?: boolean; locale: Lo
   );
 }
 
+/*
+ * The main menu.
+ *
+ * The three routes people come here to use, then the two that answer for the
+ * site itself: what this is, and where to say it is broken. Both were reachable
+ * only from the footer, which is the part of a page nobody scrolls to when they
+ * are lost — exactly the moment either one is wanted.
+ */
 const LINKS: { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName }[] = [
   { href: "/", label: "Home", labelId: "Beranda", key: "home", icon: "home" },
   { href: "/explore", label: "Explore", labelId: "Jelajahi", key: "explore", icon: "explore" },
   { href: "/people", label: "Talent Pool", labelId: "Talent Pool", key: "people", icon: "people" },
+  { href: "/about", label: "About Us", labelId: "Tentang Kami", key: "about", icon: "about" },
+  { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
 
 type HeaderIconName =
   | "home"
   | "explore"
   | "people"
+  | "about"
+  | "feedback"
   | "profile"
   | "edit"
   | "steps"
@@ -57,6 +69,8 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
     home: <><path d="m3 11 9-7 9 7" /><path d="M5.5 10v10h13V10M9 20v-6h6v6" /></>,
     explore: <><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" /></>,
     people: <><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20" /><circle cx="10" cy="7" r="3.5" /><path d="M17 11a3 3 0 0 0 0-6M19 14.5a4 4 0 0 1 2 3.5v2" /></>,
+    about: <><circle cx="12" cy="12" r="9" /><path d="M12 11.5v5M12 7.8h.01" /></>,
+    feedback: <><path d="M4 5h16v11H10l-4 4v-4H4z" /><path d="M8 9h8M8 12.5h5" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     inbox: <><path d="M4 5h16v13H4z" /><path d="M4 14h4l1.5 2h5l1.5-2h4" /></>,
     edit: <><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m14 6 4 4" /></>,
@@ -291,7 +305,7 @@ function MobileHeaderMenu({
     >
       <div className="mobile-nav">
         <nav className="mobile-nav-primary" aria-label={tx(locale, "Navigasi utama seluler", "Mobile primary navigation")}>
-          <p className="mobile-menu-label">{tx(locale, "Jelajahi", "Explore")}</p>
+          <p className="mobile-menu-label">{tx(locale, "Menu", "Menu")}</p>
           {LINKS.map((link) => (
             <Link
               key={link.href}

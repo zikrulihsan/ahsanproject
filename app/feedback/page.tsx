@@ -41,7 +41,7 @@ export default async function FeedbackPage() {
 
   return (
     <>
-      <SiteHeader returnTo="/feedback" />
+      <SiteHeader returnTo="/feedback" active="feedback" />
 
       <main id="main-content" className="page-narrow feedback-page">
         <p className="eyebrow">

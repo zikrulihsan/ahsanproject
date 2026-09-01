@@ -2100,8 +2100,11 @@ form label.help-toggle.is-on { background: #fff; border-color: var(--ink); }
 .brand strong { font-weight: 800; }
 .brand-alt { color: #315f51; font-weight: 680; }
 .brand-mark { border-radius: 10px; color: #fff; height: 35px; width: 35px; }
-.desktop-nav { gap: 38px; justify-self: center; margin: 0; }
-.desktop-nav a { font-size: 14px; padding: 26px 0 23px; }
+/* Five routes rather than three: the gap gives way before the labels do, so
+   the centre column still fits beside the brand and the account cluster on a
+   narrow laptop. */
+.desktop-nav { gap: clamp(18px, 2.4vw, 38px); justify-self: center; margin: 0; }
+.desktop-nav a { font-size: 14px; padding: 26px 0 23px; white-space: nowrap; }
 .desktop-nav a.is-active { border-color: var(--ink); }
 .header-actions { justify-self: end; }
 .nav-login { color: var(--ink-soft); font-size: 14px; font-weight: 680; padding: 12px 7px; white-space: nowrap; }
@@ -2988,6 +2991,21 @@ body:has(main.discovery-page), body:has(main.people-page) { background: #fbfcfb;
   .landing-stats { padding-left: 44px; padding-right: 44px; }
   .talent-story { gap: 44px; padding-left: 46px; padding-right: 46px; }
   .talent-skills i:nth-child(2) { display: none; }
+}
+
+/*
+ * Five routes need more room than three did.
+ *
+ * Between this width and 860px the account cluster stays where it is — the
+ * "tambah proyek" button is the whole point of the header — and only the main
+ * menu folds into the mobile sheet, which carries the same five links. Below
+ * 860px the block after this one takes the actions in with it.
+ */
+@media (max-width: 1024px) {
+  .topbar-inner { display: flex; }
+  .desktop-nav { display: none; }
+  .mobile-menu { display: block; }
+  .header-actions { margin-left: auto; }
 }
 
 @media (max-width: 860px) {
