@@ -38,6 +38,13 @@ export const tags = {
   /** One person's public trail and the numbers counted from it. */
   trail: (personId: string) => `trail:${personId}`,
   /**
+   * The site-wide trail: what has happened anywhere, newest first.
+   *
+   * Broad on purpose. Home and Explore both read it, and any event by anybody
+   * can change the top of that list, so there is nothing narrower to name.
+   */
+  activity: "activity",
+  /**
    * The trail shown on one project's page.
    *
    * By slug, because that is the identifier every write in `actions.ts`

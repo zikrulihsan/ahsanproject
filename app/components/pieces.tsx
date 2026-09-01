@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { projectTypeBlurb, projectTypeLabel, projectTypeTone, isProjectType } from "../lib/project-types";
 import { projectBlurb } from "../lib/brief";
 import { roleLabel } from "../lib/roles";
@@ -575,6 +576,64 @@ export function timeAgo(value: string, locale: Locale = "en"): string {
   if (days < 30) return tx(locale, `${days} hari lalu`, `${days} days ago`);
   if (days < 365) return tx(locale, `${Math.floor(days / 30)} bulan lalu`, `${Math.floor(days / 30)} months ago`);
   return tx(locale, `${Math.floor(days / 365)} tahun lalu`, `${Math.floor(days / 365)} years ago`);
+}
+
+/**
+ * The site-wide trail, compact enough for a sidebar or a panel on Home.
+ *
+ * Reads as one sentence per line — who, what, on which project, how long ago —
+ * built from the same `activityParts` the profile trail uses, so a new kind of
+ * event only has to be worded in one place.
+ */
+export async function CollaborationTrail({
+  events,
+  locale,
+  emptyNote,
+}: {
+  events: ActivityEvent[];
+  locale: Locale;
+  emptyNote: string;
+}) {
+  // "2 hari lalu" is read off the clock, and a prerender has no clock to read.
+  // Waiting for the connection moves these lines to request time; every caller
+  // streams this behind a Suspense boundary, so nothing else waits on it.
+  await connection();
+
+  if (events.length === 0) return <p className="collab-trail-empty">{emptyNote}</p>;
+
+  return (
+    <ol className="collab-trail">
+      {events.map((event) => {
+        const { lead, trail } = activityParts(event, locale);
+        const gone = event.projectId === null || !event.projectSlug;
+
+        return (
+          <li key={event.id}>
+            <span className="collab-trail-avatar" aria-hidden="true">
+              {event.actor ? initials(event.actor.name) : "?"}
+            </span>
+            <div>
+              <p>
+                {event.actor ? (
+                  <Link href={`/u/${event.actor.username}`}>{event.actor.name}</Link>
+                ) : (
+                  <strong>{tx(locale, "Seseorang", "Someone")}</strong>
+                )}{" "}
+                {lead}
+                {gone ? (
+                  <strong>{event.projectTitle}</strong>
+                ) : (
+                  <Link href={`/projects/${event.projectSlug}`}>{event.projectTitle}</Link>
+                )}
+                {trail}
+              </p>
+              <small>{timeAgo(event.createdAt, locale)}</small>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 /**
