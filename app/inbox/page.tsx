@@ -208,14 +208,18 @@ function NoticeLine({ notice, locale }: { notice: NoticeView; locale: Locale }) 
   if (notice.kind === "application_accepted") {
     return (
       <p>
-        {tx(locale, "Pengajuanmu diterima—sekarang kamu menjadi", "Your application was accepted—you are now")} {target ? <strong>{target}</strong> : tx(locale, "anggota", "a member")} {tx(locale, "di", "of")}{" "}
-        {project}.
+        {tx(locale, "Selamat! Pengajuanmu diterima—sekarang kamu menjadi", "Congratulations! Your application was accepted—you are now")} {target ? <strong>{target}</strong> : tx(locale, "anggota", "a member")} {tx(locale, "di", "of")}{" "}
+        {project}. <Welcome slug={slug} locale={locale} />
       </p>
     );
   }
 
   if (notice.kind === "proposal_accepted") {
-    return <p>{tx(locale, "Proposalmu untuk", "Your proposal for")} <strong>{target || tx(locale, "sebuah kontribusi", "a contribution")}</strong> {tx(locale, "diterima di", "was accepted on")} {project}.</p>;
+    return (
+      <p>
+        {tx(locale, "Selamat! Proposalmu untuk", "Congratulations! Your proposal for")} <strong>{target || tx(locale, "sebuah kontribusi", "a contribution")}</strong> {tx(locale, "diterima di", "was accepted on")} {project}. <Welcome slug={slug} locale={locale} />
+      </p>
+    );
   }
 
   if (notice.kind === "application_declined") {
@@ -231,6 +235,31 @@ function NoticeLine({ notice, locale }: { notice: NoticeView; locale: Locale }) 
   }
 
   return <p>{tx(locale, "Ada kabar terbaru dari", "There is an update from")} {project}.</p>;
+}
+
+/**
+ * The welcome that follows either kind of acceptance.
+ *
+ * Being let in is the moment a contributor most needs somewhere to go, so the
+ * sentence carries the way in with it: the project's discussion, where the
+ * people already there are talking. A notice can outlive its project, and a
+ * deleted one has no discussion to open — then the welcome stands on its own
+ * rather than pointing nowhere.
+ */
+function Welcome({ slug, locale }: { slug: string; locale: Locale }) {
+  if (!slug) {
+    return <>{tx(locale, "Selamat bergabung!", "Welcome aboard!")}</>;
+  }
+
+  return (
+    <>
+      {tx(locale, "Selamat bergabung! Silakan buka", "Welcome aboard! Head to")}{" "}
+      <Link href={`/projects/${slug}?tab=discussion`}>
+        {tx(locale, "ruang diskusi proyek", "the project discussion")}
+      </Link>{" "}
+      {tx(locale, "untuk komunikasi lebih lanjut.", "for further conversation.")}
+    </>
+  );
 }
 
 function ApplicationHead({
