@@ -13,12 +13,14 @@ import {
   arrangeForYou,
   familiarRoles,
   isLane,
+  listActiveProjects,
   listPeople,
   listOpenRoleSuggestions,
   listProjects,
   listRecentActivity,
   openSeatsByRole,
   tagCountsFromProjects,
+  type ActiveProject,
   type ActivityEvent,
   type FeedQuery,
   type Lane,
@@ -231,8 +233,8 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     ? readPublicly<ActivityEvent[]>("recent collaboration in Explore", () => listRecentActivity(5), [])
     : Promise.resolve({ value: [] as ActivityEvent[], unavailable: false });
   const activeProjectsPromise = searchBy === "role"
-    ? Promise.resolve({ value: [] as ProjectSummary[], unavailable: false })
-    : readPublicly<ProjectSummary[]>("most active projects in Explore", () => listProjects({ lane: "active" }), []);
+    ? Promise.resolve({ value: [] as ActiveProject[], unavailable: false })
+    : readPublicly<ActiveProject[]>("most active projects in Explore", () => listActiveProjects(5), []);
 
   const [
     projectsResult,
@@ -257,7 +259,7 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
     : projectsResult.value;
   const topics = tagCountsFromProjects(topicProjectsResult.value);
   const recentCollaboration = trailResult.value;
-  const activeProjects = activeProjectsResult.value.slice(0, 5);
+  const activeProjects = activeProjectsResult.value;
   const roleSuggestions = roleSuggestionsResult.value.map((suggestion) => ({
     ...suggestion,
     value: localizeRoleLabel(suggestion.value, locale),
@@ -473,13 +475,13 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
                   <div>
                     <p className="home-eyebrow">{tx(locale, "Sedang bergerak", "On the move")}</p>
                     <h2 id="explore-spotlight-title">{tx(locale, "Proyek yang paling aktif", "The most active projects")}</h2>
-                    <p>{tx(locale, "Proyek dengan aktivitas terbaru — di sinilah kontribusimu paling cepat terlihat.", "Projects with the newest activity — where your contribution shows up fastest.")}</p>
+                    <p>{tx(locale, "Diurutkan dari banyaknya kolaborasi yang terjadi — bukan dari kapan proyeknya ditambahkan.", "Ranked by how much collaboration has happened — not by when the project was listed.")}</p>
                   </div>
                   <span className="live-dot" title={tx(locale, "Diperbarui dari aktivitas proyek", "Updated from project activity")} />
                 </div>
                 <ActiveProjectList projects={activeProjects} locale={locale} />
-                <Link className="explore-spotlight-link" href="/explore?lane=active">
-                  {tx(locale, "Urutkan semua proyek dari yang paling aktif", "Sort every project by most active")} <Arrow />
+                <Link className="explore-spotlight-link" href="/explore">
+                  {tx(locale, "Lihat semua proyek", "See every project")} <Arrow />
                 </Link>
               </section>
             )}
@@ -504,11 +506,15 @@ async function Board({ params: paramsPromise }: { params: SearchParams }) {
  * the connection keeps the rest of the rail prerenderable, and the board this
  * sits beside is already streamed behind a Suspense boundary.
  */
-async function ActiveProjectList({ projects, locale }: { projects: ProjectSummary[]; locale: Locale }) {
+async function ActiveProjectList({ projects, locale }: { projects: ActiveProject[]; locale: Locale }) {
   await connection();
 
   if (projects.length === 0) {
-    return <p className="explore-spotlight-empty">{tx(locale, "Belum ada proyek yang bergerak.", "Nothing is moving yet.")}</p>;
+    return (
+      <p className="explore-spotlight-empty">
+        {tx(locale, "Belum ada kolaborasi yang berjalan di proyek mana pun.", "No collaboration is under way on any project yet.")}
+      </p>
+    );
   }
 
   return (
@@ -521,10 +527,15 @@ async function ActiveProjectList({ projects, locale }: { projects: ProjectSummar
               <small>
                 {stageLabel(project.stage, locale)}
                 {" · "}
-                {timeAgo(project.lastActivityAt || project.createdAt, locale)}
+                {timeAgo(project.lastCollaborationAt, locale)}
               </small>
             </span>
-            <Arrow />
+            <strong
+              className="explore-spotlight-count"
+              title={tx(locale, `${project.activityCount} aktivitas kolaborasi`, `${project.activityCount} collaboration events`)}
+            >
+              {project.activityCount}
+            </strong>
           </Link>
         </li>
       ))}

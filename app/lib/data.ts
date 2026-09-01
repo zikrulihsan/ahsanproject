@@ -1393,6 +1393,100 @@ export async function listRecentActivity(limit = 6): Promise<ActivityEvent[]> {
   return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
 }
 
+/** A project on the "paling aktif" list, with the working it was ranked on. */
+export type ActiveProject = ProjectSummary & {
+  /** Collaboration events counted for this project inside the window below. */
+  activityCount: number;
+  /** When the newest of them happened. */
+  lastCollaborationAt: string;
+};
+
+/**
+ * How far back "paling aktif" looks. Deliberately a count of recent events
+ * rather than a date range: a quiet week should still produce a list.
+ */
+const ACTIVITY_WINDOW = 500;
+
+/**
+ * The projects people are actually working on, busiest first.
+ *
+ * Not `lane: "active"`. That orders by `project_overview.last_activity_at`,
+ * which starts at the project's own `updated_at` — so listing a project, or
+ * editing its brief, puts it at the top of "paling aktif" having collaborated
+ * with nobody. This counts COLLABORATION_KINDS events instead, which is the
+ * working itself: roles opened, tasks added, taken and finished, updates
+ * posted. A project with none of them does not appear at all.
+ *
+ * Ranked on how much has happened, and only then on how recently, so a project
+ * with one week-old event does not outrank one that has moved five times.
+ */
+export async function listActiveProjects(limit = 5): Promise<ActiveProject[]> {
+  "use cache";
+  cacheLife("trail");
+  cacheTag(tags.activity, tags.projects);
+
+  const supabase = getPublicSupabase();
+  if (!supabase) return seedActiveProjects(limit);
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("project_id, created_at")
+    .in("kind", [...COLLABORATION_KINDS])
+    .not("project_id", "is", null)
+    .order("id", { ascending: false })
+    .limit(ACTIVITY_WINDOW);
+  if (error) {
+    if (!isMissingTable(error)) throw new Error(error.message);
+    warnMissingTable("events");
+    return [];
+  }
+
+  const ranked = rankByActivity(data ?? []).slice(0, limit);
+  if (ranked.length === 0) return [];
+
+  // The events carry the project's title in their payload, but a stale copy of
+  // it: the row is what the board shows everywhere else, so ask for the row.
+  const { data: rows, error: rowsError } = await supabase
+    .from("project_overview")
+    .select("*")
+    .in("id", ranked.map((entry) => entry.projectId));
+  if (rowsError) throw new Error(rowsError.message);
+
+  const summaries = new Map((rows ?? []).map((row) => [row.id, toSummary(row as ProjectOverviewRow)]));
+
+  return ranked.flatMap((entry) => {
+    const summary = summaries.get(entry.projectId);
+    // Gone since the events were written, or hidden from this reader.
+    if (!summary) return [];
+    return [{ ...summary, activityCount: entry.count, lastCollaborationAt: entry.lastAt }];
+  });
+}
+
+/**
+ * Busiest first, then most recent. Ties broken by project id so two projects
+ * with identical counts do not swap places between reads.
+ */
+function rankByActivity(
+  rows: { project_id: number | null; created_at: string }[],
+): { projectId: number; count: number; lastAt: string }[] {
+  const tally = new Map<number, { count: number; lastAt: string }>();
+
+  for (const row of rows) {
+    if (row.project_id === null) continue;
+    const current = tally.get(row.project_id);
+    if (current) {
+      current.count += 1;
+      if (row.created_at > current.lastAt) current.lastAt = row.created_at;
+    } else {
+      tally.set(row.project_id, { count: 1, lastAt: row.created_at });
+    }
+  }
+
+  return [...tally.entries()]
+    .map(([projectId, entry]) => ({ projectId, ...entry }))
+    .sort((a, b) => b.count - a.count || b.lastAt.localeCompare(a.lastAt) || a.projectId - b.projectId);
+}
+
 export async function isFollowing(projectId: number, userId: string): Promise<boolean> {
   const supabase = await getSupabase();
   if (!supabase) return false;
@@ -1618,6 +1712,26 @@ function seedRecentActivity(limit: number): ActivityEvent[] {
         payload: event.payload,
         actor: actor ? { id: actor.id, username: actor.username, name: actor.name } : null,
       };
+    });
+}
+
+function seedActiveProjects(limit: number): ActiveProject[] {
+  const collaboration = new Set<string>(COLLABORATION_KINDS);
+  const bySlug = new Map(seedSummaries().map((project) => [project.slug, project]));
+
+  const rows = seedEvents
+    .filter((event) => collaboration.has(event.kind) && bySlug.has(event.projectSlug))
+    .map((event) => ({
+      project_id: bySlug.get(event.projectSlug)!.id,
+      created_at: event.createdAt,
+    }));
+
+  return rankByActivity(rows)
+    .slice(0, limit)
+    .flatMap((entry) => {
+      const summary = seedSummaries().find((project) => project.id === entry.projectId);
+      if (!summary) return [];
+      return [{ ...summary, activityCount: entry.count, lastCollaborationAt: entry.lastAt }];
     });
 }
 

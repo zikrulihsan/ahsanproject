@@ -149,7 +149,7 @@ export default async function Home() {
                   emptyNote={tx(locale, "Belum ada aktivitas. Jadilah yang pertama berkontribusi.", "No activity yet. Be the first to contribute.")}
                 />
               </Suspense>
-              <Link className="solo-builder-panel-link" href="/explore?lane=active">
+              <Link className="solo-builder-panel-link" href="/explore">
                 {tx(locale, "Lihat proyek yang sedang bergerak", "See the projects on the move")} <Arrow />
               </Link>
             </div>

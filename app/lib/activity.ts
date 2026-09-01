@@ -83,24 +83,18 @@ export const HIGHLIGHT_KINDS = [
 ] as const satisfies readonly EventKind[];
 
 /**
- * The kinds the site-wide trail leads with.
+ * The kinds that count as collaboration happening on a project.
  *
- * This one answers "is anybody actually working together here?", so it keeps
- * the entries where two people meet — a role opened, somebody joining, a task
- * picked up or finished, a build-log entry — and leaves out the quieter
- * bookkeeping (`task_created`, `seat_applied`, `boost_given`) that reads the
- * same whether or not a collaboration followed.
+ * Everything except `project_created`. Listing a project is the moment before
+ * any collaboration: it says a project exists, not that anybody is working on
+ * it, and a feed led by it reads as a list of new folders. What belongs here is
+ * what happens afterwards — a role opened, a task added, taken or finished,
+ * somebody joining, a discussion, a build-log entry — which is also the signal
+ * "proyek paling aktif" is ranked on.
  */
-export const COLLABORATION_KINDS = [
-  "project_created",
-  "project_stage_changed",
-  "seat_opened",
-  "seat_filled",
-  "task_taken",
-  "task_done",
-  "comment_posted",
-  "update_posted",
-] as const satisfies readonly EventKind[];
+export const COLLABORATION_KINDS = EVENT_KINDS.filter(
+  (kind) => kind !== "project_created",
+) as Exclude<EventKind, "project_created">[];
 
 /**
  * The kinds a project's own history keeps.
