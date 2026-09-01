@@ -1758,6 +1758,40 @@ footer nav a:hover { color: var(--ink); }
 
 .help .seat-list { margin-top: 16px; }
 
+/*
+ * Open issues from the project's own repository.
+ *
+ * Quieter than the seat list above it on purpose. A seat is this platform's
+ * own promise, decided here; an issue is somebody else's record that we are
+ * only relaying, and every one of these links leaves the site.
+ */
+.github-issue-list { list-style: none; margin: 18px 0 0; padding: 0; }
+.github-issue-list li { border-top: 1px solid var(--line-soft); padding: 15px 0; }
+.github-issue-list li:first-child { border-top: 0; padding-top: 0; }
+.github-issue-list a {
+  align-items: baseline; display: inline-flex; font-size: 15.5px; font-weight: 640; gap: 7px;
+  line-height: 1.5;
+}
+.github-issue-list a:hover .github-issue-title { border-bottom-color: var(--ink); }
+.github-issue-title { border-bottom: 1px solid transparent; transition: border-color .12s ease; }
+.github-issue-list .arrow { flex-shrink: 0; }
+.github-issue-meta {
+  color: var(--muted); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 10px; margin: 6px 0 0;
+}
+.github-issue-number { font-family: var(--font-geist-mono), monospace; }
+.github-issue-labels { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0 0; }
+.github-issue-label {
+  border: 1px solid var(--line-2); border-radius: 99px; color: var(--muted); font-size: 10.5px;
+  font-weight: 650; letter-spacing: .02em; padding: 3px 9px;
+}
+/* The one label that says an outsider may simply take this. */
+.github-issue-label.is-inviting { background: var(--ink); border-color: var(--ink); color: #eef6ef; }
+.github-issue-all {
+  align-items: center; color: var(--muted); display: inline-flex; font-size: 13px; font-weight: 640;
+  gap: 6px; margin-top: 18px;
+}
+.github-issue-all:hover { color: var(--ink); }
+
 /* ------------------------------------------------------------ inbox news */
 
 .followed-list { list-style: none; margin: 14px 0 0; padding: 0; }

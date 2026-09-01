@@ -59,6 +59,18 @@ const nextConfig: NextConfig = {
       revalidate: 1800,
       expire: 86400,
     },
+    // Issues read from somebody else's repository. This is the one profile
+    // here that protects an upstream rather than our own work: GitHub gives an
+    // unauthenticated caller sixty requests an hour, and on Netlify that
+    // budget is one shared address, not one per visitor. Half an hour means
+    // two refreshes per repository per hour, so roughly thirty projects can
+    // show their issues before the ceiling is the thing to solve — at which
+    // point the answer is a token, not a longer duration.
+    github: {
+      stale: 1800,
+      revalidate: 1800,
+      expire: 7200,
+    },
   },
 };
 

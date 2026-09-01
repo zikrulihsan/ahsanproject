@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -63,6 +64,7 @@ import { currentViewer } from "../../lib/session";
 import { ProjectScrollTop } from "../../components/project-scroll-top";
 import { ProjectLogo } from "../../components/project-logo";
 import { ProjectTabContent, ProjectTabSwitcher } from "../../components/project-tabs";
+import { GitHubIssueList } from "../../components/github-issues";
 import { isProjectTab, type ProjectTab } from "../../lib/project-tabs";
 import { isGitHubRepositoryUrl } from "../../lib/github";
 import { currentLocale } from "../../lib/locale-server";
@@ -503,6 +505,18 @@ export default async function ProjectPage({
                 </section>
               )}
             </ProjectTabContent>
+
+            {project.openForGitHubContributions ? (
+              <ProjectTabContent tab="collaboration">
+                {/* Suspense rather than an awaited read: GitHub is somebody
+                    else's server, and the rest of this tab should not wait on
+                    it. When it is slow, rate limited, or simply has nothing
+                    open, the section renders nothing and the page is unharmed. */}
+                <Suspense fallback={null}>
+                  <GitHubIssueList repoUrl={project.repoUrl} locale={locale} />
+                </Suspense>
+              </ProjectTabContent>
+            ) : null}
 
             <ProjectTabContent tab="journey">
               <section className="journey-section" aria-labelledby="journey-heading">
