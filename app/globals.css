@@ -858,6 +858,7 @@ a.seat-chip:hover { border-color: var(--ink); }
   grid-template-columns: 1.4fr auto; padding: 18px 0;
 }
 .seat-list h3 { font-size: 16px; font-weight: 680; margin-bottom: 6px; }
+.seat-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .seat-list p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0; }
 .pending-list { border-top: 1px solid var(--line-soft); margin-top: 18px; padding-top: 18px; }
 .waiting-flag {

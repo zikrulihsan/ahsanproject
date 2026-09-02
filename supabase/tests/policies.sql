@@ -145,14 +145,14 @@ select checks.equal((select count(*)::int from public.projects where slug = 'kel
 
 select checks.denied($$
   insert into public.seats (project_id, role, brief)
-  select id, 'design', 'Menyelinap membuka peran di proyek orang.'
+  select id, 'ui-ux-designer', 'Menyelinap membuka peran di proyek orang.'
   from public.projects where slug = 'kelas-sore'
 $$, 'membuka peran di proyek orang lain');
 
 select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.allowed($$
   insert into public.seats (project_id, role, brief)
-  select id, 'design', 'Menyusun tampilan jadwal mingguan.'
+  select id, 'ui-ux-designer', 'Menyusun tampilan jadwal mingguan.'
   from public.projects where slug = 'kelas-sore'
 $$, 'pemilik membuka peran');
 
@@ -169,7 +169,15 @@ select checks.equal((select status from public.seats limit 1), 'open', 'role tet
 select checks.act_as('33333333-3333-4333-8333-333333333333');
 select checks.allowed($$select public.submit_proposal(null, (select id from public.seats limit 1), 'Saya juga bisa bantu.')$$,
                       'orang kedua dapat mengajukan role yang sama');
+-- What each side may read is part of the same rule: 0016 shows a person their
+-- own proposals, and shows a manager every proposal on a project they run. The
+-- count that proves both landed is therefore the owner's to take, not the
+-- applicant's.
+select checks.equal((select count(*)::int from public.proposals), 1,
+                    'pelamar cuma melihat proposalnya sendiri');
+select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.equal((select count(*)::int from public.proposals), 2, 'dua proposal tersimpan di satu role');
+select checks.act_as('33333333-3333-4333-8333-333333333333');
 
 -- The applicant must not be able to hand themselves the seat.
 update public.seats set status = 'filled' where status = 'open';
@@ -231,7 +239,7 @@ select checks.equal((select access from public.seats where user_id = '22222222-2
 
 select checks.allowed($$
   insert into public.seats (project_id, role, brief, status, user_id)
-  select id, 'research', 'Ngobrol ke calon pengguna.', 'filled', '33333333-3333-4333-8333-333333333333'
+  select id, 'researcher', 'Ngobrol ke calon pengguna.', 'filled', '33333333-3333-4333-8333-333333333333'
   from public.projects where slug = 'kelas-sore'
 $$, 'pemilik mendudukkan anggota');
 
@@ -239,7 +247,7 @@ $$, 'pemilik mendudukkan anggota');
 -- application is accepted.
 select checks.denied($$
   insert into public.seats (project_id, role, brief, access)
-  select id, 'content', 'Peran terbuka yang mengaku admin.', 'admin'
+  select id, 'content-writer', 'Peran terbuka yang mengaku admin.', 'admin'
   from public.projects where slug = 'kelas-sore'
 $$, 'peran terbuka mengaku admin');
 
@@ -322,8 +330,8 @@ update public.tasks set title = 'Ngobrol ke lima warung';
 select checks.equal((select title from public.tasks limit 1), 'Ngobrol ke lima warung',
                     'admin boleh mengubah tugas');
 
-select checks.equal((select open_task_count::int from public.project_overview), 1, 'hitungan tugas jalan');
-select checks.equal((select done_task_count::int from public.project_overview), 0, 'hitungan tugas beres');
+select checks.equal((select open_task_count::int from public.project_overview where slug = 'kelas-sore'), 1, 'hitungan tugas jalan');
+select checks.equal((select done_task_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan tugas beres');
 
 -- Somebody leaving a project releases their tasks rather than leaving them
 -- pointing at a person who is no longer on it.
@@ -413,13 +421,13 @@ select checks.equal((select activity_hidden from public.profiles where id = '222
 select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.allowed($$
   insert into public.seats (project_id, role, brief)
-  select id, 'content', 'Menulis pengumuman mingguan.'
+  select id, 'content-writer', 'Menulis pengumuman mingguan.'
   from public.projects where slug = 'kelas-sore'
 $$, 'pemilik membuka peran penulis');
 
 select checks.act_as('44444444-4444-4444-8444-444444444444');
 select checks.allowed($$
-  select public.submit_proposal(null, (select id from public.seats where role = 'content'), 'Bisa nulis tiap Jumat.')
+  select public.submit_proposal(null, (select id from public.seats where role = 'content-writer'), 'Bisa nulis tiap Jumat.')
 $$, 'orang luar mengajukan role penulis');
 
 -- An admin flag on a seat nobody holds would hand over the keys the moment an
@@ -427,35 +435,42 @@ $$, 'orang luar mengajukan role penulis');
 -- constraint refuses to store it at all, and declining resets `access` anyway
 -- so the reopened seat is a plain member even if that constraint ever loosens.
 select checks.act_as('11111111-1111-4111-8111-111111111111');
-select checks.denied($$update public.seats set access = 'admin' where role = 'content'$$,
+select checks.denied($$update public.seats set access = 'admin' where role = 'content-writer'$$,
                      'menandai admin di peran yang belum terisi');
 
-select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content') and status = 'pending'), false)$$,
+select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content-writer') and status = 'pending'), false)$$,
                       'pemilik menolak proposal');
-select checks.equal((select status from public.seats where role = 'content'), 'open', 'peran tetap terbuka');
-select checks.equal((select access from public.seats where role = 'content'), 'member',
+select checks.equal((select status from public.seats where role = 'content-writer'), 'open', 'peran tetap terbuka');
+select checks.equal((select access from public.seats where role = 'content-writer'), 'member',
                     'peran yang dibuka lagi tetap anggota');
-select checks.equal((select user_id from public.seats where role = 'content'), null::uuid,
+select checks.equal((select user_id from public.seats where role = 'content-writer'), null::uuid,
                     'pelamarnya dilepas dari peran');
 
 -- Dina is an admin on this project, and the project page offers her these
 -- buttons. The database has to agree.
 select checks.act_as('44444444-4444-4444-8444-444444444444');
 select checks.allowed($$
-  select public.submit_proposal(null, (select id from public.seats where role = 'content'), 'Sekali lagi, masih bisa.')
+  select public.submit_proposal(null, (select id from public.seats where role = 'content-writer'), 'Sekali lagi, masih bisa.')
 $$, 'mengajukan lagi setelah ditolak');
 
 select checks.act_as('22222222-2222-4222-8222-222222222222');
-select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content') and status = 'pending'), true)$$,
+select checks.allowed($$select public.decide_proposal((select id from public.proposals where seat_id = (select id from public.seats where role = 'content-writer') and status = 'pending'), true)$$,
                       'admin menjawab proposal');
-select checks.equal((select status from public.seats where role = 'content'), 'filled',
+select checks.equal((select status from public.seats where role = 'content-writer'), 'filled',
                     'peran terisi lewat keputusan admin');
 
 -- Both answers reached the applicant, and nobody else can read them.
 select checks.act_as('44444444-4444-4444-8444-444444444444');
 select checks.equal((select count(*)::int from public.notices), 2, 'pelamar dikabari dua keputusan');
 select checks.act_as('33333333-3333-4333-8333-333333333333');
-select checks.equal((select count(*)::int from public.notices), 0, 'kabar orang lain tidak terbaca');
+-- This one applied for the design role and was settled when somebody else was
+-- accepted onto it — 0016 declines every remaining proposal rather than leaving
+-- anybody waiting — so they have exactly one notice, their own.
+select checks.equal((select count(*)::int from public.notices), 1,
+                    'yang ikut melamar dikabari saat orang lain diterima');
+select checks.equal((select count(*)::int from public.notices
+                     where recipient_id = '44444444-4444-4444-8444-444444444444'), 0,
+                    'kabar orang lain tidak terbaca');
 
 -- ----------------------------------------------------- kabar & mengikuti --
 
@@ -593,17 +608,75 @@ select checks.equal((select contact from public.feedback where kind = 'idea'), '
                     'alamat balasan tersimpan apa adanya');
 select checks.equal((select bool_or(handled) from public.feedback), false, 'masukan baru belum ditangani');
 
+-- ------------------------------------------------------------ tutup peran --
+
+-- Closing a role turns off new proposals and nothing else. Deleting the seat
+-- would have been the easy way to do it, but `proposals.seat_id` cascades, so
+-- it would take down whoever was still waiting on an answer along with the
+-- role they applied for.
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$
+  insert into public.seats (project_id, role, brief)
+  select id, 'growth-marketing', 'Menulis rilis untuk peluncuran.'
+  from public.projects where slug = 'tautan-saja'
+$$, 'pemilik membuka peran di proyek keduanya');
+
+select checks.act_as('44444444-4444-4444-8444-444444444444');
+select checks.allowed($$
+  select public.submit_proposal(null, (select id from public.seats where role = 'growth-marketing'),
+                                'Saya bisa bantu menulis rilisnya.')
+$$, 'mengajukan selagi peran masih terbuka');
+
+-- Closing is a manager's move, and the UPDATE policy is what says so.
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+update public.seats set status = 'closed' where role = 'growth-marketing';
+select checks.equal((select status from public.seats where role = 'growth-marketing'), 'open',
+                    'orang luar tidak bisa menutup peran orang');
+
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.allowed($$update public.seats set status = 'closed' where role = 'growth-marketing'$$,
+                      'pemilik menutup peran');
+
+-- Closed to new proposals: submit_proposal only ever looks for an open seat.
+select checks.act_as('33333333-3333-4333-8333-333333333333');
+select checks.denied($$
+  select public.submit_proposal(null, (select id from public.seats where role = 'growth-marketing'),
+                                'Telat, tapi mau coba.')
+$$, 'mengajukan setelah peran ditutup');
+
+-- Closed to nothing else: the proposal sent while it was open is still there,
+-- still pending, and still gets a real answer.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.equal((select count(*)::int from public.proposals
+                     where seat_id = (select id from public.seats where role = 'growth-marketing')
+                       and status = 'pending'), 1,
+                    'lamaran yang sudah masuk tetap menunggu keputusan');
+select checks.allowed($$select public.decide_proposal(
+  (select id from public.proposals
+   where seat_id = (select id from public.seats where role = 'growth-marketing')
+     and status = 'pending'), true)$$,
+  'menerima lamaran di peran yang sudah ditutup');
+select checks.equal((select status from public.seats where role = 'growth-marketing'), 'filled',
+                    'peran yang ditutup tetap bisa terisi');
+select checks.equal((select user_id from public.seats where role = 'growth-marketing'),
+                    '44444444-4444-4444-8444-444444444444'::uuid,
+                    'yang diterima jadi pemegang perannya');
+
 -- ------------------------------------------------------------------ delete --
 
 -- Deleting a project has to take its seats, comments and support with it,
 -- because app/actions.ts deleteProject() leans on the cascade rather than
 -- clearing the children itself.
-select checks.equal((select count(*)::int from public.seats), 2, 'ada peran sebelum dihapus');
+-- Three by now: two on 'kelas-sore', and the one just filled on 'tautan-saja'.
+select checks.equal((select count(*)::int from public.seats), 3, 'ada peran sebelum dihapus');
 select checks.equal((select count(*)::int from public.comments), 1, 'ada komentar sebelum dihapus');
 
 select checks.act_as('11111111-1111-4111-8111-111111111111');
 select checks.allowed($$delete from public.projects where slug = 'kelas-sore'$$, 'pemilik menghapus proyeknya');
-select checks.equal((select count(*)::int from public.seats), 0, 'peran ikut terhapus');
+-- Only its own: the seat on the other project is untouched, which is the
+-- half of "cascade" that is easy to get wrong in the other direction.
+select checks.equal((select count(*)::int from public.seats), 1, 'peran ikut terhapus, tapi cuma milik proyek itu');
 select checks.equal((select count(*)::int from public.comments), 0, 'komentar ikut terhapus');
 select checks.equal((select count(*)::int from public.updates), 0, 'kabar ikut terhapus');
 select checks.equal((select count(*)::int from public.follows), 0, 'ikutan ikut terhapus');
@@ -633,8 +706,9 @@ $$, 'pemilik menaruh ulang proyeknya');
 select checks.act_as_guest();
 select checks.equal(auth.uid(), null::uuid, 'tamu benar-benar tanpa identitas');
 
-select checks.equal((select count(*)::int from public.projects), 1, 'tamu tetap bisa membaca papan');
-select checks.equal((select count(*)::int from public.project_overview), 1, 'tamu bisa membaca ringkasan');
+-- Two by now: 'kelas-sore', and the link-only project opened right at the top.
+select checks.equal((select count(*)::int from public.projects), 2, 'tamu tetap bisa membaca papan');
+select checks.equal((select count(*)::int from public.project_overview), 2, 'tamu bisa membaca ringkasan');
 
 select checks.denied($$
   insert into public.projects (slug, title, tagline, owner_id, problem, solution, audience, tags)
@@ -657,11 +731,11 @@ select checks.denied($$insert into public.feedback (kind, message) values ('bug'
 
 -- The overview must agree with the rows it counts.
 -- The project was just re-created, so every count starts from nothing again.
-select checks.equal((select seat_count::int from public.project_overview), 0, 'hitungan peran');
-select checks.equal((select comment_count::int from public.project_overview), 0, 'hitungan komentar');
-select checks.equal((select boost_count::int from public.project_overview), 0, 'hitungan dukungan');
-select checks.equal((select open_task_count::int from public.project_overview), 0, 'hitungan tugas jalan');
-select checks.equal((select done_task_count::int from public.project_overview), 0, 'hitungan tugas beres');
+select checks.equal((select seat_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan peran');
+select checks.equal((select comment_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan komentar');
+select checks.equal((select boost_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan dukungan');
+select checks.equal((select open_task_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan tugas jalan');
+select checks.equal((select done_task_count::int from public.project_overview where slug = 'kelas-sore'), 0, 'hitungan tugas beres');
 
 reset role;
 select checks.equal((select count(*)::int from public.feedback where author_id is null), 1,

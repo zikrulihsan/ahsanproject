@@ -604,6 +604,32 @@ export async function openSeat(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
 }
 
+/**
+ * Closes a role to new proposals, without touching anybody who already sent
+ * one.
+ *
+ * `DELETE` was the only tool already sitting in the database for this
+ * (`managers close seats on their project`, since 0004), but it cascades to
+ * every proposal aimed at the seat — including a pending one somebody is
+ * still waiting on. This instead flips the seat to `closed`: `submit_proposal`
+ * already refuses anything but an `open` seat, so new applicants get turned
+ * away, while `decide_proposal` now accepts from `closed` too, so whoever
+ * applied before the role closed still gets a real accept or decline.
+ */
+export async function closeSeat(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const seatId = Number(text(formData, "seatId"));
+  if (!Number.isInteger(seatId)) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("seats").update({ status: "closed" }).eq("id", seatId);
+  if (error) throw new Error(error.message);
+
+  seatsChanged(slug);
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
 /** Submit a proposal for either a role or a concrete unassigned task. */
 export async function submitProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
