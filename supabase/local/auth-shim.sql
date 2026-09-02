@@ -6,6 +6,11 @@
 
 create schema if not exists auth;
 
+-- Supabase keeps extensions out of `public`, and 20260829032113 installs
+-- pg_trgm there by name. A plain PostgreSQL has no such schema, so the
+-- migrations stop dead without this line.
+create schema if not exists extensions;
+
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then
@@ -43,5 +48,5 @@ as $$
   )::uuid;
 $$;
 
-grant usage on schema auth to anon, authenticated, service_role;
+grant usage on schema auth, extensions to anon, authenticated, service_role;
 grant select on auth.users to authenticated, service_role;
