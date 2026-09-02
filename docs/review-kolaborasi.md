@@ -198,9 +198,12 @@ proyek yang sama selama belum diterima di salah satunya.
 
 Tiga hal ini sudah legal menurut policy dan tidak pernah ditawarkan halamannya:
 
-- **Menutup peran.** `managers close seats on their project` (DELETE) ada sejak
-  0004. Rina yang salah membuka peran tidak punya jalan keluar selain membiarkan
-  papan mengiklankan kebutuhan yang sudah tidak ada.
+- **Menutup peran.** ✅ Dikerjakan 2026-09-02. `managers close seats on their
+  project` (DELETE) ada sejak 0004; yang ditambahkan cuma tombolnya di halaman
+  proyek dan satu trigger (`20260902000000_close_seat_notifies.sql`) yang
+  mengabari setiap pelamar yang masih `pending` bahwa perannya sudah ditutup
+  dan tidak lagi menerima proposal, sebelum cascade menghapus baris lamaran
+  mereka.
 - **Menghapus komentar sendiri.** `people delete their own comment` ada sejak
   0003.
 - **Melepas anggota.** Owner boleh menghapus baris seat, dan

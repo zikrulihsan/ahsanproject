@@ -604,6 +604,30 @@ export async function openSeat(formData: FormData): Promise<void> {
   revalidatePath(`/projects/${slug}`);
 }
 
+/**
+ * Closes a role nobody has taken yet.
+ *
+ * The delete itself needs no new authorisation — `managers close seats on
+ * their project` has allowed it since 0004 — so this is a plain `.delete()`
+ * the same way `deleteTask` is. What used to be missing is what closing one
+ * does to anybody still waiting on it: a `before delete` trigger on `seats`
+ * tells every pending applicant the role is no longer accepting proposals
+ * before the cascade takes their row down with it.
+ */
+export async function closeSeat(formData: FormData): Promise<void> {
+  const slug = text(formData, "slug");
+  const seatId = Number(text(formData, "seatId"));
+  if (!Number.isInteger(seatId)) return;
+
+  const supabase = await requireSupabase();
+  const { error } = await supabase.from("seats").delete().eq("id", seatId);
+  if (error) throw new Error(error.message);
+
+  seatsChanged(slug);
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath("/");
+}
+
 /** Submit a proposal for either a role or a concrete unassigned task. */
 export async function submitProposal(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");

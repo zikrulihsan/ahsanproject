@@ -4,6 +4,7 @@ import Link from "@/app/components/responsive-link";
 import {
   addComment,
   assignTask,
+  closeSeat,
   createTask,
   decideProposal,
   deleteTask,
@@ -411,49 +412,60 @@ export default async function ProjectPage({
                             <p className="seat-commitment">{seat.commitment}</p>
                           ) : null}
                         </div>
-                        {isOwner ? (
-                          <p className="muted">{tx(locale, "Menunggu seseorang bergabung.", "Waiting for someone to join.")}</p>
-                        ) : viewer ? (
-                          viewerSeat ? (
-                            <p className="muted">
-                              {viewerSeat.status === "filled"
-                                ? tx(locale, `Kamu sudah berada di tim ini sebagai ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`, `You are already on this team as ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`)
-                                : tx(locale, "Kamu sudah mendaftar ke proyek ini.", "You have already applied to this project.")}
-                            </p>
-                          ) : !canPropose ? (
-                            <p className="muted">
-                              {tx(locale, "Lengkapi profil talent pool untuk mendaftar ke peran ini.", "Complete your talent-pool profile to apply for this role.")} {" "}
-                              <Link href={profileReturnTo}>{tx(locale, "Lengkapi profil", "Complete your profile")}</Link>
-                            </p>
-                          ) : (
-                            proposalsForSeat(seat.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
-                              <p className="muted">{tx(locale, "Proposalmu sedang menunggu tanggapan.", "Your proposal is awaiting a response.")}</p>
+                        <div className="seat-actions">
+                          {isOwner ? (
+                            <p className="muted">{tx(locale, "Menunggu seseorang bergabung.", "Waiting for someone to join.")}</p>
+                          ) : viewer ? (
+                            viewerSeat ? (
+                              <p className="muted">
+                                {viewerSeat.status === "filled"
+                                  ? tx(locale, `Kamu sudah berada di tim ini sebagai ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`, `You are already on this team as ${roleLabel(viewerSeat.role, viewerSeat.roleTitle, locale)}.`)
+                                  : tx(locale, "Kamu sudah mendaftar ke proyek ini.", "You have already applied to this project.")}
+                              </p>
+                            ) : !canPropose ? (
+                              <p className="muted">
+                                {tx(locale, "Lengkapi profil talent pool untuk mendaftar ke peran ini.", "Complete your talent-pool profile to apply for this role.")} {" "}
+                                <Link href={profileReturnTo}>{tx(locale, "Lengkapi profil", "Complete your profile")}</Link>
+                              </p>
                             ) : (
-                              <details>
-                                <summary>{tx(locale, "Daftar untuk peran ini", "Apply for this role")}</summary>
-                                <form action={submitProposal}>
-                                <input type="hidden" name="slug" value={project.slug} />
-                                <input type="hidden" name="seatId" value={seat.id} />
-                                <label htmlFor={`pitch-${seat.id}`}>
-                                  {tx(locale, "Ceritakan mengapa kamu cocok dan berapa banyak waktu yang dapat kamu kontribusikan.", "Tell us why you are a good fit and how much time you can contribute.")}
-                                </label>
-                                <textarea
-                                  id={`pitch-${seat.id}`}
-                                  name="pitch"
-                                  rows={4}
-                                  required
-                                  placeholder={tx(locale, "Contoh: Saya pernah membantu riset serupa dan dapat berkontribusi tiga jam per minggu.", "For example: I have helped with similar research and can contribute three hours per week.")}
-                                />
-                                  <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim proposal", "Send proposal")}</SubmitButton>
-                                </form>
-                              </details>
+                              proposalsForSeat(seat.id).some((proposal) => proposal.person.id === viewer.id && proposal.status === "pending") ? (
+                                <p className="muted">{tx(locale, "Proposalmu sedang menunggu tanggapan.", "Your proposal is awaiting a response.")}</p>
+                              ) : (
+                                <details>
+                                  <summary>{tx(locale, "Daftar untuk peran ini", "Apply for this role")}</summary>
+                                  <form action={submitProposal}>
+                                  <input type="hidden" name="slug" value={project.slug} />
+                                  <input type="hidden" name="seatId" value={seat.id} />
+                                  <label htmlFor={`pitch-${seat.id}`}>
+                                    {tx(locale, "Ceritakan mengapa kamu cocok dan berapa banyak waktu yang dapat kamu kontribusikan.", "Tell us why you are a good fit and how much time you can contribute.")}
+                                  </label>
+                                  <textarea
+                                    id={`pitch-${seat.id}`}
+                                    name="pitch"
+                                    rows={4}
+                                    required
+                                    placeholder={tx(locale, "Contoh: Saya pernah membantu riset serupa dan dapat berkontribusi tiga jam per minggu.", "For example: I have helped with similar research and can contribute three hours per week.")}
+                                  />
+                                    <SubmitButton pendingLabel={tx(locale, "Mengirim…", "Sending…")}>{tx(locale, "Kirim proposal", "Send proposal")}</SubmitButton>
+                                  </form>
+                                </details>
+                              )
                             )
-                          )
-                        ) : (
-                          <Link className="ghost-button" href={signInPath(returnTo)}>
-                            {tx(locale, "Masuk untuk bergabung", "Sign in to join")}
-                          </Link>
-                        )}
+                          ) : (
+                            <Link className="ghost-button" href={signInPath(returnTo)}>
+                              {tx(locale, "Masuk untuk bergabung", "Sign in to join")}
+                            </Link>
+                          )}
+                          {isManager ? (
+                            <form action={closeSeat}>
+                              <input type="hidden" name="slug" value={project.slug} />
+                              <input type="hidden" name="seatId" value={seat.id} />
+                              <SubmitButton className="quiet" pendingLabel={tx(locale, "Menutup…", "Closing…")}>
+                                {tx(locale, "Tutup peran", "Close role")}
+                              </SubmitButton>
+                            </form>
+                          ) : null}
+                        </div>
                       </li>
                     ))}
                   </ul>

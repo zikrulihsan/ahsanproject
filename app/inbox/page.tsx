@@ -231,6 +231,14 @@ function NoticeLine({ notice, locale }: { notice: NoticeView; locale: Locale }) 
     return <p>{tx(locale, "Proposalmu untuk", "Your proposal for")} <strong>{target || tx(locale, "sebuah kontribusi", "a contribution")}</strong> {tx(locale, "di", "on")} {project} {tx(locale, "tidak dilanjutkan.", "is not moving forward.")}</p>;
   }
 
+  if (notice.kind === "role_closed") {
+    return (
+      <p>
+        {tx(locale, "Peran", "The role of")} <strong>{target || tx(locale, "yang kamu lamar", "you applied for")}</strong> {tx(locale, "di", "on")} {project} {tx(locale, "sudah ditutup dan tidak lagi menerima proposal.", "has closed and is no longer accepting proposals.")}
+      </p>
+    );
+  }
+
   return <p>{tx(locale, "Ada kabar terbaru dari", "There is an update from")} {project}.</p>;
 }
 
