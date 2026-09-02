@@ -605,14 +605,16 @@ export async function openSeat(formData: FormData): Promise<void> {
 }
 
 /**
- * Closes a role nobody has taken yet.
+ * Closes a role to new proposals, without touching anybody who already sent
+ * one.
  *
- * The delete itself needs no new authorisation — `managers close seats on
- * their project` has allowed it since 0004 — so this is a plain `.delete()`
- * the same way `deleteTask` is. What used to be missing is what closing one
- * does to anybody still waiting on it: a `before delete` trigger on `seats`
- * tells every pending applicant the role is no longer accepting proposals
- * before the cascade takes their row down with it.
+ * `DELETE` was the only tool already sitting in the database for this
+ * (`managers close seats on their project`, since 0004), but it cascades to
+ * every proposal aimed at the seat — including a pending one somebody is
+ * still waiting on. This instead flips the seat to `closed`: `submit_proposal`
+ * already refuses anything but an `open` seat, so new applicants get turned
+ * away, while `decide_proposal` now accepts from `closed` too, so whoever
+ * applied before the role closed still gets a real accept or decline.
  */
 export async function closeSeat(formData: FormData): Promise<void> {
   const slug = text(formData, "slug");
@@ -620,7 +622,7 @@ export async function closeSeat(formData: FormData): Promise<void> {
   if (!Number.isInteger(seatId)) return;
 
   const supabase = await requireSupabase();
-  const { error } = await supabase.from("seats").delete().eq("id", seatId);
+  const { error } = await supabase.from("seats").update({ status: "closed" }).eq("id", seatId);
   if (error) throw new Error(error.message);
 
   seatsChanged(slug);

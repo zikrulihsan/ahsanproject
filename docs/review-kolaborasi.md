@@ -198,12 +198,16 @@ proyek yang sama selama belum diterima di salah satunya.
 
 Tiga hal ini sudah legal menurut policy dan tidak pernah ditawarkan halamannya:
 
-- **Menutup peran.** ✅ Dikerjakan 2026-09-02. `managers close seats on their
-  project` (DELETE) ada sejak 0004; yang ditambahkan cuma tombolnya di halaman
-  proyek dan satu trigger (`20260902000000_close_seat_notifies.sql`) yang
-  mengabari setiap pelamar yang masih `pending` bahwa perannya sudah ditutup
-  dan tidak lagi menerima proposal, sebelum cascade menghapus baris lamaran
-  mereka.
+- **Menutup peran.** ✅ Dikerjakan 2026-09-02, tapi bukan lewat DELETE.
+  `managers close seats on their project` sudah legal sejak 0004, tapi
+  menghapus baris seat ikut menghapus setiap proposal yang mengarah ke sana —
+  termasuk yang masih menunggu keputusan. Tombol "Tutup peran" yang
+  ditambahkan malah memindahkan status ke `closed`
+  (`20260902000000_close_role_to_new_proposals.sql`): `submit_proposal` sudah
+  menolak apa pun selain seat `open`, jadi pelamar baru berhenti di situ,
+  sementara `decide_proposal` sekarang menerima dari `closed` juga, jadi
+  siapa pun yang sudah melamar sebelum peran ditutup tetap diputuskan
+  normal — diterima atau ditolak, bukan otomatis gugur.
 - **Menghapus komentar sendiri.** `people delete their own comment` ada sejak
   0003.
 - **Melepas anggota.** Owner boleh menghapus baris seat, dan

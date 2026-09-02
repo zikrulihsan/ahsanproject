@@ -151,6 +151,9 @@ export default async function ProjectPage({
 
   const team = project.seats.filter((seat) => seat.status === "filled");
   const open = project.seats.filter((seat) => seat.status === "open");
+  // A closed role still shows up here — closed only turns off new proposals,
+  // it does not decide the ones already sent.
+  const awaitingDecision = project.seats.filter((seat) => seat.status !== "filled");
   const viewerSeat = viewer ? project.seats.find((seat) => seat.person?.id === viewer.id) : undefined;
   const canPropose = Boolean(viewer && profileReady(viewer));
   const profileReturnTo = `/account/profile?returnTo=${encodeURIComponent(returnTo)}`;
@@ -479,7 +482,7 @@ export default async function ProjectPage({
                 {isManager && proposals.filter((proposal) => proposal.seatId && proposal.status === "pending").length > 0 ? (
                   <div className="pending-list">
                     <h3>{tx(locale, "Proposal peran yang menunggu", "Pending role proposals")}</h3>
-                    {open.flatMap((seat) => proposalsForSeat(seat.id)
+                    {awaitingDecision.flatMap((seat) => proposalsForSeat(seat.id)
                       .filter((proposal) => proposal.status === "pending")
                       .map((proposal) => (
                         <article key={proposal.id} className="pending-card">
